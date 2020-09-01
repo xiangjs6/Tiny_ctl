@@ -12,8 +12,8 @@ typedef struct {
     } *obj_func;
     void *obj_this;
     void *ptr;
-} iter;
+} iterator;
 
-iter creat_iter(void *p);
+iterator creat_iter(void *p);
 
 #endif //TINY_CTL_ITERATOR_H

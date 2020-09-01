@@ -7,7 +7,7 @@
 
 static void *increment(void)
 {
-    iter *p_it = *pthis();
+    iterator *p_it = *pthis();
     void *ptr = p_it->ptr;
     p_it->ptr = PRIVATE_THIS(p_it->obj_this).iter_increment(p_it->ptr);
     return ptr;
@@ -15,16 +15,16 @@ static void *increment(void)
 
 static void *decrement(void)
 {
-    iter *p_it = *pthis();
+    iterator *p_it = *pthis();
     void *ptr = p_it->ptr;
     p_it->ptr = PRIVATE_THIS(p_it->obj_this).iter_decrement(p_it->ptr);
     return ptr;
 }
-typeof(*((iter*)(0))->obj_func) def_obj_func = {increment, decrement};
+typeof(*((iterator*)(0))->obj_func) def_obj_func = {increment, decrement};
 
-iter creat_iter(void *p)
+iterator creat_iter(void *p)
 {
-    iter it;
+    iterator it;
     it.obj_func = &def_obj_func;
     it.ptr = p;
     it.obj_this = pthis();
