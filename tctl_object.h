@@ -7,8 +7,14 @@
 
 #include <stddef.h>
 
+typedef struct {
+    void *(*iter_increment)(void *p);
+    void *(*iter_decrement)(void *p);
+} Obj_private_func;
+
 void **pthis(void);
-#define THIS(p) ((*(typeof(p))((*pthis()) = p)))
+#define THIS(p) (*((*(typeof(p))((*pthis()) = p)).obj_func))
+#define PRIVATE_THIS(p) ((*(Obj_private_func*)((*pthis()) = p)))
 
 void *tmp_val(void *p, size_t n);
 #define TEMP(v) ({typeof(v) __temp = v; (typeof(v)*)tmp_val(&__temp, sizeof(v));})
