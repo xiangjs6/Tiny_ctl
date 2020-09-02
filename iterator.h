@@ -6,6 +6,11 @@
 #define TINY_CTL_ITERATOR_H
 
 typedef struct {
+    void *(*iter_increment)(void *p);
+    void *(*iter_decrement)(void *p);
+} __iterator_obj_func;
+
+typedef struct {
     struct {
         void *(*increment)(void);
         void *(*decrement)(void);
