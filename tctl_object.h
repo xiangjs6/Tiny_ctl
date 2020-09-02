@@ -8,7 +8,7 @@
 #include <stddef.h>
 
 void **pthis(void);
-#define THIS(p) (*((*(typeof(p))((*pthis()) = p)).obj_func))
-#define PRIVATE_THIS(p) ((*(Obj_private_func*)((*pthis()) = p)))
+#define THIS(p) (*((*(typeof(p))((*pthis()) = p)).Public_memb))
+#define PRIVATE_THIS(p) ((*pthis()) = p)
 
 #endif //TINY_CTL_TCTL_OBJECT_H
