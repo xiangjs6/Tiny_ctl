@@ -49,11 +49,11 @@ static void *sub(int x)
 
 typeof(*((iterator*)(0))->Public_memb) def_obj_func = {increment, decrement, front_increment, front_decrement, add, sub};
 
-iterator creat_iter(void *p)
+iterator creat_iter(void *p, void *obj_this)
 {
     iterator it;
     it.Public_memb = &def_obj_func;
     it.ptr = p;
-    it.obj_this = pthis();
+    it.obj_this = obj_this;
     return it;
 }
