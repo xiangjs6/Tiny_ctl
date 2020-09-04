@@ -4,6 +4,8 @@
 
 #include "iterator.h"
 #include "tctl_object.h"
+#include "allocator.h"
+#include "tctl_common.h"
 
 static void *increment(void)
 {
@@ -47,13 +49,31 @@ static void *sub(int x)
     return ((__iterator_obj_func*)PRIVATE_THIS(p_it->ptr))->iter_sub(p_it->ptr, x);
 }
 
-typeof(*((iterator*)(0))->Public_memb) def_obj_func = {increment, decrement, front_increment, front_decrement, add, sub};
+static typeof(*((iterator*)(0))->Public_memb) def_obj_func = {increment, decrement, front_increment, front_decrement, add, sub};
 
-iterator creat_iter(void *p, void *obj_this)
+iterator init_iter(void *obj_ptr, void *p)
 {
-    iterator it;
-    it.Public_memb = &def_obj_func;
-    it.ptr = p;
-    it.obj_this = obj_this;
-    return it;
+    iterator iter;
+    iter.Public_memb = &def_obj_func;
+    iter.obj_this = obj_ptr;
+    iter.ptr = p;
+    return iter;
+}
+
+iterator *__constructor_iter(iterator iter)
+{
+    iterator *res = allocate(sizeof(iterator));
+    *res = iter;
+    return res;
+}
+
+void __destructor_iter(void *p)
+{
+    iterator *iter = container_of(*(void**)p, iterator, ptr);
+    deallocate(iter, sizeof(iterator));
+}
+
+void destory_iter(void *iter)
+{
+    deallocate(iter, sizeof(iterator));
 }

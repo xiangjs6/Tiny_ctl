@@ -26,8 +26,11 @@ typedef struct {
 } iterator;
 
 #define ITER(p) THIS(container_of((p), iterator, ptr))
-#define ITER_TYPE(type) type**
+#define ITER_TYPE(type) autofree(__destructor_iter) type**
 #define ITER_VALUE(p) *p
-iterator creat_iter(void *p, void *obj_this);
+#define NEW_ITER(p) &(__constructor_iter(init_iter(*pthis(), p))->ptr);
+iterator init_iter(void *obj_ptr, void *p);
 
+iterator *__constructor_iter(iterator iter);
+void __destructor_iter(void *p);
 #endif //TINY_CTL_ITERATOR_H
