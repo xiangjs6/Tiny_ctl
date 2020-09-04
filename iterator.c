@@ -9,7 +9,7 @@
 static void *increment(void)
 {
     iterator *p_it = *pthis();
-    __private_iterator *private_it = (__private_iterator*)p_it->__private_fill;
+    __private_iterator *private_it = (__private_iterator*)p_it->OBJECT_PRIVATE;
     void *ptr = p_it->ptr;
     THIS(private_it->obj_this);
     p_it->ptr = private_it->obj_iter_func->iter_increment(p_it->ptr);
@@ -19,7 +19,7 @@ static void *increment(void)
 static void *decrement(void)
 {
     iterator *p_it = *pthis();
-    __private_iterator *private_it = (__private_iterator*)p_it->__private_fill;
+    __private_iterator *private_it = (__private_iterator*)p_it->OBJECT_PRIVATE;
     void *ptr = p_it->ptr;
     THIS(private_it->obj_this);
     p_it->ptr = private_it->obj_iter_func->iter_decrement(p_it->ptr);
@@ -29,7 +29,7 @@ static void *decrement(void)
 static void *front_increment(void)
 {
     iterator *p_it = *pthis();
-    __private_iterator *private_it = (__private_iterator*)p_it->__private_fill;
+    __private_iterator *private_it = (__private_iterator*)p_it->OBJECT_PRIVATE;
     THIS(private_it->obj_this);
     p_it->ptr = private_it->obj_iter_func->iter_increment(p_it->ptr);
     return p_it->ptr;
@@ -38,7 +38,7 @@ static void *front_increment(void)
 static void *front_decrement(void)
 {
     iterator *p_it = *pthis();
-    __private_iterator *private_it = (__private_iterator*)p_it->__private_fill;
+    __private_iterator *private_it = (__private_iterator*)p_it->OBJECT_PRIVATE;
     THIS(private_it->obj_this);
     p_it->ptr = private_it->obj_iter_func->iter_decrement(p_it->ptr);
     return p_it->ptr;
@@ -47,7 +47,7 @@ static void *front_decrement(void)
 static void *add(int x)
 {
     iterator *p_it = *pthis();
-    __private_iterator *private_it = (__private_iterator*)p_it->__private_fill;
+    __private_iterator *private_it = (__private_iterator*)p_it->OBJECT_PRIVATE;
     THIS(private_it->obj_this);
     return private_it->obj_iter_func->iter_add(p_it->ptr, x);
 }
@@ -55,7 +55,7 @@ static void *add(int x)
 static void *sub(int x)
 {
     iterator *p_it = *pthis();
-    __private_iterator *private_it = (__private_iterator*)p_it->__private_fill;
+    __private_iterator *private_it = (__private_iterator*)p_it->OBJECT_PRIVATE;
     THIS(private_it->obj_this);
     return private_it->obj_iter_func->iter_sub(p_it->ptr, x);
 }
@@ -66,7 +66,7 @@ iterator init_iter(void *obj_ptr, void *p, __iterator_obj_func *func)
 {
     iterator iter = def_obj_func;
     iter.ptr = p;
-    __private_iterator *p_private = (__private_iterator*)iter.__private_fill;
+    __private_iterator *p_private = (__private_iterator*)iter.OBJECT_PRIVATE;
     p_private->obj_this = obj_ptr;
     p_private->obj_iter_func = func;
     return iter;
