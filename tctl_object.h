@@ -14,12 +14,8 @@
  * 2、建议将私有变量重新封装到单独结构体中，并将其大小填充到对象结构体
  * 3、建议私有成员函数使用同一结构体指针，指向一个不变常量上
  * 4、遵守各个泛类对象指定的规则，比如迭代器
- * 5、对象间数据传输，放在OBJECT_INNER结构体中
- * 6、对象间数据传输域放在公共域中
- * 7、数据传输域不能是指针
  * */
 
-#define OBJECT_INNER obj_inner
 #define OBJECT_PRIVATE obj_private
 void **pthis(void);
 #define THIS(p) ((*(typeof(p))((*pthis()) = p)))
