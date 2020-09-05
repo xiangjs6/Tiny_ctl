@@ -88,7 +88,7 @@ static iter_ptr erase(iter_ptr iter)
 {
     vector *this = *pthis();
     __private_vector *p_private = (__private_vector*)this->OBJECT_PRIVATE;
-    if (iter >= p_private->finish.ptr)
+    if (iter > p_private->finish.ptr || iter < p_private->start.ptr)
         return NULL;
     memcpy(iter, iter + p_private->memb_size, p_private->memb_size);
     p_private->nmemb--;
@@ -99,7 +99,7 @@ static iter_ptr insert(iter_ptr iter, void *x)
 {
     vector *this = *pthis();
     __private_vector *p_private = (__private_vector*)this->OBJECT_PRIVATE;
-    if (iter > p_private->finish.ptr)
+    if (iter > p_private->finish.ptr || iter < p_private->start.ptr)
         return NULL;
     if (!this->capacity()) {
         fill_allocate();

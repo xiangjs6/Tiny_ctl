@@ -70,7 +70,12 @@ int main(void)
     *ii = ITER(ii).add(3);
     THIS(&v).erase(ii);
     arr = *v.end();
-    //THIS(&v).resize(100);
+    THIS(&v).resize(100);
+    iter_ptr haha = *v.begin();
+    haha += 5 * 4;
+    temp = 1000;
+    iter_ptr tt = v.insert(haha, &temp);
+    printf("aaaa%d\n", *(int*)tt);
     for (ITER_TYPE(int) it = NEW_ITER(THIS(&v).begin()); *it != *THIS(&v).end(); ITER(it).increment()) {
         printf("%d\n", **it);
     }
