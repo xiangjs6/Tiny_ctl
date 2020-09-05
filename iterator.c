@@ -72,10 +72,10 @@ iterator init_iter(void *obj_ptr, void *p, __iterator_obj_func *func)
     return iter;
 }
 
-iterator *__constructor_iter(iterator iter)
+iterator *__constructor_iter(iterator *iter)
 {
     iterator *res = allocate(sizeof(iterator));
-    *res = iter;
+    *res = *iter;
     return res;
 }
 

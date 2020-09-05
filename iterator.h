@@ -9,8 +9,8 @@
 /*
  * 迭代器规则
  * 1、对用户所见的都应该是type**类型
- * 2、使用迭代器的对象应该在结构体中加入__iterator_obj_func成员，并且使用宏__DEF_ITER_FUNC_NAME为名字
- * 3、声明得到__iterator_obj_func成员地址的函数，并且放在public域中
+ * 2、使用迭代器的对象应该在结构体中加入__iterator_obj_func成员
+ * 3、容器应该存储自己的begin和end迭代器，并且返回迭代器的函数应该使用指向指针的指针去指向type*
  * */
 typedef struct {
     void *(*iter_increment)(void *);
@@ -34,15 +34,12 @@ typedef struct {
     byte OBJECT_PRIVATE[sizeof(__private_iterator)];
 } iterator;
 
-#define __GET_ITER_FUNC_NAME __get_iter_func
-#define __GET_ITER_FUNC __iterator_obj_func *(*__GET_ITER_FUNC_NAME)(void)
-
 #define ITER(p) THIS(container_of((p), iterator, ptr))
 #define ITER_TYPE(type) autofree(__destructor_iter) type**
 #define ITER_VALUE(p) *p
-#define NEW_ITER(obj, p) (&(__constructor_iter(init_iter(obj, p, (THIS(obj)).OBJECT_INNER.__GET_ITER_FUNC_NAME())))->ptr);
+#define NEW_ITER(p) (void*)(&(__constructor_iter((iterator*)p))->ptr)
 
 iterator init_iter(void *obj_ptr, void *p, __iterator_obj_func *func);
-iterator *__constructor_iter(iterator iter);
+iterator *__constructor_iter(iterator *iter);
 void __destructor_iter(void *p);
 #endif //TINY_CTL_ITERATOR_H
