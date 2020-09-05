@@ -8,18 +8,18 @@
 #include "iterator.h"
 
 typedef struct {
+    const size_t memb_size;
     size_t nmemb;
-    size_t memb_size;
-    void *start;
-    void *finish;
-    void *end_of_storage;
-    __iterator_obj_func *iter_func;
+    size_t total_storage_memb;
+    iterator start;
+    iterator finish;
+    //iterator end_of_storage;
 } __private_vector;
 
 typedef struct {
     void *(*at)(int);
-    void *(*begin)(void);
-    void *(*end)(void);
+    iter_ptr (*begin)(void);
+    iter_ptr (*end)(void);
     void *(*front)(void);
     void *(*back)(void);
     size_t (*size)(void);
@@ -27,12 +27,13 @@ typedef struct {
     bool (*empty)(void);
     void (*push_back)(void *x);
     void (*pop_back)(void);
-    void *(*erase)(void *iter);
-    void (*resize)(size_t new_size, void *x);
+    iter_ptr (*erase)(iter_ptr iter);
+    iter_ptr (*insert)(iter_ptr iter, void *x);
+    void (*resize)(size_t new_size);
     void (*clear)(void);
-    struct {
-        __GET_ITER_FUNC;
-    } OBJECT_INNER;
     byte OBJECT_PRIVATE[sizeof(__private_vector)];
 } vector;
+
+void init_vector(vector *p_vector, size_t nmemb, size_t memb_size, void *init_array);
+void destory_vector(vector *p_vector);
 #endif //TINY_CTL_TCTL_VECTOR_H
