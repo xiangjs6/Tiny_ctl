@@ -36,6 +36,8 @@ static void *__oom_realloc(void *p, size_t n)
 
 static void *__malloc_alloc(size_t n)
 {
+    if (n == 0)
+        return NULL;
     void *res = malloc(n);
     if (!res)
         return __oom_malloc(n);
@@ -112,6 +114,8 @@ static void refill(size_t n)
 
 static void *__fragment_alloc(size_t n)
 {
+    if (n == 0)
+        return NULL;
     union obj **p_free_list = free_list + FREELIST_INDEX(n);
     union obj *res = *p_free_list;
     if (!res) {
@@ -153,7 +157,8 @@ void *__reallocate(void *p, size_t old_size, size_t new_size)
     else if (new_size <= FRAGMENT_MAX_SIZE) {
         void *__p = __fragment_alloc(new_size);
         if (old_size > 0) {
-            memcpy(__p, p, MIN(old_size, new_size));
+            if (__p)
+                memcpy(__p, p, MIN(old_size, new_size));
             if (old_size <= FRAGMENT_MAX_SIZE)
                 __fragment_dealloc(p, old_size);
             else
