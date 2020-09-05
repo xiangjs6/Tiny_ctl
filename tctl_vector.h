@@ -18,8 +18,8 @@ typedef struct {
 
 typedef struct {
     void *(*at)(int);
-    iter_ptr (*begin)(void);
-    iter_ptr (*end)(void);
+    iter_ptr const *(*begin)(void);
+    iter_ptr const *(*end)(void);
     void *(*front)(void);
     void *(*back)(void);
     size_t (*size)(void);

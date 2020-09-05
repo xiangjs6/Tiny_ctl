@@ -24,17 +24,17 @@ static void *at(int pos)
         return NULL;
     return p_private->start.ptr + p_private->memb_size * pos;
 }
-static void **begin(void)
+static iter_ptr const *begin(void)
 {
     vector *this = *pthis();
     __private_vector *p_private = (__private_vector*)this->OBJECT_PRIVATE;
-    return (void**)&p_private->start;
+    return (iter_ptr const *)&p_private->start;
 }
-static void **end(void)
+static iter_ptr const *end(void)
 {
     vector *this = *pthis();
     __private_vector *p_private = (__private_vector*)this->OBJECT_PRIVATE;
-    return (void**)&p_private->finish;
+    return (iter_ptr const *)&p_private->finish;
 }
 static void *front(void)
 {
@@ -88,9 +88,9 @@ static iter_ptr erase(iter_ptr iter)
 {
     vector *this = *pthis();
     __private_vector *p_private = (__private_vector*)this->OBJECT_PRIVATE;
-    if (*iter >= p_private->finish.ptr)
+    if (iter >= p_private->finish.ptr)
         return NULL;
-    memcpy(*iter, *iter + p_private->memb_size, p_private->memb_size);
+    memcpy(iter, iter + p_private->memb_size, p_private->memb_size);
     p_private->nmemb--;
     p_private->finish.ptr -= p_private->memb_size;
     return iter;
@@ -99,14 +99,14 @@ static iter_ptr insert(iter_ptr iter, void *x)
 {
     vector *this = *pthis();
     __private_vector *p_private = (__private_vector*)this->OBJECT_PRIVATE;
-    if (*iter > p_private->finish.ptr)
+    if (iter > p_private->finish.ptr)
         return NULL;
     if (!this->capacity()) {
         fill_allocate();
     }
-    size_t back_nmemb = p_private->nmemb - (*iter - p_private->start.ptr) / p_private->memb_size;
-    memcpy(*iter + p_private->memb_size, *iter, p_private->memb_size * back_nmemb);
-    memcpy(*iter, x, p_private->memb_size);
+    size_t back_nmemb = p_private->nmemb - (iter - p_private->start.ptr) / p_private->memb_size;
+    memcpy(iter + p_private->memb_size, iter, p_private->memb_size * back_nmemb);
+    memcpy(iter, x, p_private->memb_size);
     p_private->nmemb++;
     p_private->finish.ptr += p_private->memb_size;
     return iter;
@@ -186,6 +186,9 @@ void init_vector(vector *p_vector, size_t nmemb, size_t memb_size, void *init_ar
     __private.nmemb = __private.total_storage_memb = nmemb;
     __private.start = init_iter(p_vector, reallocate(NULL, 0, nmemb * memb_size), &__def_vector_iter);
     __private.finish = __private.start;
+    if (init_array) {
+        memcpy(__private.start.ptr, init_array, nmemb * memb_size);
+    }
     memcpy(p_vector->OBJECT_PRIVATE, &__private, sizeof(__private_vector));
 }
 
