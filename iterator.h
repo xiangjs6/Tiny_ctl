@@ -34,10 +34,9 @@ typedef struct {
     byte OBJECT_PRIVATE[sizeof(__private_iterator)];
 } iterator;
 
-typedef void** iter_ptr;
+typedef void* iter_ptr;
 #define ITER(p) THIS(container_of((p), iterator, ptr))
 #define ITER_TYPE(type) autofree(__destructor_iter) type**
-#define ITER_VALUE(p) *p
 #define NEW_ITER(p) (void*)(&(__constructor_iter((iterator*)p))->ptr)
 
 iterator init_iter(void *obj_ptr, void *p, __iterator_obj_func *func);
