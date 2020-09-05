@@ -10,7 +10,7 @@
  * 迭代器规则
  * 1、对用户所见的都应该是type**类型
  * 2、使用迭代器的对象应该在结构体中加入__iterator_obj_func成员
- * 3、容器应该存储自己的begin和end迭代器，并且返回迭代器的函数应该使用指向指针的指针去指向type*
+ * 3、容器应该存储自己的begin和end迭代器，并且返回迭代器的函数应该为iter_ptr，及使用指向指针的指针去指向type*，
  * */
 typedef struct {
     void *(*iter_increment)(void *);
@@ -34,6 +34,7 @@ typedef struct {
     byte OBJECT_PRIVATE[sizeof(__private_iterator)];
 } iterator;
 
+typedef void** iter_ptr;
 #define ITER(p) THIS(container_of((p), iterator, ptr))
 #define ITER_TYPE(type) autofree(__destructor_iter) type**
 #define ITER_VALUE(p) *p
