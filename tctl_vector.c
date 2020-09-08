@@ -8,7 +8,7 @@
 
 static void fill_allocate(void)
 {
-    vector *this = *pthis();
+    vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->OBJECT_PRIVATE;
     size_t old_size = p_private->total_storage_memb;
     p_private->total_storage_memb *= 2;
@@ -18,7 +18,7 @@ static void fill_allocate(void)
 }
 static void *at(int pos)
 {
-    vector *this = *pthis();
+    vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->OBJECT_PRIVATE;
     if (pos >= p_private->nmemb)
         return NULL;
@@ -26,51 +26,53 @@ static void *at(int pos)
 }
 static iter_ptr const *begin(void)
 {
-    vector *this = *pthis();
+    vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->OBJECT_PRIVATE;
     return (iter_ptr const *)&p_private->start;
 }
 static iter_ptr const *end(void)
 {
-    vector *this = *pthis();
+    vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->OBJECT_PRIVATE;
     return (iter_ptr const *)&p_private->finish;
 }
 static void *front(void)
 {
-    vector *this = *pthis();
+    vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->OBJECT_PRIVATE;
     return p_private->start.ptr;
 }
 static void *back(void)
 {
-    vector *this = *pthis();
+    vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->OBJECT_PRIVATE;
     return p_private->finish.ptr - p_private->memb_size;
 }
 static size_t size(void)
 {
-    vector *this = *pthis();
+    vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->OBJECT_PRIVATE;
     return p_private->nmemb;
 }
 static size_t capacity(void)
 {
-    vector *this = *pthis();
+    vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->OBJECT_PRIVATE;
     return p_private->total_storage_memb - p_private->nmemb;
 }
 static bool empty(void)
 {
-    vector *this = *pthis();
+    vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->OBJECT_PRIVATE;
     return p_private->nmemb;
 }
 static void push_back(void *x)
 {
-    vector *this = *pthis();
+    vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->OBJECT_PRIVATE;
+    push_this(this);
     if (!this->capacity()) {
+        push_this(this);
         fill_allocate();
     }
     memcpy(p_private->finish.ptr, x, p_private->memb_size);
@@ -79,14 +81,14 @@ static void push_back(void *x)
 }
 static void pop_back(void)
 {
-    vector *this = *pthis();
+    vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->OBJECT_PRIVATE;
     p_private->nmemb--;
     p_private->finish.ptr -= p_private->memb_size;
 }
 static iter_ptr erase(iter_ptr iter)
 {
-    vector *this = *pthis();
+    vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->OBJECT_PRIVATE;
     if (iter > p_private->finish.ptr || iter < p_private->start.ptr)
         return NULL;
@@ -98,11 +100,13 @@ static iter_ptr erase(iter_ptr iter)
 }
 static iter_ptr insert(iter_ptr iter, void *x)
 {
-    vector *this = *pthis();
+    vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->OBJECT_PRIVATE;
     if (iter > p_private->finish.ptr || iter < p_private->start.ptr)
         return NULL;
+    push_this(this);
     if (!this->capacity()) {
+        push_this(this);
         fill_allocate();
     }
     size_t back_nmemb = p_private->nmemb - (iter - p_private->start.ptr) / p_private->memb_size;
@@ -114,15 +118,19 @@ static iter_ptr insert(iter_ptr iter, void *x)
 }
 static void resize(size_t new_size)
 {
-    vector *this = *pthis();
+    vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->OBJECT_PRIVATE;
-    while (new_size > p_private->total_storage_memb) fill_allocate();
+    while (new_size > p_private->total_storage_memb)
+    {
+        push_this(this);
+        fill_allocate();
+    }
     p_private->nmemb = new_size;
     p_private->finish.ptr = p_private->start.ptr + new_size * p_private->memb_size;
 }
 static void clear(void)
 {
-    vector *this = *pthis();
+    vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->OBJECT_PRIVATE;
     p_private->nmemb = 0;
     p_private->finish = p_private->start;
@@ -130,28 +138,28 @@ static void clear(void)
 
 void *iter_increment(void *p)
 {
-    vector *this = *pthis();
+    vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->OBJECT_PRIVATE;
     return p + p_private->memb_size;
 }
 
 void *iter_decrement(void *p)
 {
-    vector *this = *pthis();
+    vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->OBJECT_PRIVATE;
     return p - p_private->memb_size;
 }
 
 void *iter_add(void *p, int x)
 {
-    vector *this = *pthis();
+    vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->OBJECT_PRIVATE;
     return p + p_private->memb_size * x;
 }
 
 void *iter_sub(void *p, int x)
 {
-    vector *this = *pthis();
+    vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->OBJECT_PRIVATE;
     return p - p_private->memb_size * x;
 }
