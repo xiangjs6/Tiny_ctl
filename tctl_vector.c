@@ -90,7 +90,8 @@ static iter_ptr erase(iter_ptr iter)
     __private_vector *p_private = (__private_vector*)this->OBJECT_PRIVATE;
     if (iter > p_private->finish.ptr || iter < p_private->start.ptr)
         return NULL;
-    memcpy(iter, iter + p_private->memb_size, p_private->memb_size);
+    size_t back_nmemb = p_private->nmemb - (iter - p_private->start.ptr) / p_private->memb_size - 1;
+    memcpy(iter, iter + p_private->memb_size, p_private->memb_size * back_nmemb);
     p_private->nmemb--;
     p_private->finish.ptr -= p_private->memb_size;
     return iter;

@@ -58,17 +58,24 @@ int main(void)
     THIS(&v).push_back(&temp);
     THIS(&v).pop_back();
     temp = 100;
-    THIS(&v).insert(v.begin(), &temp);
+    THIS(&v).insert(*v.begin(), &temp);
     temp = 101;
-    THIS(&v).insert(v.end(), &temp);
+    THIS(&v).insert(*v.end(), &temp);
     int *arr = *v.end();
     temp = 102;
     ITER_TYPE(int) ii = NEW_ITER(THIS(&v).begin());
-    *ii = ITER(ii).add(2);
-    THIS(&v).insert(ii, &temp);
+    //*ii = ITER(ii).add(2);
+    THIS(&v).insert(*ii, &temp);
     arr = *v.end();
-    *ii = ITER(ii).add(3);
-    THIS(&v).erase(ii);
+    //*ii = ITER(ii).add(3);
+    for (ITER_TYPE(int) it = NEW_ITER(THIS(&v).begin()); *it != *THIS(&v).end(); ITER(it).increment()) {
+        printf("%d\n", **it);
+    }
+    *ii = THIS(&v).erase(*ii);
+    printf("%ddddd\n", **ii);
+    for (ITER_TYPE(int) it = NEW_ITER(THIS(&v).begin()); *it != *THIS(&v).end(); ITER(it).increment()) {
+        printf("%d\n", **it);
+    }
     arr = *v.end();
     THIS(&v).resize(100);
     iter_ptr haha = *v.begin();
