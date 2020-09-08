@@ -5,7 +5,7 @@
 #include "tctl_common.h"
 #include <pthread.h>
 #include <memory.h>
-#include "allocator.h"
+#include "tctl_allocator.h"
 
 //临时变量
 static pthread_key_t tmp_val_key;

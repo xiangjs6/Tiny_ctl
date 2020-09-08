@@ -3,7 +3,7 @@
 //
 
 #include "tctl_vector.h"
-#include "allocator.h"
+#include "tctl_allocator.h"
 #include <memory.h>
 
 static void fill_allocate(void)

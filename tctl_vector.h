@@ -5,7 +5,7 @@
 #ifndef TINY_CTL_TCTL_VECTOR_H
 #define TINY_CTL_TCTL_VECTOR_H
 #include "tctl_def.h"
-#include "iterator.h"
+#include "tctl_iterator.h"
 
 typedef struct {
     const size_t memb_size;

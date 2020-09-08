@@ -1,15 +1,10 @@
 #include <stdio.h>
-#include "allocator.h"
+#include "tctl_allocator.h"
 #include "tctl_object.h"
 #include "tctl_common.h"
-#include "iterator.h"
+#include "tctl_iterator.h"
 #include "tctl_vector.h"
 #include <stdlib.h>
-
-void f(int *a)
-{
-    printf("%d\n", *a);
-}
 
 struct foo{
     int a;

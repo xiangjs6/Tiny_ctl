@@ -5,7 +5,7 @@
 #include "tctl_object.h"
 
 #include <pthread.h>
-#include "allocator.h"
+#include "tctl_allocator.h"
 
 //this指针
 static pthread_key_t this_key;

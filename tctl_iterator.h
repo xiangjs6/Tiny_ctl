@@ -2,8 +2,8 @@
 // Created by xjs on 2020/9/1.
 //
 
-#ifndef TINY_CTL_ITERATOR_H
-#define TINY_CTL_ITERATOR_H
+#ifndef TINY_CTL_TCTL_ITERATOR_H
+#define TINY_CTL_TCTL_ITERATOR_H
 #include "tctl_object.h"
 
 /*
@@ -42,4 +42,4 @@ typedef void* iter_ptr;
 iterator init_iter(void *obj_ptr, void *p, __iterator_obj_func *func);
 iterator *__constructor_iter(iterator *iter);
 void __destructor_iter(void *p);
-#endif //TINY_CTL_ITERATOR_H
+#endif //TINY_CTL_TCTL_ITERATOR_H

@@ -135,14 +135,14 @@ static void __fragment_dealloc(void *p, size_t n)
 }
 
 //对外接口
-void (*__set_malloc_handler(void(*f)(void)))(void)
+void (*set_malloc_handler(void(*f)(void)))(void)
 {
     void (*old)(void) = __malloc_handler;
     __malloc_handler = f;
     return old;
 }
 
-void *__allocate(size_t n)
+void *allocate(size_t n)
 {
     if (n <= FRAGMENT_MAX_SIZE)
         return __fragment_alloc(n);
@@ -150,7 +150,7 @@ void *__allocate(size_t n)
         return __malloc_alloc(n);
 }
 
-void *__reallocate(void *p, size_t old_size, size_t new_size)
+void *reallocate(void *p, size_t old_size, size_t new_size)
 {
     if (old_size <= FRAGMENT_MAX_SIZE && ROUND_UP(old_size) == ROUND_UP(new_size))
         return p;
@@ -178,7 +178,7 @@ void *__reallocate(void *p, size_t old_size, size_t new_size)
     }
 }
 
-void __deallocate(void *p, size_t n)
+void deallocate(void *p, size_t n)
 {
     if (n <= FRAGMENT_MAX_SIZE)
         __fragment_dealloc(p, n);
