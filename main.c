@@ -4,59 +4,62 @@
 #include "tctl_common.h"
 #include "tctl_iterator.h"
 #include "tctl_vector.h"
+#include "tctl_list.h"
 #include <stdlib.h>
 
 
 int main(void)
 {
-    vector v;
-    init_vector(&v, 0, sizeof(int), NULL);
-    //*(int*)THIS(&v).at(0) = 1;
-    int temp = 2;
-    THIS(&v).push_back(&temp);
-    temp = 3;
-    THIS(&v).push_back(&temp);
-    temp = 4;
-    THIS(&v).push_back(&temp);
-    temp = 5;
-    THIS(&v).push_back(&temp);
-    temp = 6;
-    THIS(&v).push_back(&temp);
-    THIS(&v).pop_back();
-    temp = 100;
-    THIS(&v).insert(*THIS(&v).begin(), &temp);
-    temp = 101;
-    THIS(&v).insert(*THIS(&v).end(), &temp);
-    int *arr = *THIS(&v).end();
-    temp = 102;
-    ITER_TYPE(int) ii = NEW_ITER(THIS(&v).begin());
-    //*ii = ITER(ii).add(2);
-    THIS(&v).insert(*ii, &temp);
-    arr = *THIS(&v).end();
-    //*ii = ITER(ii).add(3);
-    for (ITER_TYPE(int) it = NEW_ITER(THIS(&v).begin()); *it != *THIS(&v).end(); ITER(it).increment()) {
+    list l;
+    init_list(&l, sizeof(int));
+    int temp = 1;
+    for (int i = 0; i < 10; i++) {
+        THIS(&l).push_back(&i);
+    }
+    for (int i = 0; i < 5; i++) {
+        THIS(&l).pop_back();
+    }
+    int temp1 = 20;
+    THIS(&l).pop_front();
+    THIS(&l).push_front(&temp1);
+    iter_ptr iter = *THIS(&l).begin();
+    THIS(&l).insert(iter, &temp);
+    printf("first\n");
+    for (ITER_TYPE(int) it = NEW_ITER(THIS(&l).begin()); *it != *THIS(&l).end(); ITER(it).increment()) {
+        printf("%d\n", **it);
+        //THIS(&l).insert(*it, &temp);
+    }
+    THIS(&l).remove(&temp1);
+    temp1 = 4;
+    THIS(&l).push_back(&temp1);
+    printf("second\n");
+    for (ITER_TYPE(int) it = NEW_ITER(THIS(&l).begin()); *it != *THIS(&l).end(); ITER(it).increment()) {
         printf("%d\n", **it);
     }
-    *ii = THIS(&v).erase(*ii);
-    printf("%ddddd\n", **ii);
-    for (ITER_TYPE(int) it = NEW_ITER(THIS(&v).begin()); *it != *THIS(&v).end(); ITER(it).increment()) {
+    THIS(&l).unique();
+    printf("third\n");
+    ITER_TYPE(int) it = NEW_ITER(THIS(&l).end());
+    ITER(it).decrement();
+    for (; *it != *THIS(&l).end(); ITER(it).decrement()) {
         printf("%d\n", **it);
     }
-    arr = *THIS(&v).end();
-    THIS(&v).resize(100);
-    iter_ptr haha = *THIS(&v).begin();
-    haha += 5 * 4;
-    temp = 1000;
-    iter_ptr tt = THIS(&v).insert(haha, &temp);
-    printf("aaaa%d\n", *(int*)tt);
-    for (ITER_TYPE(int) it = NEW_ITER(THIS(&v).begin()); *it != *THIS(&v).end(); ITER(it).increment()) {
+    list l2;
+    init_list(&l2, sizeof(int));
+    for (int i = 10; i < 20; i++)
+        THIS(&l2).push_back(&i);
+    printf("splice\n");
+    THIS(&l).splice(*THIS(&l).begin(), &l2, *THIS(&l2).begin(), *THIS(&l2).end());
+    for (ITER_TYPE(int) it = NEW_ITER(THIS(&l).begin()); *it != *THIS(&l).end(); ITER(it).increment()) {
         printf("%d\n", **it);
     }
-    *ii = *THIS(&v).begin();
-    printf("%d %d\n", **(int**)THIS(&v).begin(), **(int**)THIS(&v).end());
-    THIS(&v).clear();
-    printf("%d\n", THIS(&v).capacity());
-    printf("%d\n", THIS(&v).size());
-    destory_vector(&v);
+    printf("reverse\n");
+    THIS(&l).reverse();
+    for (ITER_TYPE(int) it = NEW_ITER(THIS(&l).begin()); *it != *THIS(&l).end(); ITER(it).increment()) {
+        printf("%d\n", **it);
+    }
+    printf("front%d\n", *(int*)THIS(&l).front());
+    printf("back%d\n", *(int*)THIS(&l).back());
+    printf("size:%d\n", THIS(&l).size());
+    destory_list(&l);
     return 0;
 }

@@ -23,6 +23,7 @@ typedef struct {
 } __private_list;
 
 struct __list{
+    void *(*at)(int);
     void (*push_front)(void *x);
     void (*push_back)(void *x);
     iter_ptr (*erase)(iter_ptr iter);
@@ -45,6 +46,6 @@ struct __list{
     byte OBJECT_PRIVATE[sizeof(__private_list)];
 };
 
-void init_list(list *p_list, size_t nmemb, size_t memb_size, void *init_array);
+void init_list(list *p_list, size_t memb_size);
 void destory_list(list *p_list);
 #endif //TINY_CTL_TCTL_LIST_H
