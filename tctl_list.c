@@ -175,6 +175,10 @@ static void *back(void)
 static void splice(iter_ptr position, list *l, iter_ptr first, iter_ptr last)
 {
     list *this = pop_this();
+    if (last == NULL) {
+        struct __list_node *node = first - sizeof(struct __list_node);
+        last = node->next->data;
+    }
     if(first != last) {
         transfer(position, first, last);
         __private_list *p_private = (__private_list*)this->OBJECT_PRIVATE;
@@ -197,7 +201,8 @@ static void merge(list *l, bool (*cmp)(iter_ptr, iter_ptr))
         if (cmp(first1, first2)) {
             struct __list_node *next = first2 - sizeof(struct __list_node);
             next = next->next;
-            transfer(first1, first2, next->data);
+            THIS(this).splice(first1, l, first2, next->data);
+            //transfer(first1, first2, next->data);
             first2 = next->data;
         } else {
             struct __list_node *next = first1 - sizeof(struct __list_node);
@@ -206,7 +211,7 @@ static void merge(list *l, bool (*cmp)(iter_ptr, iter_ptr))
         }
     }
     if (first2 != last2)
-        transfer(last1, first2, last2);
+        THIS(this).splice(first1, l, first2, last2);
 }
 static void reverse(void)
 {
@@ -224,8 +229,49 @@ static void reverse(void)
     }
     p_private->start.ptr = p_private->node->next->data;
 }
-static void sort(void)
-{}
+void swap(list *l)
+{
+    list *this = pop_this();
+    __private_list *p_private = (__private_list *)this->OBJECT_PRIVATE;
+    __private_list *p_l_private = (__private_list*)l->OBJECT_PRIVATE;
+    if (p_private->memb_size != p_l_private->memb_size)
+        return;
+    __private_list temp = *p_private;
+    memcpy(p_private, p_l_private, sizeof(__private_list));
+    memcpy(p_l_private, &temp, sizeof(__private_list));
+}
+static void sort(bool (*cmp)(iter_ptr, iter_ptr))
+{
+    list *this = pop_this();
+    __private_list *p_prvate = (__private_list*)this->OBJECT_PRIVATE;
+    if (p_prvate->node->next == p_prvate->node || p_prvate->node->next->next == p_prvate->node)
+        return;
+    list carry = creat_list(p_prvate->memb_size);
+    list counter[64];
+    int fill = 0;
+    while (!THIS(this).empty())
+    {
+        THIS(&carry).splice(*THIS(&carry).begin(), this, *(THIS(this)).begin(), NULL);
+        int i = 0;
+        while (i < fill && !THIS(&counter[i]).empty())
+        {
+            THIS(&counter[i]).merge(&carry, cmp);
+            THIS(&carry).swap(&counter[i++]);
+        }
+        if (i == fill) {
+            init_list(&counter[fill], p_prvate->memb_size);
+            fill++;
+        }
+        THIS(&counter[i]).swap(&carry);
+    }
+    for (int i = 1; i < fill; i++) {
+        THIS(&counter[i]).merge(&counter[i - 1], cmp);
+        destory_list(&counter[i - 1]);
+    }
+    THIS(this).swap(&counter[fill - 1]);
+    destory_list(&counter[fill - 1]);
+    destory_list(&carry);
+}
 
 static void *iter_increment(void *p)
 {
@@ -261,6 +307,7 @@ static const list def_list = {
         splice,
         merge,
         reverse,
+        swap,
         sort,
         begin,
         end,
@@ -281,6 +328,13 @@ void init_list(list *p_list, size_t memb_size)
     private.node->pre = private.node;
     private.start = private.finish = init_iter(p_list, private.node->data, &__def_list_iter);
     memcpy(p_list->OBJECT_PRIVATE, &private, sizeof(__private_list));
+}
+
+list creat_list(size_t memb_size)
+{
+    list l;
+    init_list(&l, memb_size);
+    return l;
 }
 
 void destory_list(list *p_list)

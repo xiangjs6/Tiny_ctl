@@ -7,11 +7,14 @@
 #include "tctl_list.h"
 #include <stdlib.h>
 
-
+bool cmp(int *a, int *b)
+{
+    return *a > *b;
+}
 int main(void)
 {
-    list l;
-    init_list(&l, sizeof(int));
+    list l = creat_list(sizeof(int));
+    //init_list(&l, sizeof(int));
     int temp = 1;
     for (int i = 0; i < 10; i++) {
         THIS(&l).push_back(&i);
@@ -60,6 +63,22 @@ int main(void)
     printf("front%d\n", *(int*)THIS(&l).front());
     printf("back%d\n", *(int*)THIS(&l).back());
     printf("size:%d\n", THIS(&l).size());
+    printf("sort\n");
+    THIS(&l).clear();
+    for (int i = 0; i < 10000; i++) {
+        temp = (int)random();
+        THIS(&l).push_back(&temp);
+    }
+    THIS(&l).sort(cmp);
+    for (ITER_TYPE(int) it = NEW_ITER(THIS(&l).begin()); *it != *THIS(&l).end(); ITER(it).increment()) {
+        printf("%d\n", **it);
+    }
+    for (int i = 1; i < 10000; i++) {
+        if (*(int*)THIS(&l).at(i) < *(int*)THIS(&l).at(i - 1)) {
+            printf("bad\n");
+            break;
+        }
+    }
     destory_list(&l);
     return 0;
 }

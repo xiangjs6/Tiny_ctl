@@ -34,9 +34,10 @@ struct __list{
     void (*remove)(void *value);
     void (*unique)(void);
     void (*splice)(iter_ptr position, list *l, iter_ptr first, iter_ptr last);
-    void (*merge)(list *l);
+    void (*merge)(list *l, bool (*cmp)(iter_ptr, iter_ptr));
     void (*reverse)(void);
-    void (*sort)(void);
+    void (*swap)(list *l);
+    void (*sort)(bool (*cmp)(iter_ptr, iter_ptr));
     iter_ptr const *(*begin)(void);
     iter_ptr const *(*end)(void);
     size_t (*size)(void);
@@ -47,5 +48,6 @@ struct __list{
 };
 
 void init_list(list *p_list, size_t memb_size);
+list creat_list(size_t memb_size);
 void destory_list(list *p_list);
 #endif //TINY_CTL_TCTL_LIST_H
