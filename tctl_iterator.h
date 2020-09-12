@@ -31,7 +31,7 @@ typedef struct {
     void *(*front_increment)(void);
     void *(*front_decrement)(void);
     void *(*add)(int);void *(*sub)(int);
-    byte OBJECT_PRIVATE[sizeof(__private_iterator)];
+    byte __obj_private[sizeof(__private_iterator)];
 } iterator;
 
 typedef void* iter_ptr;

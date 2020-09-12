@@ -44,7 +44,7 @@ struct __list{
     bool (*empty)(void);
     void *(*front)(void);
     void *(*back)(void);
-    byte OBJECT_PRIVATE[sizeof(__private_list)];
+    byte __obj_private[sizeof(__private_list)];
 };
 
 void init_list(list *p_list, size_t memb_size);

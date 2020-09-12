@@ -16,7 +16,7 @@
  * 4、遵守各个泛类对象指定的规则，比如迭代器
  * */
 
-#define OBJECT_PRIVATE obj_private
+//#define OBJECT_PRIVATE __obj_private
 void *push_this(void *);
 void *pop_this(void);
 #define THIS(p) (*(typeof(p))(push_this(p)))

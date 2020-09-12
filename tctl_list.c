@@ -30,7 +30,7 @@ static void transfer(iter_ptr pos, iter_ptr first, iter_ptr last)
 void *at(int pos)
 {
     list *this = pop_this();
-    __private_list *p_private = (__private_list*)this->OBJECT_PRIVATE;
+    __private_list *p_private = (__private_list*)this->__obj_private;
     struct __list_node *node = p_private->node->next;
     while (pos-- && node != p_private->node)
         node = node->next;
@@ -41,7 +41,7 @@ void *at(int pos)
 static iter_ptr erase(iter_ptr iter)
 {
     list *this = pop_this();
-    __private_list *p_private = (__private_list *)this->OBJECT_PRIVATE;
+    __private_list *p_private = (__private_list *)this->__obj_private;
     struct __list_node *node = iter - sizeof(struct __list_node);
     if (node == p_private->node)
         return NULL;
@@ -57,7 +57,7 @@ static iter_ptr erase(iter_ptr iter)
 static iter_ptr insert(iter_ptr iter, void *x)
 {
     list *this = pop_this();
-    __private_list *p_private = (__private_list *)this->OBJECT_PRIVATE;
+    __private_list *p_private = (__private_list *)this->__obj_private;
     struct __list_node *node = iter - sizeof(struct __list_node);
     void *ptr = allocate(sizeof(struct __list_node) + p_private->memb_size);
     struct __list_node *new_node = ptr;
@@ -103,7 +103,7 @@ static void clear(void)
 static void remove(void *value)
 {
     list *this = pop_this();
-    __private_list *p_private = (__private_list *)this->OBJECT_PRIVATE;
+    __private_list *p_private = (__private_list *)this->__obj_private;
     struct __list_node *node = p_private->node->next;
     while (node != p_private->node)
     {
@@ -117,7 +117,7 @@ static void remove(void *value)
 static void unique(void)
 {
     list *this = pop_this();
-    __private_list *p_private = (__private_list *)this->OBJECT_PRIVATE;
+    __private_list *p_private = (__private_list *)this->__obj_private;
     struct __list_node *node = p_private->node->next;
     struct __list_node *next_node = node->next;
     while (next_node != p_private->node)
@@ -132,19 +132,19 @@ static void unique(void)
 static iter_ptr const *begin(void)
 {
     list *this = pop_this();
-    __private_list *p_private = (__private_list *)this->OBJECT_PRIVATE;
+    __private_list *p_private = (__private_list *)this->__obj_private;
     return &p_private->start.ptr;
 }
 static iter_ptr const *end(void)
 {
     list *this = pop_this();
-    __private_list *p_private = (__private_list *)this->OBJECT_PRIVATE;
+    __private_list *p_private = (__private_list *)this->__obj_private;
     return &p_private->finish.ptr;
 }
 static size_t size(void)
 {
     list *this = pop_this();
-    __private_list *p_private = (__private_list *)this->OBJECT_PRIVATE;
+    __private_list *p_private = (__private_list *)this->__obj_private;
     struct __list_node *node = p_private->node->next;
     size_t count = 0;
     while (node != p_private->node)
@@ -157,19 +157,19 @@ static size_t size(void)
 static bool empty(void)
 {
     list *this = pop_this();
-    __private_list *p_private = (__private_list *)this->OBJECT_PRIVATE;
+    __private_list *p_private = (__private_list *)this->__obj_private;
     return p_private->node == p_private->node->next;
 }
 static void *front(void)
 {
     list *this = pop_this();
-    __private_list *p_private = (__private_list *)this->OBJECT_PRIVATE;
+    __private_list *p_private = (__private_list *)this->__obj_private;
     return p_private->start.ptr;
 }
 static void *back(void)
 {
     list *this = pop_this();
-    __private_list *p_private = (__private_list *)this->OBJECT_PRIVATE;
+    __private_list *p_private = (__private_list *)this->__obj_private;
     return p_private->node->pre->data;
 }
 static void splice(iter_ptr position, list *l, iter_ptr first, iter_ptr last)
@@ -181,8 +181,8 @@ static void splice(iter_ptr position, list *l, iter_ptr first, iter_ptr last)
     }
     if(first != last) {
         transfer(position, first, last);
-        __private_list *p_private = (__private_list*)this->OBJECT_PRIVATE;
-        __private_list *l_private = (__private_list*)l->OBJECT_PRIVATE;
+        __private_list *p_private = (__private_list*)this->__obj_private;
+        __private_list *l_private = (__private_list*)l->__obj_private;
         if (l_private->start.ptr == first)
             l_private->start.ptr = last;
         if (p_private->start.ptr == position)
@@ -216,7 +216,7 @@ static void merge(list *l, bool (*cmp)(iter_ptr, iter_ptr))
 static void reverse(void)
 {
     list *this = pop_this();
-    __private_list *p_private = (__private_list *)this->OBJECT_PRIVATE;
+    __private_list *p_private = (__private_list *)this->__obj_private;
     if (p_private->node == p_private->node->next || p_private->node->next->next == p_private->node)
         return;
     iter_ptr first = *THIS(this).begin();
@@ -232,8 +232,8 @@ static void reverse(void)
 void swap(list *l)
 {
     list *this = pop_this();
-    __private_list *p_private = (__private_list *)this->OBJECT_PRIVATE;
-    __private_list *p_l_private = (__private_list*)l->OBJECT_PRIVATE;
+    __private_list *p_private = (__private_list *)this->__obj_private;
+    __private_list *p_l_private = (__private_list*)l->__obj_private;
     if (p_private->memb_size != p_l_private->memb_size)
         return;
     __private_list temp = *p_private;
@@ -243,7 +243,7 @@ void swap(list *l)
 static void sort(bool (*cmp)(iter_ptr, iter_ptr))
 {
     list *this = pop_this();
-    __private_list *p_prvate = (__private_list*)this->OBJECT_PRIVATE;
+    __private_list *p_prvate = (__private_list*)this->__obj_private;
     if (p_prvate->node->next == p_prvate->node || p_prvate->node->next->next == p_prvate->node)
         return;
     list carry = creat_list(p_prvate->memb_size);
@@ -327,7 +327,7 @@ void init_list(list *p_list, size_t memb_size)
     private.node->next = private.node;
     private.node->pre = private.node;
     private.start = private.finish = init_iter(p_list, private.node->data, &__def_list_iter);
-    memcpy(p_list->OBJECT_PRIVATE, &private, sizeof(__private_list));
+    memcpy(p_list->__obj_private, &private, sizeof(__private_list));
 }
 
 list creat_list(size_t memb_size)
@@ -340,6 +340,6 @@ list creat_list(size_t memb_size)
 void destory_list(list *p_list)
 {
     THIS(p_list).clear();
-    __private_list *p_private = (__private_list*)p_list->OBJECT_PRIVATE;
+    __private_list *p_private = (__private_list*)p_list->__obj_private;
     deallocate(p_private->node, sizeof(struct __list_node));
 }

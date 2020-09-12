@@ -31,7 +31,7 @@ typedef struct {
     iter_ptr (*insert)(iter_ptr iter, void *x);
     void (*resize)(size_t new_size);
     void (*clear)(void);
-    byte OBJECT_PRIVATE[sizeof(__private_vector)];
+    byte __obj_private[sizeof(__private_vector)];
 } vector;
 
 void init_vector(vector *p_vector, size_t nmemb, size_t memb_size, void *init_array);
