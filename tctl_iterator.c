@@ -62,13 +62,14 @@ static void *sub(int x)
 
 static iterator def_obj_func = {.increment = increment, .decrement = decrement, .front_increment = front_increment, .front_decrement = front_decrement, .add = add, .sub = sub};
 
-iterator init_iter(void *obj_ptr, void *p, __iterator_obj_func *func)
+iterator init_iter(void *obj_ptr, void *p, size_t memb_size, __iterator_obj_func *func)
 {
     iterator iter = def_obj_func;
     iter.ptr = p;
     __private_iterator *p_private = (__private_iterator*)iter.__obj_private;
     p_private->obj_this = obj_ptr;
     p_private->obj_iter_func = func;
+    *(size_t*)&p_private->memb_size = memb_size;
     return iter;
 }
 

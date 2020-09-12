@@ -21,6 +21,7 @@ typedef struct {
 
 typedef struct {
     void *obj_this;
+    const size_t memb_size;
     __iterator_obj_func *obj_iter_func;
 } __private_iterator;
 
@@ -39,7 +40,7 @@ typedef void* iter_ptr;
 #define ITER_TYPE(type) autofree(__destructor_iter) type**
 #define NEW_ITER(p) (void*)(&(__constructor_iter((iterator*)p))->ptr)
 
-iterator init_iter(void *obj_ptr, void *p, __iterator_obj_func *func);
+iterator init_iter(void *obj_ptr, void *p, size_t memb_size, __iterator_obj_func *func);
 iterator *__constructor_iter(iterator *iter);
 void __destructor_iter(void *p);
 #endif //TINY_CTL_TCTL_ITERATOR_H

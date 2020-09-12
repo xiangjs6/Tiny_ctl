@@ -193,7 +193,7 @@ void init_vector(vector *p_vector, size_t nmemb, size_t memb_size, void *init_ar
     *p_vector = __def_vector;
     __private_vector __private = {memb_size};
     __private.nmemb = __private.total_storage_memb = nmemb;
-    __private.start = init_iter(p_vector, reallocate(NULL, 0, nmemb * memb_size), &__def_vector_iter);
+    __private.start = init_iter(p_vector, reallocate(NULL, 0, nmemb * memb_size), memb_size, &__def_vector_iter);
     __private.finish = __private.start;
     if (init_array) {
         memcpy(__private.start.ptr, init_array, nmemb * memb_size);
