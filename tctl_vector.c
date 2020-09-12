@@ -191,14 +191,15 @@ static const vector __def_vector = {
 void init_vector(vector *p_vector, size_t nmemb, size_t memb_size, void *init_array)
 {
     *p_vector = __def_vector;
-    __private_vector __private = {memb_size};
-    __private.nmemb = __private.total_storage_memb = nmemb;
-    __private.start = init_iter(p_vector, reallocate(NULL, 0, nmemb * memb_size), memb_size, &__def_vector_iter);
-    __private.finish = __private.start;
+    __private_vector *__private = (__private_vector*)p_vector->__obj_private;
+    *(size_t *)&__private->memb_size = memb_size;
+    __private->nmemb = __private->total_storage_memb = nmemb;
+    __private->start = init_iter(p_vector, reallocate(NULL, 0, nmemb * memb_size), memb_size, &__def_vector_iter);
+    __private->finish = __private->start;
     if (init_array) {
-        memcpy(__private.start.ptr, init_array, nmemb * memb_size);
+        memcpy(__private->start.ptr, init_array, nmemb * memb_size);
     }
-    memcpy(p_vector->__obj_private, &__private, sizeof(__private_vector));
+    //memcpy(p_vector->__obj_private, &__private, sizeof(__private_vector));
 }
 
 void destory_vector(vector *p_vector)

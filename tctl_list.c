@@ -320,14 +320,15 @@ static const list def_list = {
 void init_list(list *p_list, size_t memb_size)
 {
     *p_list = def_list;
-    __private_list private = {memb_size};
+    __private_list *private = (__private_list*)p_list->__obj_private;
+    *(size_t*)&private->memb_size = memb_size;
     void *ptr = allocate(sizeof(struct __list_node) + memb_size);
-    private.node = ptr;
-    private.node->data = ptr + sizeof(struct __list_node);
-    private.node->next = private.node;
-    private.node->pre = private.node;
-    private.start = private.finish = init_iter(p_list, private.node->data, memb_size, &__def_list_iter);
-    memcpy(p_list->__obj_private, &private, sizeof(__private_list));
+    private->node = ptr;
+    private->node->data = ptr + sizeof(struct __list_node);
+    private->node->next = private->node;
+    private->node->pre = private->node;
+    private->start = private->finish = init_iter(p_list, private->node->data, memb_size, &__def_list_iter);
+    //memcpy(p_list->__obj_private, &private, sizeof(__private_list));
 }
 
 list creat_list(size_t memb_size)
