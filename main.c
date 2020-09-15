@@ -3,7 +3,7 @@
 #include "tctl_object.h"
 #include "tctl_common.h"
 #include "tctl_iterator.h"
-#include "tctl_vector.h"
+//#include "tctl_vector.h"
 #include "tctl_list.h"
 #include <stdlib.h>
 
@@ -25,8 +25,8 @@ int main(void)
     int temp1 = 20;
     THIS(&l).pop_front();
     THIS(&l).push_front(&temp1);
-    iter_ptr iter = *THIS(&l).begin();
-    THIS(&l).insert(iter, &temp);
+    list_iter iter = *(list_iter*)THIS(&l).begin();
+    THIS(&l).insert(&iter, &temp);
     printf("first\n");
     for (ITER_TYPE(int) it = NEW_ITER(THIS(&l).begin()); *it != *THIS(&l).end(); ITER(it).increment()) {
         printf("%d\n", **it);
@@ -51,7 +51,7 @@ int main(void)
     for (int i = 10; i < 20; i++)
         THIS(&l2).push_back(&i);
     printf("splice\n");
-    THIS(&l).splice(*THIS(&l).begin(), &l2, *THIS(&l2).begin(), *THIS(&l2).end());
+    THIS(&l).splice(THIS(&l).begin(), &l2, THIS(&l2).begin(), THIS(&l2).end());
     for (ITER_TYPE(int) it = NEW_ITER(THIS(&l).begin()); *it != *THIS(&l).end(); ITER(it).increment()) {
         printf("%d\n", **it);
     }

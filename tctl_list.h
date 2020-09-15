@@ -6,6 +6,7 @@
 #define TINY_CTL_TCTL_LIST_H
 
 #include "tctl_iterator.h"
+#include "tctl_common.h"
 
 typedef struct __list list;
 
@@ -16,30 +17,41 @@ struct __list_node {
 };
 
 typedef struct {
+    void *val;
+    struct __list_node *node;
+} list_iter;
+
+typedef struct {
     const size_t memb_size;
     struct __list_node *node;
-    iterator start;
-    iterator finish;
+    struct {
+        iterator start;
+        list_iter start_iter;
+    } BYTE_ALIGNED;
+    struct {
+        iterator finish;
+        list_iter finish_iter;
+    } BYTE_ALIGNED;
 } __private_list;
 
 struct __list{
     void *(*at)(int);
     void (*push_front)(void *x);
     void (*push_back)(void *x);
-    iter_ptr (*erase)(iter_ptr iter);
-    iter_ptr (*insert)(iter_ptr iter, void *x);
+    list_iter *(*erase)(list_iter *iter);
+    list_iter *(*insert)(list_iter *iter, void *x);
     void (*pop_front)(void);
     void (*pop_back)(void);
     void (*clear)(void);
     void (*remove)(void *value);
     void (*unique)(void);
-    void (*splice)(iter_ptr position, list *l, iter_ptr first, iter_ptr last);
-    void (*merge)(list *l, bool (*cmp)(iter_ptr, iter_ptr));
+    void (*splice)(list_iter *position, list *l, list_iter *first, list_iter *last);
+    void (*merge)(list *l, bool (*cmp)(void*, void*));
     void (*reverse)(void);
     void (*swap)(list *l);
-    void (*sort)(bool (*cmp)(iter_ptr, iter_ptr));
-    iter_ptr const *(*begin)(void);
-    iter_ptr const *(*end)(void);
+    void (*sort)(bool (*cmp)(void*, void*));
+    void const * const * (*begin)(void);
+    void const * const * (*end)(void);
     size_t (*size)(void);
     bool (*empty)(void);
     void *(*front)(void);

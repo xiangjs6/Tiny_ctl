@@ -13,17 +13,21 @@
  * 3、容器应该存储自己的begin和end迭代器，并且返回迭代器的函数应该为iter_ptr
  * 4、iter_ptr应该指向容器中的节点的元素的地址，并且！！！可以由这个地址找到这个元素所在的整个节点的地址
  * */
+
+typedef void* obj_iter;
 typedef struct {
-    void *(*iter_increment)(void *);
-    void *(*iter_decrement)(void *);
-    void *(*iter_add)(void *, int);
-    void *(*iter_sub)(void *, int);
+    void (*iter_increment)(obj_iter);
+    void (*iter_decrement)(obj_iter);
+    void *(*iter_add)(obj_iter, int);
+    void *(*iter_sub)(obj_iter, int);
 } __iterator_obj_func;
 
 typedef struct {
     void *obj_this;
     const size_t memb_size;
     __iterator_obj_func *obj_iter_func;
+    size_t obj_iter_size;
+    byte obj_iter[0];
 } __private_iterator;
 
 typedef struct {
@@ -36,12 +40,11 @@ typedef struct {
     byte __obj_private[sizeof(__private_iterator)];
 } iterator;
 
-typedef void* iter_ptr;
-#define ITER(p) THIS(container_of((p), iterator, ptr))
+#define ITER(p) THIS(container_of(container_of(p, __private_iterator, obj_iter), iterator, __obj_private))
 #define ITER_TYPE(type) autofree(__destructor_iter) type**
-#define NEW_ITER(p) (void*)(&(__constructor_iter((iterator*)p))->ptr)
+#define NEW_ITER(p) (void*)((__constructor_iter((iterator*)container_of(container_of(p, __private_iterator, obj_iter), iterator, __obj_private)))->ptr)
 
-iterator init_iter(void *obj_ptr, void *p, size_t memb_size, __iterator_obj_func *func);
+void __init_iter(iterator *iter, void *obj_ptr, void *p, size_t obj_iter_size, size_t memb_size, __iterator_obj_func *func);
 iterator *__constructor_iter(iterator *iter);
 void __destructor_iter(void *p);
 #endif //TINY_CTL_TCTL_ITERATOR_H

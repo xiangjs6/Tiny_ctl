@@ -6,13 +6,22 @@
 #define TINY_CTL_TCTL_VECTOR_H
 #include "tctl_def.h"
 #include "tctl_iterator.h"
+#include "tctl_common.h"
+
+typedef void* __vector_iter;
 
 typedef struct {
     const size_t memb_size;
     size_t nmemb;
     size_t total_storage_memb;
-    iterator start;
-    iterator finish;
+    struct {
+        iterator start;
+        __vector_iter start_iter;
+    } BYTE_ALIGNED;
+    struct {
+        iterator finish;
+        __vector_iter finish_iter;
+    } BYTE_ALIGNED;
     //iterator end_of_storage;
 } __private_vector;
 
