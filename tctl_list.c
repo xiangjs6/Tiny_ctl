@@ -206,7 +206,7 @@ static void splice(list_iter *position, list *l, list_iter *first, list_iter *la
         }
     }
 }
-static void merge(list *l, bool (*cmp)(void*, void*))
+static void merge(list *l, bool (*cmp)(void const *, void const *))
 {
     list *this = pop_this();
     list_iter first1 = *(list_iter*)THIS(this).begin();
@@ -257,7 +257,7 @@ void swap(list *l)
     memcpy(p_private, p_l_private, sizeof(__private_list));
     memcpy(p_l_private, &temp, sizeof(__private_list));
 }
-static void sort(bool (*cmp)(void*, void*))
+static void sort(bool (*cmp)(void const *, void const *))
 {
     list *this = pop_this();
     __private_list *p_private = (__private_list*)this->__obj_private;
@@ -347,8 +347,8 @@ void init_list(list *p_list, size_t memb_size)
     private->node->data = ptr + sizeof(struct __list_node);
     private->node->next = private->node;
     private->node->pre = private->node;
-    __init_iter(&private->start, p_list, private->node->data, sizeof(list_iter), memb_size, &__def_list_iter);
-    private->finish = private->start;
+    __init_iter((void*)&private->start, p_list, sizeof(list_iter), memb_size, &__def_list_iter);
+    __init_iter((void*)&private->finish, p_list, sizeof(list_iter), memb_size, &__def_list_iter);
     private->start_iter.node = private->finish_iter.node = private->node;
     private->start_iter.val = private->finish_iter.val = private->node->data;
     //memcpy(p_list->__obj_private, &private, sizeof(__private_list));

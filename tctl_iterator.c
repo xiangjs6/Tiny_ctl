@@ -70,16 +70,19 @@ static void sub(int x)
 
 static iterator def_obj_func = {.increment = increment, .decrement = decrement, .front_increment = front_increment, .front_decrement = front_decrement, .add = add, .sub = sub};
 
-void __init_iter(iterator *iter, void *obj_ptr, void *p, size_t obj_iter_size, size_t memb_size, __iterator_obj_func *func)
+void __init_iter(iterator *iter, void *obj_ptr, size_t obj_iter_size, size_t memb_size, __iterator_obj_func *func)
 {
-    *iter = def_obj_func;
-    iter->ptr = p;
+    memcpy(iter, &def_obj_func, sizeof(iterator));
+    //*iter = def_obj_func;
     __private_iterator *p_private = (__private_iterator*)iter->__obj_private;
     p_private->obj_this = obj_ptr;
     p_private->obj_iter_func = func;
     *(size_t*)&p_private->memb_size = memb_size;
     p_private->obj_iter_size = obj_iter_size;
-    iter->ptr = p_private->obj_iter;
+
+    //void *obj_iter = p_private->obj_iter;
+    //memcpy((void*)&iter->ptr, &obj_iter, sizeof(void*));
+    *(void**)&iter->ptr = p_private->obj_iter;
 }
 
 iterator *__constructor_iter(iterator *iter)
@@ -88,7 +91,9 @@ iterator *__constructor_iter(iterator *iter)
     size_t iter_size = sizeof(iterator) + p_private->obj_iter_size;
     iterator *res = allocate(iter_size);
     memcpy(res, iter, iter_size);
-    res->ptr = (void*)res + sizeof(iterator);
+    //void *obj_iter = p_private->obj_iter;
+    //memcpy((void*)&iter->ptr, &obj_iter, sizeof(void*));
+    *(void**)&res->ptr = (void*)res + sizeof(iterator);
     return res;
 }
 

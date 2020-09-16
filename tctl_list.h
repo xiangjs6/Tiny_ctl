@@ -25,11 +25,11 @@ typedef struct {
     const size_t memb_size;
     struct __list_node *node;
     struct {
-        iterator start;
+        iterator const start;
         list_iter start_iter;
     } BYTE_ALIGNED;
     struct {
-        iterator finish;
+        iterator const finish;
         list_iter finish_iter;
     } BYTE_ALIGNED;
 } __private_list;
@@ -46,10 +46,10 @@ struct __list{
     void (*remove)(void *value);
     void (*unique)(void);
     void (*splice)(list_iter *position, list *l, list_iter *first, list_iter *last);
-    void (*merge)(list *l, bool (*cmp)(void*, void*));
+    void (*merge)(list *l, bool (*cmp)(void const *, void const *));
     void (*reverse)(void);
     void (*swap)(list *l);
-    void (*sort)(bool (*cmp)(void*, void*));
+    void (*sort)(bool (*cmp)(void const *, void const *));
     void const * const * (*begin)(void);
     void const * const * (*end)(void);
     size_t (*size)(void);

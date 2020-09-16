@@ -3,7 +3,7 @@
 #include "tctl_object.h"
 #include "tctl_common.h"
 #include "tctl_iterator.h"
-//#include "tctl_vector.h"
+#include "tctl_vector.h"
 #include "tctl_list.h"
 #include <stdlib.h>
 
@@ -11,6 +11,23 @@ bool cmp(int *a, int *b)
 {
     return *a > *b;
 }
+
+int main(void)
+{
+    vector v = creat_vector(0, sizeof(int), NULL);
+    printf("%p", &v);
+    for (int i = 0; i < 10; i++) {
+        int temp = i;
+        THIS(&v).push_back(&temp);
+    }
+    for (ITER_TYPE(int) it = NEW_ITER(THIS(&v).begin()); *it != *THIS(&v).end(); ITER(it).increment()) {
+        printf("%d\n", **it);
+    }
+    putchar('\n');
+}
+
+// list测试
+/*
 int main(void)
 {
     list l = creat_list(sizeof(int));
@@ -93,3 +110,4 @@ int main(void)
     destory_list(&l);
     return 0;
 }
+ */
