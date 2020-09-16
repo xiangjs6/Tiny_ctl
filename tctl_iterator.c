@@ -7,6 +7,12 @@
 #include "tctl_common.h"
 #include <memory.h>
 
+static void *at(int x)
+{
+    iterator *p_it = pop_this();
+    __private_iterator *private_it = (__private_iterator*)p_it->__obj_private;
+    return private_it->obj_iter_func->iter_at(x);
+}
 static void *increment(void)
 {
     iterator *p_it = pop_this();
@@ -46,20 +52,20 @@ static void *front_decrement(void)
     return p_it->ptr;
 }
 
-static void *add(int x)
+static void add(int x)
 {
     iterator *p_it = pop_this();
     __private_iterator *private_it = (__private_iterator*)p_it->__obj_private;
     push_this(private_it->obj_this);
-    return private_it->obj_iter_func->iter_add(private_it->obj_iter, x);
+    private_it->obj_iter_func->iter_add(private_it->obj_iter, x);
 }
 
-static void *sub(int x)
+static void sub(int x)
 {
     iterator *p_it = pop_this();
     __private_iterator *private_it = (__private_iterator*)p_it->__obj_private;
     push_this(private_it->obj_this);
-    return private_it->obj_iter_func->iter_sub(private_it->obj_iter, x);
+    private_it->obj_iter_func->iter_sub(private_it->obj_iter, x);
 }
 
 static iterator def_obj_func = {.increment = increment, .decrement = decrement, .front_increment = front_increment, .front_decrement = front_decrement, .add = add, .sub = sub};
@@ -88,6 +94,7 @@ iterator *__constructor_iter(iterator *iter)
 
 void __destructor_iter(void *p)
 {
-    iterator *iter = container_of(*(void**)p, iterator, ptr);
-    deallocate(iter, sizeof(iterator));
+    iterator *iter = container_of(container_of(*(void**)p, __private_iterator, obj_iter), iterator, __obj_private);
+    __private_iterator *p_private = (__private_iterator*)iter->__obj_private;
+    deallocate(iter, sizeof(iterator) + p_private->obj_iter_size);
 }

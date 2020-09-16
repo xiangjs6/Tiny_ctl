@@ -41,10 +41,11 @@ int main(void)
     }
     THIS(&l).unique();
     printf("third\n");
-    ITER_TYPE(int) it = NEW_ITER(THIS(&l).end());
-    ITER(it).decrement();
-    for (; *it != *THIS(&l).end(); ITER(it).decrement()) {
-        printf("%d\n", **it);
+    ITER_TYPE(int) r_it = NEW_ITER(THIS(&l).end());
+    ITER(r_it).decrement();
+    printf("%d\n", *(int*)ITER(r_it).decrement());
+    for (; *r_it != *THIS(&l).end(); ITER(r_it).decrement()) {
+        printf("%d\n", **r_it);
     }
     list l2;
     init_list(&l2, sizeof(int));
@@ -63,6 +64,16 @@ int main(void)
     printf("front%d\n", *(int*)THIS(&l).front());
     printf("back%d\n", *(int*)THIS(&l).back());
     printf("size:%d\n", THIS(&l).size());
+    printf("merge\n");
+    list l1 = creat_list(sizeof(int));
+    list l3 = creat_list(sizeof(int));
+    for (int i = 0; i < 10; i++) {
+        THIS(&l1).push_back(&i);
+        THIS(&l3).push_back(&i);
+    }
+    THIS(&l1).merge(&l3, cmp);
+    for (ITER_TYPE(int) it = NEW_ITER(THIS(&l1).begin()); *it != *THIS(&l1).end(); ITER(it).increment())
+        printf("%d\n", **it);
     printf("sort\n");
     THIS(&l).clear();
     for (int i = 0; i < 10000; i++) {

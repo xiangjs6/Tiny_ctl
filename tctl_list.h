@@ -54,8 +54,8 @@ struct __list{
     void const * const * (*end)(void);
     size_t (*size)(void);
     bool (*empty)(void);
-    void *(*front)(void);
-    void *(*back)(void);
+    void const *(*front)(void);
+    void const *(*back)(void);
     byte __obj_private[sizeof(__private_list)];
 };
 

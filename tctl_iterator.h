@@ -16,10 +16,11 @@
 
 typedef void* obj_iter;
 typedef struct {
+    void *(*iter_at)(int);
     void (*iter_increment)(obj_iter);
     void (*iter_decrement)(obj_iter);
-    void *(*iter_add)(obj_iter, int);
-    void *(*iter_sub)(obj_iter, int);
+    void (*iter_add)(obj_iter, int);
+    void (*iter_sub)(obj_iter, int);
 } __iterator_obj_func;
 
 typedef struct {
@@ -32,11 +33,13 @@ typedef struct {
 
 typedef struct {
     void *ptr;
+    void *(*at)(int);
     void *(*increment)(void);
     void *(*decrement)(void);
     void *(*front_increment)(void);
     void *(*front_decrement)(void);
-    void *(*add)(int);void *(*sub)(int);
+    void (*add)(int);
+    void (*sub)(int);
     byte __obj_private[sizeof(__private_iterator)];
 } iterator;
 

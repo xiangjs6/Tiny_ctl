@@ -170,13 +170,13 @@ static bool empty(void)
     __private_list *p_private = (__private_list *)this->__obj_private;
     return p_private->node == p_private->node->next;
 }
-static void *front(void)
+static void const *front(void)
 {
     list *this = pop_this();
     __private_list *p_private = (__private_list *)this->__obj_private;
     return p_private->start_iter.val;
 }
-static void *back(void)
+static void const *back(void)
 {
     list *this = pop_this();
     __private_list *p_private = (__private_list *)this->__obj_private;
@@ -195,6 +195,7 @@ static void splice(list_iter *position, list *l, list_iter *first, list_iter *la
         transfer(position->node, first->node, last->node);
         __private_list *p_private = (__private_list*)this->__obj_private;
         __private_list *l_private = (__private_list*)l->__obj_private;
+        //一定要先p_private再置l_private，因为指针可能关联着l链表的strart_iter或finish_iter
         if (p_private->start_iter.node == position->node) {
             p_private->start_iter.node = first->node;
             p_private->start_iter.val = first->node->data;
@@ -215,7 +216,7 @@ static void merge(list *l, bool (*cmp)(void*, void*))
     while (first1.node != last1.node && first2.node != last2.node)
     {
         if (cmp(first1.val, first2.val)) {
-            list_iter next = {first2.node->data, first2.node->next};
+            list_iter next = {first2.node->next->data, first2.node->next};
             THIS(this).splice(&first1, l, &first2, &next);
             //transfer(first1, first2, next->data);
             first2 = next;
@@ -239,7 +240,7 @@ static void reverse(void)
         struct __list_node *next = first.node;
         next = next->next;
         transfer(p_private->node->next, first.node, next);
-        first.node = next->data;
+        first.node = next;
         first.val = first.node->data;
     }
     p_private->start_iter.val = p_private->node->next->data;
@@ -305,8 +306,11 @@ static void iter_decrement(void *p)
 }
 
 static __iterator_obj_func  __def_list_iter = {
+        NULL,
         iter_increment,
-        iter_decrement
+        iter_decrement,
+        NULL,
+        NULL
 };
 
 static const list def_list = {
