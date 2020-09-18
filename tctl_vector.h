@@ -43,7 +43,6 @@ typedef struct {
     byte __obj_private[sizeof(__private_vector)];
 } vector;
 
-vector creat_vector(size_t nmemb, size_t memb_size, void *init_array);
 void init_vector(vector *p_vector, size_t nmemb, size_t memb_size, void *init_array);
 void destory_vector(vector *p_vector);
 #endif //TINY_CTL_TCTL_VECTOR_H

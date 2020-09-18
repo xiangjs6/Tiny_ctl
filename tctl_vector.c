@@ -205,10 +205,3 @@ void destory_vector(vector *p_vector)
     __private_vector *p_private = (__private_vector *)p_vector->__obj_private;
     deallocate(p_private->start_iter, p_private->total_storage_memb * p_private->memb_size);
 }
-
-vector creat_vector(size_t nmemb, size_t memb_size, void *init_array)
-{
-    vector v;
-    init_vector(&v, nmemb, memb_size, init_array);
-    return v;
-}

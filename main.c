@@ -14,7 +14,8 @@ bool cmp(int *a, int *b)
 
 int main(void)
 {
-    vector v = creat_vector(0, sizeof(int), NULL);
+    vector v;
+    init_vector(&v, 0, sizeof(int), NULL);
     printf("%p", &v);
     for (int i = 0; i < 10; i++) {
         int temp = i;
@@ -30,8 +31,8 @@ int main(void)
 /*
 int main(void)
 {
-    list l = creat_list(sizeof(int));
-    //init_list(&l, sizeof(int));
+    list l;
+    init_list(&l, sizeof(int));
     int temp = 1;
     for (int i = 0; i < 10; i++) {
         THIS(&l).push_back(&i);
@@ -82,8 +83,10 @@ int main(void)
     printf("back%d\n", *(int*)THIS(&l).back());
     printf("size:%d\n", THIS(&l).size());
     printf("merge\n");
-    list l1 = creat_list(sizeof(int));
-    list l3 = creat_list(sizeof(int));
+    list l1;
+    list l3;
+    init_list(&l1, sizeof(int));
+    init_list(&l3, sizeof(int));
     for (int i = 0; i < 10; i++) {
         THIS(&l1).push_back(&i);
         THIS(&l3).push_back(&i);
@@ -110,4 +113,4 @@ int main(void)
     destory_list(&l);
     return 0;
 }
- */
+*/

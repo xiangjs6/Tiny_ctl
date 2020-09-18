@@ -263,7 +263,8 @@ static void sort(bool (*cmp)(void const *, void const *))
     __private_list *p_private = (__private_list*)this->__obj_private;
     if (p_private->node->next == p_private->node || p_private->node->next->next == p_private->node)
         return;
-    list carry = creat_list(p_private->memb_size);
+    list carry;
+    init_list(&carry, p_private->memb_size);
     list counter[64];
     int fill = 0;
     while (!THIS(this).empty())
@@ -352,13 +353,6 @@ void init_list(list *p_list, size_t memb_size)
     private->start_iter.node = private->finish_iter.node = private->node;
     private->start_iter.val = private->finish_iter.val = private->node->data;
     //memcpy(p_list->__obj_private, &private, sizeof(__private_list));
-}
-
-list creat_list(size_t memb_size)
-{
-    list l;
-    init_list(&l, memb_size);
-    return l;
 }
 
 void destory_list(list *p_list)
