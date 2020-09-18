@@ -45,4 +45,5 @@ typedef struct {
 
 void init_vector(vector *p_vector, size_t nmemb, size_t memb_size, void *init_array);
 void destory_vector(vector *p_vector);
+vector creat_vector(size_t nmemb, size_t memb_size, void *init_array);
 #endif //TINY_CTL_TCTL_VECTOR_H

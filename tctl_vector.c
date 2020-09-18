@@ -27,12 +27,22 @@ static void const * const * begin(void)
 {
     vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->__obj_private;
+    if (p_private->start.obj_this == NULL) {
+        iterator temp = p_private->start;
+        temp.obj_this = this;
+        memcpy((void*)&p_private->start, &temp, sizeof(iterator));
+    }
     return (void*)&p_private->start_iter;
 }
 static void const * const * end(void)
 {
     vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->__obj_private;
+    if (p_private->finish.obj_this == NULL) {
+        iterator temp = p_private->finish;
+        temp.obj_this = this;
+        memcpy((void*)&p_private->finish, &temp, sizeof(iterator));
+    }
     return (void*)&p_private->finish_iter;
 }
 static void *front(void)
@@ -89,7 +99,7 @@ static vector_iter *erase(vector_iter *iter)
     if (*iter > p_private->finish_iter || *iter < p_private->start_iter)
         return NULL;
     size_t back_nmemb = p_private->nmemb - (*iter - p_private->start_iter) / p_private->memb_size - 1;
-    memcpy(iter, iter + p_private->memb_size, p_private->memb_size * back_nmemb);
+    memcpy(*iter, *iter + p_private->memb_size, p_private->memb_size * back_nmemb);
     p_private->nmemb--;
     p_private->finish_iter -= p_private->memb_size;
     return iter;
@@ -104,8 +114,8 @@ static vector_iter *insert(vector_iter *iter, void *x)
     if (!this->capacity())
         fill_allocate(this);
     size_t back_nmemb = p_private->nmemb - (*iter - p_private->start_iter) / p_private->memb_size;
-    memcpy(iter + p_private->memb_size, iter, p_private->memb_size * back_nmemb);
-    memcpy(iter, x, p_private->memb_size);
+    memcpy(*iter + p_private->memb_size, *iter, p_private->memb_size * back_nmemb);
+    memcpy(*iter, x, p_private->memb_size);
     p_private->nmemb++;
     p_private->finish_iter += p_private->memb_size;
     return iter;
@@ -204,4 +214,18 @@ void destory_vector(vector *p_vector)
 {
     __private_vector *p_private = (__private_vector *)p_vector->__obj_private;
     deallocate(p_private->start_iter, p_private->total_storage_memb * p_private->memb_size);
+}
+
+vector creat_vector(size_t nmemb, size_t memb_size, void *init_array)
+{
+    vector v;
+    init_vector(&v, nmemb, memb_size, init_array);
+    __private_vector *p_private = (__private_vector*)v.__obj_private;
+    iterator temp1 = p_private->start;
+    temp1.obj_this = NULL;
+    memcpy((void*)&p_private->start, &temp1, sizeof(iterator));
+    iterator temp2 = p_private->finish;
+    temp2.obj_this = NULL;
+    memcpy((void*)&p_private->finish, &temp2, sizeof(iterator));
+    return v;
 }

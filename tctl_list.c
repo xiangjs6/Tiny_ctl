@@ -143,12 +143,22 @@ static void const * const * begin(void)
 {
     list *this = pop_this();
     __private_list *p_private = (__private_list *)this->__obj_private;
+    if (p_private->start.obj_this == NULL) {
+        iterator temp = p_private->start;
+        temp.obj_this = this;
+        memcpy((void*)&p_private->start, &temp, sizeof(iterator));
+    }
     return (void*)&p_private->start_iter;
 }
 static void const * const * end(void)
 {
     list *this = pop_this();
     __private_list *p_private = (__private_list *)this->__obj_private;
+    if (p_private->finish.obj_this == NULL) {
+        iterator temp = p_private->finish;
+        temp.obj_this = this;
+        memcpy((void*)&p_private->finish, &temp, sizeof(iterator));
+    }
     return (void*)&p_private->finish_iter;
 }
 static size_t size(void)
@@ -360,4 +370,18 @@ void destory_list(list *p_list)
     THIS(p_list).clear();
     __private_list *p_private = (__private_list*)p_list->__obj_private;
     deallocate(p_private->node, sizeof(struct __list_node));
+}
+
+list creat_list(size_t memb_size)
+{
+    list l;
+    init_list(&l, memb_size);
+    __private_list *p_private = (__private_list *)l.__obj_private;
+    iterator temp1 = p_private->start;
+    temp1.obj_this = NULL;
+    memcpy((void*)&p_private->start, &temp1, sizeof(iterator));
+    iterator temp2 = p_private->finish;
+    temp2.obj_this = NULL;
+    memcpy((void*)&p_private->finish, &temp2, sizeof(iterator));
+    return l;
 }

@@ -18,7 +18,7 @@ static void *increment(void)
     iterator *p_it = pop_this();
     __private_iterator *private_it = (__private_iterator*)p_it->__obj_private;
     void *ptr = *(void**)private_it->obj_iter;
-    push_this(private_it->obj_this);
+    push_this(p_it->obj_this);
     private_it->obj_iter_func->iter_increment(private_it->obj_iter);
     return ptr;
 }
@@ -29,7 +29,7 @@ static void *decrement(void)
     iterator *p_it = pop_this();
     __private_iterator *private_it = (__private_iterator*)p_it->__obj_private;
     void *ptr = *(void**)private_it->obj_iter;
-    push_this(private_it->obj_this);
+    push_this(p_it->obj_this);
     private_it->obj_iter_func->iter_decrement(private_it->obj_iter);
     return ptr;
 }
@@ -38,25 +38,25 @@ static void *front_increment(void)
 {
     iterator *p_it = pop_this();
     __private_iterator *private_it = (__private_iterator*)p_it->__obj_private;
-    push_this(private_it->obj_this);
+    push_this(p_it->obj_this);
     private_it->obj_iter_func->iter_increment(private_it->obj_iter);
-    return p_it->ptr;
+    return p_it->iter_ptr;
 }
 
 static void *front_decrement(void)
 {
     iterator *p_it = pop_this();
     __private_iterator *private_it = (__private_iterator*)p_it->__obj_private;
-    push_this(private_it->obj_this);
+    push_this(p_it->obj_this);
     private_it->obj_iter_func->iter_decrement(private_it->obj_iter);
-    return p_it->ptr;
+    return p_it->iter_ptr;
 }
 
 static void add(int x)
 {
     iterator *p_it = pop_this();
     __private_iterator *private_it = (__private_iterator*)p_it->__obj_private;
-    push_this(private_it->obj_this);
+    push_this(p_it->obj_this);
     private_it->obj_iter_func->iter_add(private_it->obj_iter, x);
 }
 
@@ -64,7 +64,7 @@ static void sub(int x)
 {
     iterator *p_it = pop_this();
     __private_iterator *private_it = (__private_iterator*)p_it->__obj_private;
-    push_this(private_it->obj_this);
+    push_this(p_it->obj_this);
     private_it->obj_iter_func->iter_sub(private_it->obj_iter, x);
 }
 
@@ -73,16 +73,16 @@ static iterator def_obj_func = {.increment = increment, .decrement = decrement, 
 void __init_iter(iterator *iter, void *obj_ptr, size_t obj_iter_size, size_t memb_size, __iterator_obj_func *func)
 {
     memcpy(iter, &def_obj_func, sizeof(iterator));
+    iter->obj_this = obj_ptr;
     //*iter = def_obj_func;
     __private_iterator *p_private = (__private_iterator*)iter->__obj_private;
-    p_private->obj_this = obj_ptr;
     p_private->obj_iter_func = func;
     *(size_t*)&p_private->memb_size = memb_size;
     p_private->obj_iter_size = obj_iter_size;
 
     //void *obj_iter = p_private->obj_iter;
     //memcpy((void*)&iter->ptr, &obj_iter, sizeof(void*));
-    *(void**)&iter->ptr = p_private->obj_iter;
+    *(void**)&iter->iter_ptr = p_private->obj_iter;
 }
 
 iterator *__constructor_iter(iterator *iter)
@@ -93,7 +93,7 @@ iterator *__constructor_iter(iterator *iter)
     memcpy(res, iter, iter_size);
     //void *obj_iter = p_private->obj_iter;
     //memcpy((void*)&iter->ptr, &obj_iter, sizeof(void*));
-    *(void**)&res->ptr = (void*)res + sizeof(iterator);
+    *(void**)&res->iter_ptr = (void*)res + sizeof(iterator);
     return res;
 }
 

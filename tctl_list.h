@@ -61,4 +61,5 @@ struct __list{
 
 void init_list(list *p_list, size_t memb_size);
 void destory_list(list *p_list);
+list creat_list(size_t memb_size);
 #endif //TINY_CTL_TCTL_LIST_H
