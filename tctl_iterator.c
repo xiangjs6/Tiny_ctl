@@ -11,7 +11,7 @@ static void *at(int x)
 {
     iterator *p_it = pop_this();
     __private_iterator *private_it = (__private_iterator*)p_it->__obj_private;
-    return private_it->obj_iter_func->iter_at(x);
+    return private_it->obj_iter_func->iter_at(private_it->obj_iter, x);
 }
 static void *increment(void)
 {

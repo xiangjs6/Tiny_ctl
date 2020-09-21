@@ -16,7 +16,7 @@
 
 typedef void* obj_iter;
 typedef struct {
-    void *(*iter_at)(int);
+    void *(*iter_at)(obj_iter, int);
     void (*iter_increment)(obj_iter);
     void (*iter_decrement)(obj_iter);
     void (*iter_add)(obj_iter, int);
