@@ -99,7 +99,7 @@ static vector_iter *erase(vector_iter *iter)
     if (*iter > p_private->finish_iter || *iter < p_private->start_iter)
         return NULL;
     size_t back_nmemb = p_private->nmemb - (*iter - p_private->start_iter) / p_private->memb_size - 1;
-    memcpy(*iter, *iter + p_private->memb_size, p_private->memb_size * back_nmemb);
+    memmove(*iter, *iter + p_private->memb_size, p_private->memb_size * back_nmemb);
     p_private->nmemb--;
     p_private->finish_iter -= p_private->memb_size;
     return iter;
@@ -114,7 +114,7 @@ static vector_iter *insert(vector_iter *iter, void *x)
     if (!this->capacity())
         fill_allocate(this);
     size_t back_nmemb = p_private->nmemb - (*iter - p_private->start_iter) / p_private->memb_size;
-    memcpy(*iter + p_private->memb_size, *iter, p_private->memb_size * back_nmemb);
+    memmove(*iter + p_private->memb_size, *iter, p_private->memb_size * back_nmemb);
     memcpy(*iter, x, p_private->memb_size);
     p_private->nmemb++;
     p_private->finish_iter += p_private->memb_size;
@@ -137,7 +137,15 @@ static void clear(void)
     p_private->finish_iter = p_private->start_iter;
 }
 
-void iter_increment(void *p)
+static void *iter_at(obj_iter iter, int pos)
+{
+    vector *this = pop_this();
+    __private_vector *p_private = (__private_vector*)this->__obj_private;
+    vector_iter *_iter = iter;
+    return *_iter + pos * p_private->memb_size;
+}
+
+static void iter_increment(void *p)
 {
     vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->__obj_private;
@@ -145,7 +153,7 @@ void iter_increment(void *p)
     *iter += p_private->memb_size;
 }
 
-void iter_decrement(void *p)
+static void iter_decrement(void *p)
 {
     vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->__obj_private;
@@ -153,7 +161,7 @@ void iter_decrement(void *p)
     *iter -= p_private->memb_size;
 }
 
-void iter_add(void *p, int x)
+static void iter_add(void *p, int x)
 {
     vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->__obj_private;
@@ -161,7 +169,7 @@ void iter_add(void *p, int x)
     *iter += x * p_private->memb_size;
 }
 
-void iter_sub(void *p, int x)
+static void iter_sub(void *p, int x)
 {
     vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->__obj_private;
@@ -170,7 +178,7 @@ void iter_sub(void *p, int x)
 }
 
 static __iterator_obj_func  __def_vector_iter = {
-        NULL,
+        iter_at,
         iter_increment,
         iter_decrement,
         iter_add,
