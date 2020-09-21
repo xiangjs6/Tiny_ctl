@@ -14,7 +14,7 @@ typedef struct {
     void *first;
     void *last;
     void **map_node;
-} __deque_iter;
+} deque_iter;
 
 typedef struct {
     size_t nmemb;
@@ -22,13 +22,19 @@ typedef struct {
     void **mmap;
     size_t mmap_len;
     size_t block_nmemb;
-    iterator start;
-    iterator finish;
+    struct {
+        iterator const start;
+        deque_iter start_iter;
+    };
+    struct {
+        iterator const finish;
+        deque_iter finish_iter;
+    };
 } __private_deque;
 
 typedef struct {
-    iterator (*begin)(void);
-    iterator (*end)(void);
+    void const * const *(*begin)(void);
+    void const * const *(*end)(void);
     size_t (*size)(void);
     bool (*empty)(void);
     void *(*at)(int);
@@ -38,9 +44,12 @@ typedef struct {
     void (*push_front)(void *x);
     void (*pop_back)(void);
     void (*pop_front)(void);
-    void (*insert)(iter_ptr iter, void *x);
-    void (*erase)(iter_ptr iter);
+    deque_iter *(*insert)(deque_iter *iter, void *x);
+    deque_iter *(*erase)(deque_iter *iter);
     void (*clear)(void);
     byte __obj_private[sizeof(__private_deque)];
 } deque;
+
+void init_deque(deque *p_deque, size_t memb_size, size_t block_nmemb);
+void destory_deque(deque *p_deque);
 #endif //TINY_CTL_TCTL_DEQUE_H

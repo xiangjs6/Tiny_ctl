@@ -5,13 +5,77 @@
 #include "tctl_iterator.h"
 #include "tctl_vector.h"
 #include "tctl_list.h"
+#include "tctl_deque.h"
 #include <stdlib.h>
 
 bool cmp(int *a, int *b)
 {
     return *a > *b;
 }
+
+//deque测试
+int main(void)
+{
+    deque deq;
+    init_deque(&deq, sizeof(int), 9);
+    for (int i = 0; i < 10; i++)
+        THIS(&deq).push_back(&i);
+    for (int i = 10; i < 20; i++)
+        THIS(&deq).push_front(&i);
+    for (int i = 0; i < 5; i++)
+        THIS(&deq).pop_front();
+    for (int i = 0; i < 5; i++)
+        THIS(&deq).pop_back();
+    for (int i = 30; i < 40; i++)
+        THIS(&deq).push_back(&i);
+    for (int i = 40; i < 50; i++)
+        THIS(&deq).push_front(&i);
+    deque_iter er_it = *(deque_iter *)THIS(&deq).begin();
+    er_it.cur += 4;
+    //THIS(&deq).erase(&er_it);
+    er_it.map_node++;
+    er_it.first = *er_it.map_node;
+    er_it.last = *er_it.map_node + 9 * sizeof(int);
+    er_it.cur = er_it.first + 3 * sizeof(int);
+    THIS(&deq).erase(&er_it);
+    er_it.map_node += 1;
+    er_it.first = *er_it.map_node;
+    er_it.last = *er_it.map_node + 9 * sizeof(int);
+    er_it.cur = er_it.first + 3 * sizeof(int);
+    THIS(&deq).erase(&er_it);
+    int t = 100;
+    THIS(&deq).insert(&er_it, &t);
+    er_it.map_node -= 2;
+    er_it.first = *er_it.map_node;
+    er_it.last = *er_it.map_node + 9 * sizeof(int);
+    er_it.cur = er_it.first + 5 * sizeof(int);
+    t = 101;
+    THIS(&deq).insert(&er_it, &t);
+    t = 102;
+    THIS(&deq).insert(THIS(&deq).begin(), &t);
+    //THIS(&deq).clear();
+    for (int i = 0; i < THIS(&deq).size(); i++) {
+        int *temp = (int *) THIS(&deq).at(i);
+        printf("%d ", *temp);
+    }
+    putchar('\n');
+    printf("front:%d\n", *(int*)THIS(&deq).front());
+    printf("back:%d\n", *(int*)THIS(&deq).back());
+    for (int i = 0; i < THIS(&deq).size(); i++) {
+        int *temp = (int *) THIS(&deq).at(i);
+        printf("%d ", *temp);
+    }
+    putchar('\n');
+    for (ITER_TYPE(int) it = NEW_ITER(THIS(&deq).begin()); *it != *THIS(&deq).end(); ITER(it).increment()) {
+        auto temp = **it;
+        printf("%d ", **it);
+    }
+    putchar('\n');
+    destory_deque(&deq);
+}
+
 //vector测试
+/*
 int main(void)
 {
     vector v = creat_vector(0, sizeof(int), NULL);
@@ -62,6 +126,7 @@ int main(void)
     putchar('\n');
     destory_vector(&v);
 }
+*/
 
 // list测试
 /*
