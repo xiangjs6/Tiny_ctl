@@ -6,6 +6,7 @@
 #include "tctl_vector.h"
 #include "tctl_list.h"
 #include "tctl_deque.h"
+#include "tctl_queue.h"
 #include <stdlib.h>
 
 bool cmp(int *a, int *b)
@@ -13,8 +14,24 @@ bool cmp(int *a, int *b)
     return *a > *b;
 }
 
-//deque测试
+//queue测试
 int main(void)
+{
+    queue que = creat_queue(sizeof(int));
+    for (int i = 0; i < 10; i++)
+        THIS(&que).push(&i);
+    printf("front:%d\n", *(int*)THIS(&que).front());
+    printf("back:%d\n", *(int*)THIS(&que).back());
+    printf("size:%d\n", THIS(&que).size());
+    printf("empty:%c\n", *("YN" + THIS(&que).empty()));
+    for (int i = 0; i < 10; i++)
+        THIS(&que).pop();
+    printf("empty:%c\n", *("YN" + THIS(&que).empty()));
+    destory_queue(&que);
+}
+
+//deque测试
+/*int main(void)
 {
     deque deq = creat_deque(sizeof(int), 9);
     __private_deque *watch = deq.__obj_private;
@@ -75,7 +92,7 @@ int main(void)
     }
     putchar('\n');
     destory_deque(&deq);
-}
+}*/
 
 //vector测试
 /*int main(void)
