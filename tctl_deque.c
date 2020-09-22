@@ -323,13 +323,29 @@ static void iter_sub(obj_iter iter, int v)
     _iter->cur = _iter->last - (v % p_private->block_nmemb) * p_private->block_nmemb;
 }
 
+static long long iter_diff(obj_iter minuend, obj_iter subtraction)
+{
+    deque_iter *_minuend = minuend;
+    deque_iter *_subtraction = subtraction;
+    deque *this = pop_this();
+    __private_deque *p_private = (__private_deque*)this->__obj_private;
+    if (_minuend->map_node == _subtraction->map_node)
+        return (_minuend->cur - _subtraction->cur) / p_private->memb_size;
+    long long block_diff = _minuend->map_node - _subtraction->map_node;
+    long long res = block_diff < 0 ?
+            -(_minuend->last - _minuend->cur + _subtraction->cur - _subtraction->first) :
+            _minuend->cur - _minuend->first + _subtraction->last - _subtraction->cur;
+    block_diff = block_diff > 0 ? block_diff - 1 : block_diff + 1;
+    return res / (long long)p_private->memb_size + block_diff * p_private->block_nmemb;
+}
 
 static __iterator_obj_func  __def_deque_iter = {
         iter_at,
         iter_increment,
         iter_decrement,
         iter_add,
-        iter_sub
+        iter_sub,
+        iter_diff
 };
 
 static const deque __def_deque = {

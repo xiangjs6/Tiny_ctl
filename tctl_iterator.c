@@ -68,7 +68,15 @@ static void sub(int x)
     private_it->obj_iter_func->iter_sub(private_it->obj_iter, x);
 }
 
-static iterator def_obj_func = {.increment = increment, .decrement = decrement, .front_increment = front_increment, .front_decrement = front_decrement, .add = add, .sub = sub};
+static long long diff(obj_iter iter)
+{
+    iterator *p_it = pop_this();
+    __private_iterator *private_it = (__private_iterator*)p_it->__obj_private;
+    push_this(p_it->obj_this);
+    return private_it->obj_iter_func->iter_diff(p_it->iter_ptr, iter);
+}
+
+static iterator def_obj_func = {.increment = increment, .decrement = decrement, .front_increment = front_increment, .front_decrement = front_decrement, .add = add, .sub = sub, .diff = diff};
 
 void __init_iter(iterator *iter, void *obj_ptr, size_t obj_iter_size, size_t memb_size, __iterator_obj_func *func)
 {

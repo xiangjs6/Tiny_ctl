@@ -177,12 +177,20 @@ static void iter_sub(void *p, int x)
     *iter -= x * p_private->memb_size;
 }
 
+static long long iter_diff(obj_iter minuend, obj_iter subtraction)
+{
+    vector *this = pop_this();
+    __private_vector *p_private = (__private_vector*)this->__obj_private;
+    return (*(vector_iter*)minuend - *(vector_iter*)subtraction) / p_private->memb_size;
+}
+
 static __iterator_obj_func  __def_vector_iter = {
         iter_at,
         iter_increment,
         iter_decrement,
         iter_add,
-        iter_sub
+        iter_sub,
+        iter_diff
 };
 
 static const vector __def_vector = {

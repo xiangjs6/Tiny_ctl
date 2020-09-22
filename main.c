@@ -67,16 +67,17 @@ int main(void)
     }
     putchar('\n');
     for (ITER_TYPE(int) it = NEW_ITER(THIS(&deq).begin()); *it != *THIS(&deq).end(); ITER(it).increment()) {
-        auto temp = **it;
         printf("%d ", **it);
+        long long r = ITER(it).diff(THIS(&deq).end());
+        r = ITER(it).diff(THIS(&deq).begin());
+        r = 0;
     }
     putchar('\n');
     destory_deque(&deq);
 }
 
 //vector测试
-/*
-int main(void)
+/*int main(void)
 {
     vector v = creat_vector(0, sizeof(int), NULL);
     //init_vector(&v, 0, sizeof(int), NULL);
@@ -112,6 +113,8 @@ int main(void)
     THIS(&v).erase(in_it);
     for (ITER_TYPE(int) it = NEW_ITER(THIS(&v).begin()); *it != *THIS(&v).end(); ITER(it).increment()) {
         printf("%d ", **it);
+        int t = ITER(it).diff(THIS(&v).begin());
+        t = 0;
     }
     putchar('\n');
     printf("front:%d\n", *(int*)THIS(&v).front());
@@ -125,8 +128,7 @@ int main(void)
         printf("%d ", *(int*)THIS(&v).at(i));
     putchar('\n');
     destory_vector(&v);
-}
-*/
+}*/
 
 // list测试
 /*

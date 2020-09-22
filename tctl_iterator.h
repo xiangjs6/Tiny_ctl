@@ -21,6 +21,7 @@ typedef struct {
     void (*iter_decrement)(obj_iter);
     void (*iter_add)(obj_iter, int);
     void (*iter_sub)(obj_iter, int);
+    long long (*iter_diff)(obj_iter, obj_iter);
 } __iterator_obj_func;
 
 typedef struct {
@@ -31,7 +32,7 @@ typedef struct {
 } __private_iterator;
 
 typedef struct {
-    void * const iter_ptr;
+    obj_iter const iter_ptr;
     void *obj_this;
     void *(*at)(int);
     void *(*increment)(void);
@@ -40,6 +41,7 @@ typedef struct {
     void *(*front_decrement)(void);
     void (*add)(int);
     void (*sub)(int);
+    long long (*diff)(obj_iter);
     byte __obj_private[sizeof(__private_iterator)];
 } iterator;
 

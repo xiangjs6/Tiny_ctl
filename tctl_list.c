@@ -321,6 +321,7 @@ static __iterator_obj_func  __def_list_iter = {
         iter_increment,
         iter_decrement,
         NULL,
+        NULL,
         NULL
 };
 
