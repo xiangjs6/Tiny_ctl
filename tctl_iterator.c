@@ -76,7 +76,7 @@ static long long diff(obj_iter iter)
     return private_it->obj_iter_func->iter_diff(p_it->iter_ptr, iter);
 }
 
-static iterator def_obj_func = {.increment = increment, .decrement = decrement, .front_increment = front_increment, .front_decrement = front_decrement, .add = add, .sub = sub, .diff = diff};
+static iterator def_obj_func = {.at = at, .increment = increment, .decrement = decrement, .front_increment = front_increment, .front_decrement = front_decrement, .add = add, .sub = sub, .diff = diff};
 
 void __init_iter(iterator *iter, void *obj_ptr, size_t obj_iter_size, size_t memb_size, __iterator_obj_func *func)
 {
