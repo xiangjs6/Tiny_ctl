@@ -27,12 +27,22 @@ static void const * const * begin(void)
 {
     deque *this = pop_this();
     __private_deque *p_private = (__private_deque*)this->__obj_private;
+    if (p_private->start.obj_this == NULL) {
+        iterator temp = p_private->start;
+        temp.obj_this = this;
+        memcpy((void*)&p_private->start, &temp, sizeof(iterator));
+    }
     return (void*)&p_private->start_iter;
 }
 static void const * const * end(void)
 {
     deque *this = pop_this();
     __private_deque *p_private = (__private_deque*)this->__obj_private;
+    if (p_private->finish.obj_this == NULL) {
+        iterator temp = p_private->finish;
+        temp.obj_this = this;
+        memcpy((void*)&p_private->finish, &temp, sizeof(iterator));
+    }
     return (void*)&p_private->finish_iter;
 }
 static size_t size(void)
@@ -83,7 +93,7 @@ static void push_back(void *x)
 {
     deque *this = pop_this();
     __private_deque *p_private = (__private_deque*)this->__obj_private;
-    deque_iter *finish_iter = p_private->finish.iter_ptr;
+    deque_iter *finish_iter = &p_private->finish_iter;
     if (finish_iter->cur == finish_iter->last) {
         if (finish_iter->map_node == p_private->mmap + p_private->mmap_len - 1)
             extend_map(p_private);
@@ -390,4 +400,18 @@ void destory_deque(deque *p_deque)
     THIS(p_deque).clear();
     deallocate(*p_private->start_iter.map_node, p_private->memb_size * p_private->block_nmemb);
     deallocate(p_private->mmap, p_private->mmap_len);
+}
+
+deque creat_deque(size_t memb_size, size_t block_nmemb)
+{
+    deque deq;
+    init_deque(&deq, memb_size, block_nmemb);
+    __private_deque *p_private = (__private_deque*)deq.__obj_private;
+    iterator temp1 = p_private->start;
+    temp1.obj_this = NULL;
+    memcpy((void*)&p_private->start, &temp1, sizeof(iterator));
+    iterator temp2 = p_private->finish;
+    temp2.obj_this = NULL;
+    memcpy((void*)&p_private->finish, &temp2, sizeof(iterator));
+    return deq;
 }

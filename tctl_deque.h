@@ -52,4 +52,5 @@ typedef struct {
 
 void init_deque(deque *p_deque, size_t memb_size, size_t block_nmemb);
 void destory_deque(deque *p_deque);
+deque creat_deque(size_t memb_size, size_t block_nmemb);
 #endif //TINY_CTL_TCTL_DEQUE_H

@@ -16,8 +16,9 @@ bool cmp(int *a, int *b)
 //deque测试
 int main(void)
 {
-    deque deq;
-    init_deque(&deq, sizeof(int), 9);
+    deque deq = creat_deque(sizeof(int), 9);
+    __private_deque *watch = deq.__obj_private;
+    //init_deque(&deq, sizeof(int), 9);
     for (int i = 0; i < 10; i++)
         THIS(&deq).push_back(&i);
     for (int i = 10; i < 20; i++)
