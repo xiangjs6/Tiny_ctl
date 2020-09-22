@@ -8,27 +8,52 @@
 #include "tctl_deque.h"
 #include "tctl_queue.h"
 #include <stdlib.h>
+#include "tctl_stack.h"
 
 bool cmp(int *a, int *b)
 {
     return *a > *b;
 }
 
-//queue测试
+//stack测试
 int main(void)
 {
-    queue que = creat_queue(sizeof(int));
+    stack st = creat_stack(sizeof(int));
+    for (int i = 0; i < 10; i++)
+        THIS(&st).push(&i);
+    printf("top:%d\n", *(int*)THIS(&st).top());
+    printf("size:%d\n", THIS(&st).size());
+    printf("empty:%c\n", *("YN" + THIS(&st).empty()));
+    for (int i = 0; i < 10; i++) {
+        int temp = *(int*)THIS(&st).top();
+        THIS(&st).pop();
+        printf("%d ", temp);
+    }
+    putchar('\n');
+    printf("empty:%c\n", *("YN" + THIS(&st).empty()));
+    return 0;
+}
+
+//queue测试
+/*int main(void)
+{
+    queue que;// = creat_queue(sizeof(int));
+    init_queue(&que, sizeof(int));
     for (int i = 0; i < 10; i++)
         THIS(&que).push(&i);
     printf("front:%d\n", *(int*)THIS(&que).front());
     printf("back:%d\n", *(int*)THIS(&que).back());
     printf("size:%d\n", THIS(&que).size());
     printf("empty:%c\n", *("YN" + THIS(&que).empty()));
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i < 10; i++) {
+        int temp = *(int*)THIS(&que).front();
+        printf("%d ", temp);
         THIS(&que).pop();
+    }
+    putchar('\n');
     printf("empty:%c\n", *("YN" + THIS(&que).empty()));
     destory_queue(&que);
-}
+}*/
 
 //deque测试
 /*int main(void)
