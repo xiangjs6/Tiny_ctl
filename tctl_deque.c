@@ -86,7 +86,7 @@ static void const *back(void)
 {
     deque *this = pop_this();
     __private_deque *p_private = (__private_deque*)this->__obj_private;
-    deque_iter *finish_iter = p_private->finish.iter_ptr;
+    deque_iter *finish_iter = &p_private->finish_iter;
     return finish_iter->cur - p_private->memb_size;
 }
 static void push_back(void *x)
