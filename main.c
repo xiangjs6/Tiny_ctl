@@ -4,11 +4,11 @@
 #include "tctl_common.h"
 #include "tctl_iterator.h"
 #include "tctl_vector.h"
-#include "tctl_list.h"
-#include "tctl_deque.h"
-#include "tctl_queue.h"
+//#include "tctl_list.h"
+//#include "tctl_deque.h"
+//#include "tctl_queue.h"
 #include <stdlib.h>
-#include "tctl_stack.h"
+//#include "tctl_stack.h"
 
 bool cmp(int *a, int *b)
 {
@@ -16,7 +16,7 @@ bool cmp(int *a, int *b)
 }
 
 //stack测试
-int main(void)
+/*int main(void)
 {
     stack st = creat_stack(sizeof(int));
     for (int i = 0; i < 10; i++)
@@ -32,7 +32,7 @@ int main(void)
     putchar('\n');
     printf("empty:%c\n", *("YN" + THIS(&st).empty()));
     return 0;
-}
+}*/
 
 //queue测试
 /*int main(void)
@@ -120,7 +120,7 @@ int main(void)
 }*/
 
 //vector测试
-/*int main(void)
+int main(void)
 {
     vector v = creat_vector(0, sizeof(int), NULL);
     //init_vector(&v, 0, sizeof(int), NULL);
@@ -135,7 +135,7 @@ int main(void)
     }
     putchar('\n');
     printf("insert\n");
-    ITER_TYPE(int) in_it = NEW_ITER(THIS(&v).begin());
+    iterator in_it = NEW_ITER(THIS(&v).begin());
     int temp = 1000;
     THIS(&v).insert(in_it, &temp);
     ITER(in_it).increment();
@@ -154,16 +154,16 @@ int main(void)
     THIS(&v).insert(in_it, &temp);
     ITER(in_it).increment();
     THIS(&v).erase(in_it);
-    for (ITER_TYPE(int) it = NEW_ITER(THIS(&v).begin()); *it != *THIS(&v).end(); ITER(it).increment()) {
-        printf("%d ", **it);
-        int t = ITER(it).diff(THIS(&v).begin());
+    for (iterator it = NEW_ITER(THIS(&v).begin()); *(int**)it != *THIS(&v).end(); ITER(it).increment()) {
+        printf("%d ", **(int**)it);
+        iterator itt = NEW_ITER(THIS(&v).begin());
+        int t = ITER(it).diff(itt);
         t = 0;
     }
     putchar('\n');
     printf("front:%d\n", *(int*)THIS(&v).front());
     printf("back:%d\n", *(int*)THIS(&v).back());
     printf("empty:%c\n", *("YN" + THIS(&v).empty()));
-    printf("memb_size:%d\n", ITER(in_it).memb_size);
     THIS(&v).clear();
     printf("empty:%c\n", *("YN" + THIS(&v).empty()));
     printf("capacoty:%d\n", THIS(&v).capacity());
@@ -172,7 +172,7 @@ int main(void)
         printf("%d ", *(int*)THIS(&v).at(i));
     putchar('\n');
     destory_vector(&v);
-}*/
+}
 
 // list测试
 /*
