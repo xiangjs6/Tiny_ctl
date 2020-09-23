@@ -25,7 +25,6 @@ typedef struct {
 } __iterator_obj_func;
 
 typedef struct {
-    const size_t memb_size;
     __iterator_obj_func *obj_iter_func;
     size_t obj_iter_size;
     byte obj_iter[0];
@@ -34,6 +33,7 @@ typedef struct {
 typedef struct {
     obj_iter const iter_ptr;
     void *obj_this;
+    const size_t memb_size;
     void *(*at)(int);
     void *(*increment)(void);
     void *(*decrement)(void);

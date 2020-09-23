@@ -163,6 +163,7 @@ int main(void)
     printf("front:%d\n", *(int*)THIS(&v).front());
     printf("back:%d\n", *(int*)THIS(&v).back());
     printf("empty:%c\n", *("YN" + THIS(&v).empty()));
+    printf("memb_size:%d\n", ITER(in_it).memb_size);
     THIS(&v).clear();
     printf("empty:%c\n", *("YN" + THIS(&v).empty()));
     printf("capacoty:%d\n", THIS(&v).capacity());

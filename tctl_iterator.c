@@ -82,10 +82,10 @@ void __init_iter(iterator *iter, void *obj_ptr, size_t obj_iter_size, size_t mem
 {
     memcpy(iter, &def_obj_func, sizeof(iterator));
     iter->obj_this = obj_ptr;
+    *(size_t*)&iter->memb_size = memb_size;
     //*iter = def_obj_func;
     __private_iterator *p_private = (__private_iterator*)iter->__obj_private;
     p_private->obj_iter_func = func;
-    *(size_t*)&p_private->memb_size = memb_size;
     p_private->obj_iter_size = obj_iter_size;
 
     //void *obj_iter = p_private->obj_iter;
