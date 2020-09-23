@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
+typedef long long offset_t;
 typedef unsigned char byte;
 
 #endif //TINY_CTL_TCTL_DEF_H
