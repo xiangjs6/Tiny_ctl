@@ -8,25 +8,20 @@
 
 /*
  * 迭代器规则
- * 1、对用户所见的都应该是type**类型
+ * 1、用户应该使用iterator定义迭代器变量，并使用NEW_ITER创建迭代器
  * 2、使用迭代器的对象应该在结构体中加入__iterator_obj_func成员
- * 3、容器应该存储自己的begin和end迭代器，并且返回迭代器的函数应该为iter_ptr
- * 4、iter_ptr应该指向容器中的节点的元素的地址，并且！！！可以由这个地址找到这个元素所在的整个节点的地址
+ * 3、容器的begin和end应该返回__iterator类型，NEW_ITER传入__iterator类型
+ * 4、容器要使用struct __inner_iterator作为迭代器的壳，并定义容器自己的迭代器，放在struct __inner_iterator后面，并且第一个成员为指向值的地址
  * */
-typedef struct __iterator __iterator;
-typedef void* obj_iter;
+typedef struct __iterator *__iterator;
 typedef struct {
-    void *(*iter_at)(__iterator*, int);
-    void (*iter_increment)(__iterator*);
-    void (*iter_decrement)(__iterator*);
-    void (*iter_add)(__iterator*, int);
-    void (*iter_sub)(__iterator*, int);
-    long long (*iter_diff)(__iterator*, struct __iterator*);
+    void *(*iter_at)(__iterator, int);
+    void (*iter_increment)(__iterator);
+    void (*iter_decrement)(__iterator);
+    void (*iter_add)(__iterator, int);
+    void (*iter_sub)(__iterator, int);
+    long long (*iter_diff)(__iterator, __iterator);
 } __iterator_obj_func;
-
-typedef struct {
-    __iterator_obj_func *obj_iter_func;
-} __private_iterator_func;
 
 typedef struct {
     void *(*at)(int);
@@ -36,27 +31,36 @@ typedef struct {
     void *(*front_decrement)(void);
     void (*add)(int);
     void (*sub)(int);
-    void (*copy)(__iterator*);
-    long long (*diff)(__iterator *);
-    byte __obj_private[sizeof(__private_iterator_func)];
+    void (*copy)(__iterator);
+    long long (*diff)(__iterator);
+} __public_iterator_func;
+
+typedef struct {
+    const __public_iterator_func *iter_func;
+    const __iterator_obj_func  *private_iter_func;
 } iterator_func;
 
-struct __iterator {
-    void *val;
-    iterator_func const *iterator_func_p;
+struct __inner_iterator {
+    const iterator_func *iterator_func_p;
+    void *obj_this;
     size_t obj_iter_size;
     size_t memb_size;
+    byte __address[0];
 };
 
-#define iterator autofree(__destructor_iter) __iterator *
+struct __iterator {
+    struct __inner_iterator __inner;
+    void *val;
+};
 
-#define ITER(p) (*THIS(((__iterator*)p)).iterator_func_p)
-#define ITER_TYPE(type) autofree(__destructor_iter) type**
-#define NEW_ITER(p) (void*)(__constructor_iter((__iterator*)p))
+#define iterator autofree(__destructor_iter) __iterator
+#define ITER(p) (*THIS(((__iterator)p)).__inner.iterator_func_p->iter_func)
+#define NEW_ITER(p) (void*)(__constructor_iter((__iterator)p))
 
-__iterator __creat_iter(size_t obj_iter_size, size_t memb_size, iterator_func const *iterator_func_p);
-void __init_iter_func(iterator_func *iter_f, __iterator_obj_func *func);
-__iterator *__constructor_iter(__iterator *iter);
+extern const __public_iterator_func def_pub_iter_func;
+#define INIT_ITER_FUNC(private_iter_func) {&def_pub_iter_func, private_iter_func}
+
+struct __inner_iterator __creat_iter(size_t obj_iter_size, void *obj_this, size_t memb_size, const iterator_func *iter_func);
+__iterator __constructor_iter(__iterator iter);
 void __destructor_iter(void *p);
-void __iter_copy(__iterator*, __iterator*);
 #endif //TINY_CTL_TCTL_ITERATOR_H
