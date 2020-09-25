@@ -132,12 +132,12 @@ int main(void)
     }
     for (int i = 0; i < 5; i++)
         THIS(&v).pop_back();
-    for (iterator it = NEW_ITER(THIS(&v).begin()); it->val != THIS(&v).end()->val; ITER(it).increment()) {
+    for (iterator *it = NEW_ITER(THIS(&v).begin()); it->val != THIS(&v).end()->val; ITER(it).increment()) {
         printf("%d ", *(int*)it->val);
     }
     putchar('\n');
     printf("insert\n");
-    iterator in_it = NEW_ITER(THIS(&v).begin());
+    iterator *in_it = NEW_ITER(THIS(&v).begin());
     int temp = 1000;
     THIS(&v).insert(in_it, &temp);
     for (int i = 0; i < THIS(&v).size(); i++)
@@ -171,9 +171,9 @@ int main(void)
     putchar('\n');
     ITER(in_it).increment();
     THIS(&v).erase(in_it);
-    for (iterator it = NEW_ITER(THIS(&v).begin()); it->val != THIS(&v).end()->val; ITER(it).increment()) {
+    for (iterator *it = NEW_ITER(THIS(&v).begin()); it->val != THIS(&v).end()->val; ITER(it).increment()) {
         printf("%d ", *(int*)it->val);
-        iterator itt = NEW_ITER(THIS(&v).begin());
+        iterator *itt = NEW_ITER(THIS(&v).begin());
         int t = ITER(it).diff(itt);
         t = 0;
     }

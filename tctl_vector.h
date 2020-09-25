@@ -27,17 +27,17 @@ typedef struct {
 
 typedef struct {
     void *(*at)(int);
-    const __iterator (*begin)(void);
-    const __iterator (*end)(void);
-    void *(*front)(void);
-    void *(*back)(void);
+    const __iterator *(*begin)(void);
+    const __iterator *(*end)(void);
+    void const *(*front)(void);
+    void const *(*back)(void);
     size_t (*size)(void);
     size_t (*capacity)(void);
     bool (*empty)(void);
     void (*push_back)(void *x);
     void (*pop_back)(void);
-    __iterator (*erase)(__iterator iter);
-    __iterator (*insert)(__iterator iter, void *x);
+    __iterator *(*erase)(__iterator *iter);
+    __iterator *(*insert)(__iterator *iter, void *x);
     void (*resize)(size_t new_size);
     void (*clear)(void);
     byte __obj_private[sizeof(__private_vector)];

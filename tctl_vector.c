@@ -23,29 +23,29 @@ static void *at(int pos)
         return NULL;
     return p_private->start_ptr+ p_private->memb_size * pos;
 }
-static const __iterator begin(void)
+static const __iterator *begin(void)
 {
     vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->__obj_private;
     if (p_private->start_iter.obj_this != this)
         p_private->start_iter.obj_this = this;
-    return (__iterator)&p_private->start_iter;
+    return (__iterator*)&p_private->start_iter;
 }
-static const __iterator end(void)
+static const __iterator *end(void)
 {
     vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->__obj_private;
     if (p_private->finish_iter.obj_this != this)
         p_private->finish_iter.obj_this = this;
-    return (__iterator)&p_private->finish_iter;
+    return (__iterator*)&p_private->finish_iter;
 }
-static void *front(void)
+static void const *front(void)
 {
     vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->__obj_private;
     return p_private->start_ptr;
 }
-static void *back(void)
+static void const *back(void)
 {
     vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->__obj_private;
@@ -86,10 +86,10 @@ static void pop_back(void)
     p_private->nmemb--;
     p_private->finish_ptr -= p_private->memb_size;
 }
-static __iterator erase(__iterator iter)
+static __iterator *erase(__iterator *iter)
 {
     vector *this = pop_this();
-    __vector_iter *_iter = &iter->val;//获取vector迭代器的地址
+    __vector_iter const *_iter = &iter->val;//获取vector迭代器的地址
     __private_vector *p_private = (__private_vector*)this->__obj_private;
     if (*_iter > p_private->finish_ptr || *_iter < p_private->start_ptr)
         return NULL;
@@ -99,10 +99,10 @@ static __iterator erase(__iterator iter)
     p_private->finish_ptr -= p_private->memb_size;
     return iter;
 }
-static __iterator insert(__iterator iter, void *x)
+static __iterator *insert(__iterator *iter, void *x)
 {
     vector *this = pop_this();
-    __vector_iter *_iter = &iter->val;
+    __vector_iter const *_iter = &iter->val;
     __private_vector *p_private = (__private_vector*)this->__obj_private;
     if (*_iter > p_private->finish_ptr || *_iter < p_private->start_ptr)
         return NULL;
@@ -133,23 +133,23 @@ static void clear(void)
     p_private->finish_ptr = p_private->start_ptr;
 }
 
-static void *iter_at(__iterator iter, int pos)
+static void *iter_at(__iterator *iter, int pos)
 {
-    __vector_iter *_iter = &iter->val;
+    __vector_iter const *_iter = &iter->val;
     vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->__obj_private;
     return *_iter + pos * p_private->memb_size;
 }
 
-static void iter_increment(__iterator iter)
+static void iter_increment(__iterator *iter)
 {
-    __vector_iter *_iter = &iter->val;
+    __vector_iter *_iter = (__vector_iter*)&iter->val;
     vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->__obj_private;
     *_iter += p_private->memb_size;
 }
 
-static void iter_decrement(__iterator iter)
+static void iter_decrement(__iterator *iter)
 {
     __vector_iter *_iter = &iter->val;
     vector *this = pop_this();
@@ -157,7 +157,7 @@ static void iter_decrement(__iterator iter)
     *_iter -= p_private->memb_size;
 }
 
-static void iter_add(__iterator iter, int x)
+static void iter_add(__iterator *iter, int x)
 {
     __vector_iter *_iter = &iter->val;
     vector *this = pop_this();
@@ -165,7 +165,7 @@ static void iter_add(__iterator iter, int x)
     *_iter += x * p_private->memb_size;
 }
 
-static void iter_sub(__iterator iter, int x)
+static void iter_sub(__iterator *iter, int x)
 {
     __vector_iter *_iter = &iter->val;
     vector *this = pop_this();
@@ -173,7 +173,7 @@ static void iter_sub(__iterator iter, int x)
     *_iter -= x * p_private->memb_size;
 }
 
-static long long iter_diff(__iterator minuend, __iterator subtraction)
+static long long iter_diff(__iterator *minuend, __iterator *subtraction)
 {
     vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->__obj_private;
