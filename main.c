@@ -123,6 +123,8 @@ bool cmp(int *a, int *b)
 int main(void)
 {
     vector v = creat_vector(0, sizeof(int), NULL);
+    __private_vector *a = v.__obj_private;
+    printf("%d %d %d\n", sizeof(iterator), sizeof(__private_vector), sizeof(a->start_ptr) + sizeof(a->start_iter));
     //init_vector(&v, 0, sizeof(int), NULL);
     for (int i = 0; i < 10; i++) {
         int temp = i;
@@ -130,32 +132,47 @@ int main(void)
     }
     for (int i = 0; i < 5; i++)
         THIS(&v).pop_back();
-    for (ITER_TYPE(int) it = NEW_ITER(THIS(&v).begin()); *it != *THIS(&v).end(); ITER(it).increment()) {
-        printf("%d ", **it);
+    for (iterator it = NEW_ITER(THIS(&v).begin()); it->val != THIS(&v).end()->val; ITER(it).increment()) {
+        printf("%d ", *(int*)it->val);
     }
     putchar('\n');
     printf("insert\n");
     iterator in_it = NEW_ITER(THIS(&v).begin());
     int temp = 1000;
     THIS(&v).insert(in_it, &temp);
+    for (int i = 0; i < THIS(&v).size(); i++)
+        printf("%d ", *(int*)THIS(&v).at(i));
+    putchar('\n');
     ITER(in_it).increment();
     ITER(in_it).increment();
     temp = 101;
     THIS(&v).insert(in_it, &temp);
+    for (int i = 0; i < THIS(&v).size(); i++)
+        printf("%d ", *(int*)THIS(&v).at(i));
+    putchar('\n');
     ITER(in_it).add(3);
     temp = 102;
     THIS(&v).insert(in_it, &temp);
+    for (int i = 0; i < THIS(&v).size(); i++)
+        printf("%d ", *(int*)THIS(&v).at(i));
+    putchar('\n');
     ITER(in_it).sub(2);
     temp = 103;
     THIS(&v).insert(in_it, &temp);
+    for (int i = 0; i < THIS(&v).size(); i++)
+        printf("%d ", *(int*)THIS(&v).at(i));
+    putchar('\n');
     ITER(in_it).decrement();
     ITER(in_it).decrement();
     temp = 104;
     THIS(&v).insert(in_it, &temp);
+    for (int i = 0; i < THIS(&v).size(); i++)
+        printf("%d ", *(int*)THIS(&v).at(i));
+    putchar('\n');
     ITER(in_it).increment();
     THIS(&v).erase(in_it);
-    for (iterator it = NEW_ITER(THIS(&v).begin()); *(int**)it != *THIS(&v).end(); ITER(it).increment()) {
-        printf("%d ", **(int**)it);
+    for (iterator it = NEW_ITER(THIS(&v).begin()); it->val != THIS(&v).end()->val; ITER(it).increment()) {
+        printf("%d ", *(int*)it->val);
         iterator itt = NEW_ITER(THIS(&v).begin());
         int t = ITER(it).diff(itt);
         t = 0;
