@@ -26,6 +26,57 @@ static void transfer(struct __list_node *pos, struct __list_node *first, struct 
     first_node->pre = pos_pre_node;
 }
 
+static void __splice(list *this, struct __list_node *_position, list *l, struct __list_node *_first, struct __list_node *_last)
+{
+    if (_last == NULL)
+        _last = _first->next;
+    if(_first != _last) {
+        transfer(_position, _first, _last);
+        __private_list *p_private = (__private_list*)this->__obj_private;
+        __private_list *l_private = (__private_list*)l->__obj_private;
+        //一定要先p_private再置l_private，因为指针可能关联着l链表的strart_iter或finish_iter
+        if (p_private->start_ptr == _position->data) {
+            p_private->start_ptr = _first->data;
+        }
+        if (l_private->start_ptr == _first->data) {
+            l_private->start_ptr = _last->data;
+        }
+    }
+}
+
+static __list_iter __erase(list *this, __list_iter iter)
+{
+    __private_list *p_private = (__private_list *)this->__obj_private;
+    struct __list_node *node = container_of(iter, struct __list_node, data);
+    if (node == p_private->node)
+        return NULL;
+
+    if (node == p_private->node->next)
+        p_private->start_ptr = node->next->data;
+    node->pre->next = node->next;
+    node->next->pre = node->pre;
+    //iter->val = node->next->data;
+    //obj_iter next = (void*)node->next;
+    deallocate(node, sizeof(struct __list_node) + p_private->memb_size);
+    return node->next->data;
+}
+
+static __list_iter __insert(list *this, __list_iter iter, void *x)
+{
+    __private_list *p_private = (__private_list *)this->__obj_private;
+    struct __list_node *node = container_of(iter, struct __list_node, data);
+    struct __list_node *new_node = allocate(sizeof(struct __list_node) + p_private->memb_size);
+    memcpy(new_node->data, x, p_private->memb_size);
+
+    new_node->next = node;
+    node->pre->next = new_node;
+    new_node->pre = node->pre;
+    node->pre = new_node;
+    if (new_node == p_private->node->next)
+        p_private->start_ptr = new_node->data;
+    return iter;
+}
+
 //public
 void *at(int pos)
 {
@@ -38,74 +89,44 @@ void *at(int pos)
         return NULL;
     return node->data;
 }
-static list_iter *erase(list_iter *iter)
+static __iterator *erase(__iterator *iter)
 {
     list *this = pop_this();
-    __private_list *p_private = (__private_list *)this->__obj_private;
-    struct __list_node *node = iter->node;
-    if (node == p_private->node)
-        return NULL;
-
-    if (node == p_private->node->next) {
-        p_private->start_iter.val = node->next->data;
-        p_private->start_iter.node = node->next;
-    }
-    node->pre->next = node->next;
-    node->next->pre = node->pre;
-    iter->node = node->next;
-    iter->val = node->data;
-    //obj_iter next = (void*)node->next;
-    deallocate(node, sizeof(struct __list_node) + p_private->memb_size);
+    iter->val = __erase(this, iter->val);
     return iter;
 }
-static list_iter *insert(list_iter *iter, void *x)
+static __iterator *insert(__iterator *iter, void *x)
 {
     list *this = pop_this();
-    __private_list *p_private = (__private_list *)this->__obj_private;
-    struct __list_node *node = iter->node;
-    void *ptr = allocate(sizeof(struct __list_node) + p_private->memb_size);
-    struct __list_node *new_node = ptr;
-    new_node->data = ptr + sizeof(struct __list_node);
-    memcpy(new_node->data, x, p_private->memb_size);
-
-    new_node->next = node;
-    node->pre->next = new_node;
-    new_node->pre = node->pre;
-    node->pre = new_node;
-    if (new_node == p_private->node->next) {
-        p_private->start_iter.val = new_node->data;
-        p_private->start_iter.node = new_node;
-    }
+    iter->val = __insert(this, iter->val, x);
     return iter;
 }
 static void push_front(void *x)
 {
     list *this = pop_this();
-    THIS(this).insert((list_iter*)THIS(this).begin(), x);
+    __insert(this, THIS(this).begin()->val, x);
 }
 static void push_back(void *x)
 {
     list *this = pop_this();
-    THIS(this).insert((list_iter*)THIS(this).end(), x);
+    __insert(this, THIS(this).end()->val, x);
 }
 static void pop_front(void)
 {
     list *this = pop_this();
-    THIS(this).erase((list_iter*)THIS(this).begin());
+    __erase(this, THIS(this).begin()->val);
 }
 static void pop_back(void)
 {
     list *this = pop_this();
-    list_iter ptr = *(list_iter*)THIS(this).end();
-    ptr.node = ptr.node->next;
-    ptr.val = ptr.node->next->data;
-    THIS(this).erase(&ptr);
+    struct __list_node *node = container_of(THIS(this).end()->val, struct __list_node, data);
+    __erase(this, node->pre->data);
 }
 static void clear(void)
 {
     list *this = pop_this();
     while (!THIS(this).empty())
-        THIS(this).pop_back();
+        THIS(this).pop_front();
 }
 static void remove(void *value)
 {
@@ -115,8 +136,7 @@ static void remove(void *value)
     while (node != p_private->node)
     {
         if (!memcmp(value, node->data, p_private->memb_size)) {
-            list_iter iter = {node->data, node};
-            THIS(this).erase(&iter);
+            __erase(this, node->data);
             return;
         }
         node = node->next;
@@ -130,36 +150,28 @@ static void unique(void)
     struct __list_node *next_node = node->next;
     while (next_node != p_private->node)
     {
-        if (!memcmp(next_node->data, node->data, p_private->memb_size)) {
-            list_iter iter = {node->data, node};
-            THIS(this).erase(&iter);
-        }
+        if (!memcmp(next_node->data, node->data, p_private->memb_size))
+            __erase(this, next_node->data);
         else
             node = next_node;
         next_node = next_node->next;
     }
 }
-static void const * const * begin(void)
+static const __iterator *begin(void)
 {
     list *this = pop_this();
     __private_list *p_private = (__private_list *)this->__obj_private;
-    if (p_private->start.obj_this == NULL) {
-        iterator temp = p_private->start;
-        temp.obj_this = this;
-        memcpy((void*)&p_private->start, &temp, sizeof(iterator));
-    }
-    return (void*)&p_private->start_iter;
+    if (p_private->start_iter.obj_this != this)
+        p_private->start_iter.obj_this = this;
+    return (__iterator*)&p_private->start_iter;
 }
-static void const * const * end(void)
+static const __iterator *end(void)
 {
     list *this = pop_this();
     __private_list *p_private = (__private_list *)this->__obj_private;
-    if (p_private->finish.obj_this == NULL) {
-        iterator temp = p_private->finish;
-        temp.obj_this = this;
-        memcpy((void*)&p_private->finish, &temp, sizeof(iterator));
-    }
-    return (void*)&p_private->finish_iter;
+    if (p_private->finish_iter.obj_this != this)
+        p_private->finish_iter.obj_this = this;
+    return (__iterator*)&p_private->finish_iter;
 }
 static size_t size(void)
 {
@@ -184,59 +196,42 @@ static void const *front(void)
 {
     list *this = pop_this();
     __private_list *p_private = (__private_list *)this->__obj_private;
-    return p_private->start_iter.val;
+    return p_private->start_ptr;
 }
 static void const *back(void)
 {
     list *this = pop_this();
     __private_list *p_private = (__private_list *)this->__obj_private;
-    return p_private->finish_iter.val;
+    return p_private->finish_ptr;
 }
-static void splice(list_iter *position, list *l, list_iter *first, list_iter *last)
+static void splice(const __iterator *position, list *l, const __iterator *first, const __iterator *last)
 {
     list *this = pop_this();
-    list_iter _last_is_null;
-    if (last == NULL) {
-        _last_is_null.node = first->node->next;
-        _last_is_null.val = first->node->next->data;
-        last = &_last_is_null;
-    }
-    if(first->node != last->node) {
-        transfer(position->node, first->node, last->node);
-        __private_list *p_private = (__private_list*)this->__obj_private;
-        __private_list *l_private = (__private_list*)l->__obj_private;
-        //一定要先p_private再置l_private，因为指针可能关联着l链表的strart_iter或finish_iter
-        if (p_private->start_iter.node == position->node) {
-            p_private->start_iter.node = first->node;
-            p_private->start_iter.val = first->node->data;
-        }
-        if (l_private->start_iter.node == first->node) {
-            l_private->start_iter.node = last->node;
-            l_private->start_iter.val = last->val;
-        }
-    }
+    struct __list_node *_first = container_of(first->val, struct __list_node, data);
+    struct __list_node *_position = container_of(position->val, struct __list_node, data);
+    struct __list_node *_last = last ? container_of(last->val, struct __list_node, data) : NULL;
+    __splice(this, _position, l, _first, _last);
 }
 static void merge(list *l, bool (*cmp)(void const *, void const *))
 {
     list *this = pop_this();
-    list_iter first1 = *(list_iter*)THIS(this).begin();
-    list_iter last1 = *(list_iter*)THIS(this).end();
-    list_iter first2 = *(list_iter*)THIS(l).begin();
-    list_iter last2 = *(list_iter*)THIS(l).end();
-    while (first1.node != last1.node && first2.node != last2.node)
+    struct __list_node *first1 = container_of(THIS(this).begin()->val, struct __list_node, data);
+    struct __list_node *last1 = container_of(THIS(this).end()->val, struct __list_node, data);
+    struct __list_node *first2 = container_of(THIS(l).begin()->val, struct __list_node, data);
+    struct __list_node *last2 = container_of(THIS(l).end()->val, struct __list_node, data);
+    while (first1 != last1 && first2 != last2)
     {
-        if (cmp(first1.val, first2.val)) {
-            list_iter next = {first2.node->next->data, first2.node->next};
-            THIS(this).splice(&first1, l, &first2, &next);
+        if (cmp(first1->data, first2->data)) {
+            struct __list_node *next = first2->next;
+            __splice(this, first1, l, first2, next);
             //transfer(first1, first2, next->data);
             first2 = next;
         } else {
-            first1.node = first1.node->next;
-            first1.val = first1.node->data;
+            first1 = first1->next;
         }
     }
-    if (first2.node != last2.node)
-        THIS(this).splice(&first1, l, &first2, &last2);
+    if (first2 != last2)
+        __splice(this, first1, l, first2, last2);
 }
 static void reverse(void)
 {
@@ -244,19 +239,17 @@ static void reverse(void)
     __private_list *p_private = (__private_list *)this->__obj_private;
     if (p_private->node == p_private->node->next || p_private->node->next->next == p_private->node)
         return;
-    list_iter first = *(list_iter*)THIS(this).begin();
-    while (first.node != (*(list_iter*)THIS(this).end()).node)
+    struct __list_node *first = container_of(THIS(this).begin()->val, struct __list_node, data);
+    while (first != p_private->node)
     {
-        struct __list_node *next = first.node;
+        struct __list_node *next = first;
         next = next->next;
-        transfer(p_private->node->next, first.node, next);
-        first.node = next;
-        first.val = first.node->data;
+        transfer(p_private->node->next, first, next);
+        first = next;
     }
-    p_private->start_iter.val = p_private->node->next->data;
-    p_private->start_iter.node = p_private->node->next;
+    p_private->start_ptr = p_private->node->next->data;
 }
-void swap(list *l)
+static void swap(list *l)
 {
     list *this = pop_this();
     __private_list *p_private = (__private_list *)this->__obj_private;
@@ -279,7 +272,10 @@ static void sort(bool (*cmp)(void const *, void const *))
     int fill = 0;
     while (!THIS(this).empty())
     {
-        THIS(&carry).splice((list_iter*)THIS(&carry).begin(), this, (list_iter*)(THIS(this)).begin(), NULL);
+        struct __list_node *carry_first = container_of(THIS(&carry).begin()->val, struct __list_node, data);
+        struct __list_node *this_first = container_of(THIS(this).begin()->val, struct __list_node, data);
+        __splice(&carry, carry_first, this, this_first, NULL);
+        //THIS(&carry).splice((list_iter*)THIS(&carry).begin(), this, (list_iter*)(THIS(this)).begin(), NULL);
         int i = 0;
         while (i < fill && !THIS(&counter[i]).empty())
         {
@@ -301,19 +297,17 @@ static void sort(bool (*cmp)(void const *, void const *))
     destory_list(&carry);
 }
 
-static void iter_increment(void *p)
+static void iter_increment(__iterator *p)
 {
     pop_this();
-    list_iter *_p = p;
-    _p->node = _p->node->next;
-    _p->val = _p->node->data;
+    struct __list_node *node = container_of(p->val, struct __list_node, data);
+    p->val = node->next->data;
 }
-static void iter_decrement(void *p)
+static void iter_decrement(__iterator *p)
 {
     pop_this();
-    list_iter *_p = p;
-    _p->node = _p->node->pre;
-    _p->val = _p->node->data;
+    struct __list_node *node = container_of(p->val, struct __list_node, data);
+    p->val = node->pre->data;
 }
 
 static __iterator_obj_func  __def_list_iter = {
@@ -324,6 +318,8 @@ static __iterator_obj_func  __def_list_iter = {
         NULL,
         NULL
 };
+
+static const iterator_func __def_list_iter_func = INIT_ITER_FUNC(&__def_list_iter);
 
 static const list def_list = {
         at,
@@ -354,15 +350,12 @@ void init_list(list *p_list, size_t memb_size)
     *p_list = def_list;
     __private_list *private = (__private_list*)p_list->__obj_private;
     *(size_t*)&private->memb_size = memb_size;
-    void *ptr = allocate(sizeof(struct __list_node) + memb_size);
-    private->node = ptr;
-    private->node->data = ptr + sizeof(struct __list_node);
+    private->node = allocate(sizeof(struct __list_node));
     private->node->next = private->node;
     private->node->pre = private->node;
-    __init_iter((void*)&private->start, p_list, sizeof(list_iter), memb_size, &__def_list_iter);
-    __init_iter((void*)&private->finish, p_list, sizeof(list_iter), memb_size, &__def_list_iter);
-    private->start_iter.node = private->finish_iter.node = private->node;
-    private->start_iter.val = private->finish_iter.val = private->node->data;
+    private->start_iter = __creat_iter(sizeof(__list_iter), p_list, memb_size, &__def_list_iter_func);
+    private->finish_iter = __creat_iter(sizeof(__list_iter), p_list, memb_size, &__def_list_iter_func);
+    private->start_ptr = private->finish_ptr = private->node->data;
     //memcpy(p_list->__obj_private, &private, sizeof(__private_list));
 }
 
@@ -377,12 +370,5 @@ list creat_list(size_t memb_size)
 {
     list l;
     init_list(&l, memb_size);
-    __private_list *p_private = (__private_list *)l.__obj_private;
-    iterator temp1 = p_private->start;
-    temp1.obj_this = NULL;
-    memcpy((void*)&p_private->start, &temp1, sizeof(iterator));
-    iterator temp2 = p_private->finish;
-    temp2.obj_this = NULL;
-    memcpy((void*)&p_private->finish, &temp2, sizeof(iterator));
     return l;
 }

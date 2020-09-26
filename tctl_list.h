@@ -13,45 +13,46 @@ typedef struct __list list;
 struct __list_node {
     struct __list_node *pre;
     struct __list_node *next;
-    void *data;
+    byte data[0];
 };
 
-typedef struct {
+typedef void *__list_iter;
+/*typedef struct {
     void *val;
     struct __list_node *node;
-} list_iter;
+} list_iter;*/
 
 typedef struct {
     const size_t memb_size;
     struct __list_node *node;
     struct {
-        iterator const start;
-        list_iter start_iter;
-    } BYTE_ALIGNED;
+        struct __inner_iterator start_iter;
+        __list_iter start_ptr;
+    };
     struct {
-        iterator const finish;
-        list_iter finish_iter;
-    } BYTE_ALIGNED;
+        struct __inner_iterator finish_iter;
+        __list_iter finish_ptr;
+    };
 } __private_list;
 
 struct __list{
     void *(*at)(int);
     void (*push_front)(void *x);
     void (*push_back)(void *x);
-    list_iter *(*erase)(list_iter *iter);
-    list_iter *(*insert)(list_iter *iter, void *x);
+    __iterator *(*erase)(__iterator *iter);
+    __iterator *(*insert)(__iterator *iter, void *x);
     void (*pop_front)(void);
     void (*pop_back)(void);
     void (*clear)(void);
     void (*remove)(void *value);
     void (*unique)(void);
-    void (*splice)(list_iter *position, list *l, list_iter *first, list_iter *last);
+    void (*splice)(const __iterator *position, list *l, const __iterator *first, const __iterator *last);
     void (*merge)(list *l, bool (*cmp)(void const *, void const *));
     void (*reverse)(void);
     void (*swap)(list *l);
     void (*sort)(bool (*cmp)(void const *, void const *));
-    void const * const * (*begin)(void);
-    void const * const * (*end)(void);
+    const __iterator *(*begin)(void);
+    const __iterator *(*end)(void);
     size_t (*size)(void);
     bool (*empty)(void);
     void const *(*front)(void);

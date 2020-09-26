@@ -4,7 +4,7 @@
 #include "tctl_common.h"
 #include "tctl_iterator.h"
 #include "tctl_vector.h"
-//#include "tctl_list.h"
+#include "tctl_list.h"
 //#include "tctl_deque.h"
 //#include "tctl_queue.h"
 #include <stdlib.h>
@@ -120,7 +120,7 @@ bool cmp(int *a, int *b)
 }*/
 
 //vector测试
-int main(void)
+/*int main(void)
 {
     vector v = creat_vector(0, sizeof(int), NULL);
     __private_vector *a = v.__obj_private;
@@ -189,10 +189,9 @@ int main(void)
         printf("%d ", *(int*)THIS(&v).at(i));
     putchar('\n');
     destory_vector(&v);
-}
+}*/
 
 // list测试
-/*
 int main(void)
 {
     list l = creat_list(sizeof(int));
@@ -207,27 +206,27 @@ int main(void)
     int temp1 = 20;
     THIS(&l).pop_front();
     THIS(&l).push_front(&temp1);
-    list_iter iter = *(list_iter*)THIS(&l).begin();
-    THIS(&l).insert(&iter, &temp);
+    iterator *iter = NEW_ITER(THIS(&l).begin());
+    THIS(&l).insert(iter, &temp);
     printf("first\n");
-    for (ITER_TYPE(int) it = NEW_ITER(THIS(&l).begin()); *it != *THIS(&l).end(); ITER(it).increment()) {
-        printf("%d\n", **it);
+    for (iterator *it = NEW_ITER(THIS(&l).begin()); it->val != THIS(&l).end()->val; ITER(it).increment()) {
+        printf("%d\n", *(int*)it->val);
         //THIS(&l).insert(*it, &temp);
     }
     THIS(&l).remove(&temp1);
     temp1 = 4;
     THIS(&l).push_back(&temp1);
     printf("second\n");
-    for (ITER_TYPE(int) it = NEW_ITER(THIS(&l).begin()); *it != *THIS(&l).end(); ITER(it).increment()) {
-        printf("%d\n", **it);
+    for (iterator *it = NEW_ITER(THIS(&l).begin()); it->val != THIS(&l).end()->val; ITER(it).increment()) {
+        printf("%d\n", *(int*)it->val);
     }
     THIS(&l).unique();
     printf("third\n");
-    ITER_TYPE(int) r_it = NEW_ITER(THIS(&l).end());
+    iterator *r_it = NEW_ITER(THIS(&l).end());
     ITER(r_it).decrement();
     printf("%d\n", *(int*)ITER(r_it).decrement());
-    for (; *r_it != *THIS(&l).end(); ITER(r_it).decrement()) {
-        printf("%d\n", **r_it);
+    for (; r_it->val != THIS(&l).end()->val; ITER(r_it).decrement()) {
+        printf("%d\n", *(int*)r_it->val);
     }
     list l2 = creat_list(sizeof(int));
     //init_list(&l2, sizeof(int));
@@ -235,13 +234,13 @@ int main(void)
         THIS(&l2).push_back(&i);
     printf("splice\n");
     THIS(&l).splice(THIS(&l).begin(), &l2, THIS(&l2).begin(), THIS(&l2).end());
-    for (ITER_TYPE(int) it = NEW_ITER(THIS(&l).begin()); *it != *THIS(&l).end(); ITER(it).increment()) {
-        printf("%d\n", **it);
+    for (iterator *it = NEW_ITER(THIS(&l).begin()); it->val != THIS(&l).end()->val; ITER(it).increment()) {
+        printf("%d\n", *(int*)it->val);
     }
     printf("reverse\n");
     THIS(&l).reverse();
-    for (ITER_TYPE(int) it = NEW_ITER(THIS(&l).begin()); *it != *THIS(&l).end(); ITER(it).increment()) {
-        printf("%d\n", **it);
+    for (iterator *it = NEW_ITER(THIS(&l).begin()); it->val != THIS(&l).end()->val; ITER(it).increment()) {
+        printf("%d\n", *(int*)it->val);
     }
     printf("front%d\n", *(int*)THIS(&l).front());
     printf("back%d\n", *(int*)THIS(&l).back());
@@ -255,9 +254,11 @@ int main(void)
         THIS(&l1).push_back(&i);
         THIS(&l3).push_back(&i);
     }
+    for (iterator *it = NEW_ITER(THIS(&l1).begin()); it->val != THIS(&l1).end()->val; ITER(it).increment())
+        printf("%d\n", *(int*)it->val);
     THIS(&l1).merge(&l3, cmp);
-    for (ITER_TYPE(int) it = NEW_ITER(THIS(&l1).begin()); *it != *THIS(&l1).end(); ITER(it).increment())
-        printf("%d\n", **it);
+    for (iterator *it = NEW_ITER(THIS(&l1).begin()); it->val != THIS(&l1).end()->val; ITER(it).increment())
+        printf("%d\n", *(int*)it->val);
     printf("sort\n");
     THIS(&l).clear();
     for (int i = 0; i < 10000; i++) {
@@ -265,8 +266,8 @@ int main(void)
         THIS(&l).push_back(&temp);
     }
     THIS(&l).sort(cmp);
-    for (ITER_TYPE(int) it = NEW_ITER(THIS(&l).begin()); *it != *THIS(&l).end(); ITER(it).increment()) {
-        printf("%d\n", **it);
+    for (iterator *it = NEW_ITER(THIS(&l).begin()); it->val != THIS(&l).end()->val; ITER(it).increment()) {
+        printf("%d\n", *(int*)it->val);
     }
     for (int i = 1; i < 10000; i++) {
         if (*(int*)THIS(&l).at(i) < *(int*)THIS(&l).at(i - 1)) {
@@ -277,4 +278,3 @@ int main(void)
     destory_list(&l);
     return 0;
 }
-*/
