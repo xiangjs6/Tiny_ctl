@@ -5,7 +5,7 @@
 #include "tctl_iterator.h"
 #include "tctl_vector.h"
 #include "tctl_list.h"
-//#include "tctl_deque.h"
+#include "tctl_deque.h"
 //#include "tctl_queue.h"
 #include <stdlib.h>
 //#include "tctl_stack.h"
@@ -56,7 +56,7 @@ bool cmp(int *a, int *b)
 }*/
 
 //deque测试
-/*int main(void)
+int main(void)
 {
     deque deq = creat_deque(sizeof(int), 9);
     __private_deque *watch = deq.__obj_private;
@@ -73,27 +73,28 @@ bool cmp(int *a, int *b)
         THIS(&deq).push_back(&i);
     for (int i = 40; i < 50; i++)
         THIS(&deq).push_front(&i);
-    deque_iter er_it = *(deque_iter *)THIS(&deq).begin();
-    er_it.cur += 4;
+    iterator *it_it = NEW_ITER(THIS(&deq).begin());
+    __deque_iter *er_it = it_it->__inner.__address;
+    er_it->cur += 4;
     //THIS(&deq).erase(&er_it);
-    er_it.map_node++;
-    er_it.first = *er_it.map_node;
-    er_it.last = *er_it.map_node + 9 * sizeof(int);
-    er_it.cur = er_it.first + 3 * sizeof(int);
-    THIS(&deq).erase(&er_it);
-    er_it.map_node += 1;
-    er_it.first = *er_it.map_node;
-    er_it.last = *er_it.map_node + 9 * sizeof(int);
-    er_it.cur = er_it.first + 3 * sizeof(int);
-    THIS(&deq).erase(&er_it);
+    er_it->map_node++;
+    er_it->first = *er_it->map_node;
+    er_it->last = *er_it->map_node + 9 * sizeof(int);
+    er_it->cur = er_it->first + 3 * sizeof(int);
+    THIS(&deq).erase(it_it);
+    er_it->map_node += 1;
+    er_it->first = *er_it->map_node;
+    er_it->last = *er_it->map_node + 9 * sizeof(int);
+    er_it->cur = er_it->first + 3 * sizeof(int);
+    THIS(&deq).erase(it_it);
     int t = 100;
-    THIS(&deq).insert(&er_it, &t);
-    er_it.map_node -= 2;
-    er_it.first = *er_it.map_node;
-    er_it.last = *er_it.map_node + 9 * sizeof(int);
-    er_it.cur = er_it.first + 5 * sizeof(int);
+    THIS(&deq).insert(it_it, &t);
+    er_it->map_node -= 2;
+    er_it->first = *er_it->map_node;
+    er_it->last = *er_it->map_node + 9 * sizeof(int);
+    er_it->cur = er_it->first + 5 * sizeof(int);
     t = 101;
-    THIS(&deq).insert(&er_it, &t);
+    THIS(&deq).insert(it_it, &t);
     t = 102;
     THIS(&deq).insert(THIS(&deq).begin(), &t);
     //THIS(&deq).clear();
@@ -109,15 +110,15 @@ bool cmp(int *a, int *b)
         printf("%d ", *temp);
     }
     putchar('\n');
-    for (ITER_TYPE(int) it = NEW_ITER(THIS(&deq).begin()); *it != *THIS(&deq).end(); ITER(it).increment()) {
-        printf("%d ", **it);
+    for (iterator *it = NEW_ITER(THIS(&deq).begin()); it->val != THIS(&deq).end()->val; ITER(it).increment()) {
+        printf("%d ", *(int*)it->val);
         long long r = ITER(it).diff(THIS(&deq).end());
         r = ITER(it).diff(THIS(&deq).begin());
         r = 0;
     }
     putchar('\n');
     destory_deque(&deq);
-}*/
+}
 
 //vector测试
 /*int main(void)
@@ -192,6 +193,7 @@ bool cmp(int *a, int *b)
 }*/
 
 // list测试
+/*
 int main(void)
 {
     list l = creat_list(sizeof(int));
@@ -208,6 +210,14 @@ int main(void)
     THIS(&l).push_front(&temp1);
     iterator *iter = NEW_ITER(THIS(&l).begin());
     THIS(&l).insert(iter, &temp);
+    ITER(iter).increment();
+    ITER(iter).increment();
+    for (iterator *it = NEW_ITER(THIS(&l).begin()); it->val != THIS(&l).end()->val; ITER(it).increment()) {
+        printf("%d\n", *(int*)it->val);
+        //THIS(&l).insert(*it, &temp);
+    }
+    printf("it:%d\n", *(int*)iter->val);
+    THIS(&l).erase(iter);
     printf("first\n");
     for (iterator *it = NEW_ITER(THIS(&l).begin()); it->val != THIS(&l).end()->val; ITER(it).increment()) {
         printf("%d\n", *(int*)it->val);
@@ -278,3 +288,4 @@ int main(void)
     destory_list(&l);
     return 0;
 }
+*/

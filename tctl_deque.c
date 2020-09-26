@@ -8,42 +8,36 @@
 static void extend_map(__private_deque *p_private)
 {
     size_t old_len = p_private->mmap_len;
-    size_t finish_off = p_private->finish_iter.map_node - p_private->start_iter.map_node;
+    size_t finish_off = p_private->finish_ptr.map_node - p_private->start_ptr.map_node;
     p_private->mmap_len = 2 * p_private->mmap_len;
     p_private->mmap = reallocate(p_private->mmap, old_len * sizeof(void*), p_private->mmap_len * sizeof(void*));
     memmove(p_private->mmap + old_len / 2, p_private->mmap, old_len * sizeof(void*));
 
-    p_private->start_iter.map_node = p_private->mmap + old_len / 2;
-    p_private->start_iter.cur = *p_private->start_iter.map_node + (p_private->start_iter.cur - p_private->start_iter.first);
-    p_private->start_iter.first = *p_private->start_iter.map_node;
-    p_private->start_iter.last = *p_private->start_iter.map_node + p_private->memb_size * p_private->block_nmemb;
+    p_private->start_ptr.map_node = p_private->mmap + old_len / 2;
+    p_private->start_ptr.cur = *p_private->start_ptr.map_node + (p_private->start_ptr.cur - p_private->start_ptr.first);
+    p_private->start_ptr.first = *p_private->start_ptr.map_node;
+    p_private->start_ptr.last = *p_private->start_ptr.map_node + p_private->memb_size * p_private->block_nmemb;
 
-    p_private->finish_iter.map_node = p_private->start_iter.map_node + finish_off;
-    p_private->finish_iter.cur = *p_private->finish_iter.map_node + (p_private->finish_iter.cur - p_private->finish_iter.first);
-    p_private->finish_iter.first = *p_private->finish_iter.map_node;
-    p_private->finish_iter.last = *p_private->finish_iter.map_node + p_private->memb_size * p_private->block_nmemb;
+    p_private->finish_ptr.map_node = p_private->start_ptr.map_node + finish_off;
+    p_private->finish_ptr.cur = *p_private->finish_ptr.map_node + (p_private->finish_ptr.cur - p_private->finish_ptr.first);
+    p_private->finish_ptr.first = *p_private->finish_ptr.map_node;
+    p_private->finish_ptr.last = *p_private->finish_ptr.map_node + p_private->memb_size * p_private->block_nmemb;
 }
-static void const * const * begin(void)
+static __iterator const * begin(void)
 {
     deque *this = pop_this();
     __private_deque *p_private = (__private_deque*)this->__obj_private;
-    if (p_private->start.obj_this == NULL) {
-        iterator temp = p_private->start;
-        temp.obj_this = this;
-        memcpy((void*)&p_private->start, &temp, sizeof(iterator));
-    }
-    return (void*)&p_private->start_iter;
+    if (p_private->start_iter.obj_this != this)
+        p_private->start_iter.obj_this = this;
+    return (__iterator*)&p_private->start_iter;
 }
-static void const * const * end(void)
+static __iterator const * end(void)
 {
     deque *this = pop_this();
     __private_deque *p_private = (__private_deque*)this->__obj_private;
-    if (p_private->finish.obj_this == NULL) {
-        iterator temp = p_private->finish;
-        temp.obj_this = this;
-        memcpy((void*)&p_private->finish, &temp, sizeof(iterator));
-    }
-    return (void*)&p_private->finish_iter;
+    if (p_private->finish_iter.obj_this != this)
+        p_private->finish_iter.obj_this = this;
+    return (__iterator*)&p_private->finish_iter;
 }
 static size_t size(void)
 {
@@ -64,15 +58,15 @@ static void *at(int pos)
     __private_deque *p_private = (__private_deque*)this->__obj_private;
     if (pos >= p_private->nmemb || pos < 0)
         return NULL;
-    deque_iter *start_iter = &p_private->start_iter;
+    const __deque_iter *start_ptr = &p_private->start_ptr;
     //__deque_iter *finish_iter = p_private->finish.ptr;
-    size_t start_len = (start_iter->last - start_iter->cur) / p_private->memb_size;
+    size_t start_len = (start_ptr->last - start_ptr->cur) / p_private->memb_size;
     //size_t finish_len = finish_iter->cur - finish_iter->first;
     if (pos < start_len)
-        return start_iter->cur + pos * p_private->memb_size;
+        return start_ptr->cur + pos * p_private->memb_size;
     pos -= start_len;
     int block_index = pos / (int)p_private->block_nmemb + 1;
-    void **p_block = start_iter->map_node + block_index;
+    void **p_block = start_ptr->map_node + block_index;
     pos %= p_private->block_nmemb;
     return *p_block + pos * p_private->memb_size;
 }
@@ -80,47 +74,47 @@ static void const *front(void)
 {
     deque *this = pop_this();
     __private_deque *p_private = (__private_deque*)this->__obj_private;
-    return p_private->start_iter.cur;
+    return p_private->start_ptr.cur;
 }
 static void const *back(void)
 {
     deque *this = pop_this();
     __private_deque *p_private = (__private_deque*)this->__obj_private;
-    deque_iter *finish_iter = &p_private->finish_iter;
+    __deque_iter *finish_iter = &p_private->finish_ptr;
     return finish_iter->cur - p_private->memb_size;
 }
 static void push_back(void *x)
 {
     deque *this = pop_this();
     __private_deque *p_private = (__private_deque*)this->__obj_private;
-    deque_iter *finish_iter = &p_private->finish_iter;
-    if (finish_iter->cur == finish_iter->last) {
-        if (finish_iter->map_node == p_private->mmap + p_private->mmap_len - 1)
+    __deque_iter *finish_ptr = &p_private->finish_ptr;
+    if (finish_ptr->cur == finish_ptr->last) {
+        if (finish_ptr->map_node == p_private->mmap + p_private->mmap_len - 1)
             extend_map(p_private);
-        finish_iter->map_node++;
-        *finish_iter->map_node = allocate(p_private->block_nmemb * p_private->memb_size);
-        finish_iter->cur = finish_iter->first = *finish_iter->map_node;
-        finish_iter->last = *finish_iter->map_node + p_private->memb_size * p_private->block_nmemb;
+        finish_ptr->map_node++;
+        *finish_ptr->map_node = allocate(p_private->block_nmemb * p_private->memb_size);
+        finish_ptr->cur = finish_ptr->first = *finish_ptr->map_node;
+        finish_ptr->last = *finish_ptr->map_node + p_private->memb_size * p_private->block_nmemb;
     }
-    memcpy(finish_iter->cur, x, p_private->memb_size);
-    finish_iter->cur += p_private->memb_size;
+    memcpy(finish_ptr->cur, x, p_private->memb_size);
+    finish_ptr->cur += p_private->memb_size;
     p_private->nmemb++;
 }
 static void push_front(void *x)
 {
     deque *this = pop_this();
     __private_deque *p_private = (__private_deque*)this->__obj_private;
-    deque_iter *start_iter = &p_private->start_iter;
-    if (start_iter->cur == start_iter->first) {
-        if (start_iter->map_node == p_private->mmap)
+    __deque_iter *start_ptr = &p_private->start_ptr;
+    if (start_ptr->cur == start_ptr->first) {
+        if (start_ptr->map_node == p_private->mmap)
             extend_map(p_private);
-        start_iter->map_node--;
-        *start_iter->map_node = allocate(p_private->block_nmemb * p_private->memb_size);
-        start_iter->cur = start_iter->last = *start_iter->map_node + p_private->memb_size * p_private->block_nmemb;
-        start_iter->first = *start_iter->map_node;
+        start_ptr->map_node--;
+        *start_ptr->map_node = allocate(p_private->block_nmemb * p_private->memb_size);
+        start_ptr->cur = start_ptr->last = *start_ptr->map_node + p_private->memb_size * p_private->block_nmemb;
+        start_ptr->first = *start_ptr->map_node;
     }
-    start_iter->cur -= p_private->memb_size;
-    memcpy(start_iter->cur, x, p_private->memb_size);
+    start_ptr->cur -= p_private->memb_size;
+    memcpy(start_ptr->cur, x, p_private->memb_size);
     p_private->nmemb++;
 }
 static void pop_back(void)
@@ -129,21 +123,15 @@ static void pop_back(void)
     __private_deque *p_private = (__private_deque*)this->__obj_private;
     if (!p_private->nmemb)
         return;
-    deque_iter *finish_iter = &p_private->finish_iter;
-    finish_iter->cur -= p_private->memb_size;
-    if (finish_iter->cur == finish_iter->first) {
-        deallocate(*finish_iter->map_node, p_private->block_nmemb * p_private->memb_size);
-        finish_iter->map_node--;
-        finish_iter->cur = finish_iter->last = *finish_iter->map_node + p_private->memb_size * p_private->block_nmemb;
-        finish_iter->first = *finish_iter->map_node;
+    __deque_iter *finish_ptr = &p_private->finish_ptr;
+    finish_ptr->cur -= p_private->memb_size;
+    if (finish_ptr->cur == finish_ptr->first) {
+        deallocate(*finish_ptr->map_node, p_private->block_nmemb * p_private->memb_size);
+        finish_ptr->map_node--;
+        finish_ptr->cur = finish_ptr->last = *finish_ptr->map_node + p_private->memb_size * p_private->block_nmemb;
+        finish_ptr->first = *finish_ptr->map_node;
     }
     p_private->nmemb--;
-/*
-    if (--p_private->nmemb){
-        p_private->start_iter.cur = p_private->start_iter.first;
-        p_private->finish_iter.cur = p_private->finish_iter.first;
-    }
-*/
 }
 static void pop_front(void)
 {
@@ -151,27 +139,28 @@ static void pop_front(void)
     __private_deque *p_private = (__private_deque*)this->__obj_private;
     if (!p_private->nmemb)
         return;
-    deque_iter *start_iter = &p_private->start_iter;
-    start_iter->cur += p_private->memb_size;
-    if (start_iter->cur == start_iter->last) {
-        deallocate(*start_iter->map_node, p_private->block_nmemb * p_private->memb_size);
-        start_iter->map_node++;
-        start_iter->cur = start_iter->first = *start_iter->map_node;
-        start_iter->last = *start_iter->map_node + p_private->memb_size * p_private->block_nmemb;
+    __deque_iter *start_ptr = &p_private->start_ptr;
+    start_ptr->cur += p_private->memb_size;
+    if (start_ptr->cur == start_ptr->last) {
+        deallocate(*start_ptr->map_node, p_private->block_nmemb * p_private->memb_size);
+        start_ptr->map_node++;
+        start_ptr->cur = start_ptr->first = *start_ptr->map_node;
+        start_ptr->last = *start_ptr->map_node + p_private->memb_size * p_private->block_nmemb;
     }
     p_private->nmemb--;
 //    if (--p_private)
 }
-static deque_iter *insert(deque_iter *iter, void *x)
+static __iterator *insert(__iterator *iter, void *x)
 {
     deque *this = pop_this();
     __private_deque *p_private = (__private_deque*)this->__obj_private;
-    if (iter->map_node - p_private->start_iter.map_node < p_private->finish_iter.map_node - iter->map_node) {
+    const __deque_iter *_d_iter = (__deque_iter*)iter->__inner.__address;
+    if (_d_iter->map_node - p_private->start_ptr.map_node < p_private->finish_ptr.map_node - _d_iter->map_node) {
         THIS(this).push_front(x);
-        deque_iter in_iter = p_private->start_iter;
-        while (in_iter.map_node != iter->map_node)
+        __deque_iter in_iter = p_private->start_ptr;
+        while (in_iter.map_node != _d_iter->map_node)
         {
-            deque_iter next_iter;
+            __deque_iter next_iter;
             next_iter.map_node = in_iter.map_node + 1;
             next_iter.first = *next_iter.map_node;
             next_iter.last = *next_iter.map_node + p_private->block_nmemb * p_private->memb_size;
@@ -180,14 +169,14 @@ static deque_iter *insert(deque_iter *iter, void *x)
             memcpy(in_iter.last - p_private->memb_size, next_iter.first, p_private->memb_size);
             in_iter = next_iter;
         }
-        memmove(in_iter.first, in_iter.first + p_private->memb_size, iter->cur - in_iter.first - p_private->memb_size);
-        memcpy(iter->cur - p_private->memb_size, x, p_private->memb_size);
+        memmove(in_iter.first, in_iter.first + p_private->memb_size, _d_iter->cur - in_iter.first - p_private->memb_size);
+        memcpy(_d_iter->cur - p_private->memb_size, x, p_private->memb_size);
     } else {
         THIS(this).push_back(x);
-        deque_iter in_iter = p_private->finish_iter;
-        while (in_iter.map_node != iter->map_node)
+        __deque_iter in_iter = p_private->finish_ptr;
+        while (in_iter.map_node != _d_iter->map_node)
         {
-            deque_iter next_iter;
+            __deque_iter next_iter;
             next_iter.map_node = in_iter.map_node - 1;
             next_iter.first = *next_iter.map_node;
             next_iter.last = *next_iter.map_node + p_private->block_nmemb * p_private->memb_size;
@@ -196,20 +185,21 @@ static deque_iter *insert(deque_iter *iter, void *x)
             memcpy(in_iter.first, next_iter.last - p_private->memb_size, p_private->memb_size);
             in_iter = next_iter;
         }
-        memmove(iter->cur + p_private->memb_size, iter->cur, iter->last - iter->cur - p_private->memb_size);
-        memcpy(iter->cur, x, p_private->memb_size);
+        memmove(_d_iter->cur + p_private->memb_size, _d_iter->cur, _d_iter->last - _d_iter->cur - p_private->memb_size);
+        memcpy(_d_iter->cur, x, p_private->memb_size);
     }
     return iter;
 }
-static deque_iter *erase(deque_iter *iter)
+static __iterator *erase(__iterator *iter)
 {
-    deque_iter in_iter = *iter;
+    __deque_iter in_iter = *(__deque_iter*)iter->__inner.__address;
     deque *this = pop_this();
     __private_deque *p_private = (__private_deque*)this->__obj_private;
-    if (in_iter.map_node - p_private->start_iter.map_node < p_private->finish_iter.map_node - in_iter.map_node) {
-        while(in_iter.map_node != p_private->start_iter.map_node)
+    if (in_iter.map_node - p_private->start_ptr.map_node < p_private->finish_ptr.map_node - in_iter.map_node) {
+        //复制内存块，移动内存
+        while(in_iter.map_node != p_private->start_ptr.map_node)
         {
-            deque_iter next_iter;
+            __deque_iter next_iter;
             next_iter.map_node = in_iter.map_node - 1;
             next_iter.first = *next_iter.map_node;
             next_iter.last = *next_iter.map_node + p_private->memb_size * p_private->block_nmemb;
@@ -218,12 +208,12 @@ static deque_iter *erase(deque_iter *iter)
             memcpy(in_iter.first, next_iter.cur, p_private->memb_size);
             in_iter = next_iter;
         }
-        memmove(p_private->start_iter.cur + p_private->memb_size, p_private->start_iter.cur, in_iter.cur - p_private->start_iter.cur);
+        memmove(p_private->start_ptr.cur + p_private->memb_size, p_private->start_ptr.cur, in_iter.cur - p_private->start_ptr.cur);
         THIS(this).pop_front();
     } else {
-        while(in_iter.map_node != p_private->finish_iter.map_node)
+        while(in_iter.map_node != p_private->finish_ptr.map_node)
         {
-            deque_iter next_iter;
+            __deque_iter next_iter;
             next_iter.map_node = in_iter.map_node + 1;
             next_iter.first = *next_iter.map_node;
             next_iter.last = *next_iter.map_node + p_private->memb_size * p_private->block_nmemb;
@@ -232,7 +222,7 @@ static deque_iter *erase(deque_iter *iter)
             memcpy(in_iter.last - p_private->memb_size, next_iter.cur, p_private->memb_size);
             in_iter = next_iter;
         }
-        memmove(in_iter.cur, in_iter.cur + p_private->memb_size, p_private->finish_iter.cur - in_iter.cur - p_private->memb_size);
+        memmove(in_iter.cur, in_iter.cur + p_private->memb_size, p_private->finish_ptr.cur - in_iter.cur - p_private->memb_size);
         THIS(this).pop_back();
     }
     return iter;
@@ -242,27 +232,27 @@ static void clear(void)
     deque *this = pop_this();
     __private_deque *p_private = (__private_deque*)this->__obj_private;
     void **mid = p_private->mmap + p_private->mmap_len / 2;
-    while (p_private->start_iter.map_node != mid)
+    while (p_private->start_ptr.map_node != mid)
     {
-        deallocate(*p_private->start_iter.map_node, p_private->memb_size * p_private->block_nmemb);
-        p_private->start_iter.map_node++;
+        deallocate(*p_private->start_ptr.map_node, p_private->memb_size * p_private->block_nmemb);
+        p_private->start_ptr.map_node++;
     }
-    while (p_private->finish_iter.map_node != mid)
+    while (p_private->finish_ptr.map_node != mid)
     {
-        deallocate(*p_private->finish_iter.map_node, p_private->memb_size * p_private->block_nmemb);
-        p_private->finish_iter.map_node--;
+        deallocate(*p_private->finish_ptr.map_node, p_private->memb_size * p_private->block_nmemb);
+        p_private->finish_ptr.map_node--;
     }
-    p_private->start_iter.first = p_private->finish_iter.first = *mid;
-    p_private->start_iter.cur = p_private->finish_iter.cur = *mid;
-    p_private->start_iter.last = p_private->finish_iter.last = *mid + p_private->block_nmemb * p_private->memb_size;
+    p_private->start_ptr.first = p_private->finish_ptr.first = *mid;
+    p_private->start_ptr.cur = p_private->finish_ptr.cur = *mid;
+    p_private->start_ptr.last = p_private->finish_ptr.last = *mid + p_private->block_nmemb * p_private->memb_size;
     p_private->nmemb = 0;
 }
 
-static void *iter_at(obj_iter iter, int pos)
+static void *iter_at(__iterator *iter, int pos)
 {
     deque *this = pop_this();
     __private_deque *p_private = (__private_deque*)this->__obj_private;
-    deque_iter *_iter = iter;
+    __deque_iter *_iter = (__deque_iter*)iter->__inner.__address;
     size_t block_len = _iter->last - _iter->cur;
     if (pos < block_len)
         return _iter->cur + p_private->memb_size * pos;
@@ -270,11 +260,11 @@ static void *iter_at(obj_iter iter, int pos)
     int block_index = pos / (int)p_private->block_nmemb + 1;
     return *(p_private->mmap + block_index) + p_private->memb_size * (pos % p_private->block_nmemb);
 }
-static void iter_increment(obj_iter iter)
+static void iter_increment(__iterator *iter)
 {
     deque *this = pop_this();
     __private_deque *p_private = (__private_deque*)this->__obj_private;
-    deque_iter *_iter = iter;
+    __deque_iter *_iter = (__deque_iter*)iter->__inner.__address;
     _iter->cur += p_private->memb_size;
     if (_iter->cur == _iter->last) {
         _iter->map_node++;
@@ -283,11 +273,11 @@ static void iter_increment(obj_iter iter)
         _iter->cur = _iter->first;
     }
 }
-static void iter_decrement(obj_iter iter)
+static void iter_decrement(__iterator *iter)
 {
     deque *this = pop_this();
     __private_deque *p_private = (__private_deque*)this->__obj_private;
-    deque_iter *_iter = iter;
+    __deque_iter *_iter = (__deque_iter*)iter->__inner.__address;
     if (_iter->cur == _iter->first) {
         _iter->map_node--;
         _iter->first = *_iter->map_node;
@@ -296,11 +286,11 @@ static void iter_decrement(obj_iter iter)
     }
     _iter->cur -= p_private->memb_size;
 }
-static void iter_add(obj_iter iter, int v)
+static void iter_add(__iterator *iter, int v)
 {
     deque *this = pop_this();
     __private_deque *p_private = (__private_deque*)this->__obj_private;
-    deque_iter *_iter = iter;
+    __deque_iter *_iter = (__deque_iter*)iter->__inner.__address;
     size_t block_len = _iter->last - _iter->cur;
     if (v < block_len) {
         _iter->cur += p_private->memb_size * v;
@@ -314,11 +304,11 @@ static void iter_add(obj_iter iter, int v)
     _iter->last = *node + p_private->memb_size * p_private->block_nmemb;
     _iter->cur = *node + (v % p_private->block_nmemb) * p_private->block_nmemb;
 }
-static void iter_sub(obj_iter iter, int v)
+static void iter_sub(__iterator *iter, int v)
 {
     deque *this = pop_this();
     __private_deque *p_private = (__private_deque*)this->__obj_private;
-    deque_iter *_iter = iter;
+    __deque_iter *_iter = (__deque_iter*)iter->__inner.__address;
     size_t block_len = _iter->cur - _iter->first;
     if (v <= block_len) {
         _iter->cur -= p_private->memb_size * v;
@@ -333,10 +323,10 @@ static void iter_sub(obj_iter iter, int v)
     _iter->cur = _iter->last - (v % p_private->block_nmemb) * p_private->block_nmemb;
 }
 
-static long long iter_diff(obj_iter minuend, obj_iter subtraction)
+static long long iter_diff(__iterator *minuend, __iterator *subtraction)
 {
-    deque_iter *_minuend = minuend;
-    deque_iter *_subtraction = subtraction;
+    __deque_iter *_minuend = (__deque_iter*)minuend->__inner.__address;
+    __deque_iter *_subtraction = (__deque_iter*)subtraction->__inner.__address;
     deque *this = pop_this();
     __private_deque *p_private = (__private_deque*)this->__obj_private;
     if (_minuend->map_node == _subtraction->map_node)
@@ -349,7 +339,7 @@ static long long iter_diff(obj_iter minuend, obj_iter subtraction)
     return res / (long long)p_private->memb_size + block_diff * p_private->block_nmemb;
 }
 
-static __iterator_obj_func  __def_deque_iter = {
+static const __iterator_obj_func  __def_deque_iter = {
         iter_at,
         iter_increment,
         iter_decrement,
@@ -357,6 +347,8 @@ static __iterator_obj_func  __def_deque_iter = {
         iter_sub,
         iter_diff
 };
+
+static const iterator_func __def_deque_iter_func = INIT_ITER_FUNC(&__def_deque_iter);
 
 static const deque __def_deque = {
         begin,
@@ -385,20 +377,20 @@ void init_deque(deque *p_deque, size_t memb_size, size_t block_nmemb)
    p_private->mmap_len = 1;
    p_private->mmap = reallocate(NULL, 0, p_private->mmap_len * sizeof(void*));
    *p_private->mmap = allocate(memb_size * block_nmemb);
-   __init_iter((void*)&p_private->start, p_deque, sizeof(deque_iter), memb_size, &__def_deque_iter);
-   __init_iter((void*)&p_private->finish, p_deque, sizeof(deque_iter), memb_size, &__def_deque_iter);
+   p_private->start_iter = __creat_iter(sizeof(__deque_iter), p_deque, memb_size, &__def_deque_iter_func);
+   p_private->finish_iter = __creat_iter(sizeof(__deque_iter), p_deque, memb_size, &__def_deque_iter_func);\
 
-   p_private->start_iter.map_node = p_private->mmap;
-   p_private->start_iter.first = p_private->start_iter.cur = *p_private->start_iter.map_node;
-   p_private->start_iter.last = *p_private->start_iter.map_node + memb_size * block_nmemb;
-   p_private->finish_iter = p_private->start_iter;
+   p_private->start_ptr.map_node = p_private->mmap;
+   p_private->start_ptr.first = p_private->start_ptr.cur = *p_private->start_ptr.map_node;
+   p_private->start_ptr.last = *p_private->start_ptr.map_node + memb_size * block_nmemb;
+   p_private->finish_ptr = p_private->start_ptr;
 }
 
 void destory_deque(deque *p_deque)
 {
     __private_deque *p_private = (__private_deque*)p_deque->__obj_private;
     THIS(p_deque).clear();
-    deallocate(*p_private->start_iter.map_node, p_private->memb_size * p_private->block_nmemb);
+    deallocate(*p_private->start_ptr.map_node, p_private->memb_size * p_private->block_nmemb);
     deallocate(p_private->mmap, p_private->mmap_len);
 }
 
@@ -406,12 +398,5 @@ deque creat_deque(size_t memb_size, size_t block_nmemb)
 {
     deque deq;
     init_deque(&deq, memb_size, block_nmemb);
-    __private_deque *p_private = (__private_deque*)deq.__obj_private;
-    iterator temp1 = p_private->start;
-    temp1.obj_this = NULL;
-    memcpy((void*)&p_private->start, &temp1, sizeof(iterator));
-    iterator temp2 = p_private->finish;
-    temp2.obj_this = NULL;
-    memcpy((void*)&p_private->finish, &temp2, sizeof(iterator));
     return deq;
 }
