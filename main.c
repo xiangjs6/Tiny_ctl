@@ -6,9 +6,9 @@
 #include "tctl_vector.h"
 #include "tctl_list.h"
 #include "tctl_deque.h"
-//#include "tctl_queue.h"
+#include "tctl_queue.h"
 #include <stdlib.h>
-//#include "tctl_stack.h"
+#include "tctl_stack.h"
 
 bool cmp(int *a, int *b)
 {
@@ -16,7 +16,7 @@ bool cmp(int *a, int *b)
 }
 
 //stack测试
-/*int main(void)
+int main(void)
 {
     stack st = creat_stack(sizeof(int));
     for (int i = 0; i < 10; i++)
@@ -32,7 +32,7 @@ bool cmp(int *a, int *b)
     putchar('\n');
     printf("empty:%c\n", *("YN" + THIS(&st).empty()));
     return 0;
-}*/
+}
 
 //queue测试
 /*int main(void)
@@ -56,7 +56,7 @@ bool cmp(int *a, int *b)
 }*/
 
 //deque测试
-int main(void)
+/*int main(void)
 {
     deque deq = creat_deque(sizeof(int), 9);
     __private_deque *watch = deq.__obj_private;
@@ -118,7 +118,7 @@ int main(void)
     }
     putchar('\n');
     destory_deque(&deq);
-}
+}*/
 
 //vector测试
 /*int main(void)
