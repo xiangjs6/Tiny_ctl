@@ -20,7 +20,7 @@ typedef struct {
     void (*iter_decrement)(__iterator*);
     void (*iter_add)(__iterator*, int);
     void (*iter_sub)(__iterator*, int);
-    long long (*iter_diff)(__iterator*, __iterator*);
+    long long (*iter_diff)(const __iterator*, const __iterator*);
 } __iterator_obj_func;
 
 typedef struct {
@@ -31,8 +31,8 @@ typedef struct {
     void *(*front_decrement)(void);
     void (*add)(int);
     void (*sub)(int);
-    void (*copy)(__iterator*);
-    long long (*diff)(__iterator*);
+    void (*copy)(const __iterator*);
+    long long (*diff)(const __iterator*);
 } __public_iterator_func;
 
 typedef struct {

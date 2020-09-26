@@ -61,14 +61,14 @@ static void sub(int x)
     p_it->__inner.iterator_func_p->private_iter_func->iter_sub(p_it, x);
 }
 
-static long long diff(__iterator *iter)
+static long long diff(const __iterator *iter)
 {
     __iterator *p_it = pop_this();
     push_this(p_it->__inner.obj_this);
     return p_it->__inner.iterator_func_p->private_iter_func->iter_diff(p_it, iter);
 }
 
-void copy(__iterator *iter)
+void copy(const __iterator *iter)
 {
     __iterator *p_it = pop_this();
     if (p_it->__inner.obj_iter_size != iter->__inner.obj_iter_size)

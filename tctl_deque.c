@@ -323,7 +323,7 @@ static void iter_sub(__iterator *iter, int v)
     _iter->cur = _iter->last - (v % p_private->block_nmemb) * p_private->block_nmemb;
 }
 
-static long long iter_diff(__iterator *minuend, __iterator *subtraction)
+static long long iter_diff(const __iterator *minuend, const __iterator *subtraction)
 {
     __deque_iter *_minuend = (__deque_iter*)minuend->__inner.__address;
     __deque_iter *_subtraction = (__deque_iter*)subtraction->__inner.__address;
