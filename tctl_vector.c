@@ -177,7 +177,7 @@ static long long iter_diff(const __iterator *minuend, const __iterator *subtract
 {
     vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->__obj_private;
-    return (((__vector_iter)minuend->val) - ((__vector_iter)subtraction->val)) / p_private->memb_size;
+    return (((__vector_iter)minuend->val) - ((__vector_iter)subtraction->val)) / (long long)p_private->memb_size;
 }
 
 static const __iterator_obj_func  __def_vector_iter = {
