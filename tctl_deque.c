@@ -8,10 +8,11 @@
 static void extend_map(__private_deque *p_private)
 {
     size_t old_len = p_private->mmap_len;
+    size_t start_off = p_private->start_ptr.map_node - p_private->mmap;
     size_t finish_off = p_private->finish_ptr.map_node - p_private->start_ptr.map_node;
     p_private->mmap_len = 2 * p_private->mmap_len;
     p_private->mmap = reallocate(p_private->mmap, old_len * sizeof(void*), p_private->mmap_len * sizeof(void*));
-    memmove(p_private->mmap + old_len / 2, p_private->mmap, old_len * sizeof(void*));
+    memmove(p_private->mmap + old_len / 2, p_private->mmap + start_off, old_len * sizeof(void*));
 
     p_private->start_ptr.map_node = p_private->mmap + old_len / 2;
     p_private->start_ptr.cur = *p_private->start_ptr.map_node + (p_private->start_ptr.cur - p_private->start_ptr.first);
@@ -251,14 +252,9 @@ static void clear(void)
 static void *iter_at(__iterator *iter, int pos)
 {
     deque *this = pop_this();
-    __private_deque *p_private = (__private_deque*)this->__obj_private;
-    __deque_iter *_iter = (__deque_iter*)iter->__inner.__address;
-    size_t block_len = _iter->last - _iter->cur;
-    if (pos < block_len)
-        return _iter->cur + p_private->memb_size * pos;
-    pos -= block_len;
-    int block_index = pos / (int)p_private->block_nmemb + 1;
-    return *(p_private->mmap + block_index) + p_private->memb_size * (pos % p_private->block_nmemb);
+    long long dist = ITER(iter).diff(THIS(this).begin());
+    dist += pos;
+    return THIS(this).at(dist);
 }
 static void iter_increment(__iterator *iter)
 {
