@@ -20,16 +20,16 @@ bool cmp(const int *a, const int *b)
 int main(void)
 {
     int temp;
-    vector v = creat_vector(0, sizeof(int), NULL);
+    deque v = creat_deque(sizeof(int), 1);
     for (int i = 0; i < 10; i++) {
         temp = random() % 10;
         printf("%d ", temp);
         THIS(&v).push_back(&temp);
     }
     putchar('\n');
-    temp = 100;
-    THIS(&v).push_back(&temp);
+//    temp = 100;
 //    make_heap(THIS(&v).begin(), THIS(&v).end(), cmp);
+//    THIS(&v).push_back(&temp);
 //    push_heap(THIS(&v).begin(), THIS(&v).end(), cmp);
 //    temp = 0;
 //    THIS(&v).push_back(&temp);
@@ -40,7 +40,7 @@ int main(void)
     for (int i = 0; i < THIS(&v).size(); i++)
         printf("%d ", *(int*)THIS(&v).at(i));
     putchar('\n');
-    destory_vector(&v);
+    destory_deque(&v);
     return 0;
 }
 

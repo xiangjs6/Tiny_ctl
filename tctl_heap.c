@@ -48,7 +48,7 @@ void push_heap(const __iterator *first, const __iterator *last, bool (*cmp_func)
         father = cur_index / 2 - (cur_index + 1) % 2;
     }
     if (cur_index != ITER(_last).diff(_first) - 1)
-        memcpy(ITER(_first).at(father), x, _first->__inner.memb_size);
+        memcpy(ITER(_first).at(cur_index), x, _first->__inner.memb_size);
 }
 
 void pop_heap(const __iterator *first, const __iterator *last, bool (*cmp_func)(const void *, const void *))
