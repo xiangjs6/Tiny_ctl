@@ -9,14 +9,43 @@
 #include "tctl_queue.h"
 #include <stdlib.h>
 #include "tctl_stack.h"
+#include "tctl_heap.h"
 
-bool cmp(int *a, int *b)
+bool cmp(const int *a, const int *b)
 {
     return *a > *b;
 }
 
-//stack测试
+//heap测试
 int main(void)
+{
+    int temp;
+    vector v = creat_vector(0, sizeof(int), NULL);
+    for (int i = 0; i < 10; i++) {
+        temp = random() % 10;
+        printf("%d ", temp);
+        THIS(&v).push_back(&temp);
+    }
+    putchar('\n');
+    temp = 100;
+    THIS(&v).push_back(&temp);
+//    make_heap(THIS(&v).begin(), THIS(&v).end(), cmp);
+//    push_heap(THIS(&v).begin(), THIS(&v).end(), cmp);
+//    temp = 0;
+//    THIS(&v).push_back(&temp);
+//    push_heap(THIS(&v).begin(), THIS(&v).end(), cmp);
+//    pop_heap(THIS(&v).begin(), THIS(&v).end(), cmp);
+//    THIS(&v).pop_back();
+    sort_heap(THIS(&v).begin(), THIS(&v).end(), cmp);
+    for (int i = 0; i < THIS(&v).size(); i++)
+        printf("%d ", *(int*)THIS(&v).at(i));
+    putchar('\n');
+    destory_vector(&v);
+    return 0;
+}
+
+//stack测试
+/*int main(void)
 {
     stack st = creat_stack(sizeof(int));
     for (int i = 0; i < 10; i++)
@@ -32,7 +61,7 @@ int main(void)
     putchar('\n');
     printf("empty:%c\n", *("YN" + THIS(&st).empty()));
     return 0;
-}
+}*/
 
 //queue测试
 /*int main(void)
