@@ -67,7 +67,7 @@ static bool empty(void)
 {
     vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->__obj_private;
-    return p_private->nmemb;
+    return !p_private->nmemb;
 }
 static void push_back(void *x)
 {
