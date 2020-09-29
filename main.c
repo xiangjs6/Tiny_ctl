@@ -10,14 +10,31 @@
 #include <stdlib.h>
 #include "tctl_stack.h"
 #include "tctl_heap.h"
+#include "tctl_priority_queue.h"
 
 bool cmp(const int *a, const int *b)
 {
     return *a > *b;
 }
 
-//heap测试
+//priority_queue测试
 int main(void)
+{
+    priority_queue pri_que = creat_priority_queue(sizeof(int), cmp);
+    for (int i = 0; i < 30; i++) {
+        int temp = random() % 100;
+        THIS(&pri_que).push(&temp);
+    }
+    while (!THIS(&pri_que).empty()) {
+        printf("%d ", *(int*)THIS(&pri_que).top());
+        THIS(&pri_que).pop();
+    }
+    putchar('\n');
+    destory_priority_queue(&pri_que);
+}
+
+//heap测试
+/*int main(void)
 {
     int temp;
     deque v = creat_deque(sizeof(int), 1);
@@ -42,7 +59,7 @@ int main(void)
     putchar('\n');
     destory_deque(&v);
     return 0;
-}
+}*/
 
 //stack测试
 /*int main(void)
