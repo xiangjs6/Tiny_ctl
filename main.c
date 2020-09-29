@@ -11,10 +11,50 @@
 #include "tctl_stack.h"
 #include "tctl_heap.h"
 #include "tctl_priority_queue.h"
+#include "tctl_slist.h"
 
 bool cmp(const int *a, const int *b)
 {
     return *a > *b;
+}
+
+int main(void)
+{
+    slist sl = creat_slist(sizeof(int));
+    for (int i = 0; i < 20; i++) {
+        int temp = random() % 20;
+        printf("%d ", temp);
+        THIS(&sl).push_front(&temp);
+    }
+    putchar('\n');
+    THIS(&sl).pop_front();
+    iterator *in_it = NEW_ITER(THIS(&sl).begin());
+    ITER(in_it).increment();
+    ITER(in_it).increment();
+    int temp = 100;
+    THIS(&sl).insert_after(in_it, &temp);
+    ITER(in_it).increment();
+    ITER(in_it).increment();
+    THIS(&sl).erase_after(in_it);
+    printf("size:%d\n", THIS(&sl).size());
+    printf("front:%d\n", *(int*)THIS(&sl).front());
+    slist sl2 = creat_slist(sizeof(int));
+    for (int i = 0; i < 100; i++) {
+        int temp = random() % 20;
+        THIS(&sl2).push_front(&temp);
+    }
+    THIS(&sl).swap(&sl2);
+
+    for (iterator *it = NEW_ITER(THIS(&sl).begin()); !ITER(it).equal(THIS(&sl).end()); ITER(it).increment())
+        printf("%d ", *(int*)it->val);
+    putchar('\n');
+    for (iterator *it = NEW_ITER(THIS(&sl2).begin()); !ITER(it).equal(THIS(&sl2).end()); ITER(it).increment())
+        printf("%d ", *(int*)it->val);
+    putchar('\n');
+    printf("%c\n", *("YN" + !THIS(&sl).empty()));
+    destory_slist(&sl);
+    destory_slist(&sl2);
+    printf("%c\n", *("YN" + !THIS(&sl).empty()));
 }
 
 //priority_queue测试
@@ -102,6 +142,7 @@ bool cmp(const int *a, const int *b)
 }*/
 
 //deque测试
+/*
 int main(void)
 {
     deque deq = creat_deque(sizeof(int), 9);
@@ -165,6 +206,7 @@ int main(void)
     putchar('\n');
     destory_deque(&deq);
 }
+*/
 
 //vector测试
 /*int main(void)
