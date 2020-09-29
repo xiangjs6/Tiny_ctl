@@ -21,6 +21,7 @@ typedef struct {
     void (*iter_add)(__iterator*, int);
     void (*iter_sub)(__iterator*, int);
     long long (*iter_diff)(const __iterator*, const __iterator*);
+    bool (*iter_equal)(const __iterator*, const __iterator*);
 } __iterator_obj_func;
 
 typedef struct {
@@ -33,6 +34,7 @@ typedef struct {
     void (*sub)(int);
     void (*copy)(const __iterator*);
     long long (*diff)(const __iterator*);
+    bool (*equal)(const __iterator*);
 } __public_iterator_func;
 
 typedef struct {

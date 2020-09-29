@@ -68,6 +68,13 @@ static long long diff(const __iterator *iter)
     return p_it->__inner.iterator_func_p->private_iter_func->iter_diff(p_it, iter);
 }
 
+static bool equal(const __iterator *iter)
+{
+    __iterator *p_it = pop_this();
+    push_this(p_it->__inner.obj_this);
+    return p_it->__inner.iterator_func_p->private_iter_func->iter_equal(p_it, iter);
+}
+
 void copy(const __iterator *iter)
 {
     __iterator *p_it = pop_this();
@@ -76,7 +83,18 @@ void copy(const __iterator *iter)
     memcpy(p_it, iter, p_it->__inner.obj_iter_size);
 }
 
-const __public_iterator_func def_pub_iter_func = {.at = at, .increment = increment, .decrement = decrement, .front_increment = front_increment, .front_decrement = front_decrement, .add = add, .sub = sub, .diff = diff, .copy = copy};
+const __public_iterator_func def_pub_iter_func = {
+        .at = at,
+        .increment = increment,
+        .decrement = decrement,
+        .front_increment = front_increment,
+        .front_decrement = front_decrement,
+        .add = add,
+        .sub = sub,
+        .diff = diff,
+        .copy = copy,
+        .equal = equal
+};
 
 struct __inner_iterator __creat_iter(size_t obj_iter_size, void *obj_this, size_t memb_size, const iterator_func *iter_func)
 {

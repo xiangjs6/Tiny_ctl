@@ -180,13 +180,20 @@ static long long iter_diff(const __iterator *minuend, const __iterator *subtract
     return (((__vector_iter)minuend->val) - ((__vector_iter)subtraction->val)) / (long long)p_private->memb_size;
 }
 
+static bool iter_equal(const __iterator *it1, const __iterator *it2)
+{
+    pop_this();
+    return it1->val == it2->val;
+}
+
 static const __iterator_obj_func  __def_vector_iter = {
         iter_at,
         iter_increment,
         iter_decrement,
         iter_add,
         iter_sub,
-        iter_diff
+        iter_diff,
+        iter_equal
 };
 static const iterator_func __def_vector_iter_func = INIT_ITER_FUNC(&__def_vector_iter);
 

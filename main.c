@@ -18,7 +18,7 @@ bool cmp(const int *a, const int *b)
 }
 
 //priority_queue测试
-int main(void)
+/*int main(void)
 {
     priority_queue pri_que = creat_priority_queue(sizeof(int), cmp);
     for (int i = 0; i < 30; i++) {
@@ -31,7 +31,7 @@ int main(void)
     }
     putchar('\n');
     destory_priority_queue(&pri_que);
-}
+}*/
 
 //heap测试
 /*int main(void)
@@ -102,7 +102,7 @@ int main(void)
 }*/
 
 //deque测试
-/*int main(void)
+int main(void)
 {
     deque deq = creat_deque(sizeof(int), 9);
     __private_deque *watch = deq.__obj_private;
@@ -156,7 +156,7 @@ int main(void)
         printf("%d ", *temp);
     }
     putchar('\n');
-    for (iterator *it = NEW_ITER(THIS(&deq).begin()); it->val != THIS(&deq).end()->val; ITER(it).increment()) {
+    for (iterator *it = NEW_ITER(THIS(&deq).begin()); !ITER(it).equal(THIS(&deq).end()); ITER(it).increment()) {
         printf("%d ", *(int*)it->val);
         long long r = ITER(it).diff(THIS(&deq).end());
         r = ITER(it).diff(THIS(&deq).begin());
@@ -164,7 +164,7 @@ int main(void)
     }
     putchar('\n');
     destory_deque(&deq);
-}*/
+}
 
 //vector测试
 /*int main(void)
