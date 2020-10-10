@@ -27,40 +27,40 @@ static struct __rb_tree_node *get_uncle_node(struct __rb_tree_node *node)
         return g_parent->right;
 }
 
-static void turn_left_node(struct __rb_tree_node *node)
+static void turn_left_node(struct __rb_tree_node *drop_node)
 {
-    struct __rb_tree_node *parent = node->parent;
+    struct __rb_tree_node *parent = drop_node->parent;
     //父亲节点变成爷爷节点
-    if (get_left_right_node(node))
-        parent->right = node->right;
+    if (get_left_right_node(drop_node))
+        parent->right = drop_node->right;
     else
-        parent->left = node->right;
+        parent->left = drop_node->right;
     //指向父亲节点的指针指向新节点
-    node->parent = node->right;
+    drop_node->parent = drop_node->right;
     //右节点指针指向新父亲节点的左子树
-    node->right = node->parent->left;
+    drop_node->right = drop_node->parent->left;
     //修改新父节点的父节点
-    node->parent->parent = parent;
+    drop_node->parent->parent = parent;
     //修改新父节点的左子树
-    node->parent->left = node;
+    drop_node->parent->left = drop_node;
     //修改新右子树的父节点
-    if (node->right)
-        node->right->parent = node;
+    if (drop_node->right)
+        drop_node->right->parent = drop_node;
 }
 
-static void turn_right_node(struct __rb_tree_node *node)
+static void turn_right_node(struct __rb_tree_node *drop_node)
 {
-    struct __rb_tree_node *parent = node->parent;
-    if (get_left_right_node(node))
-        parent->right = node->left;
+    struct __rb_tree_node *parent = drop_node->parent;
+    if (get_left_right_node(drop_node))
+        parent->right = drop_node->left;
     else
-        parent->left = node->left;
-    node->parent = node->left;
-    node->left = node->parent->right;
-    node->parent->parent = parent;
-    node->parent->right = node;
-    if (node->left)
-        node->left->parent = node;
+        parent->left = drop_node->left;
+    drop_node->parent = drop_node->left;
+    drop_node->left = drop_node->parent->right;
+    drop_node->parent->parent = parent;
+    drop_node->parent->right = drop_node;
+    if (drop_node->left)
+        drop_node->left->parent = drop_node;
 }
 
 static void balance_tree(__private_rb_tree *p_private, struct __rb_tree_node *cur)
@@ -78,16 +78,16 @@ static void balance_tree(__private_rb_tree *p_private, struct __rb_tree_node *cu
             if (!get_left_right_node(cur->parent)) {//插入节点的父节点在爷爷节点的左侧
                 if (get_left_right_node(cur)) {//插入节点在父节点的右侧
                     turn_left_node(cur->parent);
-                    turn_right_node(cur);
-                } else {//插入节点在父节点的左侧
                     turn_right_node(cur->parent);
+                } else {//插入节点在父节点的左侧
+                    turn_right_node(cur->parent->parent);
                 }
             } else {//插入节点在爷爷节点右侧
                 if (!get_left_right_node(cur)) {//插入节点在父亲节点左侧
                     turn_right_node(cur->parent);
-                    turn_left_node(cur);
-                } else {//插入节点在父亲节点右侧
                     turn_left_node(cur->parent);
+                } else {//插入节点在父亲节点右侧
+                    turn_left_node(cur->parent->parent);
                 }
             }
         }
