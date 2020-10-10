@@ -5,15 +5,105 @@
 #include "tctl_rb_tree.h"
 #include "tctl_allocator.h"
 //private:
-struct __rb_tree_node *creat_rb_node(size_t memb_size)
+static struct __rb_tree_node *creat_rb_node(size_t memb_size)
 {
     struct __rb_tree_node *node = allocate(sizeof(struct __rb_tree_node) + memb_size);
     node->parent = node->left = node->right = NULL;
     node->color = __rb_tree_red;
     return node;
 }
+
+static bool get_left_right_node(struct __rb_tree_node *node)
+{
+    return node->parent->right == node;
+}
+
+static struct __rb_tree_node *get_uncle_node(struct __rb_tree_node *node)
+{
+    struct __rb_tree_node *g_parent = node->parent->parent;
+    if (get_left_right_node(node->parent))
+        return g_parent->left;
+    else
+        return g_parent->right;
+}
+
+static void turn_left_node(struct __rb_tree_node *node)
+{
+    struct __rb_tree_node *parent = node->parent;
+    //父亲节点变成爷爷节点
+    if (get_left_right_node(node))
+        parent->right = node->right;
+    else
+        parent->left = node->right;
+    //指向父亲节点的指针指向新节点
+    node->parent = node->right;
+    //右节点指针指向新父亲节点的左子树
+    node->right = node->parent->left;
+    //修改新父节点的父节点
+    node->parent->parent = parent;
+    //修改新父节点的左子树
+    node->parent->left = node;
+    //修改新右子树的父节点
+    if (node->right)
+        node->right->parent = node;
+}
+
+static void turn_right_node(struct __rb_tree_node *node)
+{
+    struct __rb_tree_node *parent = node->parent;
+    if (get_left_right_node(node))
+        parent->right = node->left;
+    else
+        parent->left = node->left;
+    node->parent = node->left;
+    node->left = node->parent->right;
+    node->parent->parent = parent;
+    node->parent->right = node;
+    if (node->left)
+        node->left->parent = node;
+}
+
+static void balance_tree(__private_rb_tree *p_private, struct __rb_tree_node *cur)
+{
+    if (p_private->header->parent == cur) {//该节点为跟节点
+        cur->color = __rb_tree_black;
+    } else if(cur->parent->color == __rb_tree_red) {//父节点是红色
+        struct __rb_tree_node *uncle_node = get_uncle_node(cur);
+        if (uncle_node->color == __rb_tree_red) {//叔叔节点是红色
+            uncle_node->color = __rb_tree_black;
+            cur->parent->color = __rb_tree_black;
+            cur->parent->parent->color = __rb_tree_red;
+            balance_tree(p_private, cur->parent->parent);
+        } else {//叔叔节点是黑色
+            if (!get_left_right_node(cur->parent)) {//插入节点的父节点在爷爷节点的左侧
+                if (get_left_right_node(cur)) {//插入节点在父节点的右侧
+                    turn_left_node(cur->parent);
+                    turn_right_node(cur);
+                } else {//插入节点在父节点的左侧
+                    turn_right_node(cur->parent);
+                }
+            } else {//插入节点在爷爷节点右侧
+                if (!get_left_right_node(cur)) {//插入节点在父亲节点左侧
+                    turn_right_node(cur->parent);
+                    turn_left_node(cur);
+                } else {//插入节点在父亲节点右侧
+                    turn_left_node(cur->parent);
+                }
+            }
+        }
+    }
+}
+
+static struct __rb_tree_node *insert(struct __rb_tree_node *node, struct __rb_tree_node **access_node, __private_rb_tree *p_private)
+{
+    struct __rb_tree_node *new_node = creat_rb_node(p_private->memb_size);
+    new_node->parent = node;
+    *access_node = new_node;
+    balance_tree(p_private, new_node);
+    return new_node;
+}
 //public:
-__iterator const *begin(void)
+static __iterator const *begin(void)
 {
     rb_tree *this = pop_this();
     __private_rb_tree *p_private = (__private_rb_tree*)this->__obj_private;
@@ -22,7 +112,7 @@ __iterator const *begin(void)
     return (__iterator*)&p_private->start_iter;
 }
 
-__iterator const *end(void)
+static __iterator const *end(void)
 {
     rb_tree *this = pop_this();
     __private_rb_tree *p_private = (__private_rb_tree*)this->__obj_private;
@@ -31,13 +121,13 @@ __iterator const *end(void)
     return (__iterator*)&p_private->finish_iter;
 }
 
-bool empty(void)
+static bool empty(void)
 {
     rb_tree *this = pop_this();
     return THIS(this).size();
 }
 
-size_t size(void)
+static size_t size(void)
 {
     rb_tree *this = pop_this();
     __private_rb_tree *p_private = (__private_rb_tree*)this->__obj_private;
@@ -74,7 +164,7 @@ void init_rb_tree(rb_tree *p_tree, size_t memb_size, Compare cmp)
 
 void destory_rb_tree(rb_tree *p_tree)
 {
-    __private_rb_tree *p_private = (__private_rb_tree*)p_tree->__obj_private;
+    //__private_rb_tree *p_private = (__private_rb_tree*)p_tree->__obj_private;
     THIS(p_tree).clear();
     deallocate(p_tree, 0);
 }
