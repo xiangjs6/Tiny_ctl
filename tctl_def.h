@@ -9,7 +9,7 @@
 #include <stddef.h>
 
 typedef long long offset_t;
-typedef unsigned char byte;
+typedef char byte;
 
 typedef byte (*Compare)(const void *, const void *);
 #endif //TINY_CTL_TCTL_DEF_H
