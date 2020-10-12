@@ -8,16 +8,47 @@
 #include "tctl_deque.h"
 #include "tctl_queue.h"
 #include <stdlib.h>
+#include "tctl_rb_tree.h"
 #include "tctl_stack.h"
 #include "tctl_heap.h"
 #include "tctl_priority_queue.h"
 #include "tctl_slist.h"
 
-bool cmp(const int *a, const int *b)
+byte cmp(const int *a, const int *b)
 {
-    return *a > *b;
+    if (*a > *b)
+        return 1;
+    else if (*a < *b)
+        return -1;
+    return 0;
 }
 
+int main(void)
+{
+    rb_tree tree = creat_rb_tree(sizeof(int), cmp);
+    int n = 100;
+    THIS(&tree).insert_equal(&n);
+    n = 95;
+    THIS(&tree).insert_equal(&n);
+    n = 96;
+    //THIS(&tree).insert_equal(&n);
+    THIS(&tree).insert_equal(&n);
+    n = 97;
+    THIS(&tree).insert_equal(&n);
+    n = 105;
+    THIS(&tree).insert_equal(&n);
+    n = 96;
+    THIS(&tree).insert_equal(&n);
+    n = 101;
+    THIS(&tree).insert_equal(&n);
+    n = 99;
+    THIS(&tree).insert_unique(&n);
+    THIS(&tree).insert_unique(&n);
+    n = 98;
+    THIS(&tree).insert_unique(&n);
+}
+
+/*
 int main(void)
 {
     slist sl = creat_slist(sizeof(int));
@@ -56,6 +87,7 @@ int main(void)
     destory_slist(&sl2);
     printf("%c\n", *("YN" + !THIS(&sl).empty()));
 }
+*/
 
 //priority_queue测试
 /*int main(void)

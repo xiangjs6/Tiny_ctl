@@ -36,6 +36,10 @@ typedef struct {
         struct __inner_iterator finish_iter;
         __rb_tree_iter finish_ptr;
     };
+    struct {
+        struct __inner_iterator change_iter;
+        __rb_tree_iter change_ptr;
+    };
 } __private_rb_tree;
 
 typedef struct {
