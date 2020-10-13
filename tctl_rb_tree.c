@@ -4,7 +4,6 @@
 
 #include "tctl_rb_tree.h"
 #include "tctl_allocator.h"
-#include "tctl_common.h"
 #include <memory.h>
 //private:
 static struct __rb_tree_node *__creat_rb_node(size_t memb_size)
@@ -12,6 +11,22 @@ static struct __rb_tree_node *__creat_rb_node(size_t memb_size)
     struct __rb_tree_node *node = allocate(sizeof(struct __rb_tree_node) + memb_size);
     node->parent = node->left = node->right = NULL;
     node->color = __rb_tree_red;
+    return node;
+}
+
+static struct __rb_tree_node *minimum(struct __rb_tree_node *root)
+{
+    struct __rb_tree_node *node = root;
+    while (node->left)
+        node = node->left;
+    return node;
+}
+
+static struct __rb_tree_node *maximum(struct __rb_tree_node *root)
+{
+    struct __rb_tree_node *node = root;
+    while (node->right)
+        node = node->right;
     return node;
 }
 
@@ -180,6 +195,7 @@ static __iterator *insert_unique(void *x)
     }
     if (parent == p_private->header) {//没有根节点
         new_node = __insert(p_private->header, &p_private->header->parent, p_private);
+        p_private->header->left = p_private->header->right = new_node;
     } else {
         struct __rb_tree_node **node = left_right ? &parent->right : &parent->left;//判断插入节点是父节点的左节点还是右节点
         new_node = __insert(parent, node, p_private);
@@ -187,6 +203,12 @@ static __iterator *insert_unique(void *x)
     memcpy(new_node->data, x, p_private->memb_size);
     p_private->change_ptr.node = new_node;
     p_private->change_ptr.val = new_node->data;
+
+    //重新分配header的指向,left总是指向最小值,right总是指向最大值
+    if (left_right)
+        p_private->header->right = maximum(p_private->header->right);
+    else
+        p_private->header->left = minimum(p_private->header->left);
     return (__iterator*)&p_private->change_iter;
 }
 
@@ -198,22 +220,22 @@ static __iterator *insert_equal(void *x)
     struct __rb_tree_node *parent;
     bool is_unique = false;
     bool left_right = __find(p_private->header, x, &parent, &is_unique, p_private->cmp);
-    if (parent == p_private->header) {
-        if (parent->parent == parent)//没有根节点
-            new_node = __insert(p_private->header, &p_private->header->parent, p_private);
-        else//根节点和插入节点值一样
-            new_node = __insert(parent->parent, &parent->parent->left, p_private);
+    if (parent->parent == parent) {//没有根节点
+        new_node = __insert(p_private->header, &p_private->header->parent, p_private);
+        p_private->header->left = p_private->header->right = new_node;
     } else {
         struct __rb_tree_node **node = left_right ? &parent->right : &parent->left;//判断插入节点是父节点的左节点还是右节点
-//        if (*node) {//要插入的值已存在，则插入到该值的子节点
-//            parent = *node;
-//            node = !parent->left ? &parent->left : &parent->right;
-//        }
         new_node = __insert(parent, node, p_private);
     }
     memcpy(new_node->data, x, p_private->memb_size);
     p_private->change_ptr.node = new_node;
     p_private->change_ptr.val = new_node->data;
+
+    //重新分配header的指向,left总是指向最小值,right总是指向最大值
+    if (left_right)
+        p_private->header->right = maximum(p_private->header->right);
+    else
+        p_private->header->left = minimum(p_private->header->left);
     return (__iterator*)&p_private->change_iter;
 }
 
@@ -253,9 +275,9 @@ void init_rb_tree(rb_tree *p_tree, size_t memb_size, Compare cmp)
 
 void destory_rb_tree(rb_tree *p_tree)
 {
-    //__private_rb_tree *p_private = (__private_rb_tree*)p_tree->__obj_private;
+    __private_rb_tree *p_private = (__private_rb_tree*)p_tree->__obj_private;
     THIS(p_tree).clear();
-    deallocate(p_tree, 0);
+    deallocate(p_private->header, 0);
 }
 
 rb_tree creat_rb_tree(size_t memb_size, Compare cmp)

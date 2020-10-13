@@ -46,6 +46,13 @@ int main(void)
     THIS(&tree).insert_unique(&n);
     n = 98;
     THIS(&tree).insert_unique(&n);
+    n = 200;
+    THIS(&tree).insert_equal(&n);
+    n = 1;
+    THIS(&tree).insert_equal(&n);
+    __private_rb_tree *watch = tree.__obj_private;
+    printf("%d %d\n", *(int*)watch->header->left->data, *(int*)watch->header->right->data);
+    return 0;
 }
 
 /*
