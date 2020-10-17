@@ -113,5 +113,6 @@ __iterator *__constructor_iter(__iterator *iter)
 void __destructor_iter(void *p)
 {
     __iterator *iter = *(void **) p;
-    deallocate(iter, iter->__inner.obj_iter_size);
+    if (iter)
+        deallocate(iter, iter->__inner.obj_iter_size);
 }
