@@ -14,6 +14,11 @@ static struct __rb_tree_node *__creat_rb_node(size_t memb_size)
     return node;
 }
 
+static void __rb_free_node(struct __rb_tree_node *node, size_t memb_size)
+{
+    deallocate(node, sizeof(struct __rb_tree_node) + memb_size);
+}
+
 static struct __rb_tree_node *minimum(struct __rb_tree_node *root)
 {
     struct __rb_tree_node *node = root;
@@ -131,7 +136,7 @@ static void __balance_tree_erase(__private_rb_tree *p_private, struct __rb_tree_
     else if (cur->color == __rb_tree_red) {//删除节点是红色 1
         return;
     } else {//删除节点是黑色
-        if (cur->right->color == __rb_tree_red) {//删除节点右节点是红色 3
+        if (cur->right && cur->right->color == __rb_tree_red) {//删除节点右节点是红色 3
             cur->right->color = __rb_tree_black;
             return;
         } else if (brother_node->color == __rb_tree_black) {//删除节点的兄弟节点是黑色
@@ -145,12 +150,12 @@ static void __balance_tree_erase(__private_rb_tree *p_private, struct __rb_tree_
                     parent->color = __rb_tree_black;
                 }
             } else if (__get_left_right_node(brother_node)) {//兄弟节点在父节点右侧
-                if (brother_node->right->color == __rb_tree_red) {//兄弟节点的右节点是红色 5
+                if (brother_node->right && brother_node->right->color == __rb_tree_red) {//兄弟节点的右节点是红色 5
                     brother_node->color = parent->color;
                     parent->color = __rb_tree_black;
                     brother_node->right->color = __rb_tree_black;
                     __turn_left_node(parent);
-                } else if (brother_node->left->color == __rb_tree_red) {//兄弟节点的左节点是红色 6
+                } else if (brother_node->left && brother_node->left->color == __rb_tree_red) {//兄弟节点的左节点是红色 6
                     __turn_right_node(brother_node);
                     brother_node = brother_node->parent;
                     brother_node->color = __rb_tree_black;
@@ -162,12 +167,12 @@ static void __balance_tree_erase(__private_rb_tree *p_private, struct __rb_tree_
                     __turn_left_node(parent);
                 }
             } else {//兄弟节点在父节点左侧 7
-                if (brother_node->left->color == __rb_tree_red) {//兄弟节点的左节点是红色
+                if (brother_node->left && brother_node->left->color == __rb_tree_red) {//兄弟节点的左节点是红色
                     brother_node->color = parent->color;
                     parent->color = __rb_tree_black;
                     brother_node->left->color = __rb_tree_black;
                     __turn_right_node(parent);
-                } else if (brother_node->right->color == __rb_tree_red) {//兄弟节点的左节点是红色
+                } else if (brother_node->right && brother_node->right->color == __rb_tree_red) {//兄弟节点的右节点是红色
                     __turn_left_node(brother_node);
                     brother_node = brother_node->parent;
                     brother_node->color = __rb_tree_black;
@@ -184,6 +189,11 @@ static void __balance_tree_erase(__private_rb_tree *p_private, struct __rb_tree_
                 brother_node->color = parent->color;
                 parent->color = __rb_tree_red;
                 __turn_left_node(parent);
+                __balance_tree_erase(p_private, cur);
+            } else {//删除节点为父亲节点右边 10
+                brother_node->color = parent->color;
+                parent->color = __rb_tree_red;
+                __turn_right_node(parent);
                 __balance_tree_erase(p_private, cur);
             }
         }
@@ -207,7 +217,8 @@ static void __erase(struct __rb_tree_node *node, __private_rb_tree *p_private)
     else
         while (rep_node->left)
             rep_node = rep_node->left;
-    memcpy(node->data, rep_node->data, p_private->memb_size);
+    if (node != rep_node)
+        memcpy(node->data, rep_node->data, p_private->memb_size);
     __balance_tree_erase(p_private, rep_node);
     //删除
     struct __rb_tree_node *parent = rep_node->parent;
@@ -235,6 +246,7 @@ static void __erase(struct __rb_tree_node *node, __private_rb_tree *p_private)
         if (next_node)
             next_node->parent = parent;
     }
+    __rb_free_node(rep_node, p_private->memb_size);
 }
 
 static bool __find(struct __rb_tree_node *header, void const *x, struct __rb_tree_node **parent, bool *is_unique, Compare cmp)
@@ -351,8 +363,8 @@ static __iterator *insert_equal(void *x)
 
 static void erase(__iterator *it)
 {
-    rb_tree *tree = pop_this();
-    __private_rb_tree *p_private = (__private_rb_tree*)tree->__obj_private;
+    rb_tree *this = pop_this();
+    __private_rb_tree *p_private = (__private_rb_tree*)this->__obj_private;
     __rb_tree_iter *_rb_iter = (__rb_tree_iter*)it->__inner.__address;
     struct __rb_tree_node *erase_node = _rb_iter->node;
     __erase(erase_node, p_private);
@@ -360,14 +372,23 @@ static void erase(__iterator *it)
 
 static __iterator *find(void *x)
 {
-    rb_tree *tree = pop_this();
-    __private_rb_tree *p_private = (__private_rb_tree*)tree->__obj_private;
+    rb_tree *this = pop_this();
+    __private_rb_tree *p_private = (__private_rb_tree*)this->__obj_private;
     bool is_unique = true;
     struct __rb_tree_node *parent;
     bool left_right = __find(p_private->header, x, &parent, &is_unique, p_private->cmp);
     if (is_unique)
         return NULL;
-    else;
+    else {
+        __iterator *iter = NEW_ITER(THIS(this).begin());
+        __rb_tree_iter *rb_iter = (__rb_tree_iter*)iter->__inner.__address;
+        if (parent == p_private->header)
+            rb_iter->node = parent->parent;
+        else
+            rb_iter->node = !left_right ? parent->left : parent->right;
+        rb_iter->val = rb_iter->node->data;
+        return iter;
+    }
 }
 
 static __iterator_obj_func  __def_rb_tree_iter = {
