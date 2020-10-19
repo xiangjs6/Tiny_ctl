@@ -21,6 +21,7 @@ struct __rb_tree_node {
 typedef struct {
     void *val;
     struct __rb_tree_node *node;
+    byte move_from;
 } __rb_tree_iter;
 
 typedef struct {

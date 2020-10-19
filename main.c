@@ -50,6 +50,8 @@ int main(void)
     //THIS(&tree).insert_equal(&n);
     //n = 1;
     //THIS(&tree).insert_equal(&n);
+    n = 96;
+    printf("%d\n", THIS(&tree).count(&n));
     __private_rb_tree *watch = tree.__obj_private;
     n = 98;
     iterator *f_it = THIS(&tree).find(&n);
@@ -66,9 +68,11 @@ int main(void)
     n = 101;
     f_it = THIS(&tree).find(&n);
     THIS(&tree).erase(f_it);
+    n = 99;
     f_it = THIS(&tree).find(&n);
     printf("find:%d\n", *(int*)f_it->val);
     printf("%d %d\n", *(int*)watch->header->left->data, *(int*)watch->header->right->data);
+    destory_rb_tree(&tree);
     return 0;
 }
 

@@ -249,25 +249,27 @@ static void __erase(struct __rb_tree_node *node, __private_rb_tree *p_private)
     __rb_free_node(rep_node, p_private->memb_size);
 }
 
-static bool __find(struct __rb_tree_node *header, void const *x, struct __rb_tree_node **parent, bool *is_unique, Compare cmp)
+static bool __find(struct __rb_tree_node *header, void const *x, struct __rb_tree_node **parent, size_t *is_unique, Compare cmp)
 {
     struct __rb_tree_node **next = &header->parent;
     *parent = header;
     if (header->parent == header)//树里没有节点
         return false;
     byte flag = 1;
-    bool save_is_unique = false;
+    size_t save_is_unique = 0;
     while (*next && ((flag = cmp(x, (*next)->data)) || !*is_unique))
     {
-        save_is_unique = save_is_unique || !flag;
+        if (!flag)
+            save_is_unique++;
         *parent = *next;
         next = flag < 0 ? &(*next)->left : &(*next)->right;
     }
-    *is_unique = flag && !save_is_unique;
+    if (*next && !flag)
+        save_is_unique++;
+    *is_unique = save_is_unique;
+    return &(*parent)->right == next;
     //return next == &(*parent)->right;
-    if (!flag)
-        flag = (*parent)->right == *next;
-    return flag > 0;
+    //return flag > 0;
 }
 
 //public:
@@ -277,6 +279,7 @@ static __iterator const *begin(void)
     __private_rb_tree *p_private = (__private_rb_tree*)this->__obj_private;
     p_private->start_ptr.node = p_private->header->left;
     p_private->start_ptr.val = p_private->header->left->data;
+    p_private->start_ptr.move_from = 0;
     return (__iterator*)&p_private->start_iter;
 }
 
@@ -286,6 +289,7 @@ static __iterator const *end(void)
     __private_rb_tree *p_private = (__private_rb_tree*)this->__obj_private;
     p_private->finish_ptr.node = p_private->header;
     p_private->finish_ptr.val = p_private->header->data;
+    p_private->finish_ptr.move_from = 0;
     return (__iterator*)&p_private->finish_iter;
 }
 
@@ -308,9 +312,9 @@ static __iterator *insert_unique(void *x)
     __private_rb_tree *p_private = (__private_rb_tree*)this->__obj_private;
     struct __rb_tree_node *new_node;
     struct __rb_tree_node *parent;
-    bool is_unique = true;
+    size_t is_unique = true;
     bool left_right = __find(p_private->header, x, &parent, &is_unique, p_private->cmp);
-    if (!is_unique) {
+    if (is_unique) {
         p_private->change_ptr.node = NULL;
         p_private->change_ptr.val = NULL;
         return (__iterator*)&p_private->change_iter;
@@ -340,7 +344,7 @@ static __iterator *insert_equal(void *x)
     __private_rb_tree *p_private = (__private_rb_tree*)this->__obj_private;
     struct __rb_tree_node *new_node;
     struct __rb_tree_node *parent;
-    bool is_unique = false;
+    size_t is_unique = false;
     bool left_right = __find(p_private->header, x, &parent, &is_unique, p_private->cmp);
     if (parent->parent == parent) {//没有根节点
         new_node = __insert(p_private->header, &p_private->header->parent, p_private);
@@ -370,14 +374,33 @@ static void erase(__iterator *it)
     __erase(erase_node, p_private);
 }
 
+static void clear(void)
+{
+    rb_tree *this = pop_this();
+    __private_rb_tree *p_private = (__private_rb_tree*)this->__obj_private;
+    struct __rb_tree_node *node = p_private->start_ptr.node, *next;
+    while (node == p_private->header)
+    {
+        node = minimum(node);
+        node = maximum(node);
+        if (node->left)
+            continue;
+        next = node->parent;
+        __rb_free_node(node, p_private->memb_size);
+        node = next;
+    }
+    p_private->size = 0;
+    p_private->header->parent = p_private->header->left = p_private->header->right = p_private->header;
+}
+
 static __iterator *find(void *x)
 {
     rb_tree *this = pop_this();
     __private_rb_tree *p_private = (__private_rb_tree*)this->__obj_private;
-    bool is_unique = true;
+    size_t is_unique = true;
     struct __rb_tree_node *parent;
     bool left_right = __find(p_private->header, x, &parent, &is_unique, p_private->cmp);
-    if (is_unique)
+    if (!is_unique)
         return NULL;
     else {
         __iterator *iter = NEW_ITER(THIS(this).begin());
@@ -391,9 +414,24 @@ static __iterator *find(void *x)
     }
 }
 
+static size_t count(void *x)
+{
+    rb_tree *this = pop_this();
+    __private_rb_tree *p_private = (__private_rb_tree*)this->__obj_private;
+    struct __rb_tree_node *parent;
+    size_t is_unique = false;
+    __find(p_private->header, x, &parent, &is_unique, p_private->cmp);
+    return is_unique;
+}
+
+static void iter_increment(__iterator *iter)
+{
+
+}
+
 static __iterator_obj_func  __def_rb_tree_iter = {
         NULL,
-        //iter_increment,
+        iter_increment,
         //iter_decrement,
         NULL,
         NULL,
@@ -410,9 +448,11 @@ static const rb_tree _def_rb_tree = {
     insert_unique,
     insert_equal,
     erase,
-    NULL,
-    find
+    clear,
+    find,
+    count
 };
+
 void init_rb_tree(rb_tree *p_tree, size_t memb_size, Compare cmp)
 {
     *p_tree = _def_rb_tree;
