@@ -279,7 +279,7 @@ static __iterator const *begin(void)
     __private_rb_tree *p_private = (__private_rb_tree*)this->__obj_private;
     p_private->start_ptr.node = p_private->header->left;
     p_private->start_ptr.val = p_private->header->left->data;
-    p_private->start_ptr.move_from = 0;
+//    p_private->start_ptr.move_from = 0;
     return (__iterator*)&p_private->start_iter;
 }
 
@@ -289,7 +289,7 @@ static __iterator const *end(void)
     __private_rb_tree *p_private = (__private_rb_tree*)this->__obj_private;
     p_private->finish_ptr.node = p_private->header;
     p_private->finish_ptr.val = p_private->header->data;
-    p_private->finish_ptr.move_from = 0;
+//    p_private->finish_ptr.move_from = 0;
     return (__iterator*)&p_private->finish_iter;
 }
 
@@ -426,7 +426,50 @@ static size_t count(void *x)
 
 static void iter_increment(__iterator *iter)
 {
+    struct __rb_tree_node *node = ((__rb_tree_iter*)iter->__inner.__address)->node;
+    if(node->right != NULL)
+    {
+        node = node->right;
+        while(node->left != NULL)
+            node=node->left;
+    } else {//往父节点上寻找
+        struct __rb_tree_node *parents=node->parent;
+        while(node == parents->right)  //为父节点右孩子时，继续往上找
+        {
+            node = parents;
+            parents = parents->parent;
+        }
+        if(parents != NULL)
+            node = parents;
+        else                       //找到根基点还没找到，则++应该指向空节点
+            node = NULL;
+    }
+}
 
+static void iter_decrement(__iterator *iter)
+{
+    struct __rb_tree_node *node = ((__rb_tree_iter*)iter->__inner.__address)->node;
+    {
+        if(node->left != NULL)
+        {
+            node=node->left;
+            while(node->right != NULL)
+                node=node->right;
+        }
+        else
+        {
+            struct __rb_tree_node *parents=node->parent;
+            while(parents->left == node)
+            {
+                node = parents;
+                parents = parents->parent;
+            }
+            if(parents != NULL)
+                node = parents;
+            else
+                node = NULL;
+        }
+    }
 }
 
 static __iterator_obj_func  __def_rb_tree_iter = {
