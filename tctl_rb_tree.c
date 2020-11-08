@@ -439,47 +439,56 @@ static void iter_increment(__iterator *iter)
             node = parents;
             parents = parents->parent;
         }
+        if (node->right != parents)
+            node = parents;
+/*
         if(parents != NULL)
             node = parents;
         else                       //找到根基点还没找到，则++应该指向空节点
             node = NULL;
+*/
     }
+    ((__rb_tree_iter*)iter->__inner.__address)->node = node;
+    iter->val = node->data;
 }
 
 static void iter_decrement(__iterator *iter)
 {
-    struct __rb_tree_node *node = ((__rb_tree_iter*)iter->__inner.__address)->node;
-    {
-        if(node->left != NULL)
+    struct __rb_tree_node *node = ((__rb_tree_iter *) iter->__inner.__address)->node;
+    if (node->color == __rb_tree_red && node->parent->parent == node)
+        node = node->right;
+    else if (node->left != NULL) {
+        node = node->left;
+        while (node->right != NULL)
+            node = node->right;
+    } else {
+        struct __rb_tree_node *parents = node->parent;
+        while (parents->left == node)
         {
-            node=node->left;
-            while(node->right != NULL)
-                node=node->right;
+            node = parents;
+            parents = parents->parent;
         }
-        else
-        {
-            struct __rb_tree_node *parents=node->parent;
-            while(parents->left == node)
-            {
-                node = parents;
-                parents = parents->parent;
-            }
-            if(parents != NULL)
-                node = parents;
-            else
-                node = NULL;
-        }
+        node = parents;
     }
+    ((__rb_tree_iter *) iter->__inner.__address)->node = node;
+    iter->val = node->data;
+}
+
+static bool iter_equal(const __iterator *it1, const __iterator *it2)
+{
+    __rb_tree_iter *__it1 = (__rb_tree_iter*)it1->__inner.__address;
+    __rb_tree_iter *__it2 = (__rb_tree_iter*)it2->__inner.__address;
+    return __it1->node != __it2->node;
 }
 
 static __iterator_obj_func  __def_rb_tree_iter = {
         NULL,
         iter_increment,
-        //iter_decrement,
+        iter_decrement,
         NULL,
         NULL,
         NULL,
-        //iter_equal
+        iter_equal
 };
 static const iterator_func __def_rb_tree_iter_func = INIT_ITER_FUNC(&__def_rb_tree_iter);
 

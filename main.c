@@ -50,9 +50,18 @@ int main(void)
     //THIS(&tree).insert_equal(&n);
     //n = 1;
     //THIS(&tree).insert_equal(&n);
+    __private_rb_tree *watch = tree.__obj_private;
+    iterator *it;
+    for (it = NEW_ITER(THIS(&tree).begin()); ITER(it).equal(THIS(&tree).end()); ITER(it).increment()) {
+        printf("%d ", *(int*)it->val);
+    }
+    putchar('\n');
+    for (ITER(it).decrement(); ITER(it).equal(THIS(&tree).end()); ITER(it).decrement()) {
+        printf("%d ", *(int*)it->val);
+    }
+    putchar('\n');
     n = 96;
     printf("%d\n", THIS(&tree).count(&n));
-    __private_rb_tree *watch = tree.__obj_private;
     n = 98;
     iterator *f_it = THIS(&tree).find(&n);
     THIS(&tree).erase(f_it);
