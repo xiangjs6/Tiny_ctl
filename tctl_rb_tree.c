@@ -393,7 +393,7 @@ static void clear(void)
     p_private->header->parent = p_private->header->left = p_private->header->right = p_private->header;
 }
 
-static __iterator *find(void *x)
+static __iterator const *find(void *x)
 {
     rb_tree *this = pop_this();
     __private_rb_tree *p_private = (__private_rb_tree*)this->__obj_private;
@@ -441,12 +441,6 @@ static void iter_increment(__iterator *iter)
         }
         if (node->right != parents)
             node = parents;
-/*
-        if(parents != NULL)
-            node = parents;
-        else                       //找到根基点还没找到，则++应该指向空节点
-            node = NULL;
-*/
     }
     ((__rb_tree_iter*)iter->__inner.__address)->node = node;
     iter->val = node->data;

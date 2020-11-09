@@ -51,8 +51,8 @@ int main(void)
     //n = 1;
     //THIS(&tree).insert_equal(&n);
     __private_rb_tree *watch = tree.__obj_private;
-    iterator *it;
-    for (it = NEW_ITER(THIS(&tree).begin()); ITER(it).equal(THIS(&tree).end()); ITER(it).increment()) {
+    iterator it = INIT_ITERATOR;
+    for (ITER(it).copy(NEW_ITER(THIS(&tree).begin())); ITER(it).equal(THIS(&tree).end()); ITER(it).increment()) {
         printf("%d ", *(int*)it->val);
     }
     putchar('\n');
@@ -63,22 +63,22 @@ int main(void)
     n = 96;
     printf("%d\n", THIS(&tree).count(&n));
     n = 98;
-    iterator *f_it = THIS(&tree).find(&n);
+    iterator f_it = NEW_ITER(THIS(&tree).find(&n));
     THIS(&tree).erase(f_it);
     n = 96;
-    f_it = THIS(&tree).find(&n);
+    ITER(f_it).copy(THIS(&tree).find(&n));
     THIS(&tree).erase(f_it);
     n = 95;
-    f_it = THIS(&tree).find(&n);
+    ITER(f_it).copy(THIS(&tree).find(&n));
     THIS(&tree).erase(f_it);
     n = 97;
-    f_it = THIS(&tree).find(&n);
+    ITER(f_it).copy(THIS(&tree).find(&n));
     THIS(&tree).erase(f_it);
     n = 101;
-    f_it = THIS(&tree).find(&n);
+    ITER(f_it).copy(THIS(&tree).find(&n));
     THIS(&tree).erase(f_it);
     n = 99;
-    f_it = THIS(&tree).find(&n);
+    ITER(f_it).copy(THIS(&tree).find(&n));
     printf("find:%d\n", *(int*)f_it->val);
     printf("%d %d\n", *(int*)watch->header->left->data, *(int*)watch->header->right->data);
     destory_rb_tree(&tree);

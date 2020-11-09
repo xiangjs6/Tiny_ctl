@@ -51,7 +51,7 @@ typedef struct {
     __iterator *(*insert_equal)(void*);
     void (*erase)(__iterator*);
     void (*clear)(void);
-    __iterator *(*find)(void*);
+    __iterator const *(*find)(void*);
     size_t (*count)(void*);
     byte __obj_private[sizeof(__private_rb_tree)];
 } rb_tree;

@@ -32,7 +32,7 @@ typedef struct {
     void *(*front_decrement)(void);
     void (*add)(int);
     void (*sub)(int);
-    void (*copy)(const __iterator*);
+    void (*copy)(__iterator const*);
     long long (*diff)(const __iterator*);
     bool (*equal)(const __iterator*);
 } __public_iterator_func;
@@ -55,14 +55,18 @@ struct __iterator {
     void *val;
 };
 
-#define iterator autofree(__destructor_iter) struct __iterator
-#define ITER(p) (*THIS(((__iterator*)p)).__inner.iterator_func_p->iter_func)
+#define iterator autofree(__destructor_iter) struct __iterator * const
+
+#define ITER(p) (*(**(__iterator**)push_this((void*)&p)).__inner.iterator_func_p->iter_func)
+//#define ITER(p) (*THIS(((__iterator**)&p)).__inner.iterator_func_p->iter_func)
 #define NEW_ITER(p) (void*)(__constructor_iter((__iterator*)p))
 
 extern const __public_iterator_func def_pub_iter_func;
+extern const __iterator def_init_iter;
 #define INIT_ITER_FUNC(private_iter_func) {&def_pub_iter_func, private_iter_func}
+#define INIT_ITERATOR (__iterator*)&def_init_iter;
 
 struct __inner_iterator __creat_iter(size_t obj_iter_size, void *obj_this, size_t memb_size, const iterator_func *iter_func);
 __iterator *__constructor_iter(__iterator *iter);
-void __destructor_iter(void *p);
+void __destructor_iter(__iterator * const *p);
 #endif //TINY_CTL_TCTL_ITERATOR_H

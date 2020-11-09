@@ -8,13 +8,13 @@
 
 static void *at(int x)
 {
-    __iterator *p_it = pop_this();
+    __iterator *p_it = *(__iterator**)pop_this();
     push_this(p_it->__inner.obj_this);
     return p_it->__inner.iterator_func_p->private_iter_func->iter_at(p_it, x);
 }
 static void *increment(void)
 {
-    __iterator *p_it = pop_this();
+    __iterator *p_it = *(__iterator**)pop_this();
     push_this(p_it->__inner.obj_this);
     void *ptr = p_it->val;
     p_it->__inner.iterator_func_p->private_iter_func->iter_increment(p_it);
@@ -24,7 +24,7 @@ static void *increment(void)
 static void *decrement(void)
 {
 
-    __iterator *p_it = pop_this();
+    __iterator *p_it = *(__iterator**)pop_this();
     push_this(p_it->__inner.obj_this);
     void *ptr = p_it->val;
     p_it->__inner.iterator_func_p->private_iter_func->iter_decrement(p_it);
@@ -33,7 +33,7 @@ static void *decrement(void)
 
 static void *front_increment(void)
 {
-    __iterator *p_it = pop_this();
+    __iterator *p_it = *(__iterator**)pop_this();
     push_this(p_it->__inner.obj_this);
     p_it->__inner.iterator_func_p->private_iter_func->iter_increment(p_it);
     return p_it->val;
@@ -41,7 +41,7 @@ static void *front_increment(void)
 
 static void *front_decrement(void)
 {
-    __iterator *p_it = pop_this();
+    __iterator *p_it = *(__iterator**)pop_this();
     push_this(p_it->__inner.obj_this);
     p_it->__inner.iterator_func_p->private_iter_func->iter_decrement(p_it);
     return p_it->val;
@@ -49,38 +49,43 @@ static void *front_decrement(void)
 
 static void add(int x)
 {
-    __iterator *p_it = pop_this();
+    __iterator *p_it = *(__iterator**)pop_this();
     push_this(p_it->__inner.obj_this);
     p_it->__inner.iterator_func_p->private_iter_func->iter_add(p_it, x);
 }
 
 static void sub(int x)
 {
-    __iterator *p_it = pop_this();
+    __iterator *p_it = *(__iterator**)pop_this();
     push_this(p_it->__inner.obj_this);
     p_it->__inner.iterator_func_p->private_iter_func->iter_sub(p_it, x);
 }
 
 static long long diff(const __iterator *iter)
 {
-    __iterator *p_it = pop_this();
+    __iterator *p_it = *(__iterator**)pop_this();
     push_this(p_it->__inner.obj_this);
     return p_it->__inner.iterator_func_p->private_iter_func->iter_diff(p_it, iter);
 }
 
 static bool equal(const __iterator *iter)
 {
-    __iterator *p_it = pop_this();
+    __iterator *p_it = *(__iterator**)pop_this();
     push_this(p_it->__inner.obj_this);
     return p_it->__inner.iterator_func_p->private_iter_func->iter_equal(p_it, iter);
 }
 
-void copy(const __iterator *iter)
+void copy(__iterator const *iter)
 {
-    __iterator *p_it = pop_this();
-    if (p_it->__inner.obj_iter_size != iter->__inner.obj_iter_size)
+    __iterator **pp_it = pop_this();
+    __iterator *p_it = *pp_it;
+    if (p_it == &def_init_iter) {
+        *pp_it = (__iterator*)iter;
         return;
-    memcpy(p_it, iter, p_it->__inner.obj_iter_size);
+    }
+    else if (p_it->__inner.obj_iter_size != iter->__inner.obj_iter_size)
+        *pp_it = reallocate(p_it, p_it->__inner.obj_iter_size, iter->__inner.obj_iter_size);
+    memcpy(*pp_it, iter, sizeof(struct __inner_iterator) + iter->__inner.obj_iter_size);
 }
 
 const __public_iterator_func def_pub_iter_func = {
@@ -96,6 +101,10 @@ const __public_iterator_func def_pub_iter_func = {
         .equal = equal
 };
 
+const iterator_func def_init_func = INIT_ITER_FUNC(NULL);
+
+const __iterator def_init_iter = {{&def_init_func, NULL, 0, 0}, NULL};
+
 struct __inner_iterator __creat_iter(size_t obj_iter_size, void *obj_this, size_t memb_size, const iterator_func *iter_func)
 {
     struct __inner_iterator iter = {iter_func, obj_this, obj_iter_size, memb_size};
@@ -110,9 +119,9 @@ __iterator *__constructor_iter(__iterator *iter)
     return res;
 }
 
-void __destructor_iter(void *p)
+void __destructor_iter(__iterator * const *p)
 {
-    __iterator *iter = *(void **) p;
+    __iterator *iter = *p;
     if (iter)
         deallocate(iter, iter->__inner.obj_iter_size);
 }
