@@ -52,7 +52,7 @@ int main(void)
     //THIS(&tree).insert_equal(&n);
     __private_rb_tree *watch = tree.__obj_private;
     iterator it = INIT_ITERATOR;
-    for (ITER(it).copy(NEW_ITER(THIS(&tree).begin())); ITER(it).equal(THIS(&tree).end()); ITER(it).increment()) {
+    for (ITER(it).copy(THIS(&tree).begin()); ITER(it).equal(THIS(&tree).end()); ITER(it).increment()) {
         printf("%d ", *(int*)it->val);
     }
     putchar('\n');
@@ -63,7 +63,8 @@ int main(void)
     n = 96;
     printf("%d\n", THIS(&tree).count(&n));
     n = 98;
-    iterator f_it = NEW_ITER(THIS(&tree).find(&n));
+    iterator f_it = INIT_ITERATOR;
+    ITER(f_it).copy(THIS(&tree).find(&n));
     THIS(&tree).erase(f_it);
     n = 96;
     ITER(f_it).copy(THIS(&tree).find(&n));

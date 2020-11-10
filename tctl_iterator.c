@@ -80,7 +80,7 @@ void copy(__iterator const *iter)
     __iterator **pp_it = pop_this();
     __iterator *p_it = *pp_it;
     if (p_it == &def_init_iter) {
-        *pp_it = (__iterator*)iter;
+        *pp_it = __constructor_iter(iter);
         return;
     }
     else if (p_it->__inner.obj_iter_size != iter->__inner.obj_iter_size)
@@ -111,7 +111,7 @@ struct __inner_iterator __creat_iter(size_t obj_iter_size, void *obj_this, size_
     return iter;
 }
 
-__iterator *__constructor_iter(__iterator *iter)
+__iterator *__constructor_iter(__iterator const *iter)
 {
     size_t iter_size = sizeof(struct __inner_iterator) + iter->__inner.obj_iter_size;
     __iterator *res = allocate(iter_size);
@@ -122,6 +122,6 @@ __iterator *__constructor_iter(__iterator *iter)
 void __destructor_iter(__iterator * const *p)
 {
     __iterator *iter = *p;
-    if (iter)
+    if (iter && iter != &def_init_iter)
         deallocate(iter, iter->__inner.obj_iter_size);
 }
