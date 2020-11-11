@@ -51,19 +51,24 @@ int main(void)
     //n = 1;
     //THIS(&tree).insert_equal(&n);
     __private_rb_tree *watch = tree.__obj_private;
-    iterator it = INIT_ITERATOR;
+    __attribute__((cleanup(__destructor_iter)))
+    struct {
+        struct __inner_iterator __inner;
+        int *val;
+    } * const a;
+    iterator(int) it = INIT_ITERATOR;
     for (ITER(it).copy(THIS(&tree).begin()); ITER(it).equal(THIS(&tree).end()); ITER(it).increment()) {
-        printf("%d ", *(int*)it->val);
+        printf("%d ", *it->val);
     }
     putchar('\n');
     for (ITER(it).decrement(); ITER(it).equal(THIS(&tree).end()); ITER(it).decrement()) {
-        printf("%d ", *(int*)it->val);
+        printf("%d ", *it->val);
     }
     putchar('\n');
     n = 96;
     printf("%d\n", THIS(&tree).count(&n));
     n = 98;
-    iterator f_it = INIT_ITERATOR;
+    iterator(int) f_it = INIT_ITERATOR;
     ITER(f_it).copy(THIS(&tree).find(&n));
     THIS(&tree).erase(f_it);
     n = 96;
@@ -80,7 +85,7 @@ int main(void)
     THIS(&tree).erase(f_it);
     n = 99;
     ITER(f_it).copy(THIS(&tree).find(&n));
-    printf("find:%d\n", *(int*)f_it->val);
+    printf("find:%d\n", *f_it->val);
     printf("%d %d\n", *(int*)watch->header->left->data, *(int*)watch->header->right->data);
     destory_rb_tree(&tree);
     return 0;

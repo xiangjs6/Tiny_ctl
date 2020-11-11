@@ -119,9 +119,9 @@ __iterator *__constructor_iter(__iterator const *iter)
     return res;
 }
 
-void __destructor_iter(__iterator * const *p)
+void __destructor_iter(void const *p)
 {
-    __iterator *iter = *p;
+    __iterator *iter = *(__iterator **)p;
     if (iter && iter != &def_init_iter)
         deallocate(iter, iter->__inner.obj_iter_size);
 }

@@ -365,9 +365,10 @@ static __iterator *insert_equal(void *x)
     return (__iterator*)&p_private->change_iter;
 }
 
-static void erase(__iterator *it)
+static void erase(IterType t)
 {
     rb_tree *this = pop_this();
+    __iterator *it = t;
     __private_rb_tree *p_private = (__private_rb_tree*)this->__obj_private;
     __rb_tree_iter *_rb_iter = (__rb_tree_iter*)it->__inner.__address;
     struct __rb_tree_node *erase_node = _rb_iter->node;

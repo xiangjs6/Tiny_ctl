@@ -49,7 +49,7 @@ typedef struct {
     size_t (*size)(void);
     __iterator *(*insert_unique)(void*);
     __iterator *(*insert_equal)(void*);
-    void (*erase)(__iterator*);
+    void (*erase)(IterType);
     void (*clear)(void);
     __iterator const *(*find)(void*);
     size_t (*count)(void*);
