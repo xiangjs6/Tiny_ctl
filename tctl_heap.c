@@ -31,6 +31,8 @@ void make_heap(const __iterator *first, const __iterator *last, bool (*cmp_func)
         memcpy(x, ITER(_first).at(i), sizeof(x));
         adjust_heap(_first, i, dist, x, cmp_func);
     }
+    __destructor_iter(&_first);
+    __destructor_iter(&_last);
 }
 
 void push_heap(const __iterator *first, const __iterator *last, bool (*cmp_func)(const void *, const void *))
@@ -49,6 +51,8 @@ void push_heap(const __iterator *first, const __iterator *last, bool (*cmp_func)
     }
     if (cur_index != ITER(_last).diff(_first) - 1)
         memcpy(ITER(_first).at(cur_index), x, _first->__inner.memb_size);
+    __destructor_iter(&_first);
+    __destructor_iter(&_last);
 }
 
 void pop_heap(const __iterator *first, const __iterator *last, bool (*cmp_func)(const void *, const void *))
@@ -61,6 +65,8 @@ void pop_heap(const __iterator *first, const __iterator *last, bool (*cmp_func)(
     memcpy(_last->val, _first->val, _first->__inner.memb_size);
     long long dist = ITER(_last).diff(_first);
     adjust_heap(_first, 0, dist, x, cmp_func);
+    __destructor_iter(&_first);
+    __destructor_iter(&_last);
 }
 
 void sort_heap(const __iterator *first, const __iterator *last, bool (*cmp_func)(const void *, const void *))
@@ -73,4 +79,6 @@ void sort_heap(const __iterator *first, const __iterator *last, bool (*cmp_func)
         pop_heap(_first, _last, cmp_func);
         ITER(_last).decrement();
     }
+    __destructor_iter(&_first);
+    __destructor_iter(&_last);
 }
