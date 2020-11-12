@@ -89,37 +89,39 @@ void *at(int pos)
         return NULL;
     return node->data;
 }
-static __iterator *erase(__iterator *iter)
+static IterType erase(IterType iter)
 {
     list *this = pop_this();
-    iter->val = __erase(this, iter->val);
+    __iterator *__iter = iter;
+    __iter->val = __erase(this, __iter->val);
     return iter;
 }
-static __iterator *insert(__iterator *iter, void *x)
+static IterType insert(IterType iter, void *x)
 {
     list *this = pop_this();
-    iter->val = __insert(this, iter->val, x);
+    __iterator *__iter = iter;
+    __iter->val = __insert(this, __iter->val, x);
     return iter;
 }
 static void push_front(void *x)
 {
     list *this = pop_this();
-    __insert(this, THIS(this).begin()->val, x);
+    __insert(this, ((__iterator*)THIS(this).begin())->val, x);
 }
 static void push_back(void *x)
 {
     list *this = pop_this();
-    __insert(this, THIS(this).end()->val, x);
+    __insert(this, ((__iterator*)THIS(this).end())->val, x);
 }
 static void pop_front(void)
 {
     list *this = pop_this();
-    __erase(this, THIS(this).begin()->val);
+    __erase(this, ((__iterator*)THIS(this).begin())->val);
 }
 static void pop_back(void)
 {
     list *this = pop_this();
-    struct __list_node *node = container_of(THIS(this).end()->val, struct __list_node, data);
+    struct __list_node *node = container_of(((__iterator*)THIS(this).end())->val, struct __list_node, data);
     __erase(this, node->pre->data);
 }
 static void clear(void)
@@ -157,21 +159,21 @@ static void unique(void)
         next_node = next_node->next;
     }
 }
-static const __iterator *begin(void)
+static const IterType begin(void)
 {
     list *this = pop_this();
     __private_list *p_private = (__private_list *)this->__obj_private;
     if (p_private->start_iter.obj_this != this)
         p_private->start_iter.obj_this = this;
-    return (__iterator*)&p_private->start_iter;
+    return &p_private->start_iter;
 }
-static const __iterator *end(void)
+static const IterType end(void)
 {
     list *this = pop_this();
     __private_list *p_private = (__private_list *)this->__obj_private;
     if (p_private->finish_iter.obj_this != this)
         p_private->finish_iter.obj_this = this;
-    return (__iterator*)&p_private->finish_iter;
+    return &p_private->finish_iter;
 }
 static size_t size(void)
 {
@@ -204,21 +206,24 @@ static void const *back(void)
     __private_list *p_private = (__private_list *)this->__obj_private;
     return p_private->finish_ptr;
 }
-static void splice(const __iterator *position, list *l, const __iterator *first, const __iterator *last)
+static void splice(const IterType position, list *l, const IterType first, const IterType last)
 {
     list *this = pop_this();
-    struct __list_node *_first = container_of(first->val, struct __list_node, data);
-    struct __list_node *_position = container_of(position->val, struct __list_node, data);
-    struct __list_node *_last = last ? container_of(last->val, struct __list_node, data) : NULL;
-    __splice(this, _position, l, _first, _last);
+    const __iterator *__first = first;
+    const __iterator *__last = last;
+    const __iterator *__position = position;
+    struct __list_node *first_node = container_of(__first->val, struct __list_node, data);
+    struct __list_node *position_node = container_of(__position->val, struct __list_node, data);
+    struct __list_node *last_node = last ? container_of(__last->val, struct __list_node, data) : NULL;
+    __splice(this, position_node, l, first_node, last_node);
 }
 static void merge(list *l, bool (*cmp)(void const *, void const *))
 {
     list *this = pop_this();
-    struct __list_node *first1 = container_of(THIS(this).begin()->val, struct __list_node, data);
-    struct __list_node *last1 = container_of(THIS(this).end()->val, struct __list_node, data);
-    struct __list_node *first2 = container_of(THIS(l).begin()->val, struct __list_node, data);
-    struct __list_node *last2 = container_of(THIS(l).end()->val, struct __list_node, data);
+    struct __list_node *first1 = container_of(((__iterator*)THIS(this).begin())->val, struct __list_node, data);
+    struct __list_node *last1 = container_of(((__iterator*)THIS(this).end())->val, struct __list_node, data);
+    struct __list_node *first2 = container_of(((__iterator*)THIS(l).begin())->val, struct __list_node, data);
+    struct __list_node *last2 = container_of(((__iterator*)THIS(l).end())->val, struct __list_node, data);
     while (first1 != last1 && first2 != last2)
     {
         if (cmp(first1->data, first2->data)) {
@@ -239,7 +244,7 @@ static void reverse(void)
     __private_list *p_private = (__private_list *)this->__obj_private;
     if (p_private->node == p_private->node->next || p_private->node->next->next == p_private->node)
         return;
-    struct __list_node *first = container_of(THIS(this).begin()->val, struct __list_node, data);
+    struct __list_node *first = container_of(((__iterator*)THIS(this).begin())->val, struct __list_node, data);
     while (first != p_private->node)
     {
         struct __list_node *next = first;
@@ -272,8 +277,8 @@ static void sort(bool (*cmp)(void const *, void const *))
     int fill = 0;
     while (!THIS(this).empty())
     {
-        struct __list_node *carry_first = container_of(THIS(&carry).begin()->val, struct __list_node, data);
-        struct __list_node *this_first = container_of(THIS(this).begin()->val, struct __list_node, data);
+        struct __list_node *carry_first = container_of(((__iterator*)THIS(&carry).begin())->val, struct __list_node, data);
+        struct __list_node *this_first = container_of(((__iterator*)THIS(this).begin())->val, struct __list_node, data);
         __splice(&carry, carry_first, this, this_first, NULL);
         //THIS(&carry).splice((list_iter*)THIS(&carry).begin(), this, (list_iter*)(THIS(this)).begin(), NULL);
         int i = 0;
@@ -282,6 +287,7 @@ static void sort(bool (*cmp)(void const *, void const *))
             THIS(&counter[i]).merge(&carry, cmp);
             THIS(&carry).swap(&counter[i++]);
         }
+        __private_list *watch = carry.__obj_private;
         if (i == fill) {
             init_list(&counter[fill], p_private->memb_size);
             fill++;

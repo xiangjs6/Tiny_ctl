@@ -273,24 +273,24 @@ static bool __find(struct __rb_tree_node *header, void const *x, struct __rb_tre
 }
 
 //public:
-static __iterator const *begin(void)
+static const IterType begin(void)
 {
     rb_tree *this = pop_this();
     __private_rb_tree *p_private = (__private_rb_tree*)this->__obj_private;
     p_private->start_ptr.node = p_private->header->left;
     p_private->start_ptr.val = p_private->header->left->data;
 //    p_private->start_ptr.move_from = 0;
-    return (__iterator*)&p_private->start_iter;
+    return &p_private->start_iter;
 }
 
-static __iterator const *end(void)
+static const IterType end(void)
 {
     rb_tree *this = pop_this();
     __private_rb_tree *p_private = (__private_rb_tree*)this->__obj_private;
     p_private->finish_ptr.node = p_private->header;
     p_private->finish_ptr.val = p_private->header->data;
 //    p_private->finish_ptr.move_from = 0;
-    return (__iterator*)&p_private->finish_iter;
+    return &p_private->finish_iter;
 }
 
 static bool empty(void)
@@ -306,7 +306,7 @@ static size_t size(void)
     return p_private->size;
 }
 
-static __iterator *insert_unique(void *x)
+static IterType insert_unique(void *x)
 {
     rb_tree *this = pop_this();
     __private_rb_tree *p_private = (__private_rb_tree*)this->__obj_private;
@@ -335,10 +335,10 @@ static __iterator *insert_unique(void *x)
         p_private->header->right = maximum(p_private->header->right);
     else
         p_private->header->left = minimum(p_private->header->left);
-    return (__iterator*)&p_private->change_iter;
+    return &p_private->change_iter;
 }
 
-static __iterator *insert_equal(void *x)
+static IterType insert_equal(void *x)
 {
     rb_tree *this = pop_this();
     __private_rb_tree *p_private = (__private_rb_tree*)this->__obj_private;
@@ -362,7 +362,7 @@ static __iterator *insert_equal(void *x)
         p_private->header->right = maximum(p_private->header->right);
     else
         p_private->header->left = minimum(p_private->header->left);
-    return (__iterator*)&p_private->change_iter;
+    return &p_private->change_iter;
 }
 
 static void erase(IterType t)
@@ -394,7 +394,7 @@ static void clear(void)
     p_private->header->parent = p_private->header->left = p_private->header->right = p_private->header;
 }
 
-static __iterator const *find(void *x)
+static const IterType find(void *x)
 {
     rb_tree *this = pop_this();
     __private_rb_tree *p_private = (__private_rb_tree*)this->__obj_private;
@@ -473,7 +473,7 @@ static bool iter_equal(const __iterator *it1, const __iterator *it2)
 {
     __rb_tree_iter *__it1 = (__rb_tree_iter*)it1->__inner.__address;
     __rb_tree_iter *__it2 = (__rb_tree_iter*)it2->__inner.__address;
-    return __it1->node != __it2->node;
+    return __it1->node == __it2->node;
 }
 
 static __iterator_obj_func  __def_rb_tree_iter = {

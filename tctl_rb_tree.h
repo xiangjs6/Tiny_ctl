@@ -43,15 +43,15 @@ typedef struct {
 } __private_rb_tree;
 
 typedef struct {
-    __iterator const *(*begin)(void);
-    __iterator const *(*end)(void);
+    const IterType (*begin)(void);
+    const IterType (*end)(void);
     bool (*empty)(void);
     size_t (*size)(void);
-    __iterator *(*insert_unique)(void*);
-    __iterator *(*insert_equal)(void*);
+    IterType (*insert_unique)(void*);
+    IterType (*insert_equal)(void*);
     void (*erase)(IterType);
     void (*clear)(void);
-    __iterator const *(*find)(void*);
+    const IterType (*find)(void*);
     size_t (*count)(void*);
     byte __obj_private[sizeof(__private_rb_tree)];
 } rb_tree;

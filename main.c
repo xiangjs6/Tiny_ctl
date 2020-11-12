@@ -23,7 +23,12 @@ byte cmp(const int *a, const int *b)
     return 0;
 }
 
-int main(void)
+bool cmpb(const int *a, const int *b)
+{
+    return *a > *b;
+}
+
+/*int main(void)
 {
     rb_tree tree = creat_rb_tree(sizeof(int), cmp);
     int n = 100;
@@ -57,11 +62,11 @@ int main(void)
         int *val;
     } * const a;
     iterator(int) it = INIT_ITERATOR;
-    for (ITER(it).copy(THIS(&tree).begin()); ITER(it).equal(THIS(&tree).end()); ITER(it).increment()) {
+    for (ITER(it).copy(THIS(&tree).begin()); !ITER(it).equal(THIS(&tree).end()); ITER(it).increment()) {
         printf("%d ", *it->val);
     }
     putchar('\n');
-    for (ITER(it).decrement(); ITER(it).equal(THIS(&tree).end()); ITER(it).decrement()) {
+    for (ITER(it).decrement(); !ITER(it).equal(THIS(&tree).end()); ITER(it).decrement()) {
         printf("%d ", *it->val);
     }
     putchar('\n');
@@ -89,7 +94,7 @@ int main(void)
     printf("%d %d\n", *(int*)watch->header->left->data, *(int*)watch->header->right->data);
     destory_rb_tree(&tree);
     return 0;
-}
+}*/
 
 /*
 int main(void)
@@ -217,8 +222,7 @@ int main(void)
 }*/
 
 //deque测试
-/*
-int main(void)
+/*int main(void)
 {
     deque deq = creat_deque(sizeof(int), 9);
     __private_deque *watch = deq.__obj_private;
@@ -235,7 +239,7 @@ int main(void)
         THIS(&deq).push_back(&i);
     for (int i = 40; i < 50; i++)
         THIS(&deq).push_front(&i);
-    iterator *it_it = NEW_ITER(THIS(&deq).begin());
+    iterator(int) it_it = NEW_ITER(THIS(&deq).begin());
     __deque_iter *er_it = it_it->__inner.__address;
     er_it->cur += 4;
     //THIS(&deq).erase(&er_it);
@@ -272,23 +276,22 @@ int main(void)
         printf("%d ", *temp);
     }
     putchar('\n');
-    for (iterator *it = NEW_ITER(THIS(&deq).begin()); !ITER(it).equal(THIS(&deq).end()); ITER(it).increment()) {
-        printf("%d ", *(int*)it->val);
+    for (iterator(int) it = NEW_ITER(THIS(&deq).begin()); !ITER(it).equal(THIS(&deq).end()); ITER(it).increment()) {
+        printf("%d ", *it->val);
         long long r = ITER(it).diff(THIS(&deq).end());
         r = ITER(it).diff(THIS(&deq).begin());
         r = 0;
     }
     putchar('\n');
     destory_deque(&deq);
-}
-*/
+}*/
 
 //vector测试
-/*int main(void)
+int main(void)
 {
     vector v = creat_vector(0, sizeof(int), NULL);
     __private_vector *a = v.__obj_private;
-    printf("%d %d %d\n", sizeof(iterator), sizeof(__private_vector), sizeof(a->start_ptr) + sizeof(a->start_iter));
+    printf("%d %d %d\n", sizeof(__iterator), sizeof(__private_vector), sizeof(a->start_ptr) + sizeof(a->start_iter));
     //init_vector(&v, 0, sizeof(int), NULL);
     for (int i = 0; i < 10; i++) {
         int temp = i;
@@ -296,12 +299,12 @@ int main(void)
     }
     for (int i = 0; i < 5; i++)
         THIS(&v).pop_back();
-    for (iterator *it = NEW_ITER(THIS(&v).begin()); it->val != THIS(&v).end()->val; ITER(it).increment()) {
-        printf("%d ", *(int*)it->val);
+    for (iterator(int) it = NEW_ITER(THIS(&v).begin()); !ITER(it).equal(THIS(&v).end()); ITER(it).increment()) {
+        printf("%d ", *it->val);
     }
     putchar('\n');
     printf("insert\n");
-    iterator *in_it = NEW_ITER(THIS(&v).begin());
+    iterator(int) in_it = NEW_ITER(THIS(&v).begin());
     int temp = 1000;
     THIS(&v).insert(in_it, &temp);
     for (int i = 0; i < THIS(&v).size(); i++)
@@ -335,9 +338,9 @@ int main(void)
     putchar('\n');
     ITER(in_it).increment();
     THIS(&v).erase(in_it);
-    for (iterator *it = NEW_ITER(THIS(&v).begin()); it->val != THIS(&v).end()->val; ITER(it).increment()) {
+    for (iterator(int) it = NEW_ITER(THIS(&v).begin()); !ITER(it).equal(THIS(&v).end()); ITER(it).increment()) {
         printf("%d ", *(int*)it->val);
-        iterator *itt = NEW_ITER(THIS(&v).begin());
+        iterator(int) itt = NEW_ITER(THIS(&v).begin());
         int t = ITER(it).diff(itt);
         t = 0;
     }
@@ -353,7 +356,7 @@ int main(void)
         printf("%d ", *(int*)THIS(&v).at(i));
     putchar('\n');
     destory_vector(&v);
-}*/
+}
 
 // list测试
 /*
@@ -371,18 +374,18 @@ int main(void)
     int temp1 = 20;
     THIS(&l).pop_front();
     THIS(&l).push_front(&temp1);
-    iterator *iter = NEW_ITER(THIS(&l).begin());
+    iterator(int) iter = NEW_ITER(THIS(&l).begin());
     THIS(&l).insert(iter, &temp);
     ITER(iter).increment();
     ITER(iter).increment();
-    for (iterator *it = NEW_ITER(THIS(&l).begin()); it->val != THIS(&l).end()->val; ITER(it).increment()) {
-        printf("%d\n", *(int*)it->val);
+    for (iterator(int) it = NEW_ITER(THIS(&l).begin()); !ITER(it).equal(THIS(&l).end()); ITER(it).increment()) {
+        printf("%d\n", *it->val);
         //THIS(&l).insert(*it, &temp);
     }
     printf("it:%d\n", *(int*)iter->val);
     THIS(&l).erase(iter);
     printf("first\n");
-    for (iterator *it = NEW_ITER(THIS(&l).begin()); it->val != THIS(&l).end()->val; ITER(it).increment()) {
+    for (iterator(int) it = NEW_ITER(THIS(&l).begin()); !ITER(it).equal(THIS(&l).end()); ITER(it).increment()) {
         printf("%d\n", *(int*)it->val);
         //THIS(&l).insert(*it, &temp);
     }
@@ -390,15 +393,15 @@ int main(void)
     temp1 = 4;
     THIS(&l).push_back(&temp1);
     printf("second\n");
-    for (iterator *it = NEW_ITER(THIS(&l).begin()); it->val != THIS(&l).end()->val; ITER(it).increment()) {
+    for (iterator(int) it = NEW_ITER(THIS(&l).begin()); !ITER(it).equal(THIS(&l).end()); ITER(it).increment()) {
         printf("%d\n", *(int*)it->val);
     }
     THIS(&l).unique();
     printf("third\n");
-    iterator *r_it = NEW_ITER(THIS(&l).end());
+    iterator(int) r_it = NEW_ITER(THIS(&l).end());
     ITER(r_it).decrement();
     printf("%d\n", *(int*)ITER(r_it).decrement());
-    for (; r_it->val != THIS(&l).end()->val; ITER(r_it).decrement()) {
+    for (; ITER(r_it).equal(THIS(&l).end()); !ITER(r_it).decrement()) {
         printf("%d\n", *(int*)r_it->val);
     }
     list l2 = creat_list(sizeof(int));
@@ -407,12 +410,12 @@ int main(void)
         THIS(&l2).push_back(&i);
     printf("splice\n");
     THIS(&l).splice(THIS(&l).begin(), &l2, THIS(&l2).begin(), THIS(&l2).end());
-    for (iterator *it = NEW_ITER(THIS(&l).begin()); it->val != THIS(&l).end()->val; ITER(it).increment()) {
+    for (iterator(int) it = NEW_ITER(THIS(&l).begin()); !ITER(it).equal(THIS(&l).end()); ITER(it).increment()) {
         printf("%d\n", *(int*)it->val);
     }
     printf("reverse\n");
     THIS(&l).reverse();
-    for (iterator *it = NEW_ITER(THIS(&l).begin()); it->val != THIS(&l).end()->val; ITER(it).increment()) {
+    for (iterator(int) it = NEW_ITER(THIS(&l).begin()); !ITER(it).equal(THIS(&l).end()); ITER(it).increment()) {
         printf("%d\n", *(int*)it->val);
     }
     printf("front%d\n", *(int*)THIS(&l).front());
@@ -427,10 +430,10 @@ int main(void)
         THIS(&l1).push_back(&i);
         THIS(&l3).push_back(&i);
     }
-    for (iterator *it = NEW_ITER(THIS(&l1).begin()); it->val != THIS(&l1).end()->val; ITER(it).increment())
+    for (iterator(int) it = NEW_ITER(THIS(&l1).begin()); !ITER(it).equal(THIS(&l1).end()); ITER(it).increment())
         printf("%d\n", *(int*)it->val);
     THIS(&l1).merge(&l3, cmp);
-    for (iterator *it = NEW_ITER(THIS(&l1).begin()); it->val != THIS(&l1).end()->val; ITER(it).increment())
+    for (iterator(int) it = NEW_ITER(THIS(&l1).begin()); !ITER(it).equal(THIS(&l1).end()); ITER(it).increment())
         printf("%d\n", *(int*)it->val);
     printf("sort\n");
     THIS(&l).clear();
@@ -438,8 +441,8 @@ int main(void)
         temp = (int)random();
         THIS(&l).push_back(&temp);
     }
-    THIS(&l).sort(cmp);
-    for (iterator *it = NEW_ITER(THIS(&l).begin()); it->val != THIS(&l).end()->val; ITER(it).increment()) {
+    THIS(&l).sort(cmpb);
+    for (iterator(int) it = NEW_ITER(THIS(&l).begin()); !ITER(it).equal(THIS(&l).end()); ITER(it).increment()) {
         printf("%d\n", *(int*)it->val);
     }
     for (int i = 1; i < 10000; i++) {

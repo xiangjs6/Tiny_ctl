@@ -14,6 +14,7 @@
  * 4、容器要使用struct __inner_iterator作为迭代器的壳，并定义容器自己的迭代器，放在struct __inner_iterator后面，并且第一个成员为指向值的地址
  * */
 typedef struct __iterator __iterator;
+#define IterType void*
 typedef struct {
     void *(*iter_at)(__iterator*, int);
     void (*iter_increment)(__iterator*);
@@ -32,9 +33,9 @@ typedef struct {
     void *(*front_decrement)(void);
     void (*add)(int);
     void (*sub)(int);
-    void (*copy)(__iterator const*);
-    long long (*diff)(const __iterator*);
-    bool (*equal)(const __iterator*);
+    void (*copy)(const IterType);
+    long long (*diff)(const IterType);
+    bool (*equal)(const IterType);
 } __public_iterator_func;
 
 typedef struct {
@@ -55,7 +56,6 @@ struct __iterator {
     void *val;
 };
 
-typedef void * IterType;
 //#define iterator autofree(__destructor_iter) struct __iterator * const
 #define iterator(T) autofree(__destructor_iter) struct {struct __inner_iterator __inner; T *val;} * const
 

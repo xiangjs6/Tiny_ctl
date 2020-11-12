@@ -23,21 +23,21 @@ static void *at(int pos)
         return NULL;
     return p_private->start_ptr+ p_private->memb_size * pos;
 }
-static const __iterator *begin(void)
+static const IterType begin(void)
 {
     vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->__obj_private;
     if (p_private->start_iter.obj_this != this)
         p_private->start_iter.obj_this = this;
-    return (__iterator*)&p_private->start_iter;
+    return &p_private->start_iter;
 }
-static const __iterator *end(void)
+static const IterType end(void)
 {
     vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->__obj_private;
     if (p_private->finish_iter.obj_this != this)
         p_private->finish_iter.obj_this = this;
-    return (__iterator*)&p_private->finish_iter;
+    return &p_private->finish_iter;
 }
 static void const *front(void)
 {
@@ -86,10 +86,11 @@ static void pop_back(void)
     p_private->nmemb--;
     p_private->finish_ptr -= p_private->memb_size;
 }
-static __iterator *erase(__iterator *iter)
+static IterType erase(IterType iter)
 {
     vector *this = pop_this();
-    __vector_iter const *_iter = &iter->val;//获取vector迭代器的地址
+    __iterator *p_iter = iter;
+    __vector_iter const *_iter = &p_iter->val;//获取vector迭代器的地址
     __private_vector *p_private = (__private_vector*)this->__obj_private;
     if (*_iter > p_private->finish_ptr || *_iter < p_private->start_ptr)
         return NULL;
@@ -99,10 +100,11 @@ static __iterator *erase(__iterator *iter)
     p_private->finish_ptr -= p_private->memb_size;
     return iter;
 }
-static __iterator *insert(__iterator *iter, void *x)
+static IterType insert(IterType iter, void *x)
 {
     vector *this = pop_this();
-    __vector_iter const *_iter = &iter->val;
+    __iterator *p_iter = iter;
+    __vector_iter const *_iter = &p_iter->val;
     __private_vector *p_private = (__private_vector*)this->__obj_private;
     if (*_iter > p_private->finish_ptr || *_iter < p_private->start_ptr)
         return NULL;

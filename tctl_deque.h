@@ -33,8 +33,8 @@ typedef struct {
 } __private_deque;
 
 typedef struct {
-    __iterator const *(*begin)(void);
-    __iterator const *(*end)(void);
+    const IterType (*begin)(void);
+    const IterType (*end)(void);
     size_t (*size)(void);
     bool (*empty)(void);
     void *(*at)(int);
@@ -44,8 +44,8 @@ typedef struct {
     void (*push_front)(void *x);
     void (*pop_back)(void);
     void (*pop_front)(void);
-    __iterator *(*insert)(__iterator *iter, void *x);
-    __iterator *(*erase)(__iterator *iter);
+    IterType (*insert)(IterType, void *x);
+    IterType (*erase)(IterType);
     void (*clear)(void);
     byte __obj_private[sizeof(__private_deque)];
 } deque;

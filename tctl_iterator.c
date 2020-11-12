@@ -61,31 +61,32 @@ static void sub(int x)
     p_it->__inner.iterator_func_p->private_iter_func->iter_sub(p_it, x);
 }
 
-static long long diff(const __iterator *iter)
+static long long diff(const IterType iter)
 {
     __iterator *p_it = *(__iterator**)pop_this();
     push_this(p_it->__inner.obj_this);
     return p_it->__inner.iterator_func_p->private_iter_func->iter_diff(p_it, iter);
 }
 
-static bool equal(const __iterator *iter)
+static bool equal(const IterType iter)
 {
     __iterator *p_it = *(__iterator**)pop_this();
     push_this(p_it->__inner.obj_this);
     return p_it->__inner.iterator_func_p->private_iter_func->iter_equal(p_it, iter);
 }
 
-void copy(__iterator const *iter)
+void copy(const IterType iter)
 {
     __iterator **pp_it = pop_this();
     __iterator *p_it = *pp_it;
+    const __iterator *__iter = iter;
     if (p_it == &def_init_iter) {
         *pp_it = __constructor_iter(iter);
         return;
     }
-    else if (p_it->__inner.obj_iter_size != iter->__inner.obj_iter_size)
-        *pp_it = reallocate(p_it, p_it->__inner.obj_iter_size, iter->__inner.obj_iter_size);
-    memcpy(*pp_it, iter, sizeof(struct __inner_iterator) + iter->__inner.obj_iter_size);
+    else if (p_it->__inner.obj_iter_size != __iter->__inner.obj_iter_size)
+        *pp_it = reallocate(p_it, p_it->__inner.obj_iter_size, __iter->__inner.obj_iter_size);
+    memcpy(*pp_it, iter, sizeof(struct __inner_iterator) + __iter->__inner.obj_iter_size);
 }
 
 const __public_iterator_func def_pub_iter_func = {

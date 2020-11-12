@@ -24,21 +24,21 @@ static void extend_map(__private_deque *p_private)
     p_private->finish_ptr.first = *p_private->finish_ptr.map_node;
     p_private->finish_ptr.last = *p_private->finish_ptr.map_node + p_private->memb_size * p_private->block_nmemb;
 }
-static __iterator const * begin(void)
+static const IterType begin(void)
 {
     deque *this = pop_this();
     __private_deque *p_private = (__private_deque*)this->__obj_private;
     if (p_private->start_iter.obj_this != this)
         p_private->start_iter.obj_this = this;
-    return (__iterator*)&p_private->start_iter;
+    return &p_private->start_iter;
 }
-static __iterator const * end(void)
+static const IterType end(void)
 {
     deque *this = pop_this();
     __private_deque *p_private = (__private_deque*)this->__obj_private;
     if (p_private->finish_iter.obj_this != this)
         p_private->finish_iter.obj_this = this;
-    return (__iterator*)&p_private->finish_iter;
+    return &p_private->finish_iter;
 }
 static size_t size(void)
 {
@@ -151,11 +151,12 @@ static void pop_front(void)
     p_private->nmemb--;
 //    if (--p_private)
 }
-static __iterator *insert(__iterator *iter, void *x)
+static IterType insert(IterType iter, void *x)
 {
     deque *this = pop_this();
     __private_deque *p_private = (__private_deque*)this->__obj_private;
-    const __deque_iter *_d_iter = (__deque_iter*)iter->__inner.__address;
+    __iterator *__iter = iter;
+    const __deque_iter *_d_iter = (__deque_iter*)__iter->__inner.__address;
     if (_d_iter->map_node - p_private->start_ptr.map_node < p_private->finish_ptr.map_node - _d_iter->map_node) {
         THIS(this).push_front(x);
         __deque_iter in_iter = p_private->start_ptr;
@@ -191,9 +192,10 @@ static __iterator *insert(__iterator *iter, void *x)
     }
     return iter;
 }
-static __iterator *erase(__iterator *iter)
+static IterType erase(IterType iter)
 {
-    __deque_iter in_iter = *(__deque_iter*)iter->__inner.__address;
+    __iterator *__iter = iter;
+    __deque_iter in_iter = *(__deque_iter*)__iter->__inner.__address;
     deque *this = pop_this();
     __private_deque *p_private = (__private_deque*)this->__obj_private;
     if (in_iter.map_node - p_private->start_ptr.map_node < p_private->finish_ptr.map_node - in_iter.map_node) {
