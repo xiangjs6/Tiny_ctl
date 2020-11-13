@@ -9,7 +9,7 @@
 #include "tctl_def.h"
 typedef struct {
     vector c;
-    bool (*cmp_func)(const void*, const void*);
+    Compare cmp;
 } __private_priority_queue;
 
 typedef struct {
@@ -21,7 +21,7 @@ typedef struct {
     byte __obj_private[sizeof(__private_priority_queue)];
 } priority_queue;
 
-void init_priority_queue(priority_queue *p, size_t memb_size, bool (*cmp_func)(const void*, const void*));
+void init_priority_queue(priority_queue *p, size_t memb_size, Compare cmp);
 void destory_priority_queue(priority_queue *p);
-priority_queue creat_priority_queue(size_t memb_size, bool (*cmp_func)(const void*, const void*));
+priority_queue creat_priority_queue(size_t memb_size, Compare cmp);
 #endif //TINY_CTL_TCTL_PRIORITY_QUEUE_H

@@ -31,14 +31,14 @@ static void push(void *x)
     priority_queue *this = pop_this();
     __private_priority_queue *p_private = (__private_priority_queue*)this->__obj_private;
     THIS(&p_private->c).push_back(x);
-    push_heap(THIS(&p_private->c).begin(), THIS(&p_private->c).end(), p_private->cmp_func);
+    push_heap(THIS(&p_private->c).begin(), THIS(&p_private->c).end(), p_private->cmp);
 }
 
 static void pop(void)
 {
     priority_queue *this = pop_this();
     __private_priority_queue *p_private = (__private_priority_queue*)this->__obj_private;
-    pop_heap(THIS(&p_private->c).begin(), THIS(&p_private->c).end(), p_private->cmp_func);
+    pop_heap(THIS(&p_private->c).begin(), THIS(&p_private->c).end(), p_private->cmp);
     THIS(&p_private->c).pop_back();
 }
 
@@ -50,13 +50,13 @@ static const priority_queue __def_priority_queue = {
         pop
 };
 
-void init_priority_queue(priority_queue *p, size_t memb_size, bool (*cmp_func)(const void*, const void*))
+void init_priority_queue(priority_queue *p, size_t memb_size, Compare cmp)
 {
     *p = __def_priority_queue;
     __private_priority_queue *p_private = (__private_priority_queue*)p->__obj_private;
-    p_private->cmp_func = cmp_func;
+    p_private->cmp = cmp;
     init_vector(&p_private->c, 0, memb_size, NULL);
-    make_heap(THIS(&p_private->c).begin(), THIS(&p_private->c).end(), cmp_func);
+    make_heap(THIS(&p_private->c).begin(), THIS(&p_private->c).end(), cmp);
 }
 
 void destory_priority_queue(priority_queue *p)
@@ -65,9 +65,9 @@ void destory_priority_queue(priority_queue *p)
     destory_vector(&p_private->c);
 }
 
-priority_queue creat_priority_queue(size_t memb_size, bool (*cmp_func)(const void*, const void*))
+priority_queue creat_priority_queue(size_t memb_size, Compare cmp)
 {
     priority_queue pri_que;
-    init_priority_queue(&pri_que, memb_size, cmp_func);
+    init_priority_queue(&pri_que, memb_size, cmp);
     return pri_que;
 }

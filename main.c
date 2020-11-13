@@ -92,7 +92,7 @@ byte cmp(const int *a, const int *b)
     return 0;
 }*/
 
-int main(void)
+/*int main(void)
 {
     slist sl = creat_slist(sizeof(int));
     for (int i = 0; i < 20; i++) {
@@ -129,10 +129,10 @@ int main(void)
     destory_slist(&sl);
     destory_slist(&sl2);
     printf("%c\n", *("YN" + !THIS(&sl).empty()));
-}
+}*/
 
 //priority_queue测试
-/*int main(void)
+int main(void)
 {
     priority_queue pri_que = creat_priority_queue(sizeof(int), cmp);
     for (int i = 0; i < 30; i++) {
@@ -145,33 +145,35 @@ int main(void)
     }
     putchar('\n');
     destory_priority_queue(&pri_que);
-}*/
+}
 
 //heap测试
 /*int main(void)
 {
     int temp;
-    deque v = creat_deque(sizeof(int), 1);
+    vector v = creat_vector(0, sizeof(int), NULL);
     for (int i = 0; i < 10; i++) {
         temp = random() % 10;
         printf("%d ", temp);
         THIS(&v).push_back(&temp);
     }
     putchar('\n');
-//    temp = 100;
-//    make_heap(THIS(&v).begin(), THIS(&v).end(), cmp);
-//    THIS(&v).push_back(&temp);
-//    push_heap(THIS(&v).begin(), THIS(&v).end(), cmp);
-//    temp = 0;
-//    THIS(&v).push_back(&temp);
-//    push_heap(THIS(&v).begin(), THIS(&v).end(), cmp);
-//    pop_heap(THIS(&v).begin(), THIS(&v).end(), cmp);
-//    THIS(&v).pop_back();
-    sort_heap(THIS(&v).begin(), THIS(&v).end(), cmp);
+    temp = 100;
+    make_heap(THIS(&v).begin(), THIS(&v).end(), cmp);
+    THIS(&v).push_back(&temp);
+    push_heap(THIS(&v).begin(), THIS(&v).end(), cmp);
+    printf("%d\n", *(int*)THIS(&v).front());
+    temp = 0;
+    THIS(&v).push_back(&temp);
+    push_heap(THIS(&v).begin(), THIS(&v).end(), cmp);
+    printf("%d\n", *(int*)THIS(&v).front());
+    //pop_heap(THIS(&v).begin(), THIS(&v).end(), cmp);
+    //THIS(&v).pop_back();
+    //sort_heap(THIS(&v).begin(), THIS(&v).end(), cmp);
     for (int i = 0; i < THIS(&v).size(); i++)
         printf("%d ", *(int*)THIS(&v).at(i));
     putchar('\n');
-    destory_deque(&v);
+    destory_vector(&v);
     return 0;
 }*/
 
