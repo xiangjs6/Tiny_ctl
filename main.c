@@ -92,7 +92,6 @@ byte cmp(const int *a, const int *b)
     return 0;
 }*/
 
-/*
 int main(void)
 {
     slist sl = creat_slist(sizeof(int));
@@ -103,7 +102,7 @@ int main(void)
     }
     putchar('\n');
     THIS(&sl).pop_front();
-    iterator *in_it = NEW_ITER(THIS(&sl).begin());
+    iterator(int) in_it = NEW_ITER(THIS(&sl).begin());
     ITER(in_it).increment();
     ITER(in_it).increment();
     int temp = 100;
@@ -120,10 +119,10 @@ int main(void)
     }
     THIS(&sl).swap(&sl2);
 
-    for (iterator *it = NEW_ITER(THIS(&sl).begin()); !ITER(it).equal(THIS(&sl).end()); ITER(it).increment())
+    for (iterator(int) it = NEW_ITER(THIS(&sl).begin()); !ITER(it).equal(THIS(&sl).end()); ITER(it).increment())
         printf("%d ", *(int*)it->val);
     putchar('\n');
-    for (iterator *it = NEW_ITER(THIS(&sl2).begin()); !ITER(it).equal(THIS(&sl2).end()); ITER(it).increment())
+    for (iterator(int) it = NEW_ITER(THIS(&sl2).begin()); !ITER(it).equal(THIS(&sl2).end()); ITER(it).increment())
         printf("%d ", *(int*)it->val);
     putchar('\n');
     printf("%c\n", *("YN" + !THIS(&sl).empty()));
@@ -131,7 +130,6 @@ int main(void)
     destory_slist(&sl2);
     printf("%c\n", *("YN" + !THIS(&sl).empty()));
 }
-*/
 
 //priority_queue测试
 /*int main(void)
@@ -357,6 +355,7 @@ int main(void)
 */
 
 // list测试
+/*
 int main(void)
 {
     list l = creat_list(sizeof(int));
@@ -451,4 +450,4 @@ int main(void)
     destory_list(&l);
     return 0;
 }
-
+*/

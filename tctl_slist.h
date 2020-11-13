@@ -28,16 +28,16 @@ typedef struct {
 } __private_slist;
 
 typedef struct slist {
-    const __iterator *(*begin)(void);
-    const __iterator *(*end)(void);
+    const IterType (*begin)(void);
+    const IterType (*end)(void);
     size_t (*size)(void);
     bool (*empty)(void);
     void (*swap)(struct slist*);
     void *(*front)(void);
     void (*push_front)(void *x);
     void (*pop_front)(void);
-    __iterator *(*insert_after)(__iterator *iter, void *x);
-    __iterator *(*erase_after)(__iterator *iter);
+    IterType (*insert_after)(IterType iter, void *x);
+    IterType (*erase_after)(IterType iter);
     void (*clear)(void);
     byte __obj_private[sizeof(__private_slist)];
 } slist;

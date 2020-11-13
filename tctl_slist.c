@@ -25,19 +25,19 @@ static void __erase_after(slist *this, struct __slist_node *node)
 }
 
 //public
-static const __iterator *begin(void)
+static const IterType begin(void)
 {
     slist *this = pop_this();
     __private_slist *p_private = (__private_slist*)this->__obj_private;
     p_private->start_ptr = p_private->head.next ? p_private->head.next->data : NULL;
-    return (__iterator*)&p_private->start_iter;
+    return &p_private->start_iter;
 }
 
-static const __iterator *end(void)
+static const IterType end(void)
 {
     slist *this = pop_this();
     __private_slist *p_private = (__private_slist*)this->__obj_private;
-    return (__iterator*)&p_private->finish_iter;
+    return &p_private->finish_iter;
 }
 
 static size_t size(void)
@@ -94,18 +94,20 @@ static void pop_front(void)
     __erase_after(this, &p_private->head);
 }
 
-static __iterator *insert_after(__iterator *iter, void *x)
+static IterType insert_after(IterType iter, void *x)
 {
     slist *this = pop_this();
-    struct __slist_node *node = container_of(iter->val, struct __slist_node, data);
+    __iterator *__iter = iter;
+    struct __slist_node *node = container_of(__iter->val, struct __slist_node, data);
     __insert_after(this, node, x);
     return iter;
 }
 
-static __iterator *erase_after(__iterator *iter)
+static IterType erase_after(IterType iter)
 {
     slist *this = pop_this();
-    struct __slist_node *node = container_of(iter->val, struct __slist_node, data);
+    __iterator *__iter = iter;
+    struct __slist_node *node = container_of(__iter->val, struct __slist_node, data);
     __erase_after(this, node);
     return iter;
 }
