@@ -287,7 +287,6 @@ static void sort(bool (*cmp)(void const *, void const *))
             THIS(&counter[i]).merge(&carry, cmp);
             THIS(&carry).swap(&counter[i++]);
         }
-        __private_list *watch = carry.__obj_private;
         if (i == fill) {
             init_list(&counter[fill], p_private->memb_size);
             fill++;
