@@ -217,7 +217,7 @@ static void splice(const IterType position, list *l, const IterType first, const
     struct __list_node *last_node = last ? container_of(__last->val, struct __list_node, data) : NULL;
     __splice(this, position_node, l, first_node, last_node);
 }
-static void merge(list *l, bool (*cmp)(void const *, void const *))
+static void merge(list *l, Compare cmp)
 {
     list *this = pop_this();
     struct __list_node *first1 = container_of(((__iterator*)THIS(this).begin())->val, struct __list_node, data);
@@ -226,7 +226,7 @@ static void merge(list *l, bool (*cmp)(void const *, void const *))
     struct __list_node *last2 = container_of(((__iterator*)THIS(l).end())->val, struct __list_node, data);
     while (first1 != last1 && first2 != last2)
     {
-        if (cmp(first1->data, first2->data)) {
+        if (cmp(first1->data, first2->data) > 0) {
             struct __list_node *next = first2->next;
             __splice(this, first1, l, first2, next);
             //transfer(first1, first2, next->data);
@@ -265,7 +265,7 @@ static void swap(list *l)
     memcpy(p_private, p_l_private, sizeof(__private_list));
     memcpy(p_l_private, &temp, sizeof(__private_list));
 }
-static void sort(bool (*cmp)(void const *, void const *))
+static void sort(Compare cmp)
 {
     list *this = pop_this();
     __private_list *p_private = (__private_list*)this->__obj_private;

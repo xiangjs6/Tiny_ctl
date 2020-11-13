@@ -47,10 +47,10 @@ struct __list{
     void (*remove)(void *value);
     void (*unique)(void);
     void (*splice)(const IterType position, list *l, const IterType first, const IterType last);
-    void (*merge)(list *l, bool (*cmp)(void const *, void const *));
+    void (*merge)(list *l, Compare);
     void (*reverse)(void);
     void (*swap)(list *l);
-    void (*sort)(bool (*cmp)(void const *, void const *));
+    void (*sort)(Compare);
     const IterType (*begin)(void);
     const IterType (*end)(void);
     size_t (*size)(void);

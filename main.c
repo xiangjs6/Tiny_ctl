@@ -23,10 +23,6 @@ byte cmp(const int *a, const int *b)
     return 0;
 }
 
-bool cmpb(const int *a, const int *b)
-{
-    return *a > *b;
-}
 
 /*int main(void)
 {
@@ -287,6 +283,7 @@ int main(void)
 }*/
 
 //vector测试
+/*
 int main(void)
 {
     vector v = creat_vector(0, sizeof(int), NULL);
@@ -357,9 +354,9 @@ int main(void)
     putchar('\n');
     destory_vector(&v);
 }
+*/
 
 // list测试
-/*
 int main(void)
 {
     list l = creat_list(sizeof(int));
@@ -441,7 +438,7 @@ int main(void)
         temp = (int)random();
         THIS(&l).push_back(&temp);
     }
-    THIS(&l).sort(cmpb);
+    THIS(&l).sort(cmp);
     for (iterator(int) it = NEW_ITER(THIS(&l).begin()); !ITER(it).equal(THIS(&l).end()); ITER(it).increment()) {
         printf("%d\n", *(int*)it->val);
     }
@@ -454,4 +451,4 @@ int main(void)
     destory_list(&l);
     return 0;
 }
-*/
+
