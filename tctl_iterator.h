@@ -48,6 +48,7 @@ struct __inner_iterator {
     void *obj_this;
     size_t obj_iter_size;
     size_t memb_size;
+    bool used_by_out;
     byte __address[0];
 };
 
@@ -61,13 +62,14 @@ struct __iterator {
 
 #define ITER(p) (*(**(__iterator**)push_this((void*)&p)).__inner.iterator_func_p->iter_func)
 //#define ITER(p) (*THIS(((__iterator**)&p)).__inner.iterator_func_p->iter_func)
-#define NEW_ITER(p) (void*)(__constructor_iter((__iterator*)p))
+//#define NEW_ITER(p) (void*)(__constructor_iter((__iterator*)p))
 
 extern const __public_iterator_func def_pub_iter_func;
 extern const __iterator def_init_iter;
 #define INIT_ITER_FUNC(private_iter_func) {&def_pub_iter_func, private_iter_func}
 #define INIT_ITERATOR (IterType)&def_init_iter;
 
+IterType get_iter(IterType);
 struct __inner_iterator __creat_iter(size_t obj_iter_size, void *obj_this, size_t memb_size, const iterator_func *iter_func);
 __iterator *__constructor_iter(__iterator const *iter);
 void __destructor_iter(void const *p);

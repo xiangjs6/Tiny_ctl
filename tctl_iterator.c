@@ -104,11 +104,17 @@ const __public_iterator_func def_pub_iter_func = {
 
 const iterator_func def_init_func = INIT_ITER_FUNC(NULL);
 
-const __iterator def_init_iter = {{&def_init_func, NULL, 0, 0}, NULL};
+const __iterator def_init_iter = {{&def_init_func, NULL, 0, 0, false}, NULL};
 
+IterType get_iter(IterType iter)
+{
+    __iterator *__iter = iter;
+    __iter->__inner.used_by_out = true;
+    return iter;
+}
 struct __inner_iterator __creat_iter(size_t obj_iter_size, void *obj_this, size_t memb_size, const iterator_func *iter_func)
 {
-    struct __inner_iterator iter = {iter_func, obj_this, obj_iter_size, memb_size};
+    struct __inner_iterator iter = {iter_func, obj_this, obj_iter_size, memb_size, false};
     return iter;
 }
 
