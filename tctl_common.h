@@ -11,9 +11,5 @@
 #define BYTE_ALIGNED  __attribute__((packed, aligned(1)))
 
 #define container_of(ptr, type, member) ((type *) ((char *)(ptr) - offsetof(type, member)))
-
-void *tmp_val(void *p, size_t n);
-#define TEMP(v) ({typeof(v) __temp = v; (typeof(v)*)tmp_val(&__temp, sizeof(v));})
-
 #define autofree(func) __attribute__((cleanup(func)))
 #endif //TINY_CTL_TCTL_COMMON_H
