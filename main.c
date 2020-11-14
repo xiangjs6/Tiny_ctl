@@ -132,7 +132,7 @@ byte cmp(const int *a, const int *b)
 }*/
 
 //priority_queue测试
-int main(void)
+/*int main(void)
 {
     priority_queue pri_que = creat_priority_queue(sizeof(int), cmp);
     for (int i = 0; i < 30; i++) {
@@ -145,7 +145,7 @@ int main(void)
     }
     putchar('\n');
     destory_priority_queue(&pri_que);
-}
+}*/
 
 //heap测试
 /*int main(void)
@@ -283,12 +283,11 @@ int main(void)
 }*/
 
 //vector测试
-/*
 int main(void)
 {
-    vector v = creat_vector(0, sizeof(int), NULL);
+    vector v = creat_vector(sizeof(int));
     __private_vector *a = v.__obj_private;
-    printf("%d %d %d\n", sizeof(__iterator), sizeof(__private_vector), sizeof(a->start_ptr) + sizeof(a->start_iter));
+    //printf("%d %d %d\n", sizeof(__iterator), sizeof(__private_vector), sizeof(a->start_ptr) + sizeof(a->start_iter));
     //init_vector(&v, 0, sizeof(int), NULL);
     for (int i = 0; i < 10; i++) {
         int temp = i;
@@ -296,12 +295,12 @@ int main(void)
     }
     for (int i = 0; i < 5; i++)
         THIS(&v).pop_back();
-    for (iterator(int) it = NEW_ITER(THIS(&v).begin()); !ITER(it).equal(THIS(&v).end()); ITER(it).increment()) {
+    for (iterator(int) it = get_iter(THIS(&v).begin()); !ITER(it).equal(THIS(&v).end()); ITER(it).increment()) {
         printf("%d ", *it->val);
     }
     putchar('\n');
     printf("insert\n");
-    iterator(int) in_it = NEW_ITER(THIS(&v).begin());
+    iterator(int) in_it = get_iter(THIS(&v).begin());
     int temp = 1000;
     THIS(&v).insert(in_it, &temp);
     for (int i = 0; i < THIS(&v).size(); i++)
@@ -335,18 +334,18 @@ int main(void)
     putchar('\n');
     ITER(in_it).increment();
     THIS(&v).erase(in_it);
-    for (iterator(int) it = NEW_ITER(THIS(&v).begin()); !ITER(it).equal(THIS(&v).end()); ITER(it).increment()) {
+    for (iterator(int) it = get_iter(THIS(&v).begin()); !ITER(it).equal(THIS(&v).end()); ITER(it).increment()) {
         printf("%d ", *(int*)it->val);
-        iterator(int) itt = NEW_ITER(THIS(&v).begin());
+        iterator(int) itt = get_iter(THIS(&v).begin());
         int t = ITER(it).diff(itt);
         t = 0;
     }
     putchar('\n');
     printf("front:%d\n", *(int*)THIS(&v).front());
     printf("back:%d\n", *(int*)THIS(&v).back());
-    printf("empty:%c\n", *("YN" + THIS(&v).empty()));
+    printf("empty:%c\n", *("NY" + THIS(&v).empty()));
     THIS(&v).clear();
-    printf("empty:%c\n", *("YN" + THIS(&v).empty()));
+    printf("empty:%c\n", *("NY" + THIS(&v).empty()));
     printf("capacoty:%d\n", THIS(&v).capacity());
     THIS(&v).resize(9);
     for (int i = 0; i < THIS(&v).size(); i++)
@@ -354,7 +353,6 @@ int main(void)
     putchar('\n');
     destory_vector(&v);
 }
-*/
 
 // list测试
 /*
