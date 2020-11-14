@@ -404,7 +404,7 @@ static const IterType find(void *x)
     if (!is_unique)
         return NULL;
     else {
-        __iterator *iter = NEW_ITER(THIS(this).begin());
+        __iterator *iter = __constructor_iter(THIS(this).begin());
         __rb_tree_iter *rb_iter = (__rb_tree_iter*)iter->__inner.__address;
         if (parent == p_private->header)
             rb_iter->node = parent->parent;

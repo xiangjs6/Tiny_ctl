@@ -55,7 +55,7 @@ void init_priority_queue(priority_queue *p, size_t memb_size, Compare cmp)
     *p = __def_priority_queue;
     __private_priority_queue *p_private = (__private_priority_queue*)p->__obj_private;
     p_private->cmp = cmp;
-    init_vector(&p_private->c, 0, memb_size, NULL);
+    init_vector(&p_private->c, memb_size);
     make_heap(THIS(&p_private->c).begin(), THIS(&p_private->c).end(), cmp);
 }
 

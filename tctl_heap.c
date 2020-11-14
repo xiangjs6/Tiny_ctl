@@ -22,8 +22,8 @@ void adjust_heap(const __iterator *first, long long holo_index, long long len, c
 //public
 void make_heap(const __iterator *first, const __iterator *last, Compare cmp)
 {
-    __iterator *_first = NEW_ITER(first);
-    __iterator *_last = NEW_ITER(last);
+    __iterator *_first = __constructor_iter(first);
+    __iterator *_last = __constructor_iter(last);
     byte x[_first->__inner.memb_size];
     long long dist = ITER(_last).diff(_first);
     for (int i = dist / 2 - 1; i>= 0; i--) {
@@ -36,8 +36,8 @@ void make_heap(const __iterator *first, const __iterator *last, Compare cmp)
 
 void push_heap(const __iterator *first, const __iterator *last, Compare cmp)
 {
-    __iterator *_first = NEW_ITER(first);
-    __iterator *_last = NEW_ITER(last);
+    __iterator *_first = __constructor_iter(first);
+    __iterator *_last = __constructor_iter(last);
     byte x[_first->__inner.memb_size];
     long long cur_index = ITER(_last).diff(_first) - 1;
     long long father = cur_index / 2 - (cur_index + 1) % 2;
@@ -56,8 +56,8 @@ void push_heap(const __iterator *first, const __iterator *last, Compare cmp)
 
 void pop_heap(const __iterator *first, const __iterator *last, Compare cmp)
 {
-    __iterator *_first = NEW_ITER(first);
-    __iterator *_last = NEW_ITER(last);
+    __iterator *_first = __constructor_iter(first);
+    __iterator *_last = __constructor_iter(last);
     byte x[_first->__inner.memb_size];
     ITER(_last).decrement();
     memcpy(x, _last->val, _last->__inner.memb_size);
@@ -70,8 +70,8 @@ void pop_heap(const __iterator *first, const __iterator *last, Compare cmp)
 
 void sort_heap(const __iterator *first, const __iterator *last, Compare cmp)
 {
-    __iterator *_first = NEW_ITER(first);
-    __iterator *_last = NEW_ITER(last);
+    __iterator *_first = __constructor_iter(first);
+    __iterator *_last = __constructor_iter(last);
     make_heap(_first, _last, cmp);
     while (_last->val != _first->val)
     {
