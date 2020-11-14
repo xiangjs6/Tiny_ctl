@@ -21,7 +21,7 @@ struct this_stack {
 
 static void free_this(void *p)
 {
-    deallocate(p, sizeof(void*));
+    deallocate(p, sizeof(struct this_stack));
 }
 
 static void make_this_key(void)
