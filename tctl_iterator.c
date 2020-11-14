@@ -106,11 +106,11 @@ const iterator_func def_init_func = INIT_ITER_FUNC(NULL);
 
 const __iterator def_init_iter = {{&def_init_func, NULL, 0, 0, false}, NULL};
 
-IterType get_iter(IterType iter)
+IterType get_iter(const IterType iter)
 {
-    __iterator *__iter = iter;
+    __iterator *__iter = (void*)iter;
     __iter->__inner.used_by_out = true;
-    return iter;
+    return __iter;
 }
 struct __inner_iterator __creat_iter(size_t obj_iter_size, void *obj_this, size_t memb_size, const iterator_func *iter_func)
 {
