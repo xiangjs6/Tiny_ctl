@@ -94,7 +94,7 @@ byte cmp(const int *a, const int *b)
 }*/
 
 //slist测试
-int main(void)
+/*int main(void)
 {
     slist sl = creat_slist(sizeof(int));
     for (int i = 0; i < 20; i++) {
@@ -131,7 +131,7 @@ int main(void)
     destory_slist(&sl);
     destory_slist(&sl2);
     printf("%c\n", *("YN" + !THIS(&sl).empty()));
-}
+}*/
 
 //priority_queue测试
 /*int main(void)
@@ -378,7 +378,6 @@ int main(void)
 */
 
 // list测试
-/*
 int main(void)
 {
     list l = creat_list(sizeof(int));
@@ -393,18 +392,18 @@ int main(void)
     int temp1 = 20;
     THIS(&l).pop_front();
     THIS(&l).push_front(&temp1);
-    iterator(int) iter = NEW_ITER(THIS(&l).begin());
+    iterator(int) iter = get_iter(THIS(&l).begin());
     THIS(&l).insert(iter, &temp);
     ITER(iter).increment();
     ITER(iter).increment();
-    for (iterator(int) it = NEW_ITER(THIS(&l).begin()); !ITER(it).equal(THIS(&l).end()); ITER(it).increment()) {
+    for (iterator(int) it = get_iter(THIS(&l).begin()); !ITER(it).equal(THIS(&l).end()); ITER(it).increment()) {
         printf("%d\n", *it->val);
         //THIS(&l).insert(*it, &temp);
     }
     printf("it:%d\n", *(int*)iter->val);
     THIS(&l).erase(iter);
     printf("first\n");
-    for (iterator(int) it = NEW_ITER(THIS(&l).begin()); !ITER(it).equal(THIS(&l).end()); ITER(it).increment()) {
+    for (iterator(int) it = get_iter(THIS(&l).begin()); !ITER(it).equal(THIS(&l).end()); ITER(it).increment()) {
         printf("%d\n", *(int*)it->val);
         //THIS(&l).insert(*it, &temp);
     }
@@ -412,12 +411,12 @@ int main(void)
     temp1 = 4;
     THIS(&l).push_back(&temp1);
     printf("second\n");
-    for (iterator(int) it = NEW_ITER(THIS(&l).begin()); !ITER(it).equal(THIS(&l).end()); ITER(it).increment()) {
+    for (iterator(int) it = get_iter(THIS(&l).begin()); !ITER(it).equal(THIS(&l).end()); ITER(it).increment()) {
         printf("%d\n", *(int*)it->val);
     }
     THIS(&l).unique();
     printf("third\n");
-    iterator(int) r_it = NEW_ITER(THIS(&l).end());
+    iterator(int) r_it = get_iter(THIS(&l).end());
     ITER(r_it).decrement();
     printf("%d\n", *(int*)ITER(r_it).decrement());
     for (; ITER(r_it).equal(THIS(&l).end()); !ITER(r_it).decrement()) {
@@ -429,12 +428,12 @@ int main(void)
         THIS(&l2).push_back(&i);
     printf("splice\n");
     THIS(&l).splice(THIS(&l).begin(), &l2, THIS(&l2).begin(), THIS(&l2).end());
-    for (iterator(int) it = NEW_ITER(THIS(&l).begin()); !ITER(it).equal(THIS(&l).end()); ITER(it).increment()) {
+    for (iterator(int) it = get_iter(THIS(&l).begin()); !ITER(it).equal(THIS(&l).end()); ITER(it).increment()) {
         printf("%d\n", *(int*)it->val);
     }
     printf("reverse\n");
     THIS(&l).reverse();
-    for (iterator(int) it = NEW_ITER(THIS(&l).begin()); !ITER(it).equal(THIS(&l).end()); ITER(it).increment()) {
+    for (iterator(int) it = get_iter(THIS(&l).begin()); !ITER(it).equal(THIS(&l).end()); ITER(it).increment()) {
         printf("%d\n", *(int*)it->val);
     }
     printf("front%d\n", *(int*)THIS(&l).front());
@@ -449,10 +448,10 @@ int main(void)
         THIS(&l1).push_back(&i);
         THIS(&l3).push_back(&i);
     }
-    for (iterator(int) it = NEW_ITER(THIS(&l1).begin()); !ITER(it).equal(THIS(&l1).end()); ITER(it).increment())
+    for (iterator(int) it = get_iter(THIS(&l1).begin()); !ITER(it).equal(THIS(&l1).end()); ITER(it).increment())
         printf("%d\n", *(int*)it->val);
     THIS(&l1).merge(&l3, cmp);
-    for (iterator(int) it = NEW_ITER(THIS(&l1).begin()); !ITER(it).equal(THIS(&l1).end()); ITER(it).increment())
+    for (iterator(int) it = get_iter(THIS(&l1).begin()); !ITER(it).equal(THIS(&l1).end()); ITER(it).increment())
         printf("%d\n", *(int*)it->val);
     printf("sort\n");
     THIS(&l).clear();
@@ -461,7 +460,7 @@ int main(void)
         THIS(&l).push_back(&temp);
     }
     THIS(&l).sort(cmp);
-    for (iterator(int) it = NEW_ITER(THIS(&l).begin()); !ITER(it).equal(THIS(&l).end()); ITER(it).increment()) {
+    for (iterator(int) it = get_iter(THIS(&l).begin()); !ITER(it).equal(THIS(&l).end()); ITER(it).increment()) {
         printf("%d\n", *(int*)it->val);
     }
     for (int i = 1; i < 10000; i++) {
@@ -473,4 +472,3 @@ int main(void)
     destory_list(&l);
     return 0;
 }
-*/

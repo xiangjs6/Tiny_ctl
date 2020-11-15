@@ -8,6 +8,54 @@
 #include <memory.h>
 
 //private
+struct inner_iter {
+    struct __inner_iterator *start;
+    struct __inner_iterator *finish;
+};
+
+static void free_inner_iter(void *p)
+{
+    if (!p)
+        return;
+    struct inner_iter *__p = p;
+    if (!__p->start->used_by_out)
+        __destructor_iter(&__p->start);
+    if (!__p->finish->used_by_out)
+        __destructor_iter(&__p->finish);
+    deallocate(p, sizeof(struct inner_iter));
+}
+
+static void iter_increment(__iterator *p)
+{
+    pop_this();
+    struct __list_node *node = container_of(p->val, struct __list_node, data);
+    p->val = node->next->data;
+}
+static void iter_decrement(__iterator *p)
+{
+    pop_this();
+    struct __list_node *node = container_of(p->val, struct __list_node, data);
+    p->val = node->pre->data;
+}
+
+static bool iter_equal(const __iterator *it1, const __iterator *it2)
+{
+    pop_this();
+    return it1->val == it2->val;
+}
+
+static __iterator_obj_func  __def_list_iter = {
+        NULL,
+        iter_increment,
+        iter_decrement,
+        NULL,
+        NULL,
+        NULL,
+        iter_equal
+};
+
+static const iterator_func __def_list_iter_func = INIT_ITER_FUNC(&__def_list_iter);
+
 static void transfer(struct __list_node *pos, struct __list_node *first, struct __list_node *last)
 {
     if (pos == first)
@@ -89,6 +137,7 @@ void *at(int pos)
         return NULL;
     return node->data;
 }
+
 static IterType erase(IterType iter)
 {
     list *this = pop_this();
@@ -96,6 +145,7 @@ static IterType erase(IterType iter)
     __iter->val = __erase(this, __iter->val);
     return iter;
 }
+
 static IterType insert(IterType iter, void *x)
 {
     list *this = pop_this();
@@ -103,33 +153,39 @@ static IterType insert(IterType iter, void *x)
     __iter->val = __insert(this, __iter->val, x);
     return iter;
 }
+
 static void push_front(void *x)
 {
     list *this = pop_this();
     __insert(this, ((__iterator*)THIS(this).begin())->val, x);
 }
+
 static void push_back(void *x)
 {
     list *this = pop_this();
     __insert(this, ((__iterator*)THIS(this).end())->val, x);
 }
+
 static void pop_front(void)
 {
     list *this = pop_this();
     __erase(this, ((__iterator*)THIS(this).begin())->val);
 }
+
 static void pop_back(void)
 {
     list *this = pop_this();
     struct __list_node *node = container_of(((__iterator*)THIS(this).end())->val, struct __list_node, data);
     __erase(this, node->pre->data);
 }
+
 static void clear(void)
 {
     list *this = pop_this();
     while (!THIS(this).empty())
         THIS(this).pop_front();
 }
+
 static void remove(void *value)
 {
     list *this = pop_this();
@@ -144,6 +200,7 @@ static void remove(void *value)
         node = node->next;
     }
 }
+
 static void unique(void)
 {
     list *this = pop_this();
@@ -159,22 +216,43 @@ static void unique(void)
         next_node = next_node->next;
     }
 }
+
 static const IterType begin(void)
 {
     list *this = pop_this();
     __private_list *p_private = (__private_list *)this->__obj_private;
-    if (p_private->start_iter.obj_this != this)
-        p_private->start_iter.obj_this = this;
-    return &p_private->start_iter;
+    struct inner_iter *pair_iter = thread_getspecific(p_private->iter_key);
+    if (pair_iter == NULL) {
+        pair_iter = allocate(sizeof(struct inner_iter));
+        pair_iter->finish = pair_iter->start = NULL;
+        thread_setspecific(p_private->iter_key, pair_iter);
+    }
+    if (pair_iter->start == NULL || pair_iter->start->used_by_out) {
+        pair_iter->start = allocate(sizeof(struct __inner_iterator) + sizeof(__list_iter));
+        *pair_iter->start = __creat_iter(sizeof(__list_iter), this, p_private->memb_size, &__def_list_iter_func);
+    }
+    memcpy(pair_iter->start->__address, &p_private->start_ptr, sizeof(__list_iter));
+    return pair_iter->start;
 }
+
 static const IterType end(void)
 {
     list *this = pop_this();
     __private_list *p_private = (__private_list *)this->__obj_private;
-    if (p_private->finish_iter.obj_this != this)
-        p_private->finish_iter.obj_this = this;
-    return &p_private->finish_iter;
+    struct inner_iter *pair_iter = thread_getspecific(p_private->iter_key);
+    if (pair_iter == NULL) {
+        pair_iter = allocate(sizeof(struct inner_iter));
+        pair_iter->finish = pair_iter->start = NULL;
+        thread_setspecific(p_private->iter_key, pair_iter);
+    }
+    if (pair_iter->finish == NULL || pair_iter->finish->used_by_out) {
+        pair_iter->finish = allocate(sizeof(struct __inner_iterator) + sizeof(__list_iter));
+        *pair_iter->finish = __creat_iter(sizeof(__list_iter), this, p_private->memb_size, &__def_list_iter_func);
+    }
+    memcpy(pair_iter->finish->__address, &p_private->finish_ptr, sizeof(__list_iter));
+    return pair_iter->finish;
 }
+
 static size_t size(void)
 {
     list *this = pop_this();
@@ -188,24 +266,28 @@ static size_t size(void)
     }
     return count;
 }
+
 static bool empty(void)
 {
     list *this = pop_this();
     __private_list *p_private = (__private_list *)this->__obj_private;
     return p_private->node == p_private->node->next;
 }
+
 static void const *front(void)
 {
     list *this = pop_this();
     __private_list *p_private = (__private_list *)this->__obj_private;
     return p_private->start_ptr;
 }
+
 static void const *back(void)
 {
     list *this = pop_this();
     __private_list *p_private = (__private_list *)this->__obj_private;
     return p_private->finish_ptr;
 }
+
 static void splice(const IterType position, list *l, const IterType first, const IterType last)
 {
     list *this = pop_this();
@@ -217,6 +299,7 @@ static void splice(const IterType position, list *l, const IterType first, const
     struct __list_node *last_node = last ? container_of(__last->val, struct __list_node, data) : NULL;
     __splice(this, position_node, l, first_node, last_node);
 }
+
 static void merge(list *l, Compare cmp)
 {
     list *this = pop_this();
@@ -238,6 +321,7 @@ static void merge(list *l, Compare cmp)
     if (first2 != last2)
         __splice(this, first1, l, first2, last2);
 }
+
 static void reverse(void)
 {
     list *this = pop_this();
@@ -254,6 +338,7 @@ static void reverse(void)
     }
     p_private->start_ptr = p_private->node->next->data;
 }
+
 static void swap(list *l)
 {
     list *this = pop_this();
@@ -265,6 +350,7 @@ static void swap(list *l)
     memcpy(p_private, p_l_private, sizeof(__private_list));
     memcpy(p_l_private, &temp, sizeof(__private_list));
 }
+
 static void sort(Compare cmp)
 {
     list *this = pop_this();
@@ -302,36 +388,7 @@ static void sort(Compare cmp)
     destory_list(&carry);
 }
 
-static void iter_increment(__iterator *p)
-{
-    pop_this();
-    struct __list_node *node = container_of(p->val, struct __list_node, data);
-    p->val = node->next->data;
-}
-static void iter_decrement(__iterator *p)
-{
-    pop_this();
-    struct __list_node *node = container_of(p->val, struct __list_node, data);
-    p->val = node->pre->data;
-}
 
-static bool iter_equal(const __iterator *it1, const __iterator *it2)
-{
-    pop_this();
-    return it1->val == it2->val;
-}
-
-static __iterator_obj_func  __def_list_iter = {
-        NULL,
-        iter_increment,
-        iter_decrement,
-        NULL,
-        NULL,
-        NULL,
-        iter_equal
-};
-
-static const iterator_func __def_list_iter_func = INIT_ITER_FUNC(&__def_list_iter);
 
 static const list def_list = {
         at,
@@ -365,10 +422,8 @@ void init_list(list *p_list, size_t memb_size)
     private->node = allocate(sizeof(struct __list_node));
     private->node->next = private->node;
     private->node->pre = private->node;
-    private->start_iter = __creat_iter(sizeof(__list_iter), p_list, memb_size, &__def_list_iter_func);
-    private->finish_iter = __creat_iter(sizeof(__list_iter), p_list, memb_size, &__def_list_iter_func);
     private->start_ptr = private->finish_ptr = private->node->data;
-    //memcpy(p_list->__obj_private, &private, sizeof(__private_list));
+    thread_key_create(&private->iter_key, free_inner_iter);
 }
 
 void destory_list(list *p_list)
