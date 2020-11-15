@@ -104,6 +104,7 @@ static void *at(int pos)
         return NULL;
     return p_private->start_ptr+ p_private->memb_size * pos;
 }
+#include <stdio.h>
 static const IterType begin(void)
 {
     vector *this = pop_this();
@@ -113,6 +114,7 @@ static const IterType begin(void)
         pair_iter = allocate(sizeof(struct inner_iter));
         pair_iter->finish = pair_iter->start = NULL;
         pthread_setspecific(p_private->iter_key, pair_iter);
+	printf("begin init %d %d\n", pthread_self(), p_private->iter_key);
     }
     if (pair_iter->start == NULL || pair_iter->start->used_by_out) {
         pair_iter->start = allocate(sizeof(struct __inner_iterator) + sizeof(__vector_iter));
@@ -131,9 +133,10 @@ static const IterType end(void)
         pair_iter = allocate(sizeof(struct inner_iter));
         pair_iter->finish = pair_iter->start = NULL;
         pthread_setspecific(p_private->iter_key, pair_iter);
+	printf("end init %d %d\n", pthread_self(), p_private->iter_key);
     }
     if (pair_iter->finish == NULL || pair_iter->finish->used_by_out) {
-        pair_iter->finish = allocate(sizeof(__iterator) + sizeof(__vector_iter));
+        pair_iter->finish = allocate(sizeof(struct __inner_iterator) + sizeof(__vector_iter));
         *pair_iter->finish = __creat_iter(sizeof(__vector_iter), this, p_private->memb_size, &__def_vector_iter_func);
     }
     memcpy(pair_iter->finish->__address, &p_private->finish_ptr, sizeof(__vector_iter));

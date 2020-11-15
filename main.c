@@ -283,12 +283,33 @@ byte cmp(const int *a, const int *b)
 }*/
 
 //vector测试
+#include <pthread.h>
+void *thread(void *arg)
+{
+	vector *v = arg;
+    	printf("%p\n", v);
+	for (int i = 0; i < 1000; i++)
+		THIS(v).begin();
+	printf("end\n");
+	for (int i = 0; i < 1000; i++)
+		THIS(v).end();
+}
 int main(void)
 {
-    vector v = creat_vector(sizeof(int));
+    vector v;// = creat_vector(sizeof(int));
+    init_vector(&v, sizeof(int));
     __private_vector *a = v.__obj_private;
     //printf("%d %d %d\n", sizeof(__iterator), sizeof(__private_vector), sizeof(a->start_ptr) + sizeof(a->start_iter));
     //init_vector(&v, 0, sizeof(int), NULL);
+    printf("%p\n", &v);
+    pthread_t p1;
+    pthread_t p2;
+    pthread_create(&p1, NULL, thread, &v);
+    pthread_create(&p2, NULL, thread, &v);
+    pthread_join(p1, NULL);
+    pthread_join(p2, NULL);
+    sleep(3);
+    printf("thread ok\n");
     for (int i = 0; i < 10; i++) {
         int temp = i;
         THIS(&v).push_back(&temp);
