@@ -14,6 +14,7 @@ typedef pthread_once_t thread_once_t;
 #define thread_getspecific pthread_getspecific
 #define thread_setspecific pthread_setspecific
 #define thread_key_create pthread_key_create
+#define thread_key_delete pthread_key_delete
 #define thread_mutex_lock pthread_mutex_lock
 #define thread_mutex_unlock pthread_mutex_unlock
 #endif //TINY_CTL_TCTL_PORTABLE_H

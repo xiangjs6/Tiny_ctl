@@ -272,6 +272,7 @@ void destory_vector(vector *p_vector)
 {
     __private_vector *p_private = (__private_vector *)p_vector->__obj_private;
     deallocate(p_private->start_ptr, p_private->total_storage_memb * p_private->memb_size);
+    thread_key_delete(p_private->iter_key);
 }
 
 vector creat_vector(size_t memb_size)
