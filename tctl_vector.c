@@ -13,11 +13,13 @@ struct inner_iter {
 
 static void free_inner_iter(void *p)
 {
+    if (!p)
+        return;
     struct inner_iter *__p = p;
     if (!__p->start->used_by_out)
-        __destructor_iter(__p->start);
+        __destructor_iter(&__p->start);
     if (!__p->finish->used_by_out)
-        __destructor_iter(__p->finish);
+        __destructor_iter(&__p->finish);
     deallocate(p, sizeof(struct inner_iter));
 }
 
@@ -104,7 +106,6 @@ static void *at(int pos)
         return NULL;
     return p_private->start_ptr+ p_private->memb_size * pos;
 }
-#include <stdio.h>
 static const IterType begin(void)
 {
     vector *this = pop_this();
@@ -114,7 +115,6 @@ static const IterType begin(void)
         pair_iter = allocate(sizeof(struct inner_iter));
         pair_iter->finish = pair_iter->start = NULL;
         pthread_setspecific(p_private->iter_key, pair_iter);
-	printf("begin init %d %d\n", pthread_self(), p_private->iter_key);
     }
     if (pair_iter->start == NULL || pair_iter->start->used_by_out) {
         pair_iter->start = allocate(sizeof(struct __inner_iterator) + sizeof(__vector_iter));
@@ -133,7 +133,6 @@ static const IterType end(void)
         pair_iter = allocate(sizeof(struct inner_iter));
         pair_iter->finish = pair_iter->start = NULL;
         pthread_setspecific(p_private->iter_key, pair_iter);
-	printf("end init %d %d\n", pthread_self(), p_private->iter_key);
     }
     if (pair_iter->finish == NULL || pair_iter->finish->used_by_out) {
         pair_iter->finish = allocate(sizeof(struct __inner_iterator) + sizeof(__vector_iter));
