@@ -3,7 +3,5 @@
 //
 
 #include "tctl_common.h"
-#include <pthread.h>
-#include <memory.h>
 #include "tctl_allocator.h"
 
