@@ -220,7 +220,7 @@ byte cmp(const int *a, const int *b)
 }*/
 
 //deque测试
-/*int main(void)
+int main(void)
 {
     deque deq = creat_deque(sizeof(int), 9);
     __private_deque *watch = deq.__obj_private;
@@ -237,7 +237,7 @@ byte cmp(const int *a, const int *b)
         THIS(&deq).push_back(&i);
     for (int i = 40; i < 50; i++)
         THIS(&deq).push_front(&i);
-    iterator(int) it_it = NEW_ITER(THIS(&deq).begin());
+    iterator(int) it_it = get_iter(THIS(&deq).begin());
     __deque_iter *er_it = it_it->__inner.__address;
     er_it->cur += 4;
     //THIS(&deq).erase(&er_it);
@@ -274,7 +274,7 @@ byte cmp(const int *a, const int *b)
         printf("%d ", *temp);
     }
     putchar('\n');
-    for (iterator(int) it = NEW_ITER(THIS(&deq).begin()); !ITER(it).equal(THIS(&deq).end()); ITER(it).increment()) {
+    for (iterator(int) it = get_iter(THIS(&deq).begin()); !ITER(it).equal(THIS(&deq).end()); ITER(it).increment()) {
         printf("%d ", *it->val);
         long long r = ITER(it).diff(THIS(&deq).end());
         r = ITER(it).diff(THIS(&deq).begin());
@@ -282,7 +282,7 @@ byte cmp(const int *a, const int *b)
     }
     putchar('\n');
     destory_deque(&deq);
-}*/
+}
 
 //vector测试
 /*
@@ -378,6 +378,7 @@ int main(void)
 */
 
 // list测试
+/*
 int main(void)
 {
     list l = creat_list(sizeof(int));
@@ -472,3 +473,4 @@ int main(void)
     destory_list(&l);
     return 0;
 }
+*/
