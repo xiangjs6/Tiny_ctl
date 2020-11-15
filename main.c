@@ -308,7 +308,6 @@ int main(void)
     pthread_create(&p2, NULL, thread, &v);
     pthread_join(p1, NULL);
     pthread_join(p2, NULL);
-    sleep(3);
     printf("thread ok\n");
     for (int i = 0; i < 10; i++) {
         int temp = i;
