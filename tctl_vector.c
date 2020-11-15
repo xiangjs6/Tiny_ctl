@@ -110,11 +110,11 @@ static const IterType begin(void)
 {
     vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->__obj_private;
-    struct inner_iter *pair_iter = pthread_getspecific(p_private->iter_key);
+    struct inner_iter *pair_iter = thread_getspecific(p_private->iter_key);
     if (pair_iter == NULL) {
         pair_iter = allocate(sizeof(struct inner_iter));
         pair_iter->finish = pair_iter->start = NULL;
-        pthread_setspecific(p_private->iter_key, pair_iter);
+        thread_setspecific(p_private->iter_key, pair_iter);
     }
     if (pair_iter->start == NULL || pair_iter->start->used_by_out) {
         pair_iter->start = allocate(sizeof(struct __inner_iterator) + sizeof(__vector_iter));
@@ -128,11 +128,11 @@ static const IterType end(void)
 {
     vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->__obj_private;
-    struct inner_iter *pair_iter = pthread_getspecific(p_private->iter_key);
+    struct inner_iter *pair_iter = thread_getspecific(p_private->iter_key);
     if (pair_iter == NULL) {
         pair_iter = allocate(sizeof(struct inner_iter));
         pair_iter->finish = pair_iter->start = NULL;
-        pthread_setspecific(p_private->iter_key, pair_iter);
+        thread_setspecific(p_private->iter_key, pair_iter);
     }
     if (pair_iter->finish == NULL || pair_iter->finish->used_by_out) {
         pair_iter->finish = allocate(sizeof(struct __inner_iterator) + sizeof(__vector_iter));
@@ -263,7 +263,7 @@ void init_vector(vector *p_vector, size_t memb_size)
     *(size_t *)&__private->memb_size = memb_size;
     __private->nmemb = __private->total_storage_memb = 0;
 
-    pthread_key_create(&__private->iter_key, free_inner_iter);
+    thread_key_create(&__private->iter_key, free_inner_iter);
     //__private->start_ptr = reallocate(NULL, 0, nmemb * memb_size);
     __private->finish_ptr = __private->start_ptr = NULL;
 }

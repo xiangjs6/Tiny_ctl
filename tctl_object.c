@@ -3,13 +3,12 @@
 //
 
 #include "tctl_object.h"
-
-#include <pthread.h>
 #include "tctl_allocator.h"
+#include "tctl_portable.h"
 
 //this指针
-static pthread_key_t this_key;
-static pthread_once_t this_key_once = PTHREAD_ONCE_INIT;
+static thread_key_t this_key;
+static thread_once_t this_key_once = THREAD_ONCE_INIT;
 
 struct this_node {
     void *this;
@@ -26,17 +25,17 @@ static void free_this(void *p)
 
 static void make_this_key(void)
 {
-    pthread_key_create(&this_key, free_this);
+    thread_key_create(&this_key, free_this);
 }
 
 void *push_this(void *p)
 {
     struct this_stack *ptr;
-    pthread_once(&this_key_once, make_this_key);
-    if ((ptr = pthread_getspecific(this_key)) == NULL) {
+    thread_once(&this_key_once, make_this_key);
+    if ((ptr = thread_getspecific(this_key)) == NULL) {
         ptr = allocate(sizeof(struct this_stack));
         ptr->head = NULL;
-        pthread_setspecific(this_key, ptr);
+        thread_setspecific(this_key, ptr);
     }
     struct this_node *node = allocate(sizeof(struct this_node));
     node->this = p;

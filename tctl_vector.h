@@ -7,7 +7,7 @@
 #include "tctl_def.h"
 #include "tctl_iterator.h"
 #include "tctl_common.h"
-#include <pthread.h>
+#include "tctl_portable.h"
 
 typedef void *__vector_iter;
 
@@ -18,7 +18,7 @@ typedef struct {
     size_t total_storage_memb;
     __vector_iter start_ptr;
     __vector_iter finish_ptr;
-    pthread_key_t iter_key;
+    thread_key_t iter_key;
 } __private_vector;
 
 typedef struct {

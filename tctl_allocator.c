@@ -4,9 +4,9 @@
 
 #include "tctl_allocator.h"
 #include "tctl_common.h"
+#include "tctl_portable.h"
 #include <malloc.h>
 #include <memory.h>
-#include <pthread.h>
 
 #define THROW_BAD_ALLOC
 
@@ -113,32 +113,32 @@ static void refill(size_t n)
     }
 }
 
-static pthread_mutex_t fragment_lock = PTHREAD_MUTEX_INITIALIZER;
+static thread_mutex_t fragment_lock = THREAD_MUTEX_INITIALIZER;
 static void *__fragment_alloc(size_t n)
 {
     if (n == 0)
         return NULL;
-    pthread_mutex_lock(&fragment_lock);
+    thread_mutex_lock(&fragment_lock);
     union obj **p_free_list = free_list + FREELIST_INDEX(n);
     union obj *res = *p_free_list;
     if (!res) {
         refill(ROUND_UP(n));
-        pthread_mutex_unlock(&fragment_lock);
+        thread_mutex_unlock(&fragment_lock);
         return __fragment_alloc(n);
     }
     *p_free_list = res->free_list_link;
-    pthread_mutex_unlock(&fragment_lock);
+    thread_mutex_unlock(&fragment_lock);
     return res;
 }
 
 static void __fragment_dealloc(void *p, size_t n)
 {
     union obj *q = p;
-    pthread_mutex_lock(&fragment_lock);
+    thread_mutex_lock(&fragment_lock);
     union obj **p_free_list = free_list + FREELIST_INDEX(n);
     q->free_list_link = *p_free_list;
     *p_free_list = q;
-    pthread_mutex_unlock(&fragment_lock);
+    thread_mutex_unlock(&fragment_lock);
 }
 
 //对外接口
