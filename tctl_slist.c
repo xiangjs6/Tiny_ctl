@@ -7,6 +7,47 @@
 #include "tctl_common.h"
 #include "memory.h"
 //private
+struct inner_iter {
+    struct __inner_iterator *start;
+    struct __inner_iterator *finish;
+};
+
+static void free_inner_iter(void *p)
+{
+    if (!p)
+        return;
+    struct inner_iter *__p = p;
+    if (!__p->start->used_by_out)
+        __destructor_iter(&__p->start);
+    if (!__p->finish->used_by_out)
+        __destructor_iter(&__p->finish);
+    deallocate(p, sizeof(struct inner_iter));
+}
+
+static void iter_increment(__iterator *p)
+{
+    pop_this();
+    struct __slist_node *node = container_of(p->val, struct __slist_node, data);
+    p->val = node->next ? node->next->data : NULL;
+}
+
+static bool iter_equal(const __iterator *it1, const __iterator *it2)
+{
+    return it1->val == it2->val;
+}
+
+static const __iterator_obj_func __def_slist_iter = {
+        NULL,
+        iter_increment,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        iter_equal
+};
+
+static const iterator_func __def_slist_iter_func = INIT_ITER_FUNC(&__def_slist_iter);
+
 static void __insert_after(slist *this, struct __slist_node *node, void *x)
 {
     __private_slist *p_private = (__private_slist*)this->__obj_private;
@@ -30,14 +71,36 @@ static const IterType begin(void)
     slist *this = pop_this();
     __private_slist *p_private = (__private_slist*)this->__obj_private;
     p_private->start_ptr = p_private->head.next ? p_private->head.next->data : NULL;
-    return &p_private->start_iter;
+    struct inner_iter *pair_iter = thread_getspecific(p_private->iter_key);
+    if (pair_iter == NULL) {
+        pair_iter = allocate(sizeof(struct inner_iter));
+        pair_iter->finish = pair_iter->start = NULL;
+        thread_setspecific(p_private->iter_key, pair_iter);
+    }
+    if (pair_iter->start == NULL || pair_iter->start->used_by_out) {
+        pair_iter->start = allocate(sizeof(struct __inner_iterator) + sizeof(__slist_iter));
+        *pair_iter->start = __creat_iter(sizeof(__slist_iter), this, p_private->memb_size, &__def_slist_iter_func);
+    }
+    memcpy(pair_iter->start->__address, &p_private->start_ptr, sizeof(__slist_iter));
+    return pair_iter->start;
 }
 
 static const IterType end(void)
 {
     slist *this = pop_this();
     __private_slist *p_private = (__private_slist*)this->__obj_private;
-    return &p_private->finish_iter;
+    struct inner_iter *pair_iter = thread_getspecific(p_private->iter_key);
+    if (pair_iter == NULL) {
+        pair_iter = allocate(sizeof(struct inner_iter));
+        pair_iter->finish = pair_iter->start = NULL;
+        thread_setspecific(p_private->iter_key, pair_iter);
+    }
+    if (pair_iter->finish == NULL || pair_iter->finish->used_by_out) {
+        pair_iter->finish = allocate(sizeof(struct __inner_iterator) + sizeof(__slist_iter));
+        *pair_iter->finish = __creat_iter(sizeof(__slist_iter), this, p_private->memb_size, &__def_slist_iter_func);
+    }
+    memcpy(pair_iter->finish->__address, &p_private->finish_ptr, sizeof(__slist_iter));
+    return pair_iter->finish;
 }
 
 static size_t size(void)
@@ -119,28 +182,6 @@ static void clear(void)
         THIS(this).pop_front();
 }
 
-static void iter_increment(__iterator *p)
-{
-    pop_this();
-    struct __slist_node *node = container_of(p->val, struct __slist_node, data);
-    p->val = node->next ? node->next->data : NULL;
-}
-
-static bool iter_equal(const __iterator *it1, const __iterator *it2)
-{
-    return it1->val == it2->val;
-}
-
-static const __iterator_obj_func __def_slist_iter = {
-        NULL,
-        iter_increment,
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        iter_equal
-};
-static const iterator_func __def_slist_iter_func = INIT_ITER_FUNC(&__def_slist_iter);
 static const slist __def_slist = {
         begin,
         end,
@@ -160,15 +201,16 @@ void init_slist(slist *p_slist, size_t memb_size)
     __private_slist *p_private = (__private_slist*)p_slist->__obj_private;
     p_private->head.next = NULL;
     p_private->memb_size = memb_size;
-    p_private->start_iter = __creat_iter(sizeof(__slist_iter), p_slist, memb_size, &__def_slist_iter_func);
-    p_private->finish_iter = __creat_iter(sizeof(__slist_iter), p_slist, memb_size, &__def_slist_iter_func);
+    thread_key_create(&p_private->iter_key, free_inner_iter);
     p_private->finish_ptr = NULL;
     p_private->start_ptr = NULL;
 }
 
 void destory_slist(slist *p_list)
 {
+    __private_slist *p_private = (__private_slist*)p_list->__obj_private;
     THIS(p_list).clear();
+    thread_key_delete(p_private->iter_key);
 }
 
 slist creat_slist(size_t memb_size)

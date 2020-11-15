@@ -13,6 +13,7 @@
 #include "tctl_heap.h"
 #include "tctl_priority_queue.h"
 #include "tctl_slist.h"
+#include <pthread.h>
 
 byte cmp(const int *a, const int *b)
 {
@@ -92,7 +93,8 @@ byte cmp(const int *a, const int *b)
     return 0;
 }*/
 
-/*int main(void)
+//slist测试
+int main(void)
 {
     slist sl = creat_slist(sizeof(int));
     for (int i = 0; i < 20; i++) {
@@ -102,7 +104,7 @@ byte cmp(const int *a, const int *b)
     }
     putchar('\n');
     THIS(&sl).pop_front();
-    iterator(int) in_it = NEW_ITER(THIS(&sl).begin());
+    iterator(int) in_it = get_iter(THIS(&sl).begin());
     ITER(in_it).increment();
     ITER(in_it).increment();
     int temp = 100;
@@ -119,17 +121,17 @@ byte cmp(const int *a, const int *b)
     }
     THIS(&sl).swap(&sl2);
 
-    for (iterator(int) it = NEW_ITER(THIS(&sl).begin()); !ITER(it).equal(THIS(&sl).end()); ITER(it).increment())
+    for (iterator(int) it = get_iter(THIS(&sl).begin()); !ITER(it).equal(THIS(&sl).end()); ITER(it).increment())
         printf("%d ", *(int*)it->val);
     putchar('\n');
-    for (iterator(int) it = NEW_ITER(THIS(&sl2).begin()); !ITER(it).equal(THIS(&sl2).end()); ITER(it).increment())
+    for (iterator(int) it = get_iter(THIS(&sl2).begin()); !ITER(it).equal(THIS(&sl2).end()); ITER(it).increment())
         printf("%d ", *(int*)it->val);
     putchar('\n');
     printf("%c\n", *("YN" + !THIS(&sl).empty()));
     destory_slist(&sl);
     destory_slist(&sl2);
     printf("%c\n", *("YN" + !THIS(&sl).empty()));
-}*/
+}
 
 //priority_queue测试
 /*int main(void)
@@ -283,7 +285,7 @@ byte cmp(const int *a, const int *b)
 }*/
 
 //vector测试
-#include <pthread.h>
+/*
 void *thread(void *arg)
 {
 	vector *v = arg;
@@ -373,6 +375,7 @@ int main(void)
     putchar('\n');
     destory_vector(&v);
 }
+*/
 
 // list测试
 /*
