@@ -13,6 +13,7 @@
 #include "tctl_heap.h"
 #include "tctl_priority_queue.h"
 #include "tctl_slist.h"
+#include "tctl_set.h"
 #include <pthread.h>
 
 byte cmp(const int *a, const int *b)
@@ -24,7 +25,44 @@ byte cmp(const int *a, const int *b)
     return 0;
 }
 
+int main(void)
+{
+    int i;
+    int ia[5] = {0, 1, 2, 3, 4};
+    set s = creat_set(sizeof(int), cmp);
+    for (i = 0; i < 5; i++)
+        THIS(&s).insert(&ia[i]);
+    printf("size:%ld\n", THIS(&s).size());
+    printf("3 count=%ld\n", THIS(&s).count(&ia[4]));
+    i = 3;
+    THIS(&s).insert(&i);
+    printf("size:%ld\n", THIS(&s).size());
+    printf("3 count=%ld\n", THIS(&s).count(&ia[4]));
+    i = 5;
+    THIS(&s).insert(&i);
+    printf("size:%ld\n", THIS(&s).size());
+    printf("3 count=%ld\n", THIS(&s).count(&ia[4]));
+    i = 1;
+    THIS(&s).erase(THIS(&s).find(&i));
+    printf("size:%ld\n", THIS(&s).size());
+    printf("3 count=%ld\n", THIS(&s).count(&ia[4]));
+    printf("0 count=%ld\n", THIS(&s).count(&ia[1]));
+    iterator(int) ite1 = get_iter(THIS(&s).begin());
+    iterator(int) ite2 = get_iter(THIS(&s).end());
+    for (; !ITER(ite1).equal(ite2); ITER(ite1).increment())
+        printf("%d ", *ite1->val);
+    putchar('\n');
+    ITER(ite1).copy(THIS(&s).find(&ia[3]));
+    if (!ITER(ite1).equal(ite2))
+        printf("3 found\n");
+    ITER(ite1).copy(THIS(&s).find(&ia[1]));
+    if (ITER(ite1).equal(ite2))
+        printf("1 not found\n");
+    destory_set(&s);
+    return 0;
+}
 
+/*
 int main(void)
 {
     rb_tree tree = creat_rb_tree(sizeof(int), cmp);
@@ -92,6 +130,7 @@ int main(void)
     destory_rb_tree(&tree);
     return 0;
 }
+ */
 
 //slist测试
 /*int main(void)
