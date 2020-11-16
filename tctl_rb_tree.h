@@ -7,6 +7,7 @@
 
 #include "tctl_def.h"
 #include "tctl_iterator.h"
+#include "tctl_portable.h"
 
 enum __rb_tree_color {__rb_tree_red, __rb_tree_black};
 
@@ -28,18 +29,7 @@ typedef struct {
     size_t size;
     Compare cmp;
     struct __rb_tree_node *header;
-    struct {
-        struct __inner_iterator start_iter;
-        __rb_tree_iter start_ptr;
-    };
-    struct {
-        struct __inner_iterator finish_iter;
-        __rb_tree_iter finish_ptr;
-    };
-    struct {
-        struct __inner_iterator change_iter;
-        __rb_tree_iter change_ptr;
-    };
+    thread_key_t iter_key;
 } __private_rb_tree;
 
 typedef struct {
@@ -47,8 +37,8 @@ typedef struct {
     const IterType (*end)(void);
     bool (*empty)(void);
     size_t (*size)(void);
-    IterType (*insert_unique)(void*);
-    IterType (*insert_equal)(void*);
+    const IterType (*insert_unique)(void*);
+    const IterType (*insert_equal)(void*);
     void (*erase)(IterType);
     void (*clear)(void);
     const IterType (*find)(void*);

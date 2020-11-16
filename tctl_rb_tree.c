@@ -6,6 +6,100 @@
 #include "tctl_allocator.h"
 #include <memory.h>
 //private:
+struct inner_iter {
+    struct __inner_iterator *start;
+    struct __inner_iterator *finish;
+    struct __inner_iterator *write_iter;
+    struct __inner_iterator *read_iter;
+};
+
+static void free_inner_iter(void *p)
+{
+    if (!p)
+        return;
+    struct inner_iter *__p = p;
+    if (!__p->start->used_by_out)
+        __destructor_iter(&__p->start);
+    if (!__p->finish->used_by_out)
+        __destructor_iter(&__p->finish);
+    if (!__p->write_iter->used_by_out)
+        __destructor_iter(&__p->write_iter);
+    if (!__p->read_iter->used_by_out)
+        __destructor_iter(&__p->read_iter);
+    deallocate(p, sizeof(struct inner_iter));
+}
+
+static struct inner_iter * iter_once_init(__private_rb_tree *p_private)
+{
+    struct inner_iter *four_iter = allocate(sizeof(struct inner_iter));
+    four_iter->finish = four_iter->start = four_iter->read_iter = four_iter->write_iter = NULL;
+    thread_setspecific(p_private->iter_key, four_iter);
+    return four_iter;
+}
+
+static void iter_increment(__iterator *iter)
+{
+    struct __rb_tree_node *node = ((__rb_tree_iter*)iter->__inner.__address)->node;
+    if(node->right != NULL)
+    {
+        node = node->right;
+        while(node->left != NULL)
+            node=node->left;
+    } else {//往父节点上寻找
+        struct __rb_tree_node *parents=node->parent;
+        while(node == parents->right)  //为父节点右孩子时，继续往上找
+        {
+            node = parents;
+            parents = parents->parent;
+        }
+        if (node->right != parents)
+            node = parents;
+    }
+    ((__rb_tree_iter*)iter->__inner.__address)->node = node;
+    iter->val = node->data;
+}
+
+static void iter_decrement(__iterator *iter)
+{
+    struct __rb_tree_node *node = ((__rb_tree_iter *) iter->__inner.__address)->node;
+    if (node->color == __rb_tree_red && node->parent->parent == node)
+        node = node->right;
+    else if (node->left != NULL) {
+        node = node->left;
+        while (node->right != NULL)
+            node = node->right;
+    } else {
+        struct __rb_tree_node *parents = node->parent;
+        while (parents->left == node)
+        {
+            node = parents;
+            parents = parents->parent;
+        }
+        node = parents;
+    }
+    ((__rb_tree_iter *) iter->__inner.__address)->node = node;
+    iter->val = node->data;
+}
+
+static bool iter_equal(const __iterator *it1, const __iterator *it2)
+{
+    __rb_tree_iter *__it1 = (__rb_tree_iter*)it1->__inner.__address;
+    __rb_tree_iter *__it2 = (__rb_tree_iter*)it2->__inner.__address;
+    return __it1->node == __it2->node;
+}
+
+static __iterator_obj_func  __def_rb_tree_iter = {
+        NULL,
+        iter_increment,
+        iter_decrement,
+        NULL,
+        NULL,
+        NULL,
+        iter_equal
+};
+
+static const iterator_func __def_rb_tree_iter_func = INIT_ITER_FUNC(&__def_rb_tree_iter);
+
 static struct __rb_tree_node *__creat_rb_node(size_t memb_size)
 {
     struct __rb_tree_node *node = allocate(sizeof(struct __rb_tree_node) + memb_size);
@@ -277,20 +371,34 @@ static const IterType begin(void)
 {
     rb_tree *this = pop_this();
     __private_rb_tree *p_private = (__private_rb_tree*)this->__obj_private;
-    p_private->start_ptr.node = p_private->header->left;
-    p_private->start_ptr.val = p_private->header->left->data;
-//    p_private->start_ptr.move_from = 0;
-    return &p_private->start_iter;
+    struct inner_iter *four_iter = thread_getspecific(p_private->iter_key);
+    if (four_iter == NULL)
+        four_iter = iter_once_init(p_private);
+    if (four_iter->start == NULL || four_iter->start->used_by_out) {
+        four_iter->start = allocate(sizeof(struct __inner_iterator) + sizeof(__rb_tree_iter));
+        *four_iter->start = __creat_iter(sizeof(__rb_tree_iter), this, p_private->memb_size, &__def_rb_tree_iter_func);
+    }
+    __rb_tree_iter *out_iter = (__rb_tree_iter*)four_iter->start->__address;
+    out_iter->node = p_private->header->left;
+    out_iter->val = p_private->header->left->data;
+    return four_iter->start;
 }
 
 static const IterType end(void)
 {
     rb_tree *this = pop_this();
     __private_rb_tree *p_private = (__private_rb_tree*)this->__obj_private;
-    p_private->finish_ptr.node = p_private->header;
-    p_private->finish_ptr.val = p_private->header->data;
-//    p_private->finish_ptr.move_from = 0;
-    return &p_private->finish_iter;
+    struct inner_iter *four_iter = thread_getspecific(p_private->iter_key);
+    if (four_iter == NULL)
+        four_iter = iter_once_init(p_private);
+    if (four_iter->finish == NULL || four_iter->finish->used_by_out) {
+        four_iter->finish = allocate(sizeof(struct __inner_iterator) + sizeof(__rb_tree_iter));
+        *four_iter->finish = __creat_iter(sizeof(__rb_tree_iter), this, p_private->memb_size, &__def_rb_tree_iter_func);
+    }
+    __rb_tree_iter *out_iter = (__rb_tree_iter*)four_iter->finish->__address;
+    out_iter->node = p_private->header;
+    out_iter->val = p_private->header->data;
+    return four_iter->finish;
 }
 
 static bool empty(void)
@@ -306,7 +414,7 @@ static size_t size(void)
     return p_private->size;
 }
 
-static IterType insert_unique(void *x)
+static const IterType insert_unique(void *x)
 {
     rb_tree *this = pop_this();
     __private_rb_tree *p_private = (__private_rb_tree*)this->__obj_private;
@@ -315,9 +423,10 @@ static IterType insert_unique(void *x)
     size_t is_unique = true;
     bool left_right = __find(p_private->header, x, &parent, &is_unique, p_private->cmp);
     if (is_unique) {
-        p_private->change_ptr.node = NULL;
-        p_private->change_ptr.val = NULL;
-        return (__iterator*)&p_private->change_iter;
+        //p_private->change_ptr.node = NULL;
+        //p_private->change_ptr.val = NULL;
+        //return (__iterator*)&p_private->change_iter;
+        return THIS(this).end();
     }
     if (parent == p_private->header) {//没有根节点
         new_node = __insert(p_private->header, &p_private->header->parent, p_private);
@@ -327,18 +436,26 @@ static IterType insert_unique(void *x)
         new_node = __insert(parent, node, p_private);
     }
     memcpy(new_node->data, x, p_private->memb_size);
-    p_private->change_ptr.node = new_node;
-    p_private->change_ptr.val = new_node->data;
+    struct inner_iter *four_iter = thread_getspecific(p_private->iter_key);
+    if (four_iter == NULL)
+        four_iter = iter_once_init(p_private);
+    if (four_iter->write_iter == NULL || four_iter->write_iter->used_by_out) {
+        four_iter->write_iter = allocate(sizeof(struct __inner_iterator) + sizeof(__rb_tree_iter));
+        *four_iter->write_iter = __creat_iter(sizeof(__rb_tree_iter), this, p_private->memb_size, &__def_rb_tree_iter_func);
+    }
+    __rb_tree_iter *out_iter = (__rb_tree_iter*)four_iter->write_iter->__address;
+    out_iter->node = new_node;
+    out_iter->val = new_node->data;
 
     //重新分配header的指向,left总是指向最小值,right总是指向最大值
     if (left_right)
         p_private->header->right = maximum(p_private->header->right);
     else
         p_private->header->left = minimum(p_private->header->left);
-    return &p_private->change_iter;
+    return four_iter->write_iter;
 }
 
-static IterType insert_equal(void *x)
+static const IterType insert_equal(void *x)
 {
     rb_tree *this = pop_this();
     __private_rb_tree *p_private = (__private_rb_tree*)this->__obj_private;
@@ -354,15 +471,23 @@ static IterType insert_equal(void *x)
         new_node = __insert(parent, node, p_private);
     }
     memcpy(new_node->data, x, p_private->memb_size);
-    p_private->change_ptr.node = new_node;
-    p_private->change_ptr.val = new_node->data;
+    struct inner_iter *four_iter = thread_getspecific(p_private->iter_key);
+    if (four_iter == NULL)
+        four_iter = iter_once_init(p_private);
+    if (four_iter->write_iter == NULL || four_iter->write_iter->used_by_out) {
+        four_iter->write_iter = allocate(sizeof(struct __inner_iterator) + sizeof(__rb_tree_iter));
+        *four_iter->write_iter = __creat_iter(sizeof(__rb_tree_iter), this, p_private->memb_size, &__def_rb_tree_iter_func);
+    }
+    __rb_tree_iter *out_iter = (__rb_tree_iter*)four_iter->write_iter->__address;
+    out_iter->node = new_node;
+    out_iter->val = new_node->data;
 
     //重新分配header的指向,left总是指向最小值,right总是指向最大值
     if (left_right)
         p_private->header->right = maximum(p_private->header->right);
     else
         p_private->header->left = minimum(p_private->header->left);
-    return &p_private->change_iter;
+    return four_iter->write_iter;
 }
 
 static void erase(IterType t)
@@ -379,7 +504,7 @@ static void clear(void)
 {
     rb_tree *this = pop_this();
     __private_rb_tree *p_private = (__private_rb_tree*)this->__obj_private;
-    struct __rb_tree_node *node = p_private->start_ptr.node, *next;
+    struct __rb_tree_node *node = p_private->header->left, *next;
     while (node == p_private->header)
     {
         node = minimum(node);
@@ -402,16 +527,22 @@ static const IterType find(void *x)
     struct __rb_tree_node *parent;
     bool left_right = __find(p_private->header, x, &parent, &is_unique, p_private->cmp);
     if (!is_unique)
-        return NULL;
+        return THIS(this).end();
     else {
-        __iterator *iter = __constructor_iter(THIS(this).begin());
-        __rb_tree_iter *rb_iter = (__rb_tree_iter*)iter->__inner.__address;
+        struct inner_iter *four_iter = thread_getspecific(p_private->iter_key);
+        if (four_iter == NULL)
+            four_iter = iter_once_init(p_private);
+        if (four_iter->read_iter == NULL || four_iter->read_iter->used_by_out) {
+            four_iter->read_iter = allocate(sizeof(struct __inner_iterator) + sizeof(__rb_tree_iter));
+            *four_iter->read_iter = __creat_iter(sizeof(__rb_tree_iter), this, p_private->memb_size, &__def_rb_tree_iter_func);
+        }
+        __rb_tree_iter *rb_iter = (__rb_tree_iter*)four_iter->read_iter->__address;
         if (parent == p_private->header)
             rb_iter->node = parent->parent;
         else
             rb_iter->node = !left_right ? parent->left : parent->right;
         rb_iter->val = rb_iter->node->data;
-        return iter;
+        return four_iter->read_iter;
     }
 }
 
@@ -424,68 +555,6 @@ static size_t count(void *x)
     __find(p_private->header, x, &parent, &is_unique, p_private->cmp);
     return is_unique;
 }
-
-static void iter_increment(__iterator *iter)
-{
-    struct __rb_tree_node *node = ((__rb_tree_iter*)iter->__inner.__address)->node;
-    if(node->right != NULL)
-    {
-        node = node->right;
-        while(node->left != NULL)
-            node=node->left;
-    } else {//往父节点上寻找
-        struct __rb_tree_node *parents=node->parent;
-        while(node == parents->right)  //为父节点右孩子时，继续往上找
-        {
-            node = parents;
-            parents = parents->parent;
-        }
-        if (node->right != parents)
-            node = parents;
-    }
-    ((__rb_tree_iter*)iter->__inner.__address)->node = node;
-    iter->val = node->data;
-}
-
-static void iter_decrement(__iterator *iter)
-{
-    struct __rb_tree_node *node = ((__rb_tree_iter *) iter->__inner.__address)->node;
-    if (node->color == __rb_tree_red && node->parent->parent == node)
-        node = node->right;
-    else if (node->left != NULL) {
-        node = node->left;
-        while (node->right != NULL)
-            node = node->right;
-    } else {
-        struct __rb_tree_node *parents = node->parent;
-        while (parents->left == node)
-        {
-            node = parents;
-            parents = parents->parent;
-        }
-        node = parents;
-    }
-    ((__rb_tree_iter *) iter->__inner.__address)->node = node;
-    iter->val = node->data;
-}
-
-static bool iter_equal(const __iterator *it1, const __iterator *it2)
-{
-    __rb_tree_iter *__it1 = (__rb_tree_iter*)it1->__inner.__address;
-    __rb_tree_iter *__it2 = (__rb_tree_iter*)it2->__inner.__address;
-    return __it1->node == __it2->node;
-}
-
-static __iterator_obj_func  __def_rb_tree_iter = {
-        NULL,
-        iter_increment,
-        iter_decrement,
-        NULL,
-        NULL,
-        NULL,
-        iter_equal
-};
-static const iterator_func __def_rb_tree_iter_func = INIT_ITER_FUNC(&__def_rb_tree_iter);
 
 static const rb_tree _def_rb_tree = {
     begin,
@@ -507,12 +576,10 @@ void init_rb_tree(rb_tree *p_tree, size_t memb_size, Compare cmp)
     p_private->memb_size = memb_size;
     p_private->size = 0;
     p_private->cmp = cmp;
-    p_private->start_iter = __creat_iter(sizeof(__rb_tree_iter), p_tree, memb_size, &__def_rb_tree_iter_func);
-    p_private->finish_iter = __creat_iter(sizeof(__rb_tree_iter), p_tree, memb_size, &__def_rb_tree_iter_func);
-    p_private->change_iter = __creat_iter(sizeof(__rb_tree_iter), p_tree, memb_size, &__def_rb_tree_iter_func);
     struct __rb_tree_node *node= __creat_rb_node(0);
     node->parent = node->left = node->right = node;
     p_private->header = node;
+    thread_key_create(&p_private->iter_key, free_inner_iter);
 }
 
 void destory_rb_tree(rb_tree *p_tree)
@@ -520,6 +587,7 @@ void destory_rb_tree(rb_tree *p_tree)
     __private_rb_tree *p_private = (__private_rb_tree*)p_tree->__obj_private;
     THIS(p_tree).clear();
     deallocate(p_private->header, 0);
+    thread_key_delete(p_private->iter_key);
 }
 
 rb_tree creat_rb_tree(size_t memb_size, Compare cmp)

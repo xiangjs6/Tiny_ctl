@@ -25,7 +25,7 @@ byte cmp(const int *a, const int *b)
 }
 
 
-/*int main(void)
+int main(void)
 {
     rb_tree tree = creat_rb_tree(sizeof(int), cmp);
     int n = 100;
@@ -68,7 +68,7 @@ byte cmp(const int *a, const int *b)
     }
     putchar('\n');
     n = 96;
-    printf("%d\n", THIS(&tree).count(&n));
+    printf("%ld\n", THIS(&tree).count(&n));
     n = 98;
     iterator(int) f_it = INIT_ITERATOR;
     ITER(f_it).copy(THIS(&tree).find(&n));
@@ -91,7 +91,7 @@ byte cmp(const int *a, const int *b)
     printf("%d %d\n", *(int*)watch->header->left->data, *(int*)watch->header->right->data);
     destory_rb_tree(&tree);
     return 0;
-}*/
+}
 
 //slist测试
 /*int main(void)
@@ -220,7 +220,7 @@ byte cmp(const int *a, const int *b)
 }*/
 
 //deque测试
-int main(void)
+/*int main(void)
 {
     deque deq = creat_deque(sizeof(int), 9);
     __private_deque *watch = deq.__obj_private;
@@ -282,7 +282,7 @@ int main(void)
     }
     putchar('\n');
     destory_deque(&deq);
-}
+}*/
 
 //vector测试
 /*
