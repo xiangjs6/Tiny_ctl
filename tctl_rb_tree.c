@@ -300,6 +300,7 @@ static struct __rb_tree_node *__insert(struct __rb_tree_node *node, struct __rb_
     new_node->parent = node;
     *access_node = new_node;
     __balance_tree_insert(p_private, new_node);
+    p_private->nmemb++;
     return new_node;
 }
 
@@ -341,14 +342,17 @@ static void __erase(struct __rb_tree_node *node, __private_rb_tree *p_private)
             next_node->parent = parent;
     }
     __rb_free_node(rep_node, p_private->memb_size);
+    p_private->nmemb--;
 }
 
 static bool __find(struct __rb_tree_node *header, void const *x, struct __rb_tree_node **parent, size_t *is_unique, Compare cmp)
 {
     struct __rb_tree_node **next = &header->parent;
     *parent = header;
-    if (header->parent == header)//树里没有节点
+    if (header->parent == header) {//树里没有节点
+        *is_unique = 0;
         return false;
+    }
     byte flag = 1;
     size_t save_is_unique = 0;
     while (*next && ((flag = cmp(x, (*next)->data)) || !*is_unique))
@@ -411,7 +415,7 @@ static size_t size(void)
 {
     rb_tree *this = pop_this();
     __private_rb_tree *p_private = (__private_rb_tree*)this->__obj_private;
-    return p_private->size;
+    return p_private->nmemb;
 }
 
 static const IterType insert_unique(void *x)
@@ -515,7 +519,7 @@ static void clear(void)
         __rb_free_node(node, p_private->memb_size);
         node = next;
     }
-    p_private->size = 0;
+    p_private->nmemb = 0;
     p_private->header->parent = p_private->header->left = p_private->header->right = p_private->header;
 }
 
@@ -574,7 +578,7 @@ void init_rb_tree(rb_tree *p_tree, size_t memb_size, Compare cmp)
     *p_tree = _def_rb_tree;
     __private_rb_tree *p_private = (__private_rb_tree *)p_tree->__obj_private;
     p_private->memb_size = memb_size;
-    p_private->size = 0;
+    p_private->nmemb = 0;
     p_private->cmp = cmp;
     struct __rb_tree_node *node= __creat_rb_node(0);
     node->parent = node->left = node->right = node;
