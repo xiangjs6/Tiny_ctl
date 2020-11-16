@@ -500,6 +500,8 @@ static void erase(IterType t)
     __iterator *it = t;
     __private_rb_tree *p_private = (__private_rb_tree*)this->__obj_private;
     __rb_tree_iter *_rb_iter = (__rb_tree_iter*)it->__inner.__address;
+    if (_rb_iter->node == p_private->header)
+        return;
     struct __rb_tree_node *erase_node = _rb_iter->node;
     __erase(erase_node, p_private);
 }
