@@ -438,6 +438,7 @@ void destory_deque(deque *p_deque)
     THIS(p_deque).clear();
     deallocate(*p_private->start_ptr.map_node, p_private->memb_size * p_private->block_nmemb);
     deallocate(p_private->mmap, p_private->mmap_len);
+    thread_key_delete(p_private->iter_key);
 }
 
 deque creat_deque(size_t memb_size, size_t block_nmemb)

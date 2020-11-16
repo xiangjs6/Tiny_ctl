@@ -431,6 +431,7 @@ void destory_list(list *p_list)
     THIS(p_list).clear();
     __private_list *p_private = (__private_list*)p_list->__obj_private;
     deallocate(p_private->node, sizeof(struct __list_node));
+    thread_key_delete(p_private->iter_key);
 }
 
 list creat_list(size_t memb_size)
