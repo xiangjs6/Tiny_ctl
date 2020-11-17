@@ -25,6 +25,7 @@ byte cmp(const int *a, const int *b)
     return 0;
 }
 
+//set测试
 int main(void)
 {
     int i;
@@ -44,9 +45,14 @@ int main(void)
     printf("3 count=%ld\n", THIS(&s).count(&ia[4]));
     i = 1;
     THIS(&s).erase(THIS(&s).find(&i));
+    THIS(&s).erase(THIS(&s).end());
+    THIS(&s).erase(THIS(&s).begin());
+    for (iterator(int) it = get_iter(THIS(&s).begin()); !ITER(it).equal(THIS(&s).end()); ITER(it).increment())
+	printf("%d ", *it->val);
+    putchar('\n');
     printf("size:%ld\n", THIS(&s).size());
     printf("3 count=%ld\n", THIS(&s).count(&ia[4]));
-    printf("0 count=%ld\n", THIS(&s).count(&ia[1]));
+    printf("1 count=%ld\n", THIS(&s).count(&ia[1]));
     iterator(int) ite1 = get_iter(THIS(&s).begin());
     iterator(int) ite2 = get_iter(THIS(&s).end());
     for (; !ITER(ite1).equal(ite2); ITER(ite1).increment())
