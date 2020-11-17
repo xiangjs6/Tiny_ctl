@@ -48,7 +48,7 @@ int main(void)
     THIS(&s).erase(THIS(&s).end());
     THIS(&s).erase(THIS(&s).begin());
     for (iterator(int) it = get_iter(THIS(&s).begin()); !ITER(it).equal(THIS(&s).end()); ITER(it).increment())
-	printf("%d ", *it->val);
+        printf("%d ", *it->val);
     putchar('\n');
     printf("size:%ld\n", THIS(&s).size());
     printf("3 count=%ld\n", THIS(&s).count(&ia[4]));

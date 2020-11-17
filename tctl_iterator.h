@@ -61,7 +61,7 @@ struct __iterator {
 };
 
 //#define iterator autofree(__destructor_iter) struct __iterator * const
-#define iterator(T) autofree(__destructor_iter) struct {struct __inner_iterator __inner; T *val;} * const
+#define iterator(T) autofree(__destructor_iter) struct {const struct __inner_iterator __inner; T *val;} * const
 
 #define ITER(p) (*(**(__iterator**)push_this((void*)&p)).__inner.iterator_func_p->iter_func)
 //#define ITER(p) (*THIS(((__iterator**)&p)).__inner.iterator_func_p->iter_func)
