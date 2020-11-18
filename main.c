@@ -14,6 +14,7 @@
 #include "tctl_priority_queue.h"
 #include "tctl_slist.h"
 #include "tctl_set.h"
+#include "tctl_map.h"
 #include <pthread.h>
 
 byte cmp(const int *a, const int *b)
@@ -25,8 +26,22 @@ byte cmp(const int *a, const int *b)
     return 0;
 }
 
-//set测试
+//map测试
 int main(void)
+{
+    map simap = creat_map(sizeof(int), sizeof(long long), cmp);
+    pair(int, long long) p;
+    p.first = 1, p.second = 100;
+    THIS(&simap).insert(&p);
+    p.first = 2, p.second = 99;
+    THIS(&simap).insert(&p);
+    int key = 2;
+    iterator(pair(int, long long)) it = get_iter(THIS(&simap).find(&key));
+    printf("%d %lld\n", it->val->first, it->val->second);
+    return 0;
+}
+//set测试
+/*int main(void)
 {
     int i;
     int ia[5] = {0, 1, 2, 3, 4};
@@ -67,6 +82,7 @@ int main(void)
     destory_set(&s);
     return 0;
 }
+*/
 
 /*
 int main(void)
