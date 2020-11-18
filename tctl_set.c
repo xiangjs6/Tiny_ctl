@@ -46,7 +46,7 @@ static const IterType insert(void *x)
     return THIS(&p_private->t).insert_unique(x);
 }
 
-size_t count(void *x)
+static size_t count(void *x)
 {
     set *this = pop_this();
     __private_set *p_private = (__private_set*)this->__obj_private;
