@@ -6,8 +6,6 @@
 #define TINY_CTL_TCTL_SET_H
 #include "tctl_rb_tree.h"
 
-typedef const __rb_tree_iter __set_iter;
-
 typedef struct {
     rb_tree t;
 } __private_set;
