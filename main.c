@@ -16,6 +16,7 @@
 #include "tctl_set.h"
 #include "tctl_map.h"
 #include <pthread.h>
+#include <string.h>
 
 byte cmp(const int *a, const int *b)
 {
@@ -26,18 +27,55 @@ byte cmp(const int *a, const int *b)
     return 0;
 }
 
+byte scmp(const char**a, const char**b)
+{
+    byte res = strcmp(*a, *b);
+    return res;
+}
+
 //map测试
 int main(void)
 {
-    map simap = creat_map(sizeof(int), sizeof(long long), cmp);
-    pair(int, long long) p;
-    p.first = 1, p.second = 100;
+    map simap = creat_map(sizeof(char*), sizeof(long long), scmp);
+    pair(char*, long long) p;
+    p.first = allocate(10);
+    strcpy(p.first, "jjhou");
+    p.second = 1;
     THIS(&simap).insert(&p);
-    p.first = 2, p.second = 99;
+    p.first = allocate(10);
+    strcpy(p.first, "jerry");
+    p.second = 2;
     THIS(&simap).insert(&p);
-    int key = 2;
-    iterator(pair(int, long long)) it = get_iter(THIS(&simap).find(&key));
-    printf("%d %lld\n", it->val->first, it->val->second);
+    p.first = allocate(10);
+    strcpy(p.first, "jason");
+    p.second = 3;
+    THIS(&simap).insert(&p);
+    p.first = allocate(10);
+    strcpy(p.first, "jimmy");
+    p.second = 4;
+    THIS(&simap).insert(&p);
+    p.first = allocate(10);
+    strcpy(p.first, "david");
+    p.second = 5;
+    THIS(&simap).insert(&p);
+    for (iterator(pair(char*, long long)) it = get_iter(THIS(&simap).begin()); !ITER(it).equal(THIS(&simap).end()); ITER(it).increment())
+        printf("key:%s val:%lld\n", it->val->first, it->val->second);
+    char key[10] = {"jjhou"};
+    char *p_key = key;
+    iterator(pair(char*, long long)) f_it = THIS(&simap).find(&p_key);
+    printf("%lld\n", f_it->val->second);
+    iterator(pair(char*, long long)) ite1 = INIT_ITERATOR;
+    strcpy(key, "mchen");
+    ITER(ite1).copy(THIS(&simap).find(&p_key));
+    if (ITER(ite1).equal(THIS(&simap).end()))
+        printf("mchen not found\n");
+    strcpy(key, "jerry");
+    ITER(ite1).copy(THIS(&simap).find(&p_key));
+    if (!ITER(ite1).equal(THIS(&simap).end()))
+        printf("jerry found\n");
+    ite1->val->second = 9;
+    iterator(pair(char*, long long)) ite2 = THIS(&simap).find(&p_key);
+    printf("%lld f_it:%lld\n", ite2->val->second, f_it->val->second);
     return 0;
 }
 //set测试
