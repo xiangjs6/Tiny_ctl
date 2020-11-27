@@ -41,9 +41,9 @@ void *ARP_MallocARel(size_t len);
 //! just like above with a destructor function
 void * ARP_CallocARelDtor(size_t num, size_t size, dtorfunc_t dtorFunc);
 void *ARP_MallocARelDtor(size_t len, dtorfunc_t dtorFunc);
-//! allocate memory whith a resident_id in release pool
-void *ARP_AssignResId(void *pMemLoc);
-
 //! just reallocate memory
 void *ARP_Realloc(void *pMemLoc, size_t size);
+//! assign a resident_id
+ARP_ResId_t ARP_AssignResId(unsigned long long minor);
+
 #endif //AUTO_RELEASE_POOL_AUTO_RELEASE_POOL_H
