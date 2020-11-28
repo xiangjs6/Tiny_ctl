@@ -2,21 +2,34 @@
 // Created by xjs on 2020/10/9.
 //
 
-#include "tctl_rb_tree.h"
-#include "tctl_allocator.h"
+#include "rb_tree.h"
 #include <memory.h>
+#include <stdbool.h>
 //private:
-static struct __rb_tree_node *__creat_rb_node(size_t memb_size)
+enum {LEFT = 1, RIGHT = 2, EQUAL = 4, NONE = 8, EXPIRE = 16};
+static char cmp(ARP_ResId_t x, ARP_ResId_t y)
 {
-    struct __rb_tree_node *node = allocate(sizeof(struct __rb_tree_node) + memb_size);
+    if (x.major < y.major)
+        return LEFT;
+    if (x.major > y.major)
+        return RIGHT;
+    if (x.minor != y.minor)
+        return EXPIRE;
+    return EQUAL;
+}
+static struct __rb_tree_node *__creat_rb_node(void)
+{
+    struct __rb_tree_node *node = malloc(sizeof(struct __rb_tree_node));
     node->parent = node->left = node->right = NULL;
     node->color = __rb_tree_red;
+    node->id = (ARP_ResId_t){0, 0};
+    node->p_node = NULL;
     return node;
 }
 
-static void __rb_free_node(struct __rb_tree_node *node, size_t memb_size)
+static void __rb_free_node(struct __rb_tree_node *node)
 {
-    deallocate(node, sizeof(struct __rb_tree_node) + memb_size);
+    free(node);
 }
 
 static struct __rb_tree_node *minimum(struct __rb_tree_node *root)
@@ -89,9 +102,9 @@ static void __turn_right_node(struct __rb_tree_node *drop_node)
         drop_node->left->parent = drop_node;
 }
 
-static void __balance_tree_insert(__private_rb_tree *p_private, struct __rb_tree_node *cur)
+static void __balance_tree_insert(struct __rb_tree_node *header, struct __rb_tree_node *cur)
 {
-    if (p_private->header->parent == cur) {//该节点为根节点
+    if (header->parent == cur) {//该节点为根节点
         cur->color = __rb_tree_black;
     } else if(cur->parent->color == __rb_tree_red) {//父节点是红色
         struct __rb_tree_node *uncle_node = __get_uncle_node(cur);
@@ -99,7 +112,7 @@ static void __balance_tree_insert(__private_rb_tree *p_private, struct __rb_tree
             uncle_node->color = __rb_tree_black;
             cur->parent->color = __rb_tree_black;
             cur->parent->parent->color = __rb_tree_red;
-            __balance_tree_insert(p_private, cur->parent->parent);
+            __balance_tree_insert(header, cur->parent->parent);
         } else {//叔叔节点是黑色
             if (!__get_left_right_node(cur->parent)) {//插入节点的父节点在爷爷节点的左侧
                 if (__get_left_right_node(cur)) {//插入节点在父节点的右侧
@@ -125,77 +138,62 @@ static void __balance_tree_insert(__private_rb_tree *p_private, struct __rb_tree
     }
 }
 
-static struct __rb_tree_node *__insert(struct __rb_tree_node *node, struct __rb_tree_node **access_node, __private_rb_tree *p_private)
+static struct __rb_tree_node *__insert(struct __rb_tree_node *node, struct __rb_tree_node **access_node, struct __rb_tree_node *header)
 {
-    struct __rb_tree_node *new_node = __creat_rb_node(p_private->memb_size);
+    struct __rb_tree_node *new_node = __creat_rb_node();
     new_node->parent = node;
     *access_node = new_node;
-    __balance_tree_insert(p_private, new_node);
-    p_private->nmemb++;
+    __balance_tree_insert(header, new_node);
     return new_node;
 }
 
-static bool __find(struct __rb_tree_node *header, void const *x, struct __rb_tree_node **parent, size_t *is_unique, Compare cmp)
+static bool __find(struct __rb_tree_node *header, ARP_ResId_t x, struct __rb_tree_node **parent)
 {
     struct __rb_tree_node **next = &header->parent;
     *parent = header;
-    if (header->parent == header) {//树里没有节点
-        *is_unique = 0;
-        return false;
-    }
-    byte flag = 1;
-    size_t save_is_unique = 0;
-    while (*next && ((flag = cmp(x, (*next)->data)) || !*is_unique))
+    if (header->parent == header)//树里没有节点
+        return NONE;
+    char flag;
+    while (*next && (flag = cmp(x, (*next)->id)) != EQUAL)
     {
-        if (!flag)
-            save_is_unique++;
-        *parent = *next;
-        next = flag < 0 ? &(*next)->left : &(*next)->right;
+        switch (flag)
+        {
+            case LEFT:
+                *parent = *next;
+                next = &(*next)->left;
+                break;
+            case RIGHT:
+                *parent = *next;
+                next = &(*next)->left;
+                break;
+            case EXPIRE:
+                flag = __get_left_right_node(*next) ? RIGHT : LEFT;
+                return EXPIRE | flag;
+        }
     }
-    if (*next && !flag)
-        save_is_unique++;
-    *is_unique = save_is_unique;
-    return &(*parent)->right == next;
-    //return next == &(*parent)->right;
-    //return flag > 0;
+    if (!*next)
+        return NONE | flag;
+    return __get_left_right_node(*next) ? RIGHT : LEFT;
 }
 
-static const IterType insert_unique(void *x)
+struct __rb_tree_node *insert_unique(rb_tree tree, ARP_ResId_t id)
 {
-    rb_tree *this = pop_this();
-    __private_rb_tree *p_private = (__private_rb_tree*)this->__obj_private;
     struct __rb_tree_node *new_node;
     struct __rb_tree_node *parent;
-    size_t is_unique = true;
-    bool left_right = __find(p_private->header, x, &parent, &is_unique, p_private->cmp);
-    if (is_unique) {
-        return THIS(this).end();
+    char flag = __find(&tree.header, id, &parent);
+    if (flag == LEFT || flag == RIGHT) {//有找到相应node
+        return flag & RIGHT ? parent->right : parent->left;
+    } else if (flag == NONE) {//没有根节点
+        new_node = __insert(&tree.header, &tree.header.parent, &tree.header);
+        //tree.header.left = tree.header.right = new_node;
+    } else if(flag & EXPIRE) {//找到的node过期
+        new_node = flag & RIGHT ? parent->right : parent->left;
+    } else {//没找到node
+        struct __rb_tree_node **node = flag & RIGHT ? &parent->right : &parent->left;//判断插入节点是父节点的左节点还是右节点
+        new_node = __insert(parent, node, &tree.header);
     }
-    if (parent == p_private->header) {//没有根节点
-        new_node = __insert(p_private->header, &p_private->header->parent, p_private);
-        p_private->header->left = p_private->header->right = new_node;
-    } else {
-        struct __rb_tree_node **node = left_right ? &parent->right : &parent->left;//判断插入节点是父节点的左节点还是右节点
-        new_node = __insert(parent, node, p_private);
-    }
-    memcpy(new_node->data, x, p_private->memb_size);
-    struct inner_iter *four_iter = thread_getspecific(p_private->iter_key);
-    if (four_iter == NULL)
-        four_iter = iter_once_init(p_private);
-    if (four_iter->write_iter == NULL || four_iter->write_iter->used_by_out) {
-        four_iter->write_iter = allocate(sizeof(struct __inner_iterator) + sizeof(__rb_tree_iter));
-        *four_iter->write_iter = __creat_iter(sizeof(__rb_tree_iter), this, p_private->memb_size, &__def_rb_tree_iter_func);
-    }
-    __rb_tree_iter *out_iter = (__rb_tree_iter*)four_iter->write_iter->__address;
-    out_iter->node = new_node;
-    out_iter->val = new_node->data;
-
-    //重新分配header的指向,left总是指向最小值,right总是指向最大值
-    if (left_right)
-        p_private->header->right = maximum(p_private->header->right);
-    else
-        p_private->header->left = minimum(p_private->header->left);
-    return four_iter->write_iter;
+    new_node->id = id;
+    return new_node;
 }
 
 static void clear(void)
