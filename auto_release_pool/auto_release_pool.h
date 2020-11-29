@@ -43,7 +43,11 @@ void * ARP_CallocARelDtor(size_t num, size_t size, dtorfunc_t dtorFunc);
 void *ARP_MallocARelDtor(size_t len, dtorfunc_t dtorFunc);
 //! just reallocate memory
 void *ARP_Realloc(void *pMemLoc, size_t size);
-//! assign a resident_id
+//! assign and free a resident_id
 ARP_ResId_t ARP_AssignResId(unsigned long long minor);
+void ARP_FreeResId(ARP_ResId_t);
+//! set memory with resident_id
+int ARP_SetResId(void *pMemLoc, ARP_ResId_t, Res_ctorfunc_t);
+void *ARP_AllocWithResId(ARP_ResId_t);
 
 #endif //AUTO_RELEASE_POOL_AUTO_RELEASE_POOL_H

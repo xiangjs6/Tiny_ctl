@@ -3,6 +3,7 @@
 //
 
 #include "auto_release_pool.h"
+#include "rb_tree.h"
 #include <pthread.h>
 #include <memory.h>
 
@@ -17,18 +18,18 @@ struct mem_node;
 struct mem_block {
     struct mem_node *p_point_node;
     size_t size;
+    ARP_ResId_t resident_id;
     dtorfunc_t dtor_func;
     char block[0];
 };
 
 struct mem_node {
     size_t refCount;
-    ARP_ResId_t resident_id;
     struct mem_block *p_block;
 };
 
 struct Rel_pool {
-    //tree;
+    rb_tree tree;
     struct Rel_pool * const pre_pool;
     size_t node_size;
 };
@@ -38,6 +39,7 @@ union pair_node {
     struct mem_node *node;
     struct Rel_pool *pool;
 };
+
 struct Rel_page {
     union {
         struct {
@@ -57,9 +59,8 @@ struct Rel_thread {
 };
 
 struct resident_node {
-    ARP_ResId_t id;
     Res_ctorfunc_t ctor_func;
-    struct mem_node *node;
+    struct mem_block *p_block;
 };
 
 static struct {
@@ -70,7 +71,7 @@ static struct {
         unsigned *bit_flag;
         unsigned bit_flag_self[sizeof(unsigned*) / sizeof(unsigned)];
     };
-} resident_memory = {sizeof(unsigned*) / sizeof(unsigned), 0, 1, (void*)~0};
+} resident_memory = {sizeof(unsigned*) / sizeof(unsigned), 0, 0, (void*)~0u};
 
 static unsigned *fullfill_flag(unsigned *bit_flag)
 {
@@ -117,7 +118,7 @@ static struct Rel_page *destory_page(struct Rel_page *cur_page)
 static struct Rel_pool *creat_pool(struct Rel_pool *cur_pool)
 {
     struct Rel_pool *new_pool = malloc(sizeof(struct Rel_pool));
-    //init tree
+    init_rb_tree(&new_pool->tree);
     new_pool->node_size = 0;
     *(void**)&new_pool->pre_pool = cur_pool;
     return new_pool;
@@ -125,7 +126,7 @@ static struct Rel_pool *creat_pool(struct Rel_pool *cur_pool)
 
 static struct Rel_pool *destory_pool(struct Rel_pool *cur_pool)
 {
-    //destory tree
+    destory_rb_tree(&cur_pool->tree);
     struct Rel_pool *pre = cur_pool->pre_pool;
     free(cur_pool);
     return pre;
@@ -164,11 +165,14 @@ static void destr_thread(void *x)
     struct Rel_thread *p_pool_thread = x;
     while (p_pool_thread->pool_size)
         ARP_FreePool();
+    pthread_spin_destroy(&resident_memory.lock);
+    pthread_key_delete(thread_key);
     free(p_pool_thread);
 }
 static void make_thread_key(void)
 {
     pthread_key_create(&thread_key, destr_thread);
+    pthread_spin_init(&resident_memory.lock, PTHREAD_PROCESS_PRIVATE);
 }
 
 static struct Rel_thread *make_thread_pool(void)
@@ -256,9 +260,23 @@ int ARP_Release(void *pMemLoc)
 
 void *ARP_Retain(void *pMemLoc)
 {
+    pthread_once(&thread_once, make_thread_key);
+    struct Rel_thread *p_pool_thread = get_thread_pool();
     struct mem_block *block = container_of(pMemLoc, struct mem_block, block);
     struct mem_node *node = block->p_point_node;
     node->refCount++;
+    if (block->resident_id.major != 0) {
+        struct rb_tree_node *rb_node = insert_unique(&p_pool_thread->cur_pool->tree, block->resident_id);
+        struct resident_node *res_node = rb_node->p_node;
+        struct mem_block *new_block = malloc(block->size);
+        *new_block = *block;
+        if (res_node->ctor_func)
+            res_node->ctor_func(new_block->block, block->block);
+        else
+            memcpy(new_block, block, block->size);
+        res_node->p_block = new_block;
+        block->resident_id.major = 0;
+    }
     return pMemLoc;
 }
 
@@ -271,7 +289,6 @@ int ARP_JoinARel(void *pMemLoc)
         return -1;
     struct mem_node *node = block->p_point_node = malloc(sizeof(struct mem_node));
     node->p_block = block;
-    node->resident_id = (ARP_ResId_t) {0, 0};
     node->refCount = 1;
     push(node, &p_pool_thread->cur_page, (void*)&p_pool_thread->next);
     p_pool_thread->cur_pool->node_size++;
@@ -296,8 +313,9 @@ void *ARP_Malloc(size_t len)
 void *ARP_MallocDtor(size_t len, dtorfunc_t dtorFunc)
 {
     struct mem_block *block = malloc(len + sizeof(struct mem_block));
-    block->size = len + sizeof(struct mem_node);
+    block->size = len + sizeof(struct mem_block);
     block->dtor_func = dtorFunc;
+    block->resident_id = (ARP_ResId_t) {0, 0};
     block->p_point_node = NULL;
     return block->block;
 }
@@ -342,6 +360,7 @@ void *ARP_Realloc(void *pMemLoc, size_t size)
 
 ARP_ResId_t ARP_AssignResId(unsigned long long minor)
 {
+    pthread_once(&thread_once, make_thread_key);
     ARP_ResId_t res_id = {0, minor};
     pthread_spin_lock(&resident_memory.lock);
     unsigned *bit_flag = resident_memory.len == (sizeof(unsigned *) / sizeof(unsigned)) ? resident_memory.bit_flag_self
@@ -364,4 +383,69 @@ ARP_ResId_t ARP_AssignResId(unsigned long long minor)
     pthread_spin_unlock(&resident_memory.lock);
     res_id.major = cal_pos(mask, i);
     return res_id;
+}
+
+void ARP_FreeResId(ARP_ResId_t id)
+{
+    pthread_once(&thread_once, make_thread_key);
+    size_t i = (id.major - 1) / (sizeof(unsigned) * 8);
+    size_t pos = (id.major - 1) % (sizeof(unsigned) * 8);
+    pthread_spin_lock(&resident_memory.lock);
+    unsigned *bit_flag = resident_memory.len == (sizeof(unsigned *) / sizeof(unsigned)) ? resident_memory.bit_flag_self
+                                                                                        : resident_memory.bit_flag;
+    bit_flag[i] |= 1u << pos;
+    pthread_spin_unlock(&resident_memory.lock);
+}
+
+int ARP_SetResId(void *pMemLoc, ARP_ResId_t id, Res_ctorfunc_t ctorFunc)
+{
+    pthread_once(&thread_once, make_thread_key);
+    struct Rel_thread *p_pool_thread = get_thread_pool();
+    struct mem_block *block = container_of(pMemLoc, struct mem_block, block);
+    if (block->resident_id.major != 0)
+        return -1;
+    block->resident_id = id;
+    struct rb_tree_node *rb_node = insert_unique(&p_pool_thread->cur_pool->tree, id);
+    struct resident_node *res_node = rb_node->p_node = malloc(sizeof(struct resident_node));
+    res_node->p_block = block;
+    res_node->ctor_func = ctorFunc;
+    return 0;
+
+    if (!rb_node->p_node) {
+        struct rb_tree_node *old_node;
+        struct Rel_pool *pool = p_pool_thread->cur_pool->pre_pool;
+        while (!(old_node = find(&pool->tree, id)))
+            pool = pool->pre_pool;
+
+    }
+}
+
+void *ARP_AllocWithResId(ARP_ResId_t id)
+{
+    pthread_once(&thread_once, make_thread_key);
+    struct Rel_thread *p_pool_thread = get_thread_pool();
+    struct rb_tree_node *rb_node = insert_unique(&p_pool_thread->cur_pool->tree, id);
+    struct resident_node *res_node = rb_node->p_node;
+    if (!rb_node->p_node) {
+        struct rb_tree_node *old_node;
+        struct Rel_pool *pool = p_pool_thread->cur_pool->pre_pool;
+        while (pool && !(old_node = find(&pool->tree, id)))
+            pool = pool->pre_pool;
+        if (!pool)
+            return NULL;
+        struct resident_node *old_res_node = old_node->p_node;
+        res_node = rb_node->p_node = malloc(sizeof(struct resident_node));
+        res_node->ctor_func = old_res_node->ctor_func;
+        res_node->p_block = malloc(old_res_node->p_block->size);
+        *res_node->p_block = *old_res_node->p_block;
+        if (res_node->ctor_func)
+            res_node->ctor_func(res_node->p_block, old_res_node->p_block);
+        else
+            memcpy(res_node->p_block, old_res_node->p_block, old_res_node->p_block->size);
+        if (res_node->p_block->p_point_node) {
+            res_node->p_block->p_point_node = NULL;
+            ARP_JoinARel(res_node->p_block->block);
+        }
+    }
+    return res_node->p_block->block;
 }
