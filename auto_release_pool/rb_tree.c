@@ -28,8 +28,17 @@ static struct rb_tree_node *__creat_rb_node(void)
     return node;
 }
 
+static bool __get_left_right_node(struct rb_tree_node *node)
+{
+    return node->parent->right == node;
+}
+
 static void __rb_free_node(struct rb_tree_node *node)
 {
+    if (!__get_left_right_node(node))
+        node->parent->left = NULL;
+    else
+        node->parent->right = NULL;
     free(node);
 }
 
@@ -47,11 +56,6 @@ static struct rb_tree_node *maximum(struct rb_tree_node *root)
     while (node->right)
         node = node->right;
     return node;
-}
-
-static bool __get_left_right_node(struct rb_tree_node *node)
-{
-    return node->parent->right == node;
 }
 
 static struct rb_tree_node *__get_uncle_node(struct rb_tree_node *node)
@@ -165,7 +169,7 @@ static char __find(struct rb_tree_node *header, ARP_ResId_t x, struct rb_tree_no
                 break;
             case RIGHT:
                 *parent = *next;
-                next = &(*next)->left;
+                next = &(*next)->right;
                 break;
             case EXPIRE:
                 flag = __get_left_right_node(*next) ? RIGHT : LEFT;

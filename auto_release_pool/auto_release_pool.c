@@ -71,7 +71,7 @@ static struct {
         unsigned *bit_flag;
         unsigned bit_flag_self[sizeof(unsigned*) / sizeof(unsigned)];
     };
-} resident_memory = {sizeof(unsigned*) / sizeof(unsigned), 0, 0, (void*)~0u};
+} resident_memory = {sizeof(unsigned*) / sizeof(unsigned), 0, 0, (unsigned*)~0llu};
 
 static unsigned *fullfill_flag(unsigned *bit_flag)
 {
@@ -410,14 +410,6 @@ int ARP_SetResId(void *pMemLoc, ARP_ResId_t id, Res_ctorfunc_t ctorFunc)
     res_node->p_block = block;
     res_node->ctor_func = ctorFunc;
     return 0;
-
-    if (!rb_node->p_node) {
-        struct rb_tree_node *old_node;
-        struct Rel_pool *pool = p_pool_thread->cur_pool->pre_pool;
-        while (!(old_node = find(&pool->tree, id)))
-            pool = pool->pre_pool;
-
-    }
 }
 
 void *ARP_AllocWithResId(ARP_ResId_t id)
