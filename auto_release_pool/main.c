@@ -27,6 +27,13 @@ int main()
     ARP_Release(p);
     ppp = ARP_AllocWithResId(id);
     printf("%s %p\n", ppp, ppp);
+    ARP_FreeResId(id);
+    char *last = ARP_MallocARel(32);
+    strcpy(last, "hhhhh");
+    id = ARP_AssignResId(10);
+    ARP_SetResId(last, id, NULL);
+    ppp = ARP_AllocWithResId(id);
+    printf("%s %p\n", ppp, ppp);
     ARP_FreePool();
     return 0;
 }

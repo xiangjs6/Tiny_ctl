@@ -406,7 +406,9 @@ int ARP_SetResId(void *pMemLoc, ARP_ResId_t id, Res_ctorfunc_t ctorFunc)
         return -1;
     block->resident_id = id;
     struct rb_tree_node *rb_node = insert_unique(&p_pool_thread->cur_pool->tree, id);
-    struct resident_node *res_node = rb_node->p_node = malloc(sizeof(struct resident_node));
+    if (!rb_node->p_node)
+        rb_node->p_node = malloc(sizeof(struct resident_node));
+    struct resident_node *res_node = rb_node->p_node;
     res_node->p_block = block;
     res_node->ctor_func = ctorFunc;
     return 0;
