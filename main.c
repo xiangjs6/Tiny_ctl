@@ -34,7 +34,7 @@ byte scmp(const char**a, const char**b)
 }
 
 //map测试
-int main(void)
+/*int main(void)
 {
     map simap = creat_map(sizeof(char*), sizeof(long long), scmp);
     pair(char*, long long) p;
@@ -77,7 +77,7 @@ int main(void)
     iterator(pair(char*, long long)) ite2 = THIS(&simap).find(&p_key);
     printf("%lld f_it:%lld\n", ite2->val->second, f_it->val->second);
     return 0;
-}
+}*/
 //set测试
 /*int main(void)
 {
@@ -122,7 +122,7 @@ int main(void)
 }
 */
 
-/*
+//红黑树
 int main(void)
 {
     rb_tree tree = creat_rb_tree(sizeof(int), cmp);
@@ -151,11 +151,6 @@ int main(void)
     //n = 1;
     //THIS(&tree).insert_equal(&n);
     __private_rb_tree *watch = tree.__obj_private;
-    __attribute__((cleanup(__destructor_iter)))
-    struct {
-        struct __inner_iterator __inner;
-        int *val;
-    } * const a;
     iterator(int) it = INIT_ITERATOR;
     for (ITER(it).copy(THIS(&tree).begin()); !ITER(it).equal(THIS(&tree).end()); ITER(it).increment()) {
         printf("%d ", *it->val);
@@ -187,10 +182,13 @@ int main(void)
     ITER(f_it).copy(THIS(&tree).find(&n));
     printf("find:%d\n", *f_it->val);
     printf("%d %d\n", *(int*)watch->header->left->data, *(int*)watch->header->right->data);
+    for (ITER(it).copy(THIS(&tree).begin()); !ITER(it).equal(THIS(&tree).end()); ITER(it).increment()) {
+        printf("%d ", *it->val);
+    }
+    putchar('\n');
     destory_rb_tree(&tree);
     return 0;
 }
- */
 
 //slist测试
 /*int main(void)

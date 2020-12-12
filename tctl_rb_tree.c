@@ -115,10 +115,10 @@ static bool __get_left_right_node(struct __rb_tree_node *node)
 
 static void __rb_free_node(struct __rb_tree_node *node, size_t memb_size)
 {
-    if (!__get_left_right_node(node))
+    /*if (!__get_left_right_node(node))
         node->parent->left = NULL;
     else
-        node->parent->right = NULL;
+        node->parent->right = NULL;*/
     deallocate(node, sizeof(struct __rb_tree_node) + memb_size);
 }
 
@@ -322,14 +322,14 @@ static void __erase(struct __rb_tree_node *node, __private_rb_tree *p_private)
     //删除
     struct __rb_tree_node *parent = rep_node->parent;
     struct __rb_tree_node *next_node = rep_node == node ? rep_node->left : rep_node->right;
-    if (p_private->header->left == rep_node) {
+    /*if (p_private->header->left == rep_node) {
         p_private->header->left = rep_node->parent;
     } else if (p_private->header->right == rep_node) {
         if (next_node)
             parent->right->right = maximum(next_node);
         else
             p_private->header->right = parent;
-    }
+    }*/
     if (rep_node == rep_node->parent->parent) {
         next_node = next_node ? next_node : p_private->header;
         if (next_node == p_private->header)
@@ -346,6 +346,8 @@ static void __erase(struct __rb_tree_node *node, __private_rb_tree *p_private)
             next_node->parent = parent;
     }
     __rb_free_node(rep_node, p_private->memb_size);
+    p_private->header->left = minimum(p_private->header->parent);
+    p_private->header->right = maximum(p_private->header->parent);
     p_private->nmemb--;
 }
 
@@ -522,6 +524,10 @@ static void clear(void)
         if (node->left)
             continue;
         next = node->parent;
+        if (!__get_left_right_node(node))
+            node->parent->left = NULL;
+        else
+            node->parent->right = NULL;
         __rb_free_node(node, p_private->memb_size);
         node = next;
     }
