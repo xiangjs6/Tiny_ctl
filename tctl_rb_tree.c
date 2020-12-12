@@ -108,8 +108,17 @@ static struct __rb_tree_node *__creat_rb_node(size_t memb_size)
     return node;
 }
 
+static bool __get_left_right_node(struct __rb_tree_node *node)
+{
+    return node->parent->right == node;
+}
+
 static void __rb_free_node(struct __rb_tree_node *node, size_t memb_size)
 {
+    if (!__get_left_right_node(node))
+        node->parent->left = NULL;
+    else
+        node->parent->right = NULL;
     deallocate(node, sizeof(struct __rb_tree_node) + memb_size);
 }
 
@@ -127,11 +136,6 @@ static struct __rb_tree_node *maximum(struct __rb_tree_node *root)
     while (node->right)
         node = node->right;
     return node;
-}
-
-static bool __get_left_right_node(struct __rb_tree_node *node)
-{
-    return node->parent->right == node;
 }
 
 static struct __rb_tree_node *__get_uncle_node(struct __rb_tree_node *node)
@@ -511,7 +515,7 @@ static void clear(void)
     rb_tree *this = pop_this();
     __private_rb_tree *p_private = (__private_rb_tree*)this->__obj_private;
     struct __rb_tree_node *node = p_private->header->left, *next;
-    while (node == p_private->header)
+    while (node != p_private->header)
     {
         node = minimum(node);
         node = maximum(node);
