@@ -3,10 +3,10 @@
 //
 
 #include "auto_release_pool.h"
+#include "../tctl_debug.h"
+#include "../tctl_common.h"
 #include <pthread.h>
-
 #include <stddef.h>
-#define container_of(ptr, type, member) ((type *) ((char *)(ptr) - offsetof(type, member)))
 
 #define GUARD NULL
 #define PAGE_SIZE 4096
@@ -199,7 +199,7 @@ int ARP_JoinARel(void *pMemLoc)
     pthread_once(&thread_once, make_thread_key);
     struct Rel_thread *p_pool_thread = get_thread_pool();
     if (!p_pool_thread->pool_size)
-        exit(-1);
+        exit_log("There is no memory pool available\n");
     struct mem_node *node = container_of(pMemLoc, struct mem_node, block);
     if (node->p_pool_node)
         return -1;
