@@ -65,7 +65,7 @@ static bool equal(const IterType iter)
     return p_it->__inner.iterator_func_p->private_iter_func->iter_equal(p_it, iter);
 }
 
-void copy(const IterType iter)
+static void copy(const IterType iter)
 {
     __iterator **pp_it = pop_this();
     __iterator *p_it = *pp_it;

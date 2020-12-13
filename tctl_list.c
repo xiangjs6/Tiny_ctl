@@ -107,7 +107,7 @@ static __list_iter __insert(list *this, __list_iter iter, void *x)
 }
 
 //public
-void *at(int pos)
+static void *at(int pos)
 {
     list *this = pop_this();
     __private_list *p_private = (__private_list*)this->__obj_private;
