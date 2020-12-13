@@ -329,7 +329,7 @@ static bool __find(struct __rb_tree_node *header, void const *x, struct __rb_tre
         *is_unique = 0;
         return false;
     }
-    byte flag = 1;
+    int flag = 1;
     size_t save_is_unique = 0;
     while (*next && ((flag = cmp(x, (*next)->data)) || !*is_unique))
     {

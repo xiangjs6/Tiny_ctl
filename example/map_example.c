@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include "tctl_iterator.h"
 #include "tctl_map.h"
-#include "tctl_allocator.c"
+#include "tctl_allocator.h"
 #include <string.h>
 
-byte scmp(const char**a, const char**b)
+int scmp(const char**a, const char**b)
 {
-    byte res = strcmp(*a, *b);
+    int res = strcmp(*a, *b);
     return res;
 }
 //map测试

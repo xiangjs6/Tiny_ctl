@@ -19,7 +19,7 @@
 #include <pthread.h>
 #include <string.h>
 
-byte cmp(const int *a, const int *b)
+int cmp(const int *a, const int *b)
 {
     if (*a > *b)
         return 1;
@@ -28,9 +28,9 @@ byte cmp(const int *a, const int *b)
     return 0;
 }
 
-byte scmp(const char**a, const char**b)
+int scmp(const char**a, const char**b)
 {
-    byte res = strcmp(*a, *b);
+    int res = strcmp(*a, *b);
     return res;
 }
 

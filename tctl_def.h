@@ -12,7 +12,7 @@
 typedef long long offset_t;
 typedef char byte;
 
-typedef byte (*Compare)(const void *, const void *);
+typedef int (*Compare)(const void *, const void *);
 
 #define pair(FT, ST) struct {FT first; ST second;} BYTE_ALIGNED
 #endif //TINY_CTL_TCTL_DEF_H
