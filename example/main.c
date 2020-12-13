@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include "auto_release_pool/auto_release_pool.h"
 #include "tctl_allocator.h"
 #include "tctl_object.h"
 #include "tctl_common.h"
@@ -34,8 +35,10 @@ byte scmp(const char**a, const char**b)
 }
 
 //map测试
-/*int main(void)
+/*
+int main(void)
 {
+    ARP_CreatePool();
     map simap = creat_map(sizeof(char*), sizeof(long long), scmp);
     pair(char*, long long) p;
     p.first = allocate(10);
@@ -58,7 +61,7 @@ byte scmp(const char**a, const char**b)
     strcpy(p.first, "david");
     p.second = 5;
     THIS(&simap).insert(&p);
-    for (iterator(pair(char*, long long)) it = get_iter(THIS(&simap).begin()); !ITER(it).equal(THIS(&simap).end()); ITER(it).increment())
+    for (iterator(pair(char*, long long)) it = THIS(&simap).begin(); !ITER(it).equal(THIS(&simap).end()); ITER(it).increment())
         printf("key:%s val:%lld\n", it->val->first, it->val->second);
     char key[10] = {"jjhou"};
     char *p_key = key;
@@ -76,11 +79,15 @@ byte scmp(const char**a, const char**b)
     ite1->val->second = 9;
     iterator(pair(char*, long long)) ite2 = THIS(&simap).find(&p_key);
     printf("%lld f_it:%lld\n", ite2->val->second, f_it->val->second);
+    ARP_FreePool();
     return 0;
-}*/
+}
+*/
+
 //set测试
 /*int main(void)
 {
+    ARP_CreatePool();
     int i;
     int ia[5] = {0, 1, 2, 3, 4};
     set s = creat_set(sizeof(int), cmp);
@@ -100,14 +107,14 @@ byte scmp(const char**a, const char**b)
     THIS(&s).erase(THIS(&s).find(&i));
     THIS(&s).erase(THIS(&s).end());
     THIS(&s).erase(THIS(&s).begin());
-    for (iterator(int) it = get_iter(THIS(&s).begin()); !ITER(it).equal(THIS(&s).end()); ITER(it).increment())
+    for (iterator(int) it = THIS(&s).begin(); !ITER(it).equal(THIS(&s).end()); ITER(it).increment())
         printf("%d ", *it->val);
     putchar('\n');
     printf("size:%ld\n", THIS(&s).size());
     printf("3 count=%ld\n", THIS(&s).count(&ia[4]));
     printf("1 count=%ld\n", THIS(&s).count(&ia[1]));
-    iterator(int) ite1 = get_iter(THIS(&s).begin());
-    iterator(int) ite2 = get_iter(THIS(&s).end());
+    iterator(int) ite1 = THIS(&s).begin();
+    iterator(int) ite2 = THIS(&s).end();
     for (; !ITER(ite1).equal(ite2); ITER(ite1).increment())
         printf("%d ", *ite1->val);
     putchar('\n');
@@ -118,13 +125,14 @@ byte scmp(const char**a, const char**b)
     if (ITER(ite1).equal(ite2))
         printf("1 not found\n");
     destory_set(&s);
+    ARP_FreePool();
     return 0;
-}
-*/
+}*/
 
 //红黑树
-int main(void)
+/*int main(void)
 {
+    ARP_CreatePool();
     rb_tree tree = creat_rb_tree(sizeof(int), cmp);
     int n = 100;
     THIS(&tree).insert_equal(&n);
@@ -187,12 +195,14 @@ int main(void)
     }
     putchar('\n');
     destory_rb_tree(&tree);
+    ARP_FreePool();
     return 0;
-}
+}*/
 
 //slist测试
 /*int main(void)
 {
+    ARP_CreatePool();
     slist sl = creat_slist(sizeof(int));
     for (int i = 0; i < 20; i++) {
         int temp = random() % 20;
@@ -201,7 +211,7 @@ int main(void)
     }
     putchar('\n');
     THIS(&sl).pop_front();
-    iterator(int) in_it = get_iter(THIS(&sl).begin());
+    iterator(int) in_it = THIS(&sl).begin();
     ITER(in_it).increment();
     ITER(in_it).increment();
     int temp = 100;
@@ -218,21 +228,23 @@ int main(void)
     }
     THIS(&sl).swap(&sl2);
 
-    for (iterator(int) it = get_iter(THIS(&sl).begin()); !ITER(it).equal(THIS(&sl).end()); ITER(it).increment())
+    for (iterator(int) it = THIS(&sl).begin(); !ITER(it).equal(THIS(&sl).end()); ITER(it).increment())
         printf("%d ", *(int*)it->val);
     putchar('\n');
-    for (iterator(int) it = get_iter(THIS(&sl2).begin()); !ITER(it).equal(THIS(&sl2).end()); ITER(it).increment())
+    for (iterator(int) it = THIS(&sl2).begin(); !ITER(it).equal(THIS(&sl2).end()); ITER(it).increment())
         printf("%d ", *(int*)it->val);
     putchar('\n');
     printf("%c\n", *("YN" + !THIS(&sl).empty()));
     destory_slist(&sl);
     destory_slist(&sl2);
     printf("%c\n", *("YN" + !THIS(&sl).empty()));
+    ARP_FreePool();
 }*/
 
 //priority_queue测试
 /*int main(void)
 {
+    ARP_CreatePool();
     priority_queue pri_que = creat_priority_queue(sizeof(int), cmp);
     for (int i = 0; i < 30; i++) {
         int temp = random() % 100;
@@ -244,13 +256,15 @@ int main(void)
     }
     putchar('\n');
     destory_priority_queue(&pri_que);
+    ARP_FreePool();
 }*/
 
 //heap测试
 /*int main(void)
 {
+    ARP_CreatePool();
     int temp;
-    vector v = creat_vector(0, sizeof(int), NULL);
+    vector v = creat_vector(sizeof(int));
     for (int i = 0; i < 10; i++) {
         temp = random() % 10;
         printf("%d ", temp);
@@ -273,12 +287,14 @@ int main(void)
         printf("%d ", *(int*)THIS(&v).at(i));
     putchar('\n');
     destory_vector(&v);
+    ARP_FreePool();
     return 0;
 }*/
 
 //stack测试
 /*int main(void)
 {
+    ARP_CreatePool();
     stack st = creat_stack(sizeof(int));
     for (int i = 0; i < 10; i++)
         THIS(&st).push(&i);
@@ -292,12 +308,15 @@ int main(void)
     }
     putchar('\n');
     printf("empty:%c\n", *("YN" + THIS(&st).empty()));
+    ARP_FreePool();
     return 0;
 }*/
 
 //queue测试
-/*int main(void)
+/*
+int main(void)
 {
+    ARP_CreatePool();
     queue que;// = creat_queue(sizeof(int));
     init_queue(&que, sizeof(int));
     for (int i = 0; i < 10; i++)
@@ -314,11 +333,14 @@ int main(void)
     putchar('\n');
     printf("empty:%c\n", *("YN" + THIS(&que).empty()));
     destory_queue(&que);
-}*/
+    ARP_FreePool();
+}
+*/
 
 //deque测试
 /*int main(void)
 {
+    ARP_CreatePool();
     deque deq = creat_deque(sizeof(int), 9);
     __private_deque *watch = deq.__obj_private;
     //init_deque(&deq, sizeof(int), 9);
@@ -334,7 +356,7 @@ int main(void)
         THIS(&deq).push_back(&i);
     for (int i = 40; i < 50; i++)
         THIS(&deq).push_front(&i);
-    iterator(int) it_it = get_iter(THIS(&deq).begin());
+    iterator(int) it_it = THIS(&deq).begin();
     __deque_iter *er_it = it_it->__inner.__address;
     er_it->cur += 4;
     //THIS(&deq).erase(&er_it);
@@ -371,7 +393,7 @@ int main(void)
         printf("%d ", *temp);
     }
     putchar('\n');
-    for (iterator(int) it = get_iter(THIS(&deq).begin()); !ITER(it).equal(THIS(&deq).end()); ITER(it).increment()) {
+    for (iterator(int) it = THIS(&deq).begin(); !ITER(it).equal(THIS(&deq).end()); ITER(it).increment()) {
         printf("%d ", *it->val);
         long long r = ITER(it).diff(THIS(&deq).end());
         r = ITER(it).diff(THIS(&deq).begin());
@@ -379,28 +401,32 @@ int main(void)
     }
     putchar('\n');
     destory_deque(&deq);
+    ARP_FreePool();
 }*/
 
 //vector测试
-/*
 void *thread(void *arg)
 {
+    ARP_CreatePool();
 	vector *v = arg;
-    	printf("%p\n", v);
+    //printf("%p\n", v);
 	for (int i = 0; i < 1000; i++)
 		THIS(v).begin();
 	printf("end\n");
 	for (int i = 0; i < 1000; i++)
 		THIS(v).end();
+	printf("over\n");
+	ARP_FreePool();
 }
 int main(void)
 {
+    ARP_CreatePool();
     vector v;// = creat_vector(sizeof(int));
     init_vector(&v, sizeof(int));
     __private_vector *a = v.__obj_private;
     //printf("%d %d %d\n", sizeof(__iterator), sizeof(__private_vector), sizeof(a->start_ptr) + sizeof(a->start_iter));
     //init_vector(&v, 0, sizeof(int), NULL);
-    printf("%p\n", &v);
+    //printf("%p\n", &v);
     pthread_t p1;
     pthread_t p2;
     pthread_create(&p1, NULL, thread, &v);
@@ -414,12 +440,12 @@ int main(void)
     }
     for (int i = 0; i < 5; i++)
         THIS(&v).pop_back();
-    for (iterator(int) it = get_iter(THIS(&v).begin()); !ITER(it).equal(THIS(&v).end()); ITER(it).increment()) {
+    for (iterator(int) it = THIS(&v).begin(); !ITER(it).equal(THIS(&v).end()); ITER(it).increment()) {
         printf("%d ", *it->val);
     }
     putchar('\n');
     printf("insert\n");
-    iterator(int) in_it = get_iter(THIS(&v).begin());
+    iterator(int) in_it = THIS(&v).begin();
     int temp = 1000;
     THIS(&v).insert(in_it, &temp);
     for (int i = 0; i < THIS(&v).size(); i++)
@@ -453,9 +479,9 @@ int main(void)
     putchar('\n');
     ITER(in_it).increment();
     THIS(&v).erase(in_it);
-    for (iterator(int) it = get_iter(THIS(&v).begin()); !ITER(it).equal(THIS(&v).end()); ITER(it).increment()) {
+    for (iterator(int) it = THIS(&v).begin(); !ITER(it).equal(THIS(&v).end()); ITER(it).increment()) {
         printf("%d ", *(int*)it->val);
-        iterator(int) itt = get_iter(THIS(&v).begin());
+        iterator(int) itt = THIS(&v).begin();
         int t = ITER(it).diff(itt);
         t = 0;
     }
@@ -471,13 +497,13 @@ int main(void)
         printf("%d ", *(int*)THIS(&v).at(i));
     putchar('\n');
     destory_vector(&v);
+    ARP_FreePool();
 }
-*/
 
 // list测试
-/*
-int main(void)
+/*int main(void)
 {
+    ARP_CreatePool();
     list l = creat_list(sizeof(int));
     //init_list(&l, sizeof(int));
     int temp = 1;
@@ -490,18 +516,18 @@ int main(void)
     int temp1 = 20;
     THIS(&l).pop_front();
     THIS(&l).push_front(&temp1);
-    iterator(int) iter = get_iter(THIS(&l).begin());
+    iterator(int) iter = THIS(&l).begin();
     THIS(&l).insert(iter, &temp);
     ITER(iter).increment();
     ITER(iter).increment();
-    for (iterator(int) it = get_iter(THIS(&l).begin()); !ITER(it).equal(THIS(&l).end()); ITER(it).increment()) {
+    for (iterator(int) it = THIS(&l).begin(); !ITER(it).equal(THIS(&l).end()); ITER(it).increment()) {
         printf("%d\n", *it->val);
         //THIS(&l).insert(*it, &temp);
     }
     printf("it:%d\n", *(int*)iter->val);
     THIS(&l).erase(iter);
     printf("first\n");
-    for (iterator(int) it = get_iter(THIS(&l).begin()); !ITER(it).equal(THIS(&l).end()); ITER(it).increment()) {
+    for (iterator(int) it = THIS(&l).begin(); !ITER(it).equal(THIS(&l).end()); ITER(it).increment()) {
         printf("%d\n", *(int*)it->val);
         //THIS(&l).insert(*it, &temp);
     }
@@ -509,12 +535,12 @@ int main(void)
     temp1 = 4;
     THIS(&l).push_back(&temp1);
     printf("second\n");
-    for (iterator(int) it = get_iter(THIS(&l).begin()); !ITER(it).equal(THIS(&l).end()); ITER(it).increment()) {
+    for (iterator(int) it = THIS(&l).begin(); !ITER(it).equal(THIS(&l).end()); ITER(it).increment()) {
         printf("%d\n", *(int*)it->val);
     }
     THIS(&l).unique();
     printf("third\n");
-    iterator(int) r_it = get_iter(THIS(&l).end());
+    iterator(int) r_it = THIS(&l).end();
     ITER(r_it).decrement();
     printf("%d\n", *(int*)ITER(r_it).decrement());
     for (; ITER(r_it).equal(THIS(&l).end()); !ITER(r_it).decrement()) {
@@ -526,12 +552,12 @@ int main(void)
         THIS(&l2).push_back(&i);
     printf("splice\n");
     THIS(&l).splice(THIS(&l).begin(), &l2, THIS(&l2).begin(), THIS(&l2).end());
-    for (iterator(int) it = get_iter(THIS(&l).begin()); !ITER(it).equal(THIS(&l).end()); ITER(it).increment()) {
+    for (iterator(int) it = THIS(&l).begin(); !ITER(it).equal(THIS(&l).end()); ITER(it).increment()) {
         printf("%d\n", *(int*)it->val);
     }
     printf("reverse\n");
     THIS(&l).reverse();
-    for (iterator(int) it = get_iter(THIS(&l).begin()); !ITER(it).equal(THIS(&l).end()); ITER(it).increment()) {
+    for (iterator(int) it = THIS(&l).begin(); !ITER(it).equal(THIS(&l).end()); ITER(it).increment()) {
         printf("%d\n", *(int*)it->val);
     }
     printf("front%d\n", *(int*)THIS(&l).front());
@@ -546,10 +572,10 @@ int main(void)
         THIS(&l1).push_back(&i);
         THIS(&l3).push_back(&i);
     }
-    for (iterator(int) it = get_iter(THIS(&l1).begin()); !ITER(it).equal(THIS(&l1).end()); ITER(it).increment())
+    for (iterator(int) it = THIS(&l1).begin(); !ITER(it).equal(THIS(&l1).end()); ITER(it).increment())
         printf("%d\n", *(int*)it->val);
     THIS(&l1).merge(&l3, cmp);
-    for (iterator(int) it = get_iter(THIS(&l1).begin()); !ITER(it).equal(THIS(&l1).end()); ITER(it).increment())
+    for (iterator(int) it = THIS(&l1).begin(); !ITER(it).equal(THIS(&l1).end()); ITER(it).increment())
         printf("%d\n", *(int*)it->val);
     printf("sort\n");
     THIS(&l).clear();
@@ -558,7 +584,7 @@ int main(void)
         THIS(&l).push_back(&temp);
     }
     THIS(&l).sort(cmp);
-    for (iterator(int) it = get_iter(THIS(&l).begin()); !ITER(it).equal(THIS(&l).end()); ITER(it).increment()) {
+    for (iterator(int) it = THIS(&l).begin(); !ITER(it).equal(THIS(&l).end()); ITER(it).increment()) {
         printf("%d\n", *(int*)it->val);
     }
     for (int i = 1; i < 10000; i++) {
@@ -568,6 +594,7 @@ int main(void)
         }
     }
     destory_list(&l);
+    printf("%d\n", ARP_GetPoolNodesCount());
+    ARP_FreePool();
     return 0;
-}
-*/
+}*/

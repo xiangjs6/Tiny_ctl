@@ -1,7 +1,7 @@
 CC = gcc
 C_FLAGS = -g -Wall
 INCLUDE = -I..
-LIBS = -L.. -ltiny_ctl
+LIBS = -L.. -ltiny_ctl -lpthread
 #wildcard对cpp文件进行展开
 SRCS := $(wildcard *.c)
 #将SRCS中后缀.c替换成空，即可执行程序的名字与c名字相同

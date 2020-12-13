@@ -12,6 +12,7 @@ byte scmp(const char**a, const char**b)
 //map测试
 int main(void)
 {
+    ARP_CreatePool();
     map simap = creat_map(sizeof(char*), sizeof(long long), scmp);
     pair(char*, long long) p;
     p.first = allocate(10);
@@ -34,7 +35,7 @@ int main(void)
     strcpy(p.first, "david");
     p.second = 5;
     THIS(&simap).insert(&p);
-    for (iterator(pair(char*, long long)) it = get_iter(THIS(&simap).begin()); !ITER(it).equal(THIS(&simap).end()); ITER(it).increment())
+    for (iterator(pair(char*, long long)) it = THIS(&simap).begin(); !ITER(it).equal(THIS(&simap).end()); ITER(it).increment())
         printf("key:%s val:%lld\n", it->val->first, it->val->second);
     char key[10] = {"jjhou"};
     char *p_key = key;
@@ -52,5 +53,6 @@ int main(void)
     ite1->val->second = 9;
     iterator(pair(char*, long long)) ite2 = THIS(&simap).find(&p_key);
     printf("%lld f_it:%lld\n", ite2->val->second, f_it->val->second);
+    ARP_FreePool();
     return 0;
 }
