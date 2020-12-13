@@ -10,7 +10,7 @@
 static void *iter_at(__iterator *iter, int pos)
 {
     __vector_iter const *_iter = &iter->val;
-    vector *this = pop_this();
+    vector *this = iter->__inner.obj_this;
     __private_vector *p_private = (__private_vector*)this->__obj_private;
     return *_iter + pos * p_private->memb_size;
 }
@@ -18,7 +18,7 @@ static void *iter_at(__iterator *iter, int pos)
 static void iter_increment(__iterator *iter)
 {
     __vector_iter *_iter = (__vector_iter*)&iter->val;
-    vector *this = pop_this();
+    vector *this = iter->__inner.obj_this;
     __private_vector *p_private = (__private_vector*)this->__obj_private;
     *_iter += p_private->memb_size;
 }
@@ -26,7 +26,7 @@ static void iter_increment(__iterator *iter)
 static void iter_decrement(__iterator *iter)
 {
     __vector_iter *_iter = &iter->val;
-    vector *this = pop_this();
+    vector *this = iter->__inner.obj_this;
     __private_vector *p_private = (__private_vector*)this->__obj_private;
     *_iter -= p_private->memb_size;
 }
@@ -34,7 +34,7 @@ static void iter_decrement(__iterator *iter)
 static void iter_add(__iterator *iter, int x)
 {
     __vector_iter *_iter = &iter->val;
-    vector *this = pop_this();
+    vector *this = iter->__inner.obj_this;
     __private_vector *p_private = (__private_vector*)this->__obj_private;
     *_iter += x * p_private->memb_size;
 }
@@ -42,21 +42,20 @@ static void iter_add(__iterator *iter, int x)
 static void iter_sub(__iterator *iter, int x)
 {
     __vector_iter *_iter = &iter->val;
-    vector *this = pop_this();
+    vector *this = iter->__inner.obj_this;
     __private_vector *p_private = (__private_vector*)this->__obj_private;
     *_iter -= x * p_private->memb_size;
 }
 
 static long long iter_diff(const __iterator *minuend, const __iterator *subtraction)
 {
-    vector *this = pop_this();
+    vector *this = minuend->__inner.obj_this;
     __private_vector *p_private = (__private_vector*)this->__obj_private;
     return (((__vector_iter)minuend->val) - ((__vector_iter)subtraction->val)) / (long long)p_private->memb_size;
 }
 
 static bool iter_equal(const __iterator *it1, const __iterator *it2)
 {
-    pop_this();
     return it1->val == it2->val;
 }
 

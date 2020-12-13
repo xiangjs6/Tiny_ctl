@@ -8,7 +8,7 @@
 //private
 static void *iter_at(__iterator *iter, int pos)
 {
-    deque *this = pop_this();
+    deque *this = iter->__inner.obj_this;
     long long dist = ITER(iter).diff(THIS(this).begin());
     dist += pos;
     return THIS(this).at(dist);
@@ -16,7 +16,7 @@ static void *iter_at(__iterator *iter, int pos)
 
 static void iter_increment(__iterator *iter)
 {
-    deque *this = pop_this();
+    deque *this = iter->__inner.obj_this;
     __private_deque *p_private = (__private_deque*)this->__obj_private;
     __deque_iter *_iter = (__deque_iter*)iter->__inner.__address;
     _iter->cur += p_private->memb_size;
@@ -30,7 +30,7 @@ static void iter_increment(__iterator *iter)
 
 static void iter_decrement(__iterator *iter)
 {
-    deque *this = pop_this();
+    deque *this = iter->__inner.obj_this;
     __private_deque *p_private = (__private_deque*)this->__obj_private;
     __deque_iter *_iter = (__deque_iter*)iter->__inner.__address;
     if (_iter->cur == _iter->first) {
@@ -44,7 +44,7 @@ static void iter_decrement(__iterator *iter)
 
 static void iter_add(__iterator *iter, int v)
 {
-    deque *this = pop_this();
+    deque *this = iter->__inner.obj_this;
     __private_deque *p_private = (__private_deque*)this->__obj_private;
     __deque_iter *_iter = (__deque_iter*)iter->__inner.__address;
     size_t block_len = _iter->last - _iter->cur;
@@ -63,7 +63,7 @@ static void iter_add(__iterator *iter, int v)
 
 static void iter_sub(__iterator *iter, int v)
 {
-    deque *this = pop_this();
+    deque *this = iter->__inner.obj_this;
     __private_deque *p_private = (__private_deque*)this->__obj_private;
     __deque_iter *_iter = (__deque_iter*)iter->__inner.__address;
     size_t block_len = _iter->cur - _iter->first;
@@ -84,7 +84,7 @@ static long long iter_diff(const __iterator *minuend, const __iterator *subtract
 {
     __deque_iter *_minuend = (__deque_iter*)minuend->__inner.__address;
     __deque_iter *_subtraction = (__deque_iter*)subtraction->__inner.__address;
-    deque *this = pop_this();
+    deque *this = minuend->__inner.obj_this;
     __private_deque *p_private = (__private_deque*)this->__obj_private;
     if (_minuend->map_node == _subtraction->map_node)
         return (_minuend->cur - _subtraction->cur) / p_private->memb_size;
@@ -98,7 +98,6 @@ static long long iter_diff(const __iterator *minuend, const __iterator *subtract
 
 static bool iter_equal(const __iterator *it1, const __iterator *it2)
 {
-    pop_this();
     return it1->val == it2->val;
 }
 

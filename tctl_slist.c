@@ -10,7 +10,6 @@
 //private
 static void iter_increment(__iterator *p)
 {
-    pop_this();
     struct __slist_node *node = container_of(p->val, struct __slist_node, data);
     p->val = node->next ? node->next->data : NULL;
 }

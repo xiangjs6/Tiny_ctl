@@ -11,20 +11,17 @@
 //private
 static void iter_increment(__iterator *p)
 {
-    pop_this();
     struct __list_node *node = container_of(p->val, struct __list_node, data);
     p->val = node->next->data;
 }
 static void iter_decrement(__iterator *p)
 {
-    pop_this();
     struct __list_node *node = container_of(p->val, struct __list_node, data);
     p->val = node->pre->data;
 }
 
 static bool iter_equal(const __iterator *it1, const __iterator *it2)
 {
-    pop_this();
     return it1->val == it2->val;
 }
 
