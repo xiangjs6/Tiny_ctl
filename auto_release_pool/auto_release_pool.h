@@ -8,7 +8,7 @@
 //! Destructor function
 typedef void (*dtorfunc_t)(void*);
 //! create a new pool
-void ARP_CreateRelPool(void);
+void ARP_CreatePool(void);
 //! release the pool and all its block reference
 void ARP_FreePool(void);
 //! get number of memory blocks referenced by this pool

@@ -141,7 +141,7 @@ static struct Rel_thread *get_thread_pool(void)
 }
 
 //public
-void ARP_CreateRelPool(void)
+void ARP_CreatePool(void)
 {
     pthread_once(&thread_once, make_thread_key);
     struct Rel_thread *p_pool_thread = get_thread_pool();
