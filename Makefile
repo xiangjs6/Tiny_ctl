@@ -14,9 +14,9 @@ LIBS    := -lpthread
 LDFLAGS :=
 DEFINES :=
 INCLUDE := -I.
-CFLAGS  := -g -Wall -O3 $(DEFINES) $(INCLUDE)
+CFLAGS  := -g -Wall -O3 -fPIC $(DEFINES) $(INCLUDE)
 CXXFLAGS:= $(CFLAGS) -DHAVE_CONFIG_H
-SHARE   := -fPIC -shared -o
+SHARE   := -shared -o
 
 #i think you should do anything here
 
