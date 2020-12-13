@@ -5,6 +5,7 @@
 #include "auto_release_pool.h"
 #include "../tctl_debug.h"
 #include "../tctl_common.h"
+#include "../tctl_allocator.h"
 #include <pthread.h>
 #include <stddef.h>
 
@@ -42,7 +43,7 @@ struct Rel_thread {
 
 static struct Rel_page *creat_page(struct Rel_page *cur_page)
 {
-    struct Rel_page *new_page = malloc(sizeof(struct Rel_page));
+    struct Rel_page *new_page = allocate(sizeof(struct Rel_page));
     *(void**)&new_page->pre = cur_page;
     return new_page;
 }
@@ -50,13 +51,13 @@ static struct Rel_page *creat_page(struct Rel_page *cur_page)
 static struct Rel_page *destory_page(struct Rel_page *cur_page)
 {
     struct Rel_page *pre = cur_page->pre;
-    free(cur_page);
+    deallocate(cur_page, sizeof(struct Rel_page));
     return pre;
 }
 
 static struct Rel_pool *creat_pool(struct Rel_pool *cur_pool)
 {
-    struct Rel_pool *new_pool = malloc(sizeof(struct Rel_pool));
+    struct Rel_pool *new_pool = allocate(sizeof(struct Rel_pool));
     new_pool->node_size = 0;
     *(void**)&new_pool->pre_pool = cur_pool;
     return new_pool;
@@ -65,7 +66,7 @@ static struct Rel_pool *creat_pool(struct Rel_pool *cur_pool)
 static struct Rel_pool *destory_pool(struct Rel_pool *cur_pool)
 {
     struct Rel_pool *pre = cur_pool->pre_pool;
-    free(cur_pool);
+    deallocate(cur_pool, sizeof(struct Rel_pool));
     return pre;
 }
 
@@ -103,7 +104,7 @@ static void destr_thread(void *x)
     while (p_pool_thread->pool_size)
         ARP_FreePool();
     pthread_key_delete(thread_key);
-    free(p_pool_thread);
+    deallocate(p_pool_thread, sizeof(struct Rel_thread));
 }
 static void make_thread_key(void)
 {
@@ -113,7 +114,7 @@ static void make_thread_key(void)
 static struct Rel_thread *make_thread_pool(void)
 {
     struct Rel_thread *p_pool_thread;
-    p_pool_thread = malloc(sizeof(struct Rel_thread));
+    p_pool_thread = allocate(sizeof(struct Rel_thread));
     p_pool_thread->cur_page = NULL;
     p_pool_thread->cur_pool = NULL;
     p_pool_thread->next = NULL;
@@ -179,7 +180,7 @@ int ARP_Release(void *pMemLoc)
     if(!--node->refCount) {
         if (node->dtor_func)
             node->dtor_func(node->block);
-        free(node);
+        deallocate(node, node->size);
         return 0;
     }
     return node->refCount;
@@ -236,7 +237,7 @@ void *ARP_Malloc(size_t len)
 
 void *ARP_MallocDtor(size_t len, dtorfunc_t dtorFunc)
 {
-    struct mem_node *node = malloc(len + sizeof(struct mem_node));
+    struct mem_node *node = allocate(len + sizeof(struct mem_node));
     node->size = len + sizeof(struct mem_node);
     node->dtor_func = dtorFunc;
     node->p_pool_node = NULL;
@@ -275,7 +276,7 @@ void *ARP_Realloc(void *pMemLoc, size_t size)
     if (!pMemLoc)
         return ARP_Malloc(size);
     struct mem_node *node = container_of(pMemLoc, struct mem_node, block);
-    node = realloc(node, size + sizeof(struct mem_node));
+    node = reallocate(node, node->size, size + sizeof(struct mem_node));
     node->size = size + sizeof(struct mem_node);
     if (node->p_pool_node)
         *node->p_pool_node = node;

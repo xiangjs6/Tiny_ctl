@@ -4,7 +4,7 @@
 
 #ifndef AUTO_RELEASE_POOL_AUTO_RELEASE_POOL_H
 #define AUTO_RELEASE_POOL_AUTO_RELEASE_POOL_H
-#include <stdlib.h>
+#include <stddef.h>
 //! Destructor function
 typedef void (*dtorfunc_t)(void*);
 //! create a new pool
