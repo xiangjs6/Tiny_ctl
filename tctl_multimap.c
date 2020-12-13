@@ -3,14 +3,14 @@
 //
 
 #include "tctl_multimap.h"
-static const IterType begin(void)
+static IterType begin(void)
 {
     multimap *this = pop_this();
     __private_multimap *p_private = (__private_multimap*)this->__obj_private;
     return THIS(&p_private->t).begin();
 }
 
-static const IterType end(void)
+static IterType end(void)
 {
     multimap *this = pop_this();
     __private_multimap *p_private = (__private_multimap*)this->__obj_private;
@@ -38,7 +38,7 @@ static void erase(IterType iter)
     THIS(&p_private->t).erase(iter);
 }
 
-static const IterType insert(void *x)
+static IterType insert(void *x)
 {
     multimap *this = pop_this();
     __private_multimap *p_private = (__private_multimap*)this->__obj_private;
@@ -52,7 +52,7 @@ static size_t count(void *x)
     return THIS(&p_private->t).count(x);
 }
 
-static const IterType find(void *x)
+static IterType find(void *x)
 {
     multimap *this = pop_this();
     __private_multimap *p_private = (__private_multimap*)this->__obj_private;

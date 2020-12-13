@@ -207,7 +207,7 @@ int ARP_JoinARel(void *pMemLoc)
     pthread_once(&thread_once, make_thread_key);
     struct Rel_thread *p_pool_thread = get_thread_pool();
     if (!p_pool_thread->pool_size)
-        exit_log("There is no memory pool available %lu %p\n", pthread_self(), p_pool_thread);
+        exit_log("There is no memory pool available\n");
     struct mem_node *node = container_of(pMemLoc, struct mem_node, block);
     if (node->p_pool_node)
         return -1;

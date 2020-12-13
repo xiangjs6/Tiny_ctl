@@ -18,13 +18,12 @@ typedef struct {
     size_t total_storage_memb;
     __vector_iter start_ptr;
     __vector_iter finish_ptr;
-    thread_key_t iter_key;
 } __private_vector;
 
 typedef struct {
     void *(*at)(int);
-    const IterType (*begin)(void);
-    const IterType (*end)(void);
+    IterType (*begin)(void);
+    IterType (*end)(void);
     void const *(*front)(void);
     void const *(*back)(void);
     size_t (*size)(void);

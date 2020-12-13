@@ -4,14 +4,14 @@
 
 #include "tctl_map.h"
 
-static const IterType begin(void)
+static IterType begin(void)
 {
     map *this = pop_this();
     __private_map *p_private = (__private_map*)this->__obj_private;
     return THIS(&p_private->t).begin();
 }
 
-static const IterType end(void)
+static IterType end(void)
 {
     map *this = pop_this();
     __private_map *p_private = (__private_map*)this->__obj_private;
@@ -39,7 +39,7 @@ static void erase(IterType iter)
     THIS(&p_private->t).erase(iter);
 }
 
-static const IterType insert(void *x)
+static IterType insert(void *x)
 {
     map *this = pop_this();
     __private_map *p_private = (__private_map*)this->__obj_private;
@@ -53,7 +53,7 @@ static size_t count(void *x)
     return THIS(&p_private->t).count(x);
 }
 
-static const IterType find(void *x)
+static IterType find(void *x)
 {
     map *this = pop_this();
     __private_map *p_private = (__private_map*)this->__obj_private;

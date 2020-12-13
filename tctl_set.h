@@ -11,14 +11,14 @@ typedef struct {
 } __private_set;
 
 typedef struct {
-    const IterType (*begin)(void);
-    const IterType (*end)(void);
+    IterType (*begin)(void);
+    IterType (*end)(void);
     size_t (*size)(void);
     bool (*empty)(void);
     void (*erase)(IterType iter);
-    const IterType (*insert)(void *x);
+    IterType (*insert)(void *x);
     size_t (*count)(void *x);
-    const IterType (*find)(void *x);
+    IterType (*find)(void *x);
     void (*clear)(void);
     byte __obj_private[sizeof(__private_set)];
 } set;

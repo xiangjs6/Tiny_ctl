@@ -4,39 +4,9 @@
 
 #include "tctl_rb_tree.h"
 #include "tctl_allocator.h"
+#include "auto_release_pool/auto_release_pool.h"
 #include <memory.h>
 //private:
-struct inner_iter {
-    struct __inner_iterator *start;
-    struct __inner_iterator *finish;
-    struct __inner_iterator *write_iter;
-    struct __inner_iterator *read_iter;
-};
-
-static void free_inner_iter(void *p)
-{
-    if (!p)
-        return;
-    struct inner_iter *__p = p;
-    if (!__p->start->used_by_out)
-        __destructor_iter(&__p->start);
-    if (!__p->finish->used_by_out)
-        __destructor_iter(&__p->finish);
-    if (!__p->write_iter->used_by_out)
-        __destructor_iter(&__p->write_iter);
-    if (!__p->read_iter->used_by_out)
-        __destructor_iter(&__p->read_iter);
-    deallocate(p, sizeof(struct inner_iter));
-}
-
-static struct inner_iter * iter_once_init(__private_rb_tree *p_private)
-{
-    struct inner_iter *four_iter = allocate(sizeof(struct inner_iter));
-    four_iter->finish = four_iter->start = four_iter->read_iter = four_iter->write_iter = NULL;
-    thread_setspecific(p_private->iter_key, four_iter);
-    return four_iter;
-}
-
 static void iter_increment(__iterator *iter)
 {
     struct __rb_tree_node *node = ((__rb_tree_iter*)iter->__inner.__address)->node;
@@ -377,38 +347,28 @@ static bool __find(struct __rb_tree_node *header, void const *x, struct __rb_tre
 }
 
 //public:
-static const IterType begin(void)
+static IterType begin(void)
 {
     rb_tree *this = pop_this();
     __private_rb_tree *p_private = (__private_rb_tree*)this->__obj_private;
-    struct inner_iter *four_iter = thread_getspecific(p_private->iter_key);
-    if (four_iter == NULL)
-        four_iter = iter_once_init(p_private);
-    if (four_iter->start == NULL || four_iter->start->used_by_out) {
-        four_iter->start = allocate(sizeof(struct __inner_iterator) + sizeof(__rb_tree_iter));
-        *four_iter->start = __creat_iter(sizeof(__rb_tree_iter), this, p_private->memb_size, &__def_rb_tree_iter_func);
-    }
-    __rb_tree_iter *out_iter = (__rb_tree_iter*)four_iter->start->__address;
+    struct __inner_iterator *start = ARP_MallocARel(sizeof(struct __inner_iterator) + sizeof(__rb_tree_iter));
+    *start = __creat_iter(sizeof(__rb_tree_iter), this, p_private->memb_size, &__def_rb_tree_iter_func);
+    __rb_tree_iter *out_iter = (__rb_tree_iter*)start->__address;
     out_iter->node = p_private->header->left;
     out_iter->val = p_private->header->left->data;
-    return four_iter->start;
+    return start;
 }
 
-static const IterType end(void)
+static IterType end(void)
 {
     rb_tree *this = pop_this();
     __private_rb_tree *p_private = (__private_rb_tree*)this->__obj_private;
-    struct inner_iter *four_iter = thread_getspecific(p_private->iter_key);
-    if (four_iter == NULL)
-        four_iter = iter_once_init(p_private);
-    if (four_iter->finish == NULL || four_iter->finish->used_by_out) {
-        four_iter->finish = allocate(sizeof(struct __inner_iterator) + sizeof(__rb_tree_iter));
-        *four_iter->finish = __creat_iter(sizeof(__rb_tree_iter), this, p_private->memb_size, &__def_rb_tree_iter_func);
-    }
-    __rb_tree_iter *out_iter = (__rb_tree_iter*)four_iter->finish->__address;
+    struct __inner_iterator *finish = ARP_MallocARel(sizeof(struct __inner_iterator) + sizeof(__rb_tree_iter));
+    *finish = __creat_iter(sizeof(__rb_tree_iter), this, p_private->memb_size, &__def_rb_tree_iter_func);
+    __rb_tree_iter *out_iter = (__rb_tree_iter*)finish->__address;
     out_iter->node = p_private->header;
     out_iter->val = p_private->header->data;
-    return four_iter->finish;
+    return finish;
 }
 
 static bool empty(void)
@@ -424,7 +384,7 @@ static size_t size(void)
     return p_private->nmemb;
 }
 
-static const IterType insert_unique(void *x)
+static IterType insert_unique(void *x)
 {
     rb_tree *this = pop_this();
     __private_rb_tree *p_private = (__private_rb_tree*)this->__obj_private;
@@ -446,14 +406,9 @@ static const IterType insert_unique(void *x)
         new_node = __insert(parent, node, p_private);
     }
     memcpy(new_node->data, x, p_private->memb_size);
-    struct inner_iter *four_iter = thread_getspecific(p_private->iter_key);
-    if (four_iter == NULL)
-        four_iter = iter_once_init(p_private);
-    if (four_iter->write_iter == NULL || four_iter->write_iter->used_by_out) {
-        four_iter->write_iter = allocate(sizeof(struct __inner_iterator) + sizeof(__rb_tree_iter));
-        *four_iter->write_iter = __creat_iter(sizeof(__rb_tree_iter), this, p_private->memb_size, &__def_rb_tree_iter_func);
-    }
-    __rb_tree_iter *out_iter = (__rb_tree_iter*)four_iter->write_iter->__address;
+    struct __inner_iterator *write_iter = ARP_MallocARel(sizeof(struct __inner_iterator) + sizeof(__rb_tree_iter));
+    *write_iter = __creat_iter(sizeof(__rb_tree_iter), this, p_private->memb_size, &__def_rb_tree_iter_func);
+    __rb_tree_iter *out_iter = (__rb_tree_iter*)write_iter->__address;
     out_iter->node = new_node;
     out_iter->val = new_node->data;
 
@@ -462,10 +417,10 @@ static const IterType insert_unique(void *x)
         p_private->header->right = maximum(p_private->header->right);
     else
         p_private->header->left = minimum(p_private->header->left);
-    return four_iter->write_iter;
+    return write_iter;
 }
 
-static const IterType insert_equal(void *x)
+static IterType insert_equal(void *x)
 {
     rb_tree *this = pop_this();
     __private_rb_tree *p_private = (__private_rb_tree*)this->__obj_private;
@@ -481,14 +436,9 @@ static const IterType insert_equal(void *x)
         new_node = __insert(parent, node, p_private);
     }
     memcpy(new_node->data, x, p_private->memb_size);
-    struct inner_iter *four_iter = thread_getspecific(p_private->iter_key);
-    if (four_iter == NULL)
-        four_iter = iter_once_init(p_private);
-    if (four_iter->write_iter == NULL || four_iter->write_iter->used_by_out) {
-        four_iter->write_iter = allocate(sizeof(struct __inner_iterator) + sizeof(__rb_tree_iter));
-        *four_iter->write_iter = __creat_iter(sizeof(__rb_tree_iter), this, p_private->memb_size, &__def_rb_tree_iter_func);
-    }
-    __rb_tree_iter *out_iter = (__rb_tree_iter*)four_iter->write_iter->__address;
+    struct __inner_iterator *write_iter = ARP_MallocARel(sizeof(struct __inner_iterator) + sizeof(__rb_tree_iter));
+    *write_iter = __creat_iter(sizeof(__rb_tree_iter), this, p_private->memb_size, &__def_rb_tree_iter_func);
+    __rb_tree_iter *out_iter = (__rb_tree_iter*)write_iter->__address;
     out_iter->node = new_node;
     out_iter->val = new_node->data;
 
@@ -497,7 +447,7 @@ static const IterType insert_equal(void *x)
         p_private->header->right = maximum(p_private->header->right);
     else
         p_private->header->left = minimum(p_private->header->left);
-    return four_iter->write_iter;
+    return write_iter;
 }
 
 static void erase(IterType t)
@@ -535,7 +485,7 @@ static void clear(void)
     p_private->header->parent = p_private->header->left = p_private->header->right = p_private->header;
 }
 
-static const IterType find(void *x)
+static IterType find(void *x)
 {
     rb_tree *this = pop_this();
     __private_rb_tree *p_private = (__private_rb_tree*)this->__obj_private;
@@ -545,20 +495,15 @@ static const IterType find(void *x)
     if (!is_unique)
         return THIS(this).end();
     else {
-        struct inner_iter *four_iter = thread_getspecific(p_private->iter_key);
-        if (four_iter == NULL)
-            four_iter = iter_once_init(p_private);
-        if (four_iter->read_iter == NULL || four_iter->read_iter->used_by_out) {
-            four_iter->read_iter = allocate(sizeof(struct __inner_iterator) + sizeof(__rb_tree_iter));
-            *four_iter->read_iter = __creat_iter(sizeof(__rb_tree_iter), this, p_private->memb_size, &__def_rb_tree_iter_func);
-        }
-        __rb_tree_iter *rb_iter = (__rb_tree_iter*)four_iter->read_iter->__address;
+        struct __inner_iterator *read_iter = ARP_MallocARel(sizeof(struct __inner_iterator) + sizeof(__rb_tree_iter));
+        *read_iter = __creat_iter(sizeof(__rb_tree_iter), this, p_private->memb_size, &__def_rb_tree_iter_func);
+        __rb_tree_iter *rb_iter = (__rb_tree_iter*)read_iter->__address;
         if (parent == p_private->header)
             rb_iter->node = parent->parent;
         else
             rb_iter->node = !left_right ? parent->left : parent->right;
         rb_iter->val = rb_iter->node->data;
-        return four_iter->read_iter;
+        return read_iter;
     }
 }
 
@@ -595,7 +540,6 @@ void init_rb_tree(rb_tree *p_tree, size_t memb_size, Compare cmp)
     struct __rb_tree_node *node= __creat_rb_node(0);
     node->parent = node->left = node->right = node;
     p_private->header = node;
-    thread_key_create(&p_private->iter_key, free_inner_iter);
 }
 
 void destory_rb_tree(rb_tree *p_tree)
@@ -603,7 +547,6 @@ void destory_rb_tree(rb_tree *p_tree)
     __private_rb_tree *p_private = (__private_rb_tree*)p_tree->__obj_private;
     THIS(p_tree).clear();
     deallocate(p_private->header, 0);
-    thread_key_delete(p_private->iter_key);
 }
 
 rb_tree creat_rb_tree(size_t memb_size, Compare cmp)

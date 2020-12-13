@@ -7,7 +7,6 @@
 
 #include "tctl_def.h"
 #include "tctl_iterator.h"
-#include "tctl_portable.h"
 typedef void *__slist_iter;
 
 struct __slist_node{
@@ -20,12 +19,11 @@ typedef struct {
     struct __slist_node head;
     __slist_iter start_ptr;
     __slist_iter finish_ptr;
-    thread_key_t iter_key;
 } __private_slist;
 
 typedef struct slist {
-    const IterType (*begin)(void);
-    const IterType (*end)(void);
+    IterType (*begin)(void);
+    IterType (*end)(void);
     size_t (*size)(void);
     bool (*empty)(void);
     void (*swap)(struct slist*);

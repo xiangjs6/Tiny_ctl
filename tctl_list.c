@@ -5,26 +5,10 @@
 #include "tctl_list.h"
 #include "tctl_common.h"
 #include "tctl_allocator.h"
+#include "auto_release_pool/auto_release_pool.h"
 #include <memory.h>
 
 //private
-struct inner_iter {
-    struct __inner_iterator *start;
-    struct __inner_iterator *finish;
-};
-
-static void free_inner_iter(void *p)
-{
-    if (!p)
-        return;
-    struct inner_iter *__p = p;
-    if (!__p->start->used_by_out)
-        __destructor_iter(&__p->start);
-    if (!__p->finish->used_by_out)
-        __destructor_iter(&__p->finish);
-    deallocate(p, sizeof(struct inner_iter));
-}
-
 static void iter_increment(__iterator *p)
 {
     pop_this();
@@ -217,40 +201,24 @@ static void unique(void)
     }
 }
 
-static const IterType begin(void)
+static IterType begin(void)
 {
     list *this = pop_this();
     __private_list *p_private = (__private_list *)this->__obj_private;
-    struct inner_iter *pair_iter = thread_getspecific(p_private->iter_key);
-    if (pair_iter == NULL) {
-        pair_iter = allocate(sizeof(struct inner_iter));
-        pair_iter->finish = pair_iter->start = NULL;
-        thread_setspecific(p_private->iter_key, pair_iter);
-    }
-    if (pair_iter->start == NULL || pair_iter->start->used_by_out) {
-        pair_iter->start = allocate(sizeof(struct __inner_iterator) + sizeof(__list_iter));
-        *pair_iter->start = __creat_iter(sizeof(__list_iter), this, p_private->memb_size, &__def_list_iter_func);
-    }
-    memcpy(pair_iter->start->__address, &p_private->start_ptr, sizeof(__list_iter));
-    return pair_iter->start;
+    struct __inner_iterator *start = ARP_MallocARel(sizeof(struct __inner_iterator) + sizeof(__list_iter));
+    *start = __creat_iter(sizeof(__list_iter), this, p_private->memb_size, &__def_list_iter_func);
+    memcpy(start->__address, &p_private->start_ptr, sizeof(__list_iter));
+    return start;
 }
 
-static const IterType end(void)
+static IterType end(void)
 {
     list *this = pop_this();
     __private_list *p_private = (__private_list *)this->__obj_private;
-    struct inner_iter *pair_iter = thread_getspecific(p_private->iter_key);
-    if (pair_iter == NULL) {
-        pair_iter = allocate(sizeof(struct inner_iter));
-        pair_iter->finish = pair_iter->start = NULL;
-        thread_setspecific(p_private->iter_key, pair_iter);
-    }
-    if (pair_iter->finish == NULL || pair_iter->finish->used_by_out) {
-        pair_iter->finish = allocate(sizeof(struct __inner_iterator) + sizeof(__list_iter));
-        *pair_iter->finish = __creat_iter(sizeof(__list_iter), this, p_private->memb_size, &__def_list_iter_func);
-    }
-    memcpy(pair_iter->finish->__address, &p_private->finish_ptr, sizeof(__list_iter));
-    return pair_iter->finish;
+    struct __inner_iterator *finish = ARP_MallocARel(sizeof(struct __inner_iterator) + sizeof(__list_iter));
+    *finish = __creat_iter(sizeof(__list_iter), this, p_private->memb_size, &__def_list_iter_func);
+    memcpy(finish->__address, &p_private->finish_ptr, sizeof(__list_iter));
+    return finish;
 }
 
 static size_t size(void)
@@ -423,7 +391,6 @@ void init_list(list *p_list, size_t memb_size)
     private->node->next = private->node;
     private->node->pre = private->node;
     private->start_ptr = private->finish_ptr = private->node->data;
-    thread_key_create(&private->iter_key, free_inner_iter);
 }
 
 void destory_list(list *p_list)
@@ -431,7 +398,6 @@ void destory_list(list *p_list)
     THIS(p_list).clear();
     __private_list *p_private = (__private_list*)p_list->__obj_private;
     deallocate(p_private->node, sizeof(struct __list_node));
-    thread_key_delete(p_private->iter_key);
 }
 
 list creat_list(size_t memb_size)

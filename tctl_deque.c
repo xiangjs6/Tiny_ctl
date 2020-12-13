@@ -3,25 +3,9 @@
 //
 #include "tctl_allocator.h"
 #include "tctl_deque.h"
+#include "auto_release_pool/auto_release_pool.h"
 #include <memory.h>
 //private
-struct inner_iter {
-    struct __inner_iterator *start;
-    struct __inner_iterator *finish;
-};
-
-static void free_inner_iter(void *p)
-{
-    if (!p)
-        return;
-    struct inner_iter *__p = p;
-    if (!__p->start->used_by_out)
-        __destructor_iter(&__p->start);
-    if (!__p->finish->used_by_out)
-        __destructor_iter(&__p->finish);
-    deallocate(p, sizeof(struct inner_iter));
-}
-
 static void *iter_at(__iterator *iter, int pos)
 {
     deque *this = pop_this();
@@ -150,39 +134,23 @@ static void extend_map(__private_deque *p_private)
     p_private->finish_ptr.last = *p_private->finish_ptr.map_node + p_private->memb_size * p_private->block_nmemb;
 }
 //public
-static const IterType begin(void)
+static IterType begin(void)
 {
     deque *this = pop_this();
     __private_deque *p_private = (__private_deque*)this->__obj_private;
-    struct inner_iter *pair_iter = thread_getspecific(p_private->iter_key);
-    if (pair_iter == NULL) {
-        pair_iter = allocate(sizeof(struct inner_iter));
-        pair_iter->finish = pair_iter->start = NULL;
-        thread_setspecific(p_private->iter_key, pair_iter);
-    }
-    if (pair_iter->start == NULL || pair_iter->start->used_by_out) {
-        pair_iter->start = allocate(sizeof(struct __inner_iterator) + sizeof(__deque_iter));
-        *pair_iter->start = __creat_iter(sizeof(__deque_iter), this, p_private->memb_size, &__def_deque_iter_func);
-    }
-    memcpy(pair_iter->start->__address, &p_private->start_ptr, sizeof(__deque_iter));
-    return pair_iter->start;
+    struct __inner_iterator *start = ARP_MallocARel(sizeof(struct __inner_iterator) + sizeof(__deque_iter));
+    *start = __creat_iter(sizeof(__deque_iter), this, p_private->memb_size, &__def_deque_iter_func);
+    memcpy(start->__address, &p_private->start_ptr, sizeof(__deque_iter));
+    return start;
 }
-static const IterType end(void)
+static IterType end(void)
 {
     deque *this = pop_this();
     __private_deque *p_private = (__private_deque*)this->__obj_private;
-    struct inner_iter *pair_iter = thread_getspecific(p_private->iter_key);
-    if (pair_iter == NULL) {
-        pair_iter = allocate(sizeof(struct inner_iter));
-        pair_iter->finish = pair_iter->start = NULL;
-        thread_setspecific(p_private->iter_key, pair_iter);
-    }
-    if (pair_iter->finish == NULL || pair_iter->finish->used_by_out) {
-        pair_iter->finish = allocate(sizeof(struct __inner_iterator) + sizeof(__deque_iter));
-        *pair_iter->finish = __creat_iter(sizeof(__deque_iter), this, p_private->memb_size, &__def_deque_iter_func);
-    }
-    memcpy(pair_iter->finish->__address, &p_private->finish_ptr, sizeof(__deque_iter));
-    return pair_iter->finish;
+    struct __inner_iterator *finish = ARP_MallocARel(sizeof(struct __inner_iterator) + sizeof(__deque_iter));
+    *finish = __creat_iter(sizeof(__deque_iter), this, p_private->memb_size, &__def_deque_iter_func);
+    memcpy(finish->__address, &p_private->finish_ptr, sizeof(__deque_iter));
+    return finish;
 }
 static size_t size(void)
 {
@@ -429,7 +397,6 @@ void init_deque(deque *p_deque, size_t memb_size, size_t block_nmemb)
    p_private->start_ptr.first = p_private->start_ptr.cur = *p_private->start_ptr.map_node;
    p_private->start_ptr.last = *p_private->start_ptr.map_node + memb_size * block_nmemb;
    p_private->finish_ptr = p_private->start_ptr;
-   thread_key_create(&p_private->iter_key, free_inner_iter);
 }
 
 void destory_deque(deque *p_deque)
@@ -438,7 +405,6 @@ void destory_deque(deque *p_deque)
     THIS(p_deque).clear();
     deallocate(*p_private->start_ptr.map_node, p_private->memb_size * p_private->block_nmemb);
     deallocate(p_private->mmap, p_private->mmap_len);
-    thread_key_delete(p_private->iter_key);
 }
 
 deque creat_deque(size_t memb_size, size_t block_nmemb)

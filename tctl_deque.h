@@ -8,7 +8,6 @@
 #include "tctl_object.h"
 #include "tctl_def.h"
 #include "tctl_iterator.h"
-#include "tctl_portable.h"
 
 typedef struct {
     void *cur;
@@ -25,12 +24,11 @@ typedef struct {
     size_t block_nmemb;
     __deque_iter start_ptr;
     __deque_iter finish_ptr;
-    thread_key_t iter_key;
 } __private_deque;
 
 typedef struct {
-    const IterType (*begin)(void);
-    const IterType (*end)(void);
+    IterType (*begin)(void);
+    IterType (*end)(void);
     size_t (*size)(void);
     bool (*empty)(void);
     void *(*at)(int);
