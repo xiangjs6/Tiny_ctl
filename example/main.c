@@ -260,7 +260,7 @@ int main(void)
 }*/
 
 //heap测试
-/*int main(void)
+int main(void)
 {
     ARP_CreatePool();
     int temp;
@@ -289,7 +289,7 @@ int main(void)
     destory_vector(&v);
     ARP_FreePool();
     return 0;
-}*/
+}
 
 //stack测试
 /*int main(void)
@@ -405,6 +405,7 @@ int main(void)
 }*/
 
 //vector测试
+/*
 void *thread(void *arg)
 {
     ARP_CreatePool();
@@ -498,7 +499,7 @@ int main(void)
     putchar('\n');
     destory_vector(&v);
     ARP_FreePool();
-}
+}*/
 
 // list测试
 /*int main(void)

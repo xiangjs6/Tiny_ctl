@@ -3,7 +3,8 @@
 //
 
 #include "tctl_iterator.h"
-#include "tctl_allocator.h"
+//#include "tctl_allocator.h"
+#include "auto_release_pool/auto_release_pool.h"
 #include <memory.h>
 
 static void *at(int x)
@@ -71,11 +72,12 @@ static void copy(const IterType iter)
     __iterator *p_it = *pp_it;
     const __iterator *__iter = iter;
     if (p_it == &def_init_iter) {
-        *pp_it = __constructor_iter(iter);
-        return;
+        *pp_it = copy_iter(iter);
+	ARP_JoinARel(*pp_it);
+	return;
     }
     else if (p_it->__inner.obj_iter_size != __iter->__inner.obj_iter_size)
-        *pp_it = reallocate(p_it, p_it->__inner.obj_iter_size, __iter->__inner.obj_iter_size);
+        *pp_it = ARP_Realloc(p_it, __iter->__inner.obj_iter_size);
     memcpy(*pp_it, iter, sizeof(struct __inner_iterator) + __iter->__inner.obj_iter_size);
 }
 
@@ -102,17 +104,17 @@ struct __inner_iterator __creat_iter(size_t obj_iter_size, void *obj_this, size_
     return iter;
 }
 
-__iterator *__constructor_iter(__iterator const *iter)
+__iterator *copy_iter(__iterator const *iter)
 {
     size_t iter_size = sizeof(struct __inner_iterator) + iter->__inner.obj_iter_size;
-    __iterator *res = allocate(iter_size);
+    __iterator *res = ARP_Malloc(iter_size);
     memcpy(res, iter, iter_size);
     return res;
 }
 
-void __destructor_iter(void const *p)
+void free_iter(__iterator *iter)
 {
-    __iterator *iter = *(__iterator **)p;
+    //__iterator *iter = *(__iterator **)p;
     if (iter && iter != &def_init_iter)
-        deallocate(iter, iter->__inner.obj_iter_size);
+        ARP_Release(iter);
 }

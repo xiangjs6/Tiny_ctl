@@ -22,22 +22,22 @@ void adjust_heap(const __iterator *first, long long holo_index, long long len, c
 //public
 void make_heap(const __iterator *first, const __iterator *last, Compare cmp)
 {
-    __iterator *_first = __constructor_iter(first);
-    __iterator *_last = __constructor_iter(last);
+    __iterator *_first = copy_iter(first);
+    __iterator *_last = copy_iter(last);
     byte x[_first->__inner.memb_size];
     long long dist = ITER(_last).diff(_first);
     for (int i = dist / 2 - 1; i>= 0; i--) {
         memcpy(x, ITER(_first).at(i), sizeof(x));
         adjust_heap(_first, i, dist, x, cmp);
     }
-    __destructor_iter(&_first);
-    __destructor_iter(&_last);
+    free_iter(_first);
+    free_iter(_last);
 }
 
 void push_heap(const __iterator *first, const __iterator *last, Compare cmp)
 {
-    __iterator *_first = __constructor_iter(first);
-    __iterator *_last = __constructor_iter(last);
+    __iterator *_first = copy_iter(first);
+    __iterator *_last = copy_iter(last);
     byte x[_first->__inner.memb_size];
     long long cur_index = ITER(_last).diff(_first) - 1;
     long long father = cur_index / 2 - (cur_index + 1) % 2;
@@ -50,34 +50,34 @@ void push_heap(const __iterator *first, const __iterator *last, Compare cmp)
     }
     if (cur_index != ITER(_last).diff(_first) - 1)
         memcpy(ITER(_first).at(cur_index), x, _first->__inner.memb_size);
-    __destructor_iter(&_first);
-    __destructor_iter(&_last);
+    free_iter(_first);
+    free_iter(_last);
 }
 
 void pop_heap(const __iterator *first, const __iterator *last, Compare cmp)
 {
-    __iterator *_first = __constructor_iter(first);
-    __iterator *_last = __constructor_iter(last);
+    __iterator *_first = copy_iter(first);
+    __iterator *_last = copy_iter(last);
     byte x[_first->__inner.memb_size];
     ITER(_last).decrement();
     memcpy(x, _last->val, _last->__inner.memb_size);
     memcpy(_last->val, _first->val, _first->__inner.memb_size);
     long long dist = ITER(_last).diff(_first);
     adjust_heap(_first, 0, dist, x, cmp);
-    __destructor_iter(&_first);
-    __destructor_iter(&_last);
+    copy_iter(_first);
+    copy_iter(_last);
 }
 
 void sort_heap(const __iterator *first, const __iterator *last, Compare cmp)
 {
-    __iterator *_first = __constructor_iter(first);
-    __iterator *_last = __constructor_iter(last);
+    __iterator *_first = copy_iter(first);
+    __iterator *_last = copy_iter(last);
     make_heap(_first, _last, cmp);
     while (_last->val != _first->val)
     {
         pop_heap(_first, _last, cmp);
         ITER(_last).decrement();
     }
-    __destructor_iter(&_first);
-    __destructor_iter(&_last);
+    free_iter(_first);
+    free_iter(_last);
 }
