@@ -156,11 +156,14 @@ void ARP_FreePool(void)
     pthread_once(&thread_once, make_thread_key);
     struct Rel_thread *p_pool_thread = get_thread_pool();
     struct mem_node *node;
+    struct mem_node **old_next = p_pool_thread->next;
     while ((node = pop(&p_pool_thread->cur_page, &p_pool_thread->next)))
     {
-        if (node->p_pool_node && *node->p_pool_node == node)
+        //if (node->p_pool_node && *node->p_pool_node == node)
+	if (node->p_pool_node == old_next - 1)
             node->p_pool_node = NULL;
         ARP_Release(node->block);
+	old_next = p_pool_thread->next;
     }
     p_pool_thread->cur_pool = destory_pool(p_pool_thread->cur_pool);
     p_pool_thread->pool_size--;
