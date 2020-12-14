@@ -70,5 +70,6 @@ extern const __iterator def_init_iter;
 
 struct __inner_iterator __creat_iter(size_t obj_iter_size, void *obj_this, size_t memb_size, const iterator_func *iter_func);
 __iterator *copy_iter(__iterator const *iter);
+IterType retain_iter(IterType iter);
 void free_iter(__iterator *iter);
 #endif //TINY_CTL_TCTL_ITERATOR_H

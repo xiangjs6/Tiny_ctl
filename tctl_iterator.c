@@ -112,6 +112,11 @@ __iterator *copy_iter(__iterator const *iter)
     return res;
 }
 
+IterType retain_iter(IterType iter)
+{
+    return ARP_Retain(iter);
+}
+
 void free_iter(__iterator *iter)
 {
     //__iterator *iter = *(__iterator **)p;
