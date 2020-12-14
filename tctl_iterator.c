@@ -73,8 +73,8 @@ static void copy(const IterType iter)
     const __iterator *__iter = iter;
     if (p_it == &def_init_iter) {
         *pp_it = copy_iter(iter);
-	ARP_JoinARel(*pp_it);
-	return;
+        ARP_JoinARel(*pp_it);
+        return;
     }
     else if (p_it->__inner.obj_iter_size != __iter->__inner.obj_iter_size)
         *pp_it = ARP_Realloc(p_it, __iter->__inner.obj_iter_size);
@@ -98,10 +98,14 @@ const iterator_func def_init_func = INIT_ITER_FUNC(NULL);
 
 const __iterator def_init_iter = {{&def_init_func, NULL, 0, 0}, NULL};
 
-struct __inner_iterator __creat_iter(size_t obj_iter_size, void *obj_this, size_t memb_size, const iterator_func *iter_func)
+void init_iter(struct __inner_iterator *iter, size_t obj_iter_size, void *obj_this, size_t memb_size, const iterator_func *iter_func)
 {
-    struct __inner_iterator iter = {iter_func, obj_this, obj_iter_size, memb_size};
-    return iter;
+    //struct __inner_iterator iter = {iter_func, obj_this, obj_iter_size, memb_size};
+    iter->iterator_func_p = iter_func;
+    iter->obj_this = obj_this;
+    iter->memb_size = memb_size;
+    iter->obj_iter_size = obj_iter_size;
+    //return iter;
 }
 
 __iterator *copy_iter(__iterator const *iter)

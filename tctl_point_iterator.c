@@ -68,7 +68,7 @@ static const iterator_func __def_point_iter_func = INIT_ITER_FUNC(&__def_point_i
 IterType __construct_point_iter(void *p, void *obj_this, size_t memb_size)
 {
     struct __inner_iterator *point = ARP_MallocARel(sizeof(struct __inner_iterator) + sizeof(__point_iter));
-    *point = __creat_iter(sizeof(__point_iter), obj_this, memb_size, &__def_point_iter_func);
+    init_iter(point, sizeof(__point_iter), obj_this, memb_size, &__def_point_iter_func);
     memcpy(point->__address, &p, sizeof(__point_iter));
     return point;
 }

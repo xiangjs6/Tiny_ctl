@@ -94,7 +94,7 @@ static IterType begin(void)
     vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->__obj_private;
     struct __inner_iterator *start = ARP_MallocARel(sizeof(struct __inner_iterator) + sizeof(__vector_iter));
-    *start = __creat_iter(sizeof(__vector_iter), this, p_private->memb_size, &__def_vector_iter_func);
+    init_iter(start, sizeof(__vector_iter), this, p_private->memb_size, &__def_vector_iter_func);
     //*(__vector_iter*)pair_iter->start->__inner.__address = p_private->start_ptr;
     memcpy(start->__address, &p_private->start_ptr, sizeof(__vector_iter));
     return start;
@@ -104,7 +104,7 @@ static IterType end(void)
     vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->__obj_private;
     struct __inner_iterator *finish = ARP_MallocARel(sizeof(struct __inner_iterator) + sizeof(__vector_iter));
-    *finish = __creat_iter(sizeof(__vector_iter), this, p_private->memb_size, &__def_vector_iter_func);
+    init_iter(finish, sizeof(__vector_iter), this, p_private->memb_size, &__def_vector_iter_func);
     memcpy(finish->__address, &p_private->finish_ptr, sizeof(__vector_iter));
     //pair_iter->finish_ptr = p_private->finish_ptr;
     return finish;

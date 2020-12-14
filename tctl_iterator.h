@@ -14,7 +14,7 @@
  * 4、容器要使用struct __inner_iterator作为迭代器的壳，并定义容器自己的迭代器，放在struct __inner_iterator后面，并且第一个成员为指向值的地址
  * */
 typedef struct __iterator __iterator;
-#define IterType void*
+typedef void *IterType;
 typedef struct {
     void *(*iter_at)(__iterator*, int);
     void (*iter_increment)(__iterator*);
@@ -68,7 +68,7 @@ extern const __iterator def_init_iter;
 #define INIT_ITER_FUNC(private_iter_func) {&def_pub_iter_func, private_iter_func}
 #define INIT_ITERATOR (IterType)&def_init_iter;
 
-struct __inner_iterator __creat_iter(size_t obj_iter_size, void *obj_this, size_t memb_size, const iterator_func *iter_func);
+void init_iter(struct __inner_iterator *iter, size_t obj_iter_size, void *obj_this, size_t memb_size, const iterator_func *iter_func);
 __iterator *copy_iter(__iterator const *iter);
 IterType retain_iter(IterType iter);
 void free_iter(__iterator *iter);

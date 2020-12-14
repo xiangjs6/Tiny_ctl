@@ -352,7 +352,7 @@ static IterType begin(void)
     rb_tree *this = pop_this();
     __private_rb_tree *p_private = (__private_rb_tree*)this->__obj_private;
     struct __inner_iterator *start = ARP_MallocARel(sizeof(struct __inner_iterator) + sizeof(__rb_tree_iter));
-    *start = __creat_iter(sizeof(__rb_tree_iter), this, p_private->memb_size, &__def_rb_tree_iter_func);
+    init_iter(start, sizeof(__rb_tree_iter), this, p_private->memb_size, &__def_rb_tree_iter_func);
     __rb_tree_iter *out_iter = (__rb_tree_iter*)start->__address;
     out_iter->node = p_private->header->left;
     out_iter->val = p_private->header->left->data;
@@ -364,7 +364,7 @@ static IterType end(void)
     rb_tree *this = pop_this();
     __private_rb_tree *p_private = (__private_rb_tree*)this->__obj_private;
     struct __inner_iterator *finish = ARP_MallocARel(sizeof(struct __inner_iterator) + sizeof(__rb_tree_iter));
-    *finish = __creat_iter(sizeof(__rb_tree_iter), this, p_private->memb_size, &__def_rb_tree_iter_func);
+    init_iter(finish, sizeof(__rb_tree_iter), this, p_private->memb_size, &__def_rb_tree_iter_func);
     __rb_tree_iter *out_iter = (__rb_tree_iter*)finish->__address;
     out_iter->node = p_private->header;
     out_iter->val = p_private->header->data;
@@ -407,7 +407,7 @@ static IterType insert_unique(void *x)
     }
     memcpy(new_node->data, x, p_private->memb_size);
     struct __inner_iterator *write_iter = ARP_MallocARel(sizeof(struct __inner_iterator) + sizeof(__rb_tree_iter));
-    *write_iter = __creat_iter(sizeof(__rb_tree_iter), this, p_private->memb_size, &__def_rb_tree_iter_func);
+    init_iter(write_iter, sizeof(__rb_tree_iter), this, p_private->memb_size, &__def_rb_tree_iter_func);
     __rb_tree_iter *out_iter = (__rb_tree_iter*)write_iter->__address;
     out_iter->node = new_node;
     out_iter->val = new_node->data;
@@ -437,7 +437,7 @@ static IterType insert_equal(void *x)
     }
     memcpy(new_node->data, x, p_private->memb_size);
     struct __inner_iterator *write_iter = ARP_MallocARel(sizeof(struct __inner_iterator) + sizeof(__rb_tree_iter));
-    *write_iter = __creat_iter(sizeof(__rb_tree_iter), this, p_private->memb_size, &__def_rb_tree_iter_func);
+    init_iter(write_iter, sizeof(__rb_tree_iter), this, p_private->memb_size, &__def_rb_tree_iter_func);
     __rb_tree_iter *out_iter = (__rb_tree_iter*)write_iter->__address;
     out_iter->node = new_node;
     out_iter->val = new_node->data;
@@ -496,7 +496,7 @@ static IterType find(void *x)
         return THIS(this).end();
     else {
         struct __inner_iterator *read_iter = ARP_MallocARel(sizeof(struct __inner_iterator) + sizeof(__rb_tree_iter));
-        *read_iter = __creat_iter(sizeof(__rb_tree_iter), this, p_private->memb_size, &__def_rb_tree_iter_func);
+        init_iter(read_iter, sizeof(__rb_tree_iter), this, p_private->memb_size, &__def_rb_tree_iter_func);
         __rb_tree_iter *rb_iter = (__rb_tree_iter*)read_iter->__address;
         if (parent == p_private->header)
             rb_iter->node = parent->parent;

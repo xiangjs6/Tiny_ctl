@@ -203,7 +203,7 @@ static IterType begin(void)
     list *this = pop_this();
     __private_list *p_private = (__private_list *)this->__obj_private;
     struct __inner_iterator *start = ARP_MallocARel(sizeof(struct __inner_iterator) + sizeof(__list_iter));
-    *start = __creat_iter(sizeof(__list_iter), this, p_private->memb_size, &__def_list_iter_func);
+    init_iter(start, sizeof(__list_iter), this, p_private->memb_size, &__def_list_iter_func);
     memcpy(start->__address, &p_private->start_ptr, sizeof(__list_iter));
     return start;
 }
@@ -213,7 +213,7 @@ static IterType end(void)
     list *this = pop_this();
     __private_list *p_private = (__private_list *)this->__obj_private;
     struct __inner_iterator *finish = ARP_MallocARel(sizeof(struct __inner_iterator) + sizeof(__list_iter));
-    *finish = __creat_iter(sizeof(__list_iter), this, p_private->memb_size, &__def_list_iter_func);
+    init_iter(finish, sizeof(__list_iter), this, p_private->memb_size, &__def_list_iter_func);
     memcpy(finish->__address, &p_private->finish_ptr, sizeof(__list_iter));
     return finish;
 }
