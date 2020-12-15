@@ -4,6 +4,7 @@
 
 #include "tctl_hashtable.h"
 #include "auto_release_pool/auto_release_pool.h"
+#include "tctl_allocator.h"
 #include "tctl_point_iterator.h"
 //private
 static const unsigned long __prime_list[] = {
@@ -18,10 +19,22 @@ static const int __num_primes = sizeof(__prime_list) / sizeof(unsigned long);
 
 static unsigned long __next_prime(unsigned long n)
 {
-    const __iterator *first = POINT_ITER(__prime_list, __prime_list);
-    const __iterator *last = POINT_ITER(__prime_list + __num_primes, __prime_list);
-    //const __iterator *pos = lower_bound(first, last, n);
-    //return ITER(pos).equal(last) ? __prime_list[__num_primes - 1] : *(unsigned long*)pos->val;
+    for (int i = 0; i < __num_primes; i++)
+        if (__prime_list[i] >= n)
+            return __prime_list[i];
+    return __prime_list[__num_primes - 1];
+}
+
+static struct __bucket_node *__new_node(void *x, size_t size)
+{
+    struct __bucket_node *n = allocate(sizeof(struct __bucket_node) + size);
+    memcpy(n->data, x, size);
+    return n;
+}
+
+static void __delete_node(struct __bucket_node *n, size_t size)
+{
+    deallocate(n, sizeof(struct __bucket_node) + size);
 }
 //public
 
@@ -62,6 +75,16 @@ static IterType end(void)
     out_iter->ht = this;
     return finish;
 }
+
+static void resize(size_t new_size)
+{
+    hashtable *this = pop_this();
+    __private_hashtable *p_private = (__private_hashtable*)this->__obj_private;
+    const size_t old_size = THIS(p_private->buckets).size();
+    if (new_size > old_size) {
+        vector tmp = ;
+        
+    }
 
 void init_hashtable(hashtable *p_ht, size_t memb_size, Compare equal, HashFunc hash, ExtractKey get_key)
 {
