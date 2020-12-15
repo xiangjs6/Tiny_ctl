@@ -14,17 +14,18 @@ struct __bucket_node {
 };
 
 typedef struct {
-    size_t memb_size;
+    const size_t memb_size;
     size_t nmemb;
     Compare equal;
     HashFunc hash;
     ExtractKey get_key;
+    //上面成员会在copy函数中复制，所以要和下面成员分开
     vector buckets;
     struct __bucket_node **start;
     struct __bucket_node **finish;
 } __private_hashtable;
 
-typedef struct {
+typedef struct hashtable{
     IterType (*begin)(void);
     IterType (*end)(void);
     bool (*empty)(void);
@@ -36,6 +37,8 @@ typedef struct {
     IterType (*find)(void*);
     size_t (*count)(void*);
     size_t (*bucket_count)(void);
+    void (*resize)(size_t);
+    void (*copy_from)(const struct hashtable*);
     byte __obj_private[sizeof(__private_hashtable)];
 } hashtable;
 
