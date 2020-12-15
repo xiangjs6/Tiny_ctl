@@ -24,7 +24,7 @@ typedef struct {
 } __rb_tree_iter;
 
 typedef struct {
-    size_t memb_size;
+    const size_t memb_size;
     size_t nmemb;
     Compare cmp;
     struct __rb_tree_node *header;
