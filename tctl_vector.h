@@ -20,7 +20,7 @@ typedef struct {
     __vector_iter finish_ptr;
 } __private_vector;
 
-typedef struct {
+typedef struct vector{
     void *(*at)(int);
     IterType (*begin)(void);
     IterType (*end)(void);
@@ -35,6 +35,7 @@ typedef struct {
     IterType (*insert)(IterType iter, void *x);
     void (*resize)(size_t new_size);
     void (*clear)(void);
+    void (*swap)(struct vector*);
     byte __obj_private[sizeof(__private_vector)];
 } vector;
 

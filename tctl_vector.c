@@ -87,7 +87,7 @@ static void *at(int pos)
     __private_vector *p_private = (__private_vector*)this->__obj_private;
     if (pos >= p_private->nmemb)
         return NULL;
-    return p_private->start_ptr+ p_private->memb_size * pos;
+    return p_private->start_ptr + p_private->memb_size * pos;
 }
 static IterType begin(void)
 {
@@ -205,6 +205,17 @@ static void clear(void)
     p_private->finish_ptr = p_private->start_ptr;
 }
 
+static void swap(struct vector *v)
+{
+    vector *this = pop_this();
+    __private_vector *p_private = (__private_vector*)this->__obj_private;
+    __private_vector *p_v_private = (__private_vector*)v->__obj_private;
+    if (p_private->memb_size != p_v_private->memb_size)
+        return;
+    __private_vector tmp = *p_private;
+    memcpy(p_v_private, p_private, sizeof(__private_vector));
+    memcpy(p_private, &tmp, sizeof(__private_vector));
+}
 
 static const vector __def_vector = {
         at,
@@ -220,7 +231,8 @@ static const vector __def_vector = {
         erase,
         insert,
         resize,
-        clear
+        clear,
+        swap
 };
 
 void init_vector(vector *p_vector, size_t memb_size)
