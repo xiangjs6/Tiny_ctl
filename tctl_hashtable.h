@@ -19,10 +19,10 @@ typedef struct {
     Compare equal;
     HashFunc hash;
     ExtractKey get_key;
+    size_t start;
+    size_t finish;
     //上面成员会在copy函数中复制，所以要和下面成员分开
     vector buckets;
-    struct __bucket_node **start;
-    struct __bucket_node **finish;
 } __private_hashtable;
 
 typedef struct hashtable{

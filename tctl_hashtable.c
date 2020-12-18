@@ -70,7 +70,7 @@ static IterType begin(void)
     struct __inner_iterator *start = ARP_MallocARel(sizeof(struct __inner_iterator) + sizeof(__hashtable_iter));
     init_iter(start, sizeof(__hashtable_iter), this, p_private->memb_size, &__def_hashtable_iter_func);
     __hashtable_iter *out_iter = (__hashtable_iter*)start->__address;
-    out_iter->cur = *p_private->start;
+    out_iter->cur = *(struct __bucket_node**)THIS(&p_private->buckets).at(p_private->start);
     out_iter->val = out_iter->val;
     out_iter->ht = this;
     return start;
@@ -83,7 +83,7 @@ static IterType end(void)
     struct __inner_iterator *finish = ARP_MallocARel(sizeof(struct __inner_iterator) + sizeof(__hashtable_iter));
     init_iter(finish, sizeof(__hashtable_iter), this, p_private->memb_size, &__def_hashtable_iter_func);
     __hashtable_iter *out_iter = (__hashtable_iter*)finish->__address;
-    out_iter->cur = *p_private->finish;
+    out_iter->cur = *(struct __bucket_node**)THIS(&p_private->buckets).at(p_private->finish);
     out_iter->val = out_iter->val;
     out_iter->ht = this;
     return finish;
@@ -154,8 +154,9 @@ static void resize(size_t new_size)
         size_t n = __next_prime(new_size);
         vector tmp = creat_vector(sizeof(struct __bucket_node*));
         THIS(&tmp).resize(n);
-        struct __bucket_node **node = p_private->start;
-        while (node != p_private->finish)
+        struct __bucket_node **node = (struct __bucket_node**)THIS(&p_private->buckets).at(p_private->start);
+        struct __bucket_node **end = (struct __bucket_node**)THIS(&p_private->buckets).at(p_private->finish);
+        while (node != end)
         {
             if (*node) {
                 struct __bucket_node *first = *node;
@@ -174,8 +175,8 @@ static void resize(size_t new_size)
         }
         THIS(&p_private->buckets).swap(&tmp);
         destory_vector(&tmp);
-        p_private->start = THIS(&p_private->buckets).at(min_bkt);
-        p_private->finish = THIS(&p_private->buckets).at(max_bkt + 1);
+        p_private->start = min_bkt;
+        p_private->finish = max_bkt + 1;
     }
 }
 
@@ -191,10 +192,10 @@ static IterType insert_unique(void *x)
             return NULL;
     }
     __insert(first, x, p_private->memb_size);
-    if (first < p_private->start)
-        p_private->start = first;
-    if (first > p_private->finish)
-        p_private->finish = first;
+    if (n < p_private->start || !p_private->nmemb)
+        p_private->start = n;
+    if (n + 1 > p_private->finish || !p_private->nmemb)
+        p_private->finish = n + 1;
     p_private->nmemb++;
     struct __inner_iterator *iter = ARP_MallocARel(sizeof(struct __inner_iterator) + sizeof(__hashtable_iter));
     init_iter(iter, sizeof(__hashtable_iter), this, p_private->memb_size, &__def_hashtable_iter_func);
@@ -213,10 +214,10 @@ static IterType insert_equal(void *x)
     const size_t n = bkt_num(x, THIS(&p_private->buckets).size(), p_private->hash, p_private->get_key);
     struct __bucket_node **first = THIS(&p_private->buckets).at(n);
     __insert(first, x, p_private->memb_size);
-    if (first < p_private->start)
-        p_private->start = first;
-    if (first > p_private->finish)
-        p_private->finish = first;
+    if (n < p_private->start || !p_private->nmemb)
+        p_private->start = n;
+    if (n + 1 > p_private->finish || !p_private->nmemb)
+        p_private->finish = n + 1;
     p_private->nmemb++;
     struct __inner_iterator *iter = ARP_MallocARel(sizeof(struct __inner_iterator) + sizeof(__hashtable_iter));
     init_iter(iter, sizeof(__hashtable_iter), this, p_private->memb_size, &__def_hashtable_iter_func);
@@ -232,6 +233,8 @@ static void erase(IterType it)
     hashtable *this = pop_this();
     __private_hashtable *p_private = (__private_hashtable*)this->__obj_private;
     __hashtable_iter *__iter = (__hashtable_iter*)((struct __inner_iterator*)it)->__address;
+    if (__iter->ht != this)
+        return;
     struct __bucket_node *cur = __iter->cur;
     if (cur->next) {
         memcpy(cur->data, cur->next->data, p_private->memb_size);
@@ -240,14 +243,29 @@ static void erase(IterType it)
         cur = tmp;
     }
     __delete_node(cur, p_private->memb_size);
+    p_private->nmemb--;
     //判断是否需要更新start和finish
+    if (!p_private->nmemb) {
+        p_private->start = p_private->finish = 0;
+        return;
+    }
+    if (*(struct __bucket_node**)THIS(&p_private->buckets).at(p_private->start) == NULL) {
+        int i;
+        for (i = p_private->start + 1; *(struct __bucket_node**)THIS(&p_private->buckets).at(i) == NULL; i++);
+        p_private->start = i;
+    } else if (*(struct __bucket_node**)THIS(&p_private->buckets).at(p_private->finish - 1) == NULL) {
+        int i;
+        for (i = p_private->finish - 2; *(struct __bucket_node**)THIS(&p_private->buckets).at(i) == NULL; i--);
+        p_private->finish = i + 1;
+    }
 }
 
 static void clear(void)
 {
     hashtable *this = pop_this();
     __private_hashtable *p_private = (__private_hashtable*)this->__obj_private;
-    for (struct __bucket_node **node = p_private->start; node != p_private->finish; node++) {
+    for (size_t i = p_private->start; i != p_private->finish; i++) {
+        struct __bucket_node **node = THIS(&p_private->buckets).at(i);
         struct __bucket_node *cur = *node;
         while (cur)
         {
@@ -257,6 +275,7 @@ static void clear(void)
         }
     }
     p_private->nmemb = 0;
+    p_private->start = p_private->finish = 0;
 }
 
 static void copy_from(const hashtable *ht)
@@ -265,22 +284,19 @@ static void copy_from(const hashtable *ht)
     __private_hashtable *p_private = (__private_hashtable*)this->__obj_private;
     __private_hashtable *p_ht_private = (__private_hashtable*)ht->__obj_private;
     THIS(this).clear();
-    THIS(&p_private->buckets).resize(THIS(&p_ht_private->buckets).size());
+    THIS(&p_private->buckets).resize(THIS(&p_ht_private->buckets).size());//增加vector接口再后修改
     memcpy(p_private, p_ht_private, offsetof(__private_hashtable, buckets));
-    for (struct __bucket_node **first = p_ht_private->start; first != p_ht_private->finish; first++) {
-        struct __bucket_node *cur = *first;
+    for (size_t i = p_ht_private->start; i != p_ht_private->finish; i++) {
+        struct __bucket_node *cur = *(struct __bucket_node**)THIS(&p_private->buckets).at(i);
         if (cur) {
             struct __bucket_node *copy = __new_node(cur->data, p_ht_private->memb_size);
-            size_t n = (void*)first - THIS(&p_ht_private->buckets).front();
-            *(struct __bucket_node**)THIS(&p_private->buckets).at(n) = copy;
-            for (struct __bucket_node *next = cur->next; next; cur = next, next = next->next) {
+            *(struct __bucket_node**)THIS(&p_private->buckets).at(i) = copy;
+            for (struct __bucket_node *next = cur->next; next; next = next->next) {
                 copy->next = __new_node(next->data, p_private->memb_size);
                 copy = copy->next;
             }
         }
     }
-    p_private->start = THIS(&p_private->buckets).at((void*)p_ht_private->start - THIS(&p_ht_private->buckets).front());
-    p_private->finish = THIS(&p_private->buckets).at((void*)p_ht_private->finish - THIS(&p_ht_private->buckets).front());
 }
 
 static const hashtable _def_hashtable = {
@@ -308,7 +324,7 @@ void init_hashtable(hashtable *p_ht, size_t memb_size, Compare equal, HashFunc h
     p_private->equal = equal;
     p_private->hash = hash;
     p_private->get_key = get_key;
-    p_private->start = p_private->finish = (struct __bucket_node**)THIS(&p_private->buckets).front();
+    p_private->start = p_private->finish = 0;
 }
 
 void destory_hashtable(hashtable *p_ht)
