@@ -8,6 +8,53 @@
 #include "tctl_point_iterator.h"
 #include <memory.h>
 //private
+static size_t bkt_num(const void *data, size_t n, HashFunc hash, ExtractKey get_key)
+{
+    return hash(get_key(data)) % n;
+}
+
+static void iter_increment(__iterator *iter)
+{
+    __hashtable_iter *_iter = (__hashtable_iter *)&iter->__inner.__address;
+    hashtable *this = iter->__inner.obj_this;
+    __private_hashtable *p_private = (__private_hashtable*)this->__obj_private;
+    if (!_iter->cur)
+        return;
+    if (!_iter->cur->next) {
+        size_t n = bkt_num(_iter->cur->data, p_private->memb_size, p_private->hash, p_private->get_key);
+        struct __bucket_node **node = (struct __bucket_node**)THIS(&p_private->buckets).at(n + 1);
+        struct __bucket_node **end = (struct __bucket_node**)THIS(&p_private->buckets).at(p_private->finish);
+        do
+        {
+            if (*node)
+                break;
+            node++;
+        } while (node != end);
+        _iter->cur = *node;
+        _iter->val = _iter->cur ? _iter->cur->data : NULL;
+    } else {
+        _iter->cur = _iter->cur->next;
+        _iter->val = _iter->cur->data;
+    }
+}
+
+static bool iter_equal(const __iterator *it1, const __iterator *it2)
+{
+    __hashtable_iter *_iter1 = (__hashtable_iter *)&it1->__inner.__address;
+    __hashtable_iter *_iter2 = (__hashtable_iter *)&it2->__inner.__address;
+    return _iter1->cur == _iter2->cur;
+}
+static __iterator_obj_func  __def_hashtable_iter = {
+        NULL,
+        iter_increment,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        iter_equal
+};
+
+static const iterator_func __def_hashtable_iter_func = INIT_ITER_FUNC(&__def_hashtable_iter);
 static const unsigned long __prime_list[] = {
         53, 97, 193, 389, 769,
         1543, 3079, 6151, 12289, 24593,
@@ -30,6 +77,7 @@ static struct __bucket_node *__new_node(void *x, size_t size)
 {
     struct __bucket_node *n = allocate(sizeof(struct __bucket_node) + size);
     memcpy(n->data, x, size);
+    n->next = NULL;
     return n;
 }
 
@@ -45,24 +93,7 @@ static void __insert(struct __bucket_node **pos, void *x, size_t size)
     *pos = node;
 }
 
-static size_t bkt_num(const void *data, size_t n, HashFunc hash, ExtractKey get_key)
-{
-    return hash(get_key(data)) % n;
-}
 //public
-
-static __iterator_obj_func  __def_hashtable_iter = {
-        NULL,
-        //iter_increment,
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        //iter_equal
-};
-
-static const iterator_func __def_hashtable_iter_func = INIT_ITER_FUNC(&__def_hashtable_iter);
-
 static IterType begin(void)
 {
     hashtable *this = pop_this();
@@ -201,7 +232,7 @@ static IterType insert_unique(void *x)
     init_iter(iter, sizeof(__hashtable_iter), this, p_private->memb_size, &__def_hashtable_iter_func);
     __hashtable_iter *out_iter = (__hashtable_iter*)iter->__address;
     out_iter->cur = *first;
-    out_iter->val = out_iter->val;
+    out_iter->val = out_iter->cur->data;
     out_iter->ht = this;
     return iter;
 }
@@ -223,7 +254,7 @@ static IterType insert_equal(void *x)
     init_iter(iter, sizeof(__hashtable_iter), this, p_private->memb_size, &__def_hashtable_iter_func);
     __hashtable_iter *out_iter = (__hashtable_iter*)iter->__address;
     out_iter->cur = *first;
-    out_iter->val = out_iter->val;
+    out_iter->val = out_iter->cur->data;
     out_iter->ht = this;
     return iter;
 }
@@ -320,7 +351,7 @@ void init_hashtable(hashtable *p_ht, size_t memb_size, Compare equal, HashFunc h
     __private_hashtable *p_private = (__private_hashtable*)p_ht->__obj_private;
     init_vector(&p_private->buckets, sizeof(struct __bucket_node*));
     p_private->nmemb = 0;
-    *(size_t*)p_private->memb_size = memb_size;
+    *(size_t*)&p_private->memb_size = memb_size;
     p_private->equal = equal;
     p_private->hash = hash;
     p_private->get_key = get_key;

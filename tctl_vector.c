@@ -213,8 +213,8 @@ static void swap(struct vector *v)
     if (p_private->memb_size != p_v_private->memb_size)
         return;
     __private_vector tmp = *p_private;
-    memcpy(p_v_private, p_private, sizeof(__private_vector));
-    memcpy(p_private, &tmp, sizeof(__private_vector));
+    memcpy(p_private, p_v_private, sizeof(__private_vector));
+    memcpy(p_v_private, &tmp, sizeof(__private_vector));
 }
 
 static const vector __def_vector = {
@@ -249,7 +249,8 @@ void init_vector(vector *p_vector, size_t memb_size)
 void destory_vector(vector *p_vector)
 {
     __private_vector *p_private = (__private_vector *)p_vector->__obj_private;
-    deallocate(p_private->start_ptr, p_private->total_storage_memb * p_private->memb_size);
+    if (p_private->total_storage_memb)
+        deallocate(p_private->start_ptr, p_private->total_storage_memb * p_private->memb_size);
 }
 
 vector creat_vector(size_t memb_size)
