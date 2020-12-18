@@ -85,8 +85,8 @@ static void *at(int pos)
 {
     vector *this = pop_this();
     __private_vector *p_private = (__private_vector*)this->__obj_private;
-    if (pos >= p_private->nmemb)
-        return NULL;
+    //if (pos >= p_private->nmemb)
+    //    return NULL;
     return p_private->start_ptr + p_private->memb_size * pos;
 }
 static IterType begin(void)
