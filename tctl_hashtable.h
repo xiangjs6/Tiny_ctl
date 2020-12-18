@@ -38,6 +38,7 @@ typedef struct hashtable{
     size_t (*count)(void*);
     size_t (*bucket_count)(void);
     void (*resize)(size_t);
+    void (*swap)(struct hashtable*);
     void (*copy_from)(const struct hashtable*);
     byte __obj_private[sizeof(__private_hashtable)];
 } hashtable;

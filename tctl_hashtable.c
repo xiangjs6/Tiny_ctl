@@ -102,7 +102,8 @@ static IterType begin(void)
     struct __inner_iterator *start = ARP_MallocARel(sizeof(struct __inner_iterator) + sizeof(__hashtable_iter));
     init_iter(start, sizeof(__hashtable_iter), this, p_private->memb_size, &__def_hashtable_iter_func);
     __hashtable_iter *out_iter = (__hashtable_iter*)start->__address;
-    out_iter->cur = *(struct __bucket_node**)THIS(&p_private->buckets).at(p_private->start);
+    struct __bucket_node **bucket = (struct __bucket_node**)THIS(&p_private->buckets).at(p_private->start);
+    out_iter->cur = bucket ? *bucket : NULL;
     out_iter->val = out_iter->cur->data;
     out_iter->ht = this;
     return start;
@@ -115,7 +116,8 @@ static IterType end(void)
     struct __inner_iterator *finish = ARP_MallocARel(sizeof(struct __inner_iterator) + sizeof(__hashtable_iter));
     init_iter(finish, sizeof(__hashtable_iter), this, p_private->memb_size, &__def_hashtable_iter_func);
     __hashtable_iter *out_iter = (__hashtable_iter*)finish->__address;
-    out_iter->cur = *(struct __bucket_node**)THIS(&p_private->buckets).at(p_private->finish);
+    struct __bucket_node **bucket = (struct __bucket_node**)THIS(&p_private->buckets).at(p_private->finish);
+    out_iter->cur = bucket ? *bucket : NULL;
     out_iter->val = out_iter->cur->data;
     out_iter->ht = this;
     return finish;
@@ -316,16 +318,29 @@ static void clear(void)
     p_private->start = p_private->finish = 0;
 }
 
+static void swap(hashtable *ht)
+{
+    hashtable *this = pop_this();
+    __private_hashtable *p_private = (__private_hashtable*)this->__obj_private;
+    __private_hashtable *p_ht_private = (__private_hashtable*)ht->__obj_private;
+    THIS(&p_private->buckets).swap(&p_ht_private->buckets);
+    __private_hashtable tmp = *p_private;
+    memcpy(p_private, p_ht_private, offsetof(__private_hashtable, buckets));
+    memcpy(p_ht_private, &tmp, offsetof(__private_hashtable, buckets));
+}
+
 static void copy_from(const hashtable *ht)
 {
     hashtable *this = pop_this();
     __private_hashtable *p_private = (__private_hashtable*)this->__obj_private;
     __private_hashtable *p_ht_private = (__private_hashtable*)ht->__obj_private;
     THIS(this).clear();
-    THIS(&p_private->buckets).resize(THIS(&p_ht_private->buckets).size());//增加vector接口再后修改
+    size_t n = THIS(&p_ht_private->buckets).size();
+    THIS(&p_private->buckets).resize(n);//增加vector接口再后修改
+    memset((void*)THIS(&p_private->buckets).front(), 0, n * sizeof(struct __bucket_node*));
     memcpy(p_private, p_ht_private, offsetof(__private_hashtable, buckets));
     for (size_t i = p_ht_private->start; i != p_ht_private->finish; i++) {
-        struct __bucket_node *cur = *(struct __bucket_node**)THIS(&p_private->buckets).at(i);
+        struct __bucket_node *cur = *(struct __bucket_node**)THIS(&p_ht_private->buckets).at(i);
         if (cur) {
             struct __bucket_node *copy = __new_node(cur->data, p_ht_private->memb_size);
             *(struct __bucket_node**)THIS(&p_private->buckets).at(i) = copy;
@@ -350,6 +365,7 @@ static const hashtable _def_hashtable = {
         count,
         bucket_count,
         resize,
+        swap,
         copy_from
 };
 void init_hashtable(hashtable *p_ht, size_t memb_size, Compare equal, HashFunc hash, ExtractKey get_key)
