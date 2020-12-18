@@ -170,7 +170,7 @@ static size_t count(void *x)
     struct __bucket_node **first = THIS(&p_private->buckets).at(n);
     size_t res = 0;
     for (struct __bucket_node *cur = *first; cur; cur = cur->next) {
-        if (p_private->equal(p_private->get_key(cur->data), p_private->get_key(x)))
+        if (!p_private->equal(p_private->get_key(cur->data), p_private->get_key(x)))
             res++;
     }
     return res;
