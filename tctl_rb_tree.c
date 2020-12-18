@@ -534,7 +534,7 @@ void init_rb_tree(rb_tree *p_tree, size_t memb_size, Compare cmp)
 {
     *p_tree = _def_rb_tree;
     __private_rb_tree *p_private = (__private_rb_tree *)p_tree->__obj_private;
-    p_private->memb_size = memb_size;
+    *(size_t*)&p_private->memb_size = memb_size;
     p_private->nmemb = 0;
     p_private->cmp = cmp;
     struct __rb_tree_node *node= __creat_rb_node(0);
