@@ -5,7 +5,7 @@
 
 #target you can change test to what you want
 #run-time library name，lib*.so
-TARGET  := libtiny_ctl.so
+TARGET  := ../lib/libtiny_ctl.so
 
 #compile and lib parameter
 
@@ -13,7 +13,7 @@ CC      := gcc
 LIBS    := -lpthread
 LDFLAGS :=
 DEFINES :=
-INCLUDE := -I.
+INCLUDE := -I ../include
 CFLAGS  := -g -Wall -O3 -fPIC $(DEFINES) $(INCLUDE)
 CXXFLAGS:= $(CFLAGS) -DHAVE_CONFIG_H
 SHARE   := -shared -o
@@ -22,7 +22,7 @@ SHARE   := -shared -o
 
 
 #source file
-SOURCE  := $(wildcard *.c) $(wildcard ./auto_release_pool/*.c)
+SOURCE  := $(wildcard *.c)
 OBJS    := $(patsubst %.c,%.o,$(SOURCE))
 
 .PHONY : everything objs clean veryclean rebuild

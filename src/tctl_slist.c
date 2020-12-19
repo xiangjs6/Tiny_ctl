@@ -2,10 +2,10 @@
 // Created by xjs on 2020/9/29.
 //
 
-#include "tctl_slist.h"
-#include "tctl_allocator.h"
-#include "tctl_common.h"
-#include "auto_release_pool/auto_release_pool.h"
+#include "../include/tctl_slist.h"
+#include "../include/tctl_allocator.h"
+#include "../include/tctl_common.h"
+#include "../include/auto_release_pool.h"
 #include "memory.h"
 //private
 static void iter_increment(__iterator *p)

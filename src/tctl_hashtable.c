@@ -2,10 +2,10 @@
 // Created by xjs on 2020/12/14.
 //
 
-#include "tctl_hashtable.h"
-#include "auto_release_pool/auto_release_pool.h"
-#include "tctl_allocator.h"
-#include "tctl_point_iterator.h"
+#include "../include/tctl_hashtable.h"
+#include "../include/auto_release_pool.h"
+#include "../include/tctl_allocator.h"
+#include "../include/tctl_point_iterator.h"
 #include <memory.h>
 //private
 static size_t bkt_num(const void *data, size_t n, HashFunc hash, ExtractKey get_key)

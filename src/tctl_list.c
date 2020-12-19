@@ -2,10 +2,10 @@
 // Created by xjs on 2020/9/8.
 //
 
-#include "tctl_list.h"
-#include "tctl_common.h"
-#include "tctl_allocator.h"
-#include "auto_release_pool/auto_release_pool.h"
+#include "../include/tctl_list.h"
+#include "../include/tctl_common.h"
+#include "../include/tctl_allocator.h"
+#include "../include/auto_release_pool.h"
 #include <memory.h>
 
 //private

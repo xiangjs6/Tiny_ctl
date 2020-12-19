@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "tctl_point_iterator.h"
 #include "tctl_iterator.h"
-#include "auto_release_pool/auto_release_pool.h"
+#include "auto_release_pool.h"
 int main(void)
 {
     ARP_CreatePool();

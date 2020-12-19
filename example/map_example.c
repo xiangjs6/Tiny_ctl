@@ -2,6 +2,7 @@
 #include "tctl_iterator.h"
 #include "tctl_map.h"
 #include "tctl_allocator.h"
+#include "auto_release_pool.h"
 #include <string.h>
 
 int scmp(const char**a, const char**b)

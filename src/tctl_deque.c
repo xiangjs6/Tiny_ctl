@@ -1,9 +1,9 @@
 //
 // Created by xjs on 2020/9/12.
 //
-#include "tctl_allocator.h"
-#include "tctl_deque.h"
-#include "auto_release_pool/auto_release_pool.h"
+#include "../include/tctl_allocator.h"
+#include "../include/tctl_deque.h"
+#include "../include/auto_release_pool.h"
 #include <memory.h>
 //private
 static void *iter_at(__iterator *iter, int pos)

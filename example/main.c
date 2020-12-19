@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "auto_release_pool/auto_release_pool.h"
+#include "auto_release_pool.h"
 #include "tctl_allocator.h"
 #include "tctl_object.h"
 #include "tctl_common.h"

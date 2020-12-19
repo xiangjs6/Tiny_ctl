@@ -2,7 +2,7 @@
 // Created by xjs on 2020/12/19.
 //
 
-#include "tctl_hash_fun.h"
+#include "../include/tctl_hash_fun.h"
 size_t hash_char(const void *x)
 {
     char _x = *(char*)x;

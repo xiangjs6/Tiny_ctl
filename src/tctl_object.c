@@ -2,9 +2,9 @@
 // Created by xjs on 2020/8/31.
 //
 
-#include "tctl_object.h"
-#include "tctl_allocator.h"
-#include "tctl_portable.h"
+#include "../include/tctl_object.h"
+#include "../include/tctl_allocator.h"
+#include "../include/tctl_portable.h"
 
 //this指针
 static thread_key_t this_key;

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "tctl_hashtable.h"
 #include "tctl_hash_fun.h"
-#include "auto_release_pool/auto_release_pool.h"
+#include "auto_release_pool.h"
 int cmp(const int *a, const int *b)
 {
     if (*a > *b)

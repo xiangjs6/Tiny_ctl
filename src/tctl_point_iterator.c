@@ -2,9 +2,9 @@
 // Created by xjs on 2020/11/20.
 //
 
-#include "tctl_point_iterator.h"
-#include "tctl_allocator.h"
-#include "auto_release_pool/auto_release_pool.h"
+#include "../include/tctl_point_iterator.h"
+#include "../include/tctl_allocator.h"
+#include "../include/auto_release_pool.h"
 #include <memory.h>
 //private
 typedef void *__point_iter;

@@ -2,7 +2,7 @@
 // Created by xjs on 2020/12/12.
 //
 
-#include "tctl_debug.h"
+#include "../include/tctl_debug.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>

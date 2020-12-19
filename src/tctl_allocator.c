@@ -2,9 +2,9 @@
 // Created by xjs on 2020/8/31.
 //
 
-#include "tctl_allocator.h"
-#include "tctl_common.h"
-#include "tctl_portable.h"
+#include "../include/tctl_allocator.h"
+#include "../include/tctl_common.h"
+#include "../include/tctl_portable.h"
 #include <malloc.h>
 #include <memory.h>
 

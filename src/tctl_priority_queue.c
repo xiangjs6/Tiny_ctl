@@ -2,8 +2,8 @@
 // Created by xjs on 2020/9/29.
 //
 
-#include "tctl_priority_queue.h"
-#include "tctl_heap.h"
+#include "../include/tctl_priority_queue.h"
+#include "../include/tctl_heap.h"
 
 static bool empty(void)
 {
