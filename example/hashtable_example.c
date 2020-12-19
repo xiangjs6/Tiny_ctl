@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "tctl_hashtable.h"
+#include "tctl_hash_fun.h"
 #include "auto_release_pool/auto_release_pool.h"
 int cmp(const int *a, const int *b)
 {
@@ -9,10 +10,6 @@ int cmp(const int *a, const int *b)
         return -1;
     return 0;
 }
-size_t hash_func(const int *x)
-{
-    return *x;
-}
 
 void *get_key(const int *x)
 {
@@ -21,7 +18,7 @@ void *get_key(const int *x)
 int main(void)
 {
     ARP_CreatePool();
-    hashtable ht = creat_hashtable(sizeof(int), cmp, hash_func, get_key);
+    hashtable ht = creat_hashtable(sizeof(int), cmp, hash_int, get_key);
     int x = 100;
     THIS(&ht).insert_unique(&x);
     x = 47;
@@ -38,7 +35,7 @@ int main(void)
     x = 101;
     iterator(int) f_it = THIS(&ht).find(&x);
     THIS(&ht).erase(f_it);
-    hashtable ht2 = creat_hashtable(sizeof(int), cmp, hash_func, get_key);
+    hashtable ht2 = creat_hashtable(sizeof(int), cmp, hash_int, get_key);
     for (iterator(int) it = THIS(&ht2).begin(); !ITER(it).equal(THIS(&ht2).end()); ITER(it).increment())
     printf("%d ", *it->val);
     for (int i = 0; i < 1000; i++) {
