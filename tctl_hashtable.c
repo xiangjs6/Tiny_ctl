@@ -144,6 +144,11 @@ static size_t bucket_count(void)
     return THIS(&p_private->buckets).size();
 }
 
+static size_t max_bucket_count(void)
+{
+    pop_this();
+    return __prime_list[__num_primes - 1];
+}
 static IterType find(void *x)
 {
     hashtable *this = pop_this();
@@ -364,6 +369,7 @@ static const hashtable _def_hashtable = {
         find,
         count,
         bucket_count,
+        max_bucket_count,
         resize,
         swap,
         copy_from

@@ -37,6 +37,7 @@ typedef struct hashtable{
     IterType (*find)(void*);
     size_t (*count)(void*);
     size_t (*bucket_count)(void);
+    size_t (*max_bucket_count)(void);
     void (*resize)(size_t);
     void (*swap)(struct hashtable*);
     void (*copy_from)(const struct hashtable*);
