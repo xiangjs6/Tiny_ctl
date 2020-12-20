@@ -4,15 +4,11 @@
 #include "tctl_object.h"
 #include "auto_release_pool.h"
 #include <stdio.h>
-int cmp(const void *x, const void *y)
+int scmp(const void *x, const void *y)
 {
-	int *a = (void*)x;
-	int *b = (void*)y;
-	if (*a > *b)
-		return 1;
-	else if (*a < *b)
-		return -1;
-	return 0;
+    const char **a = (void*)x, **b = (void*)y;
+    int res = strcmp(*a, *b);
+    return res;
 }
 void lookup(unordered_map *m, char *w)
 {
