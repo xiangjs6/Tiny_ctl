@@ -2,8 +2,8 @@
 // Created by xjs on 2020/12/20.
 //
 
-#ifndef TINY_CTL_TCTL_UNORDERED_MAP_H
-#define TINY_CTL_TCTL_UNORDERED_MAP_H
+#ifndef TINY_CTL_TCTL_UNORDERED_MULTIMAP_H
+#define TINY_CTL_TCTL_UNORDERED_MULTIMAP_H
 
 #include "tctl_hashtable.h"
 #include "tctl_def.h"
@@ -33,4 +33,4 @@ typedef struct unordered_multimap{
 void init_unordered_multimap(unordered_multimap *p_m, size_t key_size, size_t val_size, Compare equal, HashFunc hash);
 void destory_unordered_multimap(unordered_multimap *p_m);
 unordered_multimap creat_unordered_multimap(size_t key_size, size_t val_size, Compare equal, HashFunc hash);
-#endif //TINY_CTL_TCTL_UNORDERED_MAP_H
+#endif //TINY_CTL_TCTL_UNORDERED_MULTIMAP_H
