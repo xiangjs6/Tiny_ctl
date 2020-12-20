@@ -18,7 +18,7 @@ void lookup(unordered_map *m, char *w)
 int main(void)
 {
 	ARP_CreatePool();
-	unordered_map m = creat_unordered_map(sizeof(char*), sizeof(int), cmp, hash_str);
+	unordered_map m = creat_unordered_map(sizeof(char*), sizeof(int), scmp, hash_str);
 	pair(char*, int) p;
 	p.first = "january";
 	p.second = 31;
