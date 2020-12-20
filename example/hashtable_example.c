@@ -36,14 +36,14 @@ int main(void)
     iterator(int) f_it = THIS(&ht).find(&x);
     THIS(&ht).erase(f_it);
     hashtable ht2 = creat_hashtable(sizeof(int), cmp, hash_int, get_key);
-    for (iterator(int) it = THIS(&ht2).begin(); !ITER(it).equal(THIS(&ht2).end()); ITER(it).increment())
+    for (iterator(int) it = THIS(&ht2).begin(); !ITER(it).equal(THIS(&ht2).end()); ITER(it).inc())
     printf("%d ", *it->val);
     for (int i = 0; i < 1000; i++) {
         THIS(&ht2).insert_equal(&i);
     }
     THIS(&ht).swap(&ht2);
     THIS(&ht).copy_from(&ht2);
-    for (iterator(int) it = THIS(&ht).begin(); !ITER(it).equal(THIS(&ht).end()); ITER(it).increment())
+    for (iterator(int) it = THIS(&ht).begin(); !ITER(it).equal(THIS(&ht).end()); ITER(it).inc())
     printf("%d ", *it->val);
     putchar('\n');
     x = 100;

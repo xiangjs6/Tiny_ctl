@@ -13,7 +13,7 @@ static size_t bkt_num(const void *data, size_t n, HashFunc hash, ExtractKey get_
     return hash(get_key(data)) % n;
 }
 
-static void iter_increment(__iterator *iter)
+static void iter_inc(__iterator *iter)
 {
     __hashtable_iter *_iter = (__hashtable_iter *)&iter->__inner.__address;
     hashtable *this = iter->__inner.obj_this;
@@ -47,7 +47,7 @@ static bool iter_equal(const __iterator *it1, const __iterator *it2)
 }
 static __iterator_obj_func  __def_hashtable_iter = {
         NULL,
-        iter_increment,
+        iter_inc,
         NULL,
         NULL,
         NULL,

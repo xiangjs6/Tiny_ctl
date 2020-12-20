@@ -15,7 +15,7 @@ static void *iter_at(__iterator *iter, int pos)
     return *_iter + pos * p_private->memb_size;
 }
 
-static void iter_increment(__iterator *iter)
+static void iter_inc(__iterator *iter)
 {
     __vector_iter *_iter = (__vector_iter*)&iter->val;
     vector *this = iter->__inner.obj_this;
@@ -23,7 +23,7 @@ static void iter_increment(__iterator *iter)
     *_iter += p_private->memb_size;
 }
 
-static void iter_decrement(__iterator *iter)
+static void iter_dec(__iterator *iter)
 {
     __vector_iter *_iter = &iter->val;
     vector *this = iter->__inner.obj_this;
@@ -47,7 +47,7 @@ static void iter_sub(__iterator *iter, int x)
     *_iter -= x * p_private->memb_size;
 }
 
-static long long iter_diff(const __iterator *minuend, const __iterator *subtraction)
+static long long iter_dist(const __iterator *minuend, const __iterator *subtraction)
 {
     vector *this = minuend->__inner.obj_this;
     __private_vector *p_private = (__private_vector*)this->__obj_private;
@@ -61,11 +61,11 @@ static bool iter_equal(const __iterator *it1, const __iterator *it2)
 
 static const __iterator_obj_func  __def_vector_iter = {
         iter_at,
-        iter_increment,
-        iter_decrement,
+        iter_inc,
+        iter_dec,
         iter_add,
         iter_sub,
-        iter_diff,
+        iter_dist,
         iter_equal
 };
 

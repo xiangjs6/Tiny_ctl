@@ -36,7 +36,7 @@ int main(void)
     strcpy(p.first, "david");
     p.second = 5;
     THIS(&simap).insert(&p);
-    for (iterator(pair(char*, long long)) it = THIS(&simap).begin(); !ITER(it).equal(THIS(&simap).end()); ITER(it).increment())
+    for (iterator(pair(char*, long long)) it = THIS(&simap).begin(); !ITER(it).equal(THIS(&simap).end()); ITER(it).inc())
         printf("key:%s val:%lld\n", it->val->first, it->val->second);
     char key[10] = {"jjhou"};
     char *p_key = key;

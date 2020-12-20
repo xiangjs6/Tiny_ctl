@@ -12,52 +12,52 @@ static void *at(int x)
     __iterator *p_it = *(__iterator**)pop_this();
     return p_it->__inner.iterator_func_p->private_iter_func->iter_at(p_it, x);
 }
-static void *increment(void)
+static void inc(void)
 {
     __iterator *p_it = *(__iterator**)pop_this();
-    void *ptr = p_it->val;
-    p_it->__inner.iterator_func_p->private_iter_func->iter_increment(p_it);
-    return ptr;
+    p_it->__inner.iterator_func_p->private_iter_func->iter_inc(p_it);
 }
 
-static void *decrement(void)
+static void dec(void)
 {
     __iterator *p_it = *(__iterator**)pop_this();
-    void *ptr = p_it->val;
-    p_it->__inner.iterator_func_p->private_iter_func->iter_decrement(p_it);
-    return ptr;
+    p_it->__inner.iterator_func_p->private_iter_func->iter_dec(p_it);
 }
 
-static void *front_increment(void)
+static IterType add(int x)
 {
     __iterator *p_it = *(__iterator**)pop_this();
-    p_it->__inner.iterator_func_p->private_iter_func->iter_increment(p_it);
-    return p_it->val;
+    __iterator *copy_it = copy_iter(p_it);
+    ARP_JoinARel(copy_it);
+    p_it->__inner.iterator_func_p->private_iter_func->iter_add(copy_it, x);
+    return copy_it;
 }
 
-static void *front_decrement(void)
+static IterType sub(int x)
 {
     __iterator *p_it = *(__iterator**)pop_this();
-    p_it->__inner.iterator_func_p->private_iter_func->iter_decrement(p_it);
-    return p_it->val;
+    __iterator *copy_it = copy_iter(p_it);
+    ARP_JoinARel(copy_it);
+    p_it->__inner.iterator_func_p->private_iter_func->iter_sub(copy_it, x);
+    return copy_it;
 }
 
-static void add(int x)
+static void self_add(int x)
 {
     __iterator *p_it = *(__iterator**)pop_this();
     p_it->__inner.iterator_func_p->private_iter_func->iter_add(p_it, x);
 }
 
-static void sub(int x)
+static void self_sub(int x)
 {
     __iterator *p_it = *(__iterator**)pop_this();
     p_it->__inner.iterator_func_p->private_iter_func->iter_sub(p_it, x);
 }
 
-static long long diff(const IterType iter)
+static long long dist(const IterType iter)
 {
     __iterator *p_it = *(__iterator**)pop_this();
-    return p_it->__inner.iterator_func_p->private_iter_func->iter_diff(p_it, iter);
+    return p_it->__inner.iterator_func_p->private_iter_func->iter_dist(p_it, iter);
 }
 
 static bool equal(const IterType iter)
@@ -83,14 +83,14 @@ static void copy(const IterType iter)
 
 const __public_iterator_func def_pub_iter_func = {
         .at = at,
-        .increment = increment,
-        .decrement = decrement,
-        .front_increment = front_increment,
-        .front_decrement = front_decrement,
+        .inc = inc,
+        .dec = dec,
+        .self_add = self_add,
+        .self_sub = self_sub,
         .add = add,
         .sub = sub,
-        .diff = diff,
         .copy = copy,
+        .dist = dist,
         .equal = equal
 };
 

@@ -9,12 +9,12 @@
 static void *iter_at(__iterator *iter, int pos)
 {
     deque *this = iter->__inner.obj_this;
-    long long dist = ITER(iter).diff(THIS(this).begin());
+    long long dist = ITER(iter).dist(THIS(this).begin());
     dist += pos;
     return THIS(this).at(dist);
 }
 
-static void iter_increment(__iterator *iter)
+static void iter_inc(__iterator *iter)
 {
     deque *this = iter->__inner.obj_this;
     __private_deque *p_private = (__private_deque*)this->__obj_private;
@@ -28,7 +28,7 @@ static void iter_increment(__iterator *iter)
     }
 }
 
-static void iter_decrement(__iterator *iter)
+static void iter_dec(__iterator *iter)
 {
     deque *this = iter->__inner.obj_this;
     __private_deque *p_private = (__private_deque*)this->__obj_private;
@@ -80,7 +80,7 @@ static void iter_sub(__iterator *iter, int v)
     _iter->cur = _iter->last - (v % p_private->block_nmemb) * p_private->block_nmemb;
 }
 
-static long long iter_diff(const __iterator *minuend, const __iterator *subtraction)
+static long long iter_dist(const __iterator *minuend, const __iterator *subtraction)
 {
     __deque_iter *_minuend = (__deque_iter*)minuend->__inner.__address;
     __deque_iter *_subtraction = (__deque_iter*)subtraction->__inner.__address;
@@ -103,11 +103,11 @@ static bool iter_equal(const __iterator *it1, const __iterator *it2)
 
 static const __iterator_obj_func  __def_deque_iter = {
         iter_at,
-        iter_increment,
-        iter_decrement,
+        iter_inc,
+        iter_dec,
         iter_add,
         iter_sub,
-        iter_diff,
+        iter_dist,
         iter_equal
 };
 

@@ -15,13 +15,13 @@ static void *iter_at(__iterator *iter, int pos)
     return *__iter + pos * iter->__inner.memb_size;
 }
 
-static void iter_increment(__iterator *iter)
+static void iter_inc(__iterator *iter)
 {
     __point_iter *__iter = (__point_iter*)iter->__inner.__address;
     *__iter += iter->__inner.memb_size;
 }
 
-static void iter_decrement(__iterator *iter)
+static void iter_dec(__iterator *iter)
 {
     __point_iter *__iter = (__point_iter*)iter->__inner.__address;
     *__iter -= iter->__inner.memb_size;
@@ -39,7 +39,7 @@ static void iter_sub(__iterator *iter, int x)
     *__iter -= x * iter->__inner.memb_size;
 }
 
-static long long iter_diff(const __iterator *minuend, const __iterator *subtraction)
+static long long iter_dist(const __iterator *minuend, const __iterator *subtraction)
 {
     __point_iter *__minuend = (__point_iter*)minuend->__inner.__address;
     __point_iter *__subtraction = (__point_iter*)subtraction->__inner.__address;
@@ -55,11 +55,11 @@ static bool iter_equal(const __iterator *it1, const __iterator *it2)
 
 static const __iterator_obj_func  __def_point_iter = {
         iter_at,
-        iter_increment,
-        iter_decrement,
+        iter_inc,
+        iter_dec,
         iter_add,
         iter_sub,
-        iter_diff,
+        iter_dist,
         iter_equal
 };
 

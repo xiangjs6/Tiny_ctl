@@ -61,7 +61,7 @@ int main(void)
 	lookup(&m, "february");
 	lookup(&m, "december");
 	printf("--------------------\n");
-	for (iterator(pair(char*, int)) it = THIS(&m).begin(); !ITER(it).equal(THIS(&m).end()); ITER(it).increment())
+	for (iterator(pair(char*, int)) it = THIS(&m).begin(); !ITER(it).equal(THIS(&m).end()); ITER(it).inc())
 		printf("%s:%d\n", it->val->first, it->val->second);
 	destory_unordered_map(&m);
 	ARP_FreePool();

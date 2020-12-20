@@ -17,24 +17,24 @@ typedef struct __iterator __iterator;
 typedef void *IterType;
 typedef struct {
     void *(*iter_at)(__iterator*, int);
-    void (*iter_increment)(__iterator*);
-    void (*iter_decrement)(__iterator*);
+    void (*iter_inc)(__iterator*);
+    void (*iter_dec)(__iterator*);
     void (*iter_add)(__iterator*, int);
     void (*iter_sub)(__iterator*, int);
-    long long (*iter_diff)(const __iterator*, const __iterator*);
+    long long (*iter_dist)(const __iterator*, const __iterator*);
     bool (*iter_equal)(const __iterator*, const __iterator*);
 } __iterator_obj_func;
 
 typedef struct {
     void *(*at)(int);
-    void *(*increment)(void);
-    void *(*decrement)(void);
-    void *(*front_increment)(void);
-    void *(*front_decrement)(void);
-    void (*add)(int);
-    void (*sub)(int);
+    void (*inc)(void);
+    void (*dec)(void);
+    void (*self_add)(int);
+    void (*self_sub)(int);
+    IterType (*add)(int);
+    IterType (*sub)(int);
     void (*copy)(const IterType);
-    long long (*diff)(const IterType);
+    long long (*dist)(const IterType);
     bool (*equal)(const IterType);
 } __public_iterator_func;
 

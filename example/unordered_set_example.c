@@ -35,7 +35,7 @@ int main(void)
     lookup(&s, "mango");
     lookup(&s, "apple");
     lookup(&s, "durian");
-    for (iterator(char*) it = THIS(&s).begin(); !ITER(it).equal(THIS(&s).end()); ITER(it).increment())
+    for (iterator(char*) it = THIS(&s).begin(); !ITER(it).equal(THIS(&s).end()); ITER(it).inc())
     printf("%s ", *it->val);
     putchar('\n');
     ARP_FreePool();

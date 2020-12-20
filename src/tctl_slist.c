@@ -8,7 +8,7 @@
 #include "../include/auto_release_pool.h"
 #include "memory.h"
 //private
-static void iter_increment(__iterator *p)
+static void iter_inc(__iterator *p)
 {
     struct __slist_node *node = container_of(p->val, struct __slist_node, data);
     p->val = node->next ? node->next->data : NULL;
@@ -21,7 +21,7 @@ static bool iter_equal(const __iterator *it1, const __iterator *it2)
 
 static const __iterator_obj_func __def_slist_iter = {
         NULL,
-        iter_increment,
+        iter_inc,
         NULL,
         NULL,
         NULL,

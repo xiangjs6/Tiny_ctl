@@ -9,12 +9,12 @@
 #include <memory.h>
 
 //private
-static void iter_increment(__iterator *p)
+static void iter_inc(__iterator *p)
 {
     struct __list_node *node = container_of(p->val, struct __list_node, data);
     p->val = node->next->data;
 }
-static void iter_decrement(__iterator *p)
+static void iter_dec(__iterator *p)
 {
     struct __list_node *node = container_of(p->val, struct __list_node, data);
     p->val = node->pre->data;
@@ -27,8 +27,8 @@ static bool iter_equal(const __iterator *it1, const __iterator *it2)
 
 static __iterator_obj_func  __def_list_iter = {
         NULL,
-        iter_increment,
-        iter_decrement,
+        iter_inc,
+        iter_dec,
         NULL,
         NULL,
         NULL,

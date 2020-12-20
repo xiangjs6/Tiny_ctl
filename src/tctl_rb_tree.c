@@ -7,7 +7,7 @@
 #include "../include/auto_release_pool.h"
 #include <memory.h>
 //private:
-static void iter_increment(__iterator *iter)
+static void iter_inc(__iterator *iter)
 {
     struct __rb_tree_node *node = ((__rb_tree_iter*)iter->__inner.__address)->node;
     if(node->right != NULL)
@@ -29,7 +29,7 @@ static void iter_increment(__iterator *iter)
     iter->val = node->data;
 }
 
-static void iter_decrement(__iterator *iter)
+static void iter_dec(__iterator *iter)
 {
     struct __rb_tree_node *node = ((__rb_tree_iter *) iter->__inner.__address)->node;
     if (node->color == __rb_tree_red && node->parent->parent == node)
@@ -60,8 +60,8 @@ static bool iter_equal(const __iterator *it1, const __iterator *it2)
 
 static __iterator_obj_func  __def_rb_tree_iter = {
         NULL,
-        iter_increment,
-        iter_decrement,
+        iter_inc,
+        iter_dec,
         NULL,
         NULL,
         NULL,
