@@ -1,7 +1,8 @@
 ﻿# Tiny_ctl
 ## 记录问题：
-1. hashtable的__next_prime以后调用lower_bound算法
-2. power算法待解决
+1. 对象抽象程度不够，决定研究如何设计底层对象解决许多抽象问题
+2. hashtable的__next_prime以后调用lower_bound算法
+3. power算法待解决
 ## 编译使用
 ```shell
 cd src
