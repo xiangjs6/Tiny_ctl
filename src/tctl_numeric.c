@@ -67,3 +67,17 @@ IterType partial_sum(const IterType first, const IterType last, const IterType r
     free_iter(__last);
     return __res;
 }
+
+void iota(const IterType first, const IterType last, void *x, const NumOperations *ops)
+{
+    __iterator *__first = copy_iter(first);
+    __iterator *__last = copy_iter(last);
+    while (!ITER(__first).equal(__last))
+    {
+        ops->assign(__first->val, x);
+        ops->inc(x);
+        ITER(__first).inc();
+    }
+    free_iter(__first);
+    free_iter(__last);
+}

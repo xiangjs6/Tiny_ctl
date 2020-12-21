@@ -17,6 +17,7 @@ typedef size_t (*HashFunc)(const void *);
 typedef void *(*ExtractKey)(const void *);
 
 typedef void *(*BinaryOperation)(const void *first, const void *second, void *res);
+typedef void (*UnaryOperation)(void *self);
 
 #define pair(FT, ST) struct {FT first; ST second;} BYTE_ALIGNED
 #endif //TINY_CTL_TCTL_DEF_H
