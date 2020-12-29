@@ -167,7 +167,7 @@ static void clear(void)
         THIS(this).pop_front();
 }
 
-static void remove(void *value)
+static void L_remove(void *value)
 {
     list *this = pop_this();
     __private_list *p_private = (__private_list *)this->__obj_private;
@@ -364,7 +364,7 @@ static const list def_list = {
         pop_front,
         pop_back,
         clear,
-        remove,
+        L_remove,
         unique,
         splice,
         merge,
