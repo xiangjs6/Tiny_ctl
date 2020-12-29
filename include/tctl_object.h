@@ -5,7 +5,8 @@
 #ifndef TINY_CTL_TCTL_OBJECT_H
 #define TINY_CTL_TCTL_OBJECT_H
 
-#include <stddef.h>
+#include <stdio.h>
+#include <stdarg.h>
 #include "tctl_def.h"
 
 /*
@@ -16,7 +17,33 @@
  * 4、遵守各个泛类对象指定的规则，比如迭代器
  * */
 
-//#define OBJECT_PRIVATE __obj_private
+#define new(T, ...) _new(#T, ##__VA_ARGS__)
+void * _new (const char *class_name, ...);
+void delete (void *self);
+
+const void * classOf (const void * self);
+size_t sizeOf (const void * self);
+
+#define INHERIT_CLASS \
+struct {       \
+    void *(*ctor)(void *self, va_list *app); \
+    void *(*dtor) (void *self);                \
+    int (*differ) (const void *self, const void *b); \
+    int (*puto) (const void *self, FILE *fp);  \
+}
+
+typedef struct {
+    INHERIT_CLASS *_s;
+    void *_c;
+    char _o[0];
+} *Object;
+
+typedef struct {
+    INHERIT_CLASS *_s;
+    char _o[0];
+} *Class;
+const void * super (const void * self);	/* class' superclass */
+
 void *push_this(void *);
 void *pop_this(void);
 #define THIS(p) (*(typeof(p))(push_this(p)))
