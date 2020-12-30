@@ -13,39 +13,39 @@
 /*
  *	Object
  */
-static void *Object_ctor(void *_self, va_list *app)
+static void *Object_ctor(void *_this, va_list *app)
 {
-    struct Object *self = _self;
-    self->s = ((struct Object*)classOf(_self))->s;
-    return _self;
+    struct Object *this = _this;
+    this->s = ((struct Object*)classOf(_this))->s;
+    return _this;
 }
 
-static void *Object_dtor(void *_self)
+static void *Object_dtor(void *_this)
 {
-    return _self;
+    return _this;
 }
 
-static int Object_differ(const void *_self, const void *b)
+static int Object_differ(const void *_this, const void *b)
 {
-    return _self != b;
+    return _this != b;
 }
 
-static int Object_puto(const void *_self, FILE *fp)
+static int Object_puto(const void *_this, FILE *fp)
 {
-    const struct Class *class = classOf(_self);
-    return fprintf(fp, "%s at %p\n", class -> name, _self);
+    const struct Class *class = classOf(_this);
+    return fprintf(fp, "%s at %p\n", class -> name, _this);
 }
 
-const void *classOf(const void *_self)
+const void *classOf(const void *_this)
 {
-    const struct Object *self = _self;
-    assert(self && self->class);
-    return self->class;
+    const struct Object *this = _this;
+    assert(this && this->class);
+    return this->class;
 }
 
-size_t sizeOf(const void *_self)
+size_t sizeOf(const void *_this)
 {
-    const struct Class *class = classOf(_self);
+    const struct Class *class = classOf(_this);
     return class->size;
 }
 
@@ -56,19 +56,19 @@ static void _push_class(const char*, void*);
 static const void *_find_class(const char*);
 
 
-static void *Class_ctor(void *_self, va_list *app)
+static void *Class_ctor(void *_this, va_list *app)
 {
-    struct Class *self = _self;
+    struct Class *this = _this;
     const size_t offset = offsetof(struct Class, ctor);
 
-    self->name = va_arg(*app, char*);
-    _push_class(self->name, _self);
-    self->super = va_arg(*app, struct Class*);
-    self->size = va_arg(*app, size_t);
+    this->name = va_arg(*app, char*);
+    _push_class(this->name, _this);
+    this->super = va_arg(*app, struct Class*);
+    this->size = va_arg(*app, size_t);
 
-    assert(self->super);
-    memcpy((char *) self + offset, (char *) self->super + offset, sizeOf(self->super) - offset);
-    *(void **) &self->_.s = self->super->_.s;
+    assert(this->super);
+    memcpy((char *) this + offset, (char *) this->super + offset, sizeOf(this->super) - offset);
+    *(void **) &this->_.s = this->super->_.s;
     voidf selector;
     va_list ap;
     va_copy(ap, *app);
@@ -77,33 +77,33 @@ static void *Class_ctor(void *_self, va_list *app)
     {
         voidf method = va_arg(ap, voidf);
         if (selector == (voidf) ClassS->ctor)
-            *(voidf *) &self->ctor = method;
+            *(voidf *) &this->ctor = method;
         else if (selector == (voidf) ClassS->dtor)
-            *(voidf *) &self->dtor = method;
+            *(voidf *) &this->dtor = method;
         else if (selector == (voidf) ClassS->differ)
-            *(voidf *) &self->differ = method;
+            *(voidf *) &this->differ = method;
         else if (selector == (voidf) ClassS->puto)
-            *(voidf *) &self->puto = method;
+            *(voidf *) &this->puto = method;
         else if (selector == SelectorF)
-            *(void **) &self->_.s = method;
+            *(void **) &this->_.s = method;
     }
     va_end(ap);
 
-    return self;
+    return this;
 }
 
-static void *Class_dtor(void *_self)
+static void *Class_dtor(void *_this)
 {
-    struct Class *self = _self;
-    fprintf(stderr, "%s: cannot destroy class\n", self->name);
+    struct Class *this = _this;
+    fprintf(stderr, "%s: cannot destroy class\n", this->name);
     return 0;
 }
 
-const void *super(const void *_self)
+const void *super(const void *_this)
 {
-    const struct Class *self = _self;
-    assert(self && self->super);
-    return self->super;
+    const struct Class *this = _this;
+    assert(this && this->super);
+    return this->super;
 }
 
 /*
@@ -126,67 +126,71 @@ void *_new(const char *class_name, ...)
     return object;
 }
 
-void delete(void *_self)
+void delete(void *_this)
 {
-    const struct Class *class = classOf(_self);
-    if (_self)
-        free(class->dtor(_self));
+    const struct Class *class = classOf(_this);
+    if (_this)
+        free(class->dtor(_this));
 }
 
-static void *ctor(void *_self, va_list *app)
+static void *ctor(va_list *app)
 {
-    const struct Class * class = classOf(_self);
+    void *_this = pop_this();
+    const struct Class *class = classOf(_this);
     assert(class->ctor);
-    return class->ctor(_self, app);
+    return class->ctor(_this, app);
 }
 
-void * super_ctor(const void *_class, void *_self, va_list *app)
+void *super_ctor(const void *_class, void *_this, va_list *app)
 {
     const struct Class *superclass = super(_class);
-    assert(_self && superclass->ctor);
-    return superclass->ctor(_self, app);
+    assert(_this && superclass->ctor);
+    return superclass->ctor(_this, app);
 }
 
-static void *dtor(void *_self)
+static void *dtor(void)
 {
-    const struct Class *class = classOf(_self);
+    void *_this = pop_this();
+    const struct Class *class = classOf(_this);
     assert(class->dtor);
-    return class->dtor(_self);
+    return class->dtor(_this);
 }
 
-void *super_dtor(const void *_class, void *_self)
+void *super_dtor(const void *_class, void *_this)
 {
     const struct Class *superclass = super(_class);
-    assert(_self && superclass->dtor);
-    return superclass->dtor(_self);
+    assert(_this && superclass->dtor);
+    return superclass->dtor(_this);
 }
 
-static int differ(const void *_self, const void *b)
+static int differ(const void *b)
 {
-    const struct Class *class = classOf(_self);
+    const void *_this = pop_this();
+    const struct Class *class = classOf(_this);
     assert(class->differ);
-    return class->differ(_self, b);
+    return class->differ(_this, b);
 }
 
-int super_differ(const void *_class, const void *_self, const void *b)
+int super_differ(const void *_class, const void *_this, const void *b)
 {
     const struct Class *superclass = super(_class);
-    assert(_self && superclass->differ);
-    return superclass->differ(_self, b);
+    assert(_this && superclass->differ);
+    return superclass->differ(_this, b);
 }
 
-static int puto (const void *_self, FILE *fp)
+static int puto (FILE *fp)
 {
-    const struct Class *class = classOf(_self);
+    const void *_this = pop_this();
+    const struct Class *class = classOf(_this);
     assert(class->puto);
-    return class->puto(_self, fp);
+    return class->puto(_this, fp);
 }
 
-int super_puto(const void *_class, const void *_self, FILE *fp)
+int super_puto(const void *_class, const void *_this, FILE *fp)
 {
     const struct Class *superclass = super(_class);
-    assert(_self && superclass->puto);
-    return superclass->puto(_self, fp);
+    assert(_this && superclass->puto);
+    return superclass->puto(_this, fp);
 }
 
 /*
@@ -222,7 +226,7 @@ struct Class_node _head[] = {
 };
 static struct Class_node *head = _head + 1;
 
-static void _push_class(const char *name, void *_self)
+static void _push_class(const char *name, void *_this)
 {
     struct Class_node *node = head;
     while (node)
@@ -233,7 +237,7 @@ static void _push_class(const char *name, void *_self)
     node = malloc(sizeof(struct Class_node));
     node->next = head;
     node->c_name = name;
-    node->c = _self;
+    node->c = _this;
     head = node;
 }
 

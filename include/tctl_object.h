@@ -18,18 +18,18 @@
  * */
 
 #define new(T, ...) _new(#T, ##__VA_ARGS__)
-void * _new (const char *class_name, ...);
-void delete (void *self);
+void *_new(const char *class_name, ...);
+void delete(void *this);
 
-const void * classOf (const void * self);
-size_t sizeOf (const void * self);
+const void *classOf(const void *this);
+size_t sizeOf(const void *this);
 
 #define INHERIT_CLASS \
 struct {       \
-    void *(*ctor)(void *self, va_list *app); \
-    void *(*dtor) (void *self);                \
-    int (*differ) (const void *self, const void *b); \
-    int (*puto) (const void *self, FILE *fp);  \
+    void *(*ctor)(va_list *app); \
+    void *(*dtor) (void);        \
+    int (*differ) (const void *b); \
+    int (*puto) (FILE *fp);  \
 }
 
 typedef struct {
@@ -42,7 +42,7 @@ typedef struct {
     INHERIT_CLASS *_s;
     char _o[0];
 } *Class;
-const void * super (const void * self);	/* class' superclass */
+const void *super(const void * this);	/* class' superclass */
 
 void *push_this(void *);
 void *pop_this(void);

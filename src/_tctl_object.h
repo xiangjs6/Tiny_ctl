@@ -16,16 +16,16 @@ struct Class {
     const char *name;				/* class' name */
     const struct Class *super;		/* class' super class */
     size_t size;					/* class' object's size */
-    void *(*ctor)(void *self, va_list *app);
-    void *(*dtor)(void *self);
-    int (*differ)(const void *self, const void *b);
-    int (*puto)(const void *self, FILE *fp);
+    void *(*ctor)(void *this, va_list *app);
+    void *(*dtor)(void *this);
+    int (*differ)(const void *this, const void *b);
+    int (*puto)(const void *this, FILE *fp);
 };
 
-void *super_ctor(const void *class, void *self, va_list *app);
-void *super_dtor(const void *class, void *self);
-int super_differ(const void *class, const void *self, const void *b);
-int super_puto(const void *class, const void *self, FILE *fp);
+void *super_ctor(const void *class, void *this, va_list *app);
+void *super_dtor(const void *class, void *this);
+int super_differ(const void *class, const void *this, const void *b);
+int super_puto(const void *class, const void *this, FILE *fp);
 extern INHERIT_CLASS *ClassS;
 extern const void *SelectorF;
 extern const void *_Object;		/* new(Object); */
