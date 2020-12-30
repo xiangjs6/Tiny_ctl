@@ -9,6 +9,52 @@
 #include <assert.h>
 #include <stdlib.h>
 
+
+/*
+ *	initialization
+ */
+
+static void *ctor(va_list *app);
+static void *dtor(void);
+static int differ(const void *b);
+static int puto (FILE *fp);
+static void *Object_ctor(void *_this, va_list *app);
+static void *Object_dtor(void *_this);
+static int Object_differ(const void *_this, const void *b);
+static int Object_puto(const void *_this, FILE *fp);
+static void *MetaClass_ctor(void *_this, va_list *app);
+static void *MetaClass_dtor(void *_this);
+static void _push_class(const char*, void*);
+static const void *_find_class(const char*);
+
+struct MetaClass_node {
+    const char *c_name;
+    const void *c;
+    struct MetaClass_node *next;
+};
+
+static const INHERIT_METACLASS _MetaClassS = {ctor, dtor, differ, puto};
+const void *Selector = &_MetaClassS;
+static const struct MetaClass _object[] = {
+        {{&_MetaClassS, _object + 1},
+                "Object", _object, sizeof(struct Object),
+                Object_ctor, Object_dtor, Object_differ, Object_puto
+        },
+        {{&_MetaClassS, _object + 1},
+                "MetaClass",  _object, sizeof(struct MetaClass),
+                MetaClass_ctor,  MetaClass_dtor,  Object_differ, Object_puto
+        }
+};
+
+const struct Object *_Object = (const struct Object*)_object;
+const struct Object *_MetaClass = (const struct Object*)(_object + 1);
+
+struct MetaClass_node _head[] = {
+        {"Object", _object, NULL},
+        {"MetaClass", _object + 1, _head}
+};
+static struct MetaClass_node *head = _head + 1;
+
 /*
  *	Object
  */
@@ -51,9 +97,6 @@ size_t sizeOf(const void *_this)
 /*
  *	MetaClass
  */
-static void _push_class(const char*, void*);
-static const void *_find_class(const char*);
-
 
 static void *MetaClass_ctor(void *_this, va_list *app)
 {
@@ -75,15 +118,15 @@ static void *MetaClass_ctor(void *_this, va_list *app)
     while ((selector = va_arg(ap, voidf)))
     {
         voidf method = va_arg(ap, voidf);
-        if (selector == (voidf) MetaClassS->ctor)
+        if (selector == (voidf) _MetaClassS.ctor)
             *(voidf *) &this->ctor = method;
-        else if (selector == (voidf) MetaClassS->dtor)
+        else if (selector == (voidf) _MetaClassS.dtor)
             *(voidf *) &this->dtor = method;
-        else if (selector == (voidf) MetaClassS->differ)
+        else if (selector == (voidf) _MetaClassS.differ)
             *(voidf *) &this->differ = method;
-        else if (selector == (voidf) MetaClassS->puto)
+        else if (selector == (voidf) _MetaClassS.puto)
             *(voidf *) &this->puto = method;
-        else if (selector == SelectorF)
+        else if (selector == Selector)
             *(void **) &this->_.s = method;
     }
     va_end(ap);
@@ -192,38 +235,6 @@ int super_puto(const void *_class, const void *_this, FILE *fp)
     return superclass->puto(_this, fp);
 }
 
-/*
- *	initialization
- */
-
-typeof(*MetaClassS) _MetaClassS = {ctor, dtor, differ, puto};
-typeof(MetaClassS) MetaClassS = &_MetaClassS;
-const void *SelectorF = &_MetaClassS;
-static const struct MetaClass object [] = {
-        {{&_MetaClassS, object + 1},
-                "Object", object, sizeof(struct Object),
-                Object_ctor, Object_dtor, Object_differ, Object_puto
-        },
-        {{&_MetaClassS, object + 1},
-                "MetaClass",  object, sizeof(struct MetaClass),
-                MetaClass_ctor,  MetaClass_dtor,  Object_differ, Object_puto
-        }
-};
-
-const void * _Object = object;
-const void * _MetaClass = object + 1;
-
-struct MetaClass_node {
-    const char *c_name;
-    const void *c;
-    struct MetaClass_node *next;
-};
-
-struct MetaClass_node _head[] = {
-        {"Object", object, NULL},
-        {"MetaClass", object + 1, _head}
-};
-static struct MetaClass_node *head = _head + 1;
 
 static void _push_class(const char *name, void *_this)
 {

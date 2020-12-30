@@ -31,6 +31,7 @@ struct {       \
     int (*differ) (const void *b); \
     int (*puto) (FILE *fp);  \
 }
+#define METACLASS_SELECTOR_SIZE sizeof(INHERIT_METACLASS)
 
 typedef struct {
     INHERIT_METACLASS *_s;
