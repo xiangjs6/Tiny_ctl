@@ -47,8 +47,8 @@ static const struct MetaClass _object[] = {
         }
 };
 
-const struct Object *_Object = (const struct Object*)_object;
-const struct Object *_MetaClass = (const struct Object*)(_object + 1);
+const void *_Object = _object;
+const void *_MetaClass = (_object + 1);
 
 struct MetaClass_node _head[] = {
         {"Object", _object, NULL},

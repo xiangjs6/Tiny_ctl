@@ -28,6 +28,6 @@ int super_differ(const void *class, const void *this, const void *b);
 int super_puto(const void *class, const void *this, FILE *fp);
 extern const INHERIT_METACLASS *_MetaClassS;
 extern const void *Selector;
-extern const struct Object *_Object;		/* new(Object); */
-extern const struct Object *_MetaClass;	/* new(MetaClass, "name", super, size, sel, meth, ... 0); */
+extern const void *_Object;		/* new(Object); */
+extern const void *_MetaClass;	/* new(MetaClass, "name", super, size, sel, meth, ... 0); */
 #endif //TINY_CTL__TCTL_OBJECT_H
