@@ -41,7 +41,7 @@ typedef struct {
 typedef struct {
     INHERIT_CLASS *_s;
     char _o[0];
-} *Class;
+} *MetaClass;
 const void *super(const void * this);	/* class' superclass */
 
 void *push_this(void *);

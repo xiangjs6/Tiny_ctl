@@ -32,7 +32,7 @@ static int Object_differ(const void *_this, const void *b)
 
 static int Object_puto(const void *_this, FILE *fp)
 {
-    const struct Class *class = classOf(_this);
+    const struct MetaClass *class = classOf(_this);
     return fprintf(fp, "%s at %p\n", class -> name, _this);
 }
 
@@ -45,25 +45,25 @@ const void *classOf(const void *_this)
 
 size_t sizeOf(const void *_this)
 {
-    const struct Class *class = classOf(_this);
+    const struct MetaClass *class = classOf(_this);
     return class->size;
 }
 
 /*
- *	Class
+ *	MetaClass
  */
 static void _push_class(const char*, void*);
 static const void *_find_class(const char*);
 
 
-static void *Class_ctor(void *_this, va_list *app)
+static void *MetaClass_ctor(void *_this, va_list *app)
 {
-    struct Class *this = _this;
-    const size_t offset = offsetof(struct Class, ctor);
+    struct MetaClass *this = _this;
+    const size_t offset = offsetof(struct MetaClass, ctor);
 
     this->name = va_arg(*app, char*);
     _push_class(this->name, _this);
-    this->super = va_arg(*app, struct Class*);
+    this->super = va_arg(*app, struct MetaClass*);
     this->size = va_arg(*app, size_t);
 
     assert(this->super);
@@ -76,13 +76,13 @@ static void *Class_ctor(void *_this, va_list *app)
     while ((selector = va_arg(ap, voidf)))
     {
         voidf method = va_arg(ap, voidf);
-        if (selector == (voidf) ClassS->ctor)
+        if (selector == (voidf) MetaClassS->ctor)
             *(voidf *) &this->ctor = method;
-        else if (selector == (voidf) ClassS->dtor)
+        else if (selector == (voidf) MetaClassS->dtor)
             *(voidf *) &this->dtor = method;
-        else if (selector == (voidf) ClassS->differ)
+        else if (selector == (voidf) MetaClassS->differ)
             *(voidf *) &this->differ = method;
-        else if (selector == (voidf) ClassS->puto)
+        else if (selector == (voidf) MetaClassS->puto)
             *(voidf *) &this->puto = method;
         else if (selector == SelectorF)
             *(void **) &this->_.s = method;
@@ -92,16 +92,16 @@ static void *Class_ctor(void *_this, va_list *app)
     return this;
 }
 
-static void *Class_dtor(void *_this)
+static void *MetaClass_dtor(void *_this)
 {
-    struct Class *this = _this;
+    struct MetaClass *this = _this;
     fprintf(stderr, "%s: cannot destroy class\n", this->name);
     return 0;
 }
 
 const void *super(const void *_this)
 {
-    const struct Class *this = _this;
+    const struct MetaClass *this = _this;
     assert(this && this->super);
     return this->super;
 }
@@ -112,7 +112,7 @@ const void *super(const void *_this)
 
 void *_new(const char *class_name, ...)
 {
-    const struct Class *class = _find_class(class_name);
+    const struct MetaClass *class = _find_class(class_name);
     struct Object *object;
     va_list ap;
 
@@ -128,7 +128,7 @@ void *_new(const char *class_name, ...)
 
 void delete(void *_this)
 {
-    const struct Class *class = classOf(_this);
+    const struct MetaClass *class = classOf(_this);
     if (_this)
         free(class->dtor(_this));
 }
@@ -136,14 +136,14 @@ void delete(void *_this)
 static void *ctor(va_list *app)
 {
     void *_this = pop_this();
-    const struct Class *class = classOf(_this);
+    const struct MetaClass *class = classOf(_this);
     assert(class->ctor);
     return class->ctor(_this, app);
 }
 
 void *super_ctor(const void *_class, void *_this, va_list *app)
 {
-    const struct Class *superclass = super(_class);
+    const struct MetaClass *superclass = super(_class);
     assert(_this && superclass->ctor);
     return superclass->ctor(_this, app);
 }
@@ -151,14 +151,14 @@ void *super_ctor(const void *_class, void *_this, va_list *app)
 static void *dtor(void)
 {
     void *_this = pop_this();
-    const struct Class *class = classOf(_this);
+    const struct MetaClass *class = classOf(_this);
     assert(class->dtor);
     return class->dtor(_this);
 }
 
 void *super_dtor(const void *_class, void *_this)
 {
-    const struct Class *superclass = super(_class);
+    const struct MetaClass *superclass = super(_class);
     assert(_this && superclass->dtor);
     return superclass->dtor(_this);
 }
@@ -166,14 +166,14 @@ void *super_dtor(const void *_class, void *_this)
 static int differ(const void *b)
 {
     const void *_this = pop_this();
-    const struct Class *class = classOf(_this);
+    const struct MetaClass *class = classOf(_this);
     assert(class->differ);
     return class->differ(_this, b);
 }
 
 int super_differ(const void *_class, const void *_this, const void *b)
 {
-    const struct Class *superclass = super(_class);
+    const struct MetaClass *superclass = super(_class);
     assert(_this && superclass->differ);
     return superclass->differ(_this, b);
 }
@@ -181,14 +181,14 @@ int super_differ(const void *_class, const void *_this, const void *b)
 static int puto (FILE *fp)
 {
     const void *_this = pop_this();
-    const struct Class *class = classOf(_this);
+    const struct MetaClass *class = classOf(_this);
     assert(class->puto);
     return class->puto(_this, fp);
 }
 
 int super_puto(const void *_class, const void *_this, FILE *fp)
 {
-    const struct Class *superclass = super(_class);
+    const struct MetaClass *superclass = super(_class);
     assert(_this && superclass->puto);
     return superclass->puto(_this, fp);
 }
@@ -197,44 +197,44 @@ int super_puto(const void *_class, const void *_this, FILE *fp)
  *	initialization
  */
 
-typeof(*ClassS) _ClassS = {ctor, dtor, differ, puto};
-typeof(ClassS) ClassS = &_ClassS;
-const void *SelectorF = &_ClassS;
-static const struct Class object [] = {
-        {{&_ClassS, object + 1},
+typeof(*MetaClassS) _MetaClassS = {ctor, dtor, differ, puto};
+typeof(MetaClassS) MetaClassS = &_MetaClassS;
+const void *SelectorF = &_MetaClassS;
+static const struct MetaClass object [] = {
+        {{&_MetaClassS, object + 1},
                 "Object", object, sizeof(struct Object),
                 Object_ctor, Object_dtor, Object_differ, Object_puto
         },
-        {{&_ClassS, object + 1},
-                "Class",  object, sizeof(struct Class),
-                Class_ctor,  Class_dtor,  Object_differ, Object_puto
+        {{&_MetaClassS, object + 1},
+                "MetaClass",  object, sizeof(struct MetaClass),
+                MetaClass_ctor,  MetaClass_dtor,  Object_differ, Object_puto
         }
 };
 
 const void * _Object = object;
-const void * _Class = object + 1;
+const void * _MetaClass = object + 1;
 
-struct Class_node {
+struct MetaClass_node {
     const char *c_name;
     const void *c;
-    struct Class_node *next;
+    struct MetaClass_node *next;
 };
 
-struct Class_node _head[] = {
+struct MetaClass_node _head[] = {
         {"Object", object, NULL},
-        {"Class", object + 1, _head}
+        {"MetaClass", object + 1, _head}
 };
-static struct Class_node *head = _head + 1;
+static struct MetaClass_node *head = _head + 1;
 
 static void _push_class(const char *name, void *_this)
 {
-    struct Class_node *node = head;
+    struct MetaClass_node *node = head;
     while (node)
     {
         assert(strcmp(node->c_name, name));
         node = node->next;
     }
-    node = malloc(sizeof(struct Class_node));
+    node = malloc(sizeof(struct MetaClass_node));
     node->next = head;
     node->c_name = name;
     node->c = _this;
@@ -243,7 +243,7 @@ static void _push_class(const char *name, void *_this)
 
 static const void *_find_class(const char *name)
 {
-    struct Class_node *node = head;
+    struct MetaClass_node *node = head;
     while (node)
     {
         if (!strcmp(node->c_name, name))
