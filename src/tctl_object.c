@@ -33,14 +33,15 @@ struct MetaClass_node {
     struct MetaClass_node *next;
 };
 
-static const INHERIT_METACLASS _MetaClassS = {ctor, dtor, differ, puto};
-const void *Selector = &_MetaClassS;
+static typeof(*_MetaClassS) MetaClassS = {ctor, dtor, differ, puto};
+typeof(_MetaClassS) _MetaClassS = &MetaClassS;
+const void *Selector = &MetaClassS;
 static const struct MetaClass _object[] = {
-        {{&_MetaClassS, _object + 1},
+        {{&MetaClassS, _object + 1},
                 "Object", _object, sizeof(struct Object),
                 Object_ctor, Object_dtor, Object_differ, Object_puto
         },
-        {{&_MetaClassS, _object + 1},
+        {{&MetaClassS, _object + 1},
                 "MetaClass",  _object, sizeof(struct MetaClass),
                 MetaClass_ctor,  MetaClass_dtor,  Object_differ, Object_puto
         }
@@ -118,13 +119,13 @@ static void *MetaClass_ctor(void *_this, va_list *app)
     while ((selector = va_arg(ap, voidf)))
     {
         voidf method = va_arg(ap, voidf);
-        if (selector == (voidf) _MetaClassS.ctor)
+        if (selector == (voidf) MetaClassS.ctor)
             *(voidf *) &this->ctor = method;
-        else if (selector == (voidf) _MetaClassS.dtor)
+        else if (selector == (voidf) MetaClassS.dtor)
             *(voidf *) &this->dtor = method;
-        else if (selector == (voidf) _MetaClassS.differ)
+        else if (selector == (voidf) MetaClassS.differ)
             *(voidf *) &this->differ = method;
-        else if (selector == (voidf) _MetaClassS.puto)
+        else if (selector == (voidf) MetaClassS.puto)
             *(voidf *) &this->puto = method;
         else if (selector == Selector)
             *(void **) &this->_.s = method;
