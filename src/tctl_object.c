@@ -4,7 +4,6 @@
 
 #include "../include/tctl_allocator.h"
 #include "../include/tctl_portable.h"
-#include "../include/tctl_object.h"
 #include "_tctl_object.h"
 #include <memory.h>
 #include <assert.h>
@@ -67,8 +66,8 @@ static void *MetaClass_ctor(void *_this, va_list *app)
     this->size = va_arg(*app, size_t);
 
     assert(this->super);
-    memcpy((char *) this + offset, (char *) this->super + offset, sizeOf(this->super) - offset);
-    *(void **) &this->_.s = this->super->_.s;
+    memcpy((char*)this + offset, (char*)this->super + offset, sizeOf(this->super) - offset);
+    *(void const **)&this->_.s = this->super->_.s;
     voidf selector;
     va_list ap;
     va_copy(ap, *app);

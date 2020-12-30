@@ -17,14 +17,14 @@
  * 4、遵守各个泛类对象指定的规则，比如迭代器
  * */
 
-#define new(T, ...) _new(#T, ##__VA_ARGS__)
+#define new(T, ...) _new(#T, ##__VA_ARGS__, 0)
 void *_new(const char *class_name, ...);
 void delete(void *this);
 
 const void *classOf(const void *this);
 size_t sizeOf(const void *this);
 
-#define INHERIT_CLASS \
+#define INHERIT_METACLASS \
 struct {       \
     void *(*ctor)(va_list *app); \
     void *(*dtor) (void);        \
@@ -33,14 +33,14 @@ struct {       \
 }
 
 typedef struct {
-    INHERIT_CLASS *_s;
+    INHERIT_METACLASS *_s;
     void *_c;
-    char _o[0];
+    byte _o[0];
 } *Object;
 
 typedef struct {
-    INHERIT_CLASS *_s;
-    char _o[0];
+    INHERIT_METACLASS *_s;
+    byte _o[0];
 } *MetaClass;
 const void *super(const void * this);	/* class' superclass */
 
