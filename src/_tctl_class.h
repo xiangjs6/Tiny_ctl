@@ -24,5 +24,20 @@ struct Class {
 };
 
 extern const struct Object *_Class;
-extern const INHERIT_CLASS *_ClassS;
+extern const struct {
+    byte _[sizeof(*_MetaClassS)];
+    bool (*equal)(const void *x);
+    int (*cmp)(const void *x);
+    void *(*at)(int x);
+    void (*inc)(void);
+    void (*dec)(void);
+    void (*self_add)(const void *x);
+    void (*self_sub)(const void *x);
+    void (*asign)(const void *x);
+    void *(*add)(const void *x);
+    void *(*sub)(const void *x);
+    void *(*mul)(const void *x);
+    void *(*div)(const void *x);
+    void *(*mod)(const void *x);
+} *_ClassS;
 #endif //TINY_CTL__TCTL_CLASS_H
