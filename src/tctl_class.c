@@ -138,9 +138,9 @@ static void *_ctor(void *_this, va_list *app)
     voidf selector;
     va_list ap;
     va_copy(ap, *app);
-    voidf *begin = (void*)&ClassS + offsetof(typeof(ClassS), equal);
+    voidf *begin = (void*)&ClassS + sizeof(ClassS._);
     voidf *end = (void*)&ClassS + sizeof(ClassS);
-    voidf *this_begin = (void*)this + offsetof(struct Class, equal);
+    voidf *this_begin = (void*)this + sizeof(this->_);
     while ((selector = va_arg(ap, voidf)))
     {
         voidf method = va_arg(ap, voidf);
