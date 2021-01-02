@@ -23,7 +23,6 @@ struct Class {
     void *(*mod)(const void *_this, const void *x);
 };
 
-extern const struct Object *_Class;
 extern const struct {
     byte _[sizeof(*_MetaClassS)];
     bool (*equal)(const void *x);
@@ -40,4 +39,5 @@ extern const struct {
     void *(*div)(const void *x);
     void *(*mod)(const void *x);
 } *_ClassS;
+
 #endif //TINY_CTL__TCTL_CLASS_H

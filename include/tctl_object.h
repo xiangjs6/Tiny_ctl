@@ -17,8 +17,8 @@
  * 4、遵守各个泛类对象指定的规则，比如迭代器
  * */
 
-#define new(T, ...) _new(#T, ##__VA_ARGS__, 0)
-void *_new(const char *class_name, ...);
+#define new(T, ...) _new(_Generic((T)0, Import), ##__VA_ARGS__, 0)
+void *_new(const void *_class, ...);
 void delete(void *this);
 
 const void *classOf(const void *this);
@@ -27,9 +27,9 @@ size_t sizeOf(const void *this);
 #define INHERIT_METACLASS \
 struct {       \
     void *(*ctor)(va_list *app); \
-    void *(*dtor) (void);        \
-    int (*differ) (const void *b); \
-    int (*puto) (FILE *fp);  \
+    void *(*dtor)(void);        \
+    int (*differ)(const void *b); \
+    int (*puto)(FILE *fp);  \
 }
 
 typedef struct {
@@ -47,5 +47,11 @@ const void *super(const void * this);	/* class' superclass */
 void *push_this(void *);
 void *pop_this(void);
 #define THIS(p) (*(typeof(p))(push_this(p)))
+
+extern const void *_Object;		/* new(Object); */
+extern const void *_MetaClass;	/* new(MetaClass, "name", super, size, sel, meth, ... 0); */
+
+#define METACLASS MetaClass : _MetaClass
+#define OBJECT Object : _Object
 
 #endif //TINY_CTL_TCTL_OBJECT_H

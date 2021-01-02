@@ -5,6 +5,7 @@
 #include "_tctl_int.h"
 #include "../_tctl_class.h"
 //#include "../../include/auto_release_pool.h"
+#define Import CLASS, INT
 
 static void *_ctor(void *_this, va_list *app)
 {
@@ -94,21 +95,23 @@ static void *_mod(const void *_this, const void *x)
     const int *p = x;
     return new(int, *this % *p);
 }
-void *new_Int(void)
+const void *_Int = NULL;
+void initInt(void)
 {
-    return new(Class, "int", _Object, sizeof(int),
-               _MetaClassS->ctor, _ctor,
-               _ClassS->equal, _equal,
-               _ClassS->cmp, _cmp,
-               _ClassS->inc, _inc,
-               _ClassS->dec, _dec,
-               _ClassS->self_add, _self_add,
-               _ClassS->self_sub, _self_sub,
-               _ClassS->asign, _asign,
-               _ClassS->add, _add,
-               _ClassS->sub, _sub,
-               _ClassS->mul, _mul,
-               _ClassS->div, _div,
-               _ClassS->mod, _mod,
-               Selector, _ClassS);
+    if (!_Int)
+        _Int = new(Class, "int", _Object, sizeof(int),
+                   _MetaClassS->ctor, _ctor,
+                   _ClassS->equal, _equal,
+                   _ClassS->cmp, _cmp,
+                   _ClassS->inc, _inc,
+                   _ClassS->dec, _dec,
+                   _ClassS->self_add, _self_add,
+                   _ClassS->self_sub, _self_sub,
+                   _ClassS->asign, _asign,
+                   _ClassS->add, _add,
+                   _ClassS->sub, _sub,
+                   _ClassS->mul, _mul,
+                   _ClassS->div, _div,
+                   _ClassS->mod, _mod,
+                   Selector, _ClassS);
 }

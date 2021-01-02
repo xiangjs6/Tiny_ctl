@@ -5,6 +5,7 @@
 #include "_tctl_class.h"
 #include <memory.h>
 #include <assert.h>
+#define Import METACLASS
 
 static bool equal(const void *x);
 static int cmp(const void *x);
@@ -37,7 +38,7 @@ volatile static typeof(*_ClassS) ClassS = {
         mod
 };
 typeof(_ClassS) _ClassS = NULL;
-const struct Object *_Class = NULL;
+const void *_Class = NULL;
 
 //selector
 static bool equal(const void *x)

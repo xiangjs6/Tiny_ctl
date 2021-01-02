@@ -28,11 +28,9 @@ int super_differ(const void *class, const void *this, const void *b);
 int super_puto(const void *class, const void *this, FILE *fp);
 extern const struct {
     void *(*ctor)(va_list *app);
-    void *(*dtor) (void);
-    int (*differ) (const void *b);
-    int (*puto) (FILE *fp);
+    void *(*dtor)(void);
+    int (*differ)(const void *b);
+    int (*puto)(FILE *fp);
 } *_MetaClassS;
 extern const void *Selector;
-extern const void *_Object;		/* new(Object); */
-extern const void *_MetaClass;	/* new(MetaClass, "name", super, size, sel, meth, ... 0); */
 #endif //TINY_CTL__TCTL_OBJECT_H

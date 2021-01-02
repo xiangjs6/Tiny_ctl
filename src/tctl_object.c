@@ -24,14 +24,6 @@ static int Object_differ(const void *_this, const void *b);
 static int Object_puto(const void *_this, FILE *fp);
 static void *MetaClass_ctor(void *_this, va_list *app);
 static void *MetaClass_dtor(void *_this);
-static void _push_class(const char*, void*);
-static const void *_find_class(const char*);
-
-struct MetaClass_node {
-    const char *c_name;
-    const void *c;
-    struct MetaClass_node *next;
-};
 
 static typeof(*_MetaClassS) MetaClassS = {ctor, dtor, differ, puto};
 typeof(_MetaClassS) _MetaClassS = &MetaClassS;
@@ -49,12 +41,6 @@ static const struct MetaClass _object[] = {
 
 const void *_Object = _object;
 const void *_MetaClass = (_object + 1);
-
-struct MetaClass_node _head[] = {
-        {"Object", _object, NULL},
-        {"MetaClass", _object + 1, _head}
-};
-static struct MetaClass_node *head = _head + 1;
 
 /*
  *	Object
@@ -105,7 +91,6 @@ static void *MetaClass_ctor(void *_this, va_list *app)
     const size_t offset = offsetof(struct MetaClass, ctor);
 
     this->name = va_arg(*app, char*);
-    _push_class(this->name, _this);
     this->super = va_arg(*app, struct MetaClass*);
     this->size = va_arg(*app, size_t);
 
@@ -153,9 +138,9 @@ const void *super(const void *_this)
  *	object management and selectors
  */
 
-void *_new(const char *class_name, ...)
+void *_new(const void *_class, ...)
 {
-    const struct MetaClass *class = _find_class(class_name);
+    const struct MetaClass *class = _class;
     struct Object *object;
     va_list ap;
 
@@ -163,7 +148,7 @@ void *_new(const char *class_name, ...)
     object = calloc(1, class->size);
     assert(object);
     object->class = class;
-    va_start(ap, class_name);
+    va_start(ap, _class);
     object = class->ctor(object, &ap);
     va_end(ap);
     return object;
@@ -234,35 +219,6 @@ int super_puto(const void *_class, const void *_this, FILE *fp)
     const struct MetaClass *superclass = super(_class);
     assert(_this && superclass->puto);
     return superclass->puto(_this, fp);
-}
-
-
-static void _push_class(const char *name, void *_this)
-{
-    struct MetaClass_node *node = head;
-    while (node)
-    {
-        assert(strcmp(node->c_name, name));
-        node = node->next;
-    }
-    node = malloc(sizeof(struct MetaClass_node));
-    node->next = head;
-    node->c_name = name;
-    node->c = _this;
-    head = node;
-}
-
-static const void *_find_class(const char *name)
-{
-    struct MetaClass_node *node = head;
-    while (node)
-    {
-        if (!strcmp(node->c_name, name))
-            break;
-        node = node->next;
-    }
-    assert(node);
-    return node->c;
 }
 
 //this指针
