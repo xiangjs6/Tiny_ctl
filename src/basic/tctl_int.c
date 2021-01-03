@@ -4,102 +4,103 @@
 
 #include "_tctl_int.h"
 #include "../_tctl_class.h"
+#include <stdlib.h>
 //#include "../../include/auto_release_pool.h"
-#define Import CLASS, INT
+#define Import CLASS, INT, OBJECT
 
+static const void *__Int = NULL;
 static void *_ctor(void *_this, va_list *app)
 {
-    int *this = _this;
-    *this = va_arg(*app, int);
+    struct Int *this = super_ctor(__Int, _this, app);
+    this->val = va_arg(*app, int);
     return _this;
 }
 
 static bool _equal(const void *_this, const void *x)
 {
-    const int *this = _this;
-    const int *p = x;
-    return *this == *p;
+    const struct Int *this = _this;
+    const struct Int *p = x;
+    return this->val == p->val;
 }
 
 static int _cmp(const void *_this, const void *x)
 {
-    const int *this = _this;
-    const int *p = x;
-    return *this - *p;
+    const struct Int *this = _this;
+    const struct Int *p = x;
+    return this->val - p->val;
 }
 
 static void _inc(void *_this)
 {
-    int *this = _this;
-    (*this)++;
+    struct Int *this = _this;
+    this->val++;
 }
 
 static void _dec(void *_this)
 {
-    int *this = _this;
-    (*this)--;
+    struct Int *this = _this;
+    this->val--;
 }
 
 static void _self_add(void *_this, const void *x)
 {
-    int *this = _this;
-    const int *p = x;
-    (*this) += *p;
+    struct Int *this = _this;
+    const struct Int *p = x;
+    this->val += p->val;
 }
 
 static void _self_sub(void *_this, const void *x)
 {
-    int *this = _this;
-    const int *p = x;
-    (*this) -= *p;
+    struct Int *this = _this;
+    const struct Int *p = x;
+    this->val -= p->val;
 }
 
 static void _asign(void *_this, const void *x)
 {
-    int *this = _this;
-    const int *p = x;
-    *this = *p;
+    struct Int *this = _this;
+    const struct Int *p = x;
+    this->val = p->val;
 }
 
 static void *_add(const void *_this, const void *x)
 {
-    const int *this = _this;
-    const int *p = x;
-    return new(int, *this + *p);
+    const struct Int *this = _this;
+    const struct Int *p = x;
+    return new(Int, this->val + p->val);
 }
 
 static void *_sub(const void *_this, const void *x)
 {
-    const int *this = _this;
-    const int *p = x;
-    return new(int, *this - *p);
+    const struct Int *this = _this;
+    const struct Int *p = x;
+    return new(Int, this->val - p->val);
 }
 
 static void *_mul(const void *_this, const void *x)
 {
-    const int *this = _this;
-    const int *p = x;
-    return new(int, *this * *p);
+    const struct Int *this = _this;
+    const struct Int *p = x;
+    return new(Int, this->val * p->val);
 }
 
 static void *_div(const void *_this, const void *x)
 {
-    const int *this = _this;
-    const int *p = x;
-    return new(int, *this / *p);
+    const struct Int *this = _this;
+    const struct Int *p = x;
+    return new(Int, this->val / p->val);
 }
 
 static void *_mod(const void *_this, const void *x)
 {
-    const int *this = _this;
-    const int *p = x;
-    return new(int, *this % *p);
+    const struct Int *this = _this;
+    const struct Int *p = x;
+    return new(Int, this->val % p->val);
 }
-const void *_Int = NULL;
 void initInt(void)
 {
-    if (!_Int)
-        _Int = new(Class, "int", _Object, sizeof(int),
+    if (!__Int)
+        __Int = new(Class, "Int", T(Object), sizeof(struct Int),
                    _MetaClassS->ctor, _ctor,
                    _ClassS->equal, _equal,
                    _ClassS->cmp, _cmp,
@@ -114,4 +115,9 @@ void initInt(void)
                    _ClassS->div, _div,
                    _ClassS->mod, _mod,
                    Selector, _ClassS);
+}
+
+const void *_Int(void)
+{
+    return __Int;
 }

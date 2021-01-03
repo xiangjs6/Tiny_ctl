@@ -39,9 +39,18 @@ static const struct MetaClass _object[] = {
         }
 };
 
-const void *_Object = _object;
-const void *_MetaClass = (_object + 1);
+static const void *__Object = _object;
+static const void *__MetaClass = _object + 1;
 
+const void *_Object(void)
+{
+    return __Object;
+}
+
+const void *_MetaClass(void)
+{
+    return __MetaClass;
+}
 /*
  *	Object
  */
@@ -92,6 +101,7 @@ static void *MetaClass_ctor(void *_this, va_list *app)
 
     this->name = va_arg(*app, char*);
     this->super = va_arg(*app, struct MetaClass*);
+    assert(this->super);
     this->size = va_arg(*app, size_t);
 
     assert(this->super);
@@ -154,7 +164,7 @@ void *_new(const void *_class, ...)
     return object;
 }
 
-void delete(void *_this)
+void _delete(void *_this)
 {
     const struct MetaClass *class = classOf(_this);
     if (_this)

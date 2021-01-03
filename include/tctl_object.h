@@ -17,9 +17,12 @@
  * 4、遵守各个泛类对象指定的规则，比如迭代器
  * */
 
-#define new(T, ...) _new(_Generic((T)0, Import), ##__VA_ARGS__, 0)
+#define _T(__T) _Generic(__T, Import, default : 0)
+#define T(__T) _T(*(__T*)0)
+#define new(__T, ...) (T(__T) ? _new(T(__T), ##__VA_ARGS__, 0) : malloc(sizeof(__T)))
+#define delete(this) (_T(this) ? _delete(this) : free(this))
 void *_new(const void *_class, ...);
-void delete(void *this);
+void _delete(void *this);
 
 const void *classOf(const void *this);
 size_t sizeOf(const void *this);
@@ -48,10 +51,12 @@ void *push_this(void *);
 void *pop_this(void);
 #define THIS(p) (*(typeof(p))(push_this(p)))
 
-extern const void *_Object;		/* new(Object); */
-extern const void *_MetaClass;	/* new(MetaClass, "name", super, size, sel, meth, ... 0); */
+const void *_Object(void);
+const void *_MetaClass(void);
+//extern const void *_Object;		/* new(Object); */
+//extern const void *_MetaClass;	/* new(MetaClass, "name", super, size, sel, meth, ... 0); */
 
-#define METACLASS MetaClass : _MetaClass
-#define OBJECT Object : _Object
+#define METACLASS MetaClass : _MetaClass()
+#define OBJECT Object : _Object()
 
 #endif //TINY_CTL_TCTL_OBJECT_H
