@@ -10,7 +10,7 @@ static const void *__Int = NULL;
 static void *_ctor(void *_this, va_list *app)
 {
     struct Int *this = super_ctor(__Int, _this, app);
-    this->val = va_arg(*app, int);
+    this->val = va_arg(*app, long long);
     return _this;
 }
 
