@@ -9,6 +9,6 @@
 
 struct Int {
     struct Object _;
-    int val;
+    long long val;
 };
 #endif //TINY_CTL__TCTL_INT_H

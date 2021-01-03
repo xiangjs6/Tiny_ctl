@@ -3,9 +3,7 @@
 //
 
 #include "_tctl_int.h"
-#include "../_tctl_class.h"
 #include <stdlib.h>
-//#include "../../include/auto_release_pool.h"
 #define Import CLASS, INT, OBJECT
 
 static const void *__Int = NULL;

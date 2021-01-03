@@ -12,16 +12,16 @@ struct {            \
     INHERIT_CLASS;  \
 }
 
+//由于对齐原因，所以直接使用long long长度的整型
 typedef struct {
     union {
         INHERIT_INT *_s;
         char _pad[sizeof(*(Object)NULL)];
     };
-    int val;
+    long long val;
 } *Int;
 
 void initInt(void) __attribute__((constructor));
 const void *_Int(void);
-//extern const void *_Int;
 #define INT Int : _Int()
 #endif //TINY_CTL_TCTL_INT_H
