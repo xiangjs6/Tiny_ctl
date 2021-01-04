@@ -47,14 +47,12 @@ typedef struct {
 } *MetaClass;
 const void *super(const void * this);	/* class' superclass */
 
-void *push_this(void *);
+void push_this(const void *);
 void *pop_this(void);
-#define THIS(p) (*(typeof(p))(push_this(p)))
+#define THIS(p) (push_this(p), *(p->_s))
 
-const void *_Object(void);
-const void *_MetaClass(void);
-//extern const void *_Object;		/* new(Object); */
-//extern const void *_MetaClass;	/* new(MetaClass, "name", super, size, sel, meth, ... 0); */
+const void *_Object(void);		/* new(Object); */
+const void *_MetaClass(void);	/* new(MetaClass, "name", super, size, sel, meth, ... 0); */
 
 #define METACLASS MetaClass : _MetaClass()
 #define OBJECT Object : _Object()

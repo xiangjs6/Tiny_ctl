@@ -236,7 +236,7 @@ static thread_key_t this_key;
 static thread_once_t this_key_once = THREAD_ONCE_INIT;
 
 struct this_node {
-    void *this;
+    const void *this;
     struct this_node *next;
 };
 struct this_stack {
@@ -253,7 +253,7 @@ static void make_this_key(void)
     thread_key_create(&this_key, free_this);
 }
 
-void *push_this(void *p)
+void push_this(const void *p)
 {
     struct this_stack *ptr;
     thread_once(&this_key_once, make_this_key);
@@ -266,7 +266,6 @@ void *push_this(void *p)
     node->this = p;
     node->next = ptr->head;
     ptr->head = node;
-    return p;
 }
 
 void *pop_this(void)
@@ -277,8 +276,8 @@ void *pop_this(void)
         return NULL;
 
     struct this_node *node = ptr->head;
-    void *p = node->this;
+    const void *p = node->this;
     ptr->head = node->next;
     deallocate(node, sizeof(struct this_node));
-    return p;
+    return (void*)p;
 }
