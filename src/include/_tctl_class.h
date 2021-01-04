@@ -5,7 +5,7 @@
 #ifndef TINY_CTL__TCTL_CLASS_H
 #define TINY_CTL__TCTL_CLASS_H
 #include "_tctl_object.h"
-#include "../include/tctl_class.h"
+#include "../../include/tctl_class.h"
 struct Class {
     const struct MetaClass _;
     bool (*equal)(const void *_this, const void *x);

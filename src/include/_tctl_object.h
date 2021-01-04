@@ -4,7 +4,7 @@
 
 #ifndef TINY_CTL__TCTL_OBJECT_H
 #define TINY_CTL__TCTL_OBJECT_H
-#include "../include/tctl_object.h"
+#include "../../include/tctl_object.h"
 typedef void (*voidf)();	/* generic function pointer */
 struct Object {
     const void *s;

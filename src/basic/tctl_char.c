@@ -2,7 +2,7 @@
 // Created by xjs on 2021/1/3.
 //
 
-#include "_tctl_char.h"
+#include "include/_tctl_char.h"
 #include <stdlib.h>
 #define Import CLASS, CHAR, OBJECT
 

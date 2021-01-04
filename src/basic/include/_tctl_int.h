@@ -4,8 +4,8 @@
 
 #ifndef TINY_CTL__TCTL_INT_H
 #define TINY_CTL__TCTL_INT_H
-#include "../_tctl_class.h"
-#include "../../include/tctl_int.h"
+#include "../../include/_tctl_class.h"
+#include "../../../include/tctl_int.h"
 
 struct Int {
     struct Object _;
