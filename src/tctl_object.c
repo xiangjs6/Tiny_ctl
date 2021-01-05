@@ -25,8 +25,8 @@ static int Object_puto(const void *_this, FILE *fp);
 static void *MetaClass_ctor(void *_this, va_list *app);
 static void *MetaClass_dtor(void *_this);
 
-static typeof(*_MetaClassS) MetaClassS = {ctor, dtor, differ, puto};
-typeof(_MetaClassS) _MetaClassS = &MetaClassS;
+static struct MetaClassSelector MetaClassS = {ctor, dtor, differ, puto};
+const struct MetaClassSelector *_MetaClassS = &MetaClassS;
 const void *Selector = &MetaClassS;
 static const struct MetaClass _object[] = {
         {{&MetaClassS, _object + 1},

@@ -22,7 +22,7 @@ static void *_mul(const void *x);
 static void *_div(const void *x);
 static void *_mod(const void *x);
 //init
-volatile static typeof(*_ClassS) ClassS = {
+volatile static struct ClassSelector ClassS = {
         {},
         _equal,
         _cmp,
@@ -38,7 +38,7 @@ volatile static typeof(*_ClassS) ClassS = {
         _div,
         _mod
 };
-typeof(_ClassS) _ClassS = NULL;
+const struct ClassSelector *_ClassS = NULL;
 static const void *__Class = NULL;
 
 const void *_Class(void)
