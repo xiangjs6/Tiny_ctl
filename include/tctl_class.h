@@ -5,7 +5,7 @@
 #ifndef TINY_CTL_TCTL_CLASS_H
 #define TINY_CTL_TCTL_CLASS_H
 
-#include "../include/tctl_object.h"
+#include "tctl_object.h"
 
 #define INHERIT_CLASS \
 struct {              \
@@ -27,7 +27,7 @@ struct {              \
 
 typedef struct {
     union {
-        INHERIT_CLASS *_x;
+        INHERIT_CLASS *_s;
         byte _pad[sizeof(*(Object)NULL)];
     };
     byte _o[0];

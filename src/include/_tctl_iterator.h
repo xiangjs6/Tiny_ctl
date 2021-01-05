@@ -5,10 +5,11 @@
 #ifndef TINY_CTL__TCTL_ITERATOR_H
 #define TINY_CTL__TCTL_ITERATOR_H
 #include "_tctl_class.h"
+#include "../../include/tctl_iterator.h"
 
 struct IteratorClass {
     struct Class _;
-    void *(*derefer)(void);
+    void *(*derefer)(const void *x);
 };
 
 struct IteratorSelector {
