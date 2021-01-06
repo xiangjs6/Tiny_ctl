@@ -6,99 +6,103 @@
 #include <stdlib.h>
 #define Import CLASS, UINT, OBJECT
 
+struct UInt {
+    unsigned long long val;
+};
+
 static const void *__UInt = NULL;
 static void *_ctor(void *_this, va_list *app)
 {
     struct UInt *this = super_ctor(__UInt, _this, app);
     this->val = va_arg(*app, unsigned long long);
-    return _this;
+    return _this + sizeof(struct UInt);
 }
 
 static bool _equal(const void *_this, const void *x)
 {
-    const struct UInt *this = _this;
-    const struct UInt *p = x;
+    const struct UInt *this = _this + Object_size;
+    const struct UInt *p = x + Object_size;
     return this->val == p->val;
 }
 
 static int _cmp(const void *_this, const void *x)
 {
-    const struct UInt *this = _this;
-    const struct UInt *p = x;
+    const struct UInt *this = _this + Object_size;
+    const struct UInt *p = x + Object_size;
     return this->val - p->val;
 }
 
 static void _inc(void *_this)
 {
-    struct UInt *this = _this;
+    struct UInt *this = _this + Object_size;
     this->val++;
 }
 
 static void _dec(void *_this)
 {
-    struct UInt *this = _this;
+    struct UInt *this = _this + Object_size;
     this->val--;
 }
 
 static void _self_add(void *_this, const void *x)
 {
-    struct UInt *this = _this;
-    const struct UInt *p = x;
+    struct UInt *this = _this + Object_size;
+    const struct UInt *p = x + Object_size;
     this->val += p->val;
 }
 
 static void _self_sub(void *_this, const void *x)
 {
-    struct UInt *this = _this;
-    const struct UInt *p = x;
+    struct UInt *this = _this + Object_size;
+    const struct UInt *p = x + Object_size;
     this->val -= p->val;
 }
 
 static void _asign(void *_this, const void *x)
 {
-    struct UInt *this = _this;
-    const struct UInt *p = x;
+    struct UInt *this = _this + Object_size;
+    const struct UInt *p = x + Object_size;
     this->val = p->val;
 }
 
 static void *_add(const void *_this, const void *x)
 {
-    const struct UInt *this = _this;
-    const struct UInt *p = x;
+    const struct UInt *this = _this + Object_size;
+    const struct UInt *p = x + Object_size;
     return new(UInt, this->val + p->val);
 }
 
 static void *_sub(const void *_this, const void *x)
 {
-    const struct UInt *this = _this;
-    const struct UInt *p = x;
+    const struct UInt *this = _this + Object_size;
+    const struct UInt *p = x + Object_size;
     return new(UInt, this->val - p->val);
 }
 
 static void *_mul(const void *_this, const void *x)
 {
-    const struct UInt *this = _this;
-    const struct UInt *p = x;
+    const struct UInt *this = _this + Object_size;
+    const struct UInt *p = x + Object_size;
     return new(UInt, this->val * p->val);
 }
 
 static void *_div(const void *_this, const void *x)
 {
-    const struct UInt *this = _this;
-    const struct UInt *p = x;
+    const struct UInt *this = _this + Object_size;
+    const struct UInt *p = x + Object_size;
     return new(UInt, this->val / p->val);
 }
 
 static void *_mod(const void *_this, const void *x)
 {
-    const struct UInt *this = _this;
-    const struct UInt *p = x;
+    const struct UInt *this = _this + Object_size;
+    const struct UInt *p = x + Object_size;
     return new(UInt, this->val % p->val);
 }
 void initUInt(void)
 {
     if (!__UInt)
-        __UInt = new(Class, "UInt", T(Object), sizeof(struct UInt),
+        __UInt = new(Class, "UInt", T(Object), sizeof(struct UInt) + Object_size,
                     _MetaClassS->ctor, _ctor,
                     _ClassS->equal, _equal,
                     _ClassS->cmp, _cmp,
