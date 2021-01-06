@@ -67,91 +67,91 @@ const void *_Class(void)
 static bool _equal(const void *x)
 {
     void *_this = pop_this();
-    const struct Class *class = sizeOf(_MetaClass()) + (void*)classOf(_this);
+    const struct Class *class = offsetOf(classOf(_this), _Class());
     assert(class->equal);
     return class->equal(_this, x);
 }
 static int _cmp(const void *x)
 {
     void *_this = pop_this();
-    const struct Class *class = sizeOf(_MetaClass()) + (void*)classOf(_this);
+    const struct Class *class = offsetOf(classOf(_this), _Class());
     assert(class->cmp);
     return class->cmp(_this, x);
 }
 static void *_brackets(const void *x)
 {
     void *_this = pop_this();
-    const struct Class *class = sizeOf(_MetaClass()) + (void*)classOf(_this);
+    const struct Class *class = offsetOf(classOf(_this), _Class());
     assert(class->brackets);
     return class->brackets(_this, x);
 }
 static void _inc(void)
 {
     void *_this = pop_this();
-    const struct Class *class = sizeOf(_MetaClass()) + (void*)classOf(_this);
+    const struct Class *class = offsetOf(classOf(_this), _Class());
     assert(class->inc);
     return class->inc(_this);
 }
 static void _dec(void)
 {
     void *_this = pop_this();
-    const struct Class *class = sizeOf(_MetaClass()) + (void*)classOf(_this);
+    const struct Class *class = offsetOf(classOf(_this), _Class());
     assert(class->dec);
     return class->dec(_this);
 }
 static void _self_add(const void *x)
 {
     void *_this = pop_this();
-    const struct Class *class = sizeOf(_MetaClass()) + (void*)classOf(_this);
+    const struct Class *class = offsetOf(classOf(_this), _Class());
     assert(class->self_add);
     class->self_add(_this, x);
 }
 static void _self_sub(const void *x)
 {
     void *_this = pop_this();
-    const struct Class *class = sizeOf(_MetaClass()) + (void*)classOf(_this);
+    const struct Class *class = offsetOf(classOf(_this), _Class());
     assert(class->self_sub);
     class->self_sub(_this, x);
 }
 static void _asign(const void *x)
 {
     void *_this = pop_this();
-    const struct Class *class = sizeOf(_MetaClass()) + (void*)classOf(_this);
+    const struct Class *class = offsetOf(classOf(_this), _Class());
     assert(class->asign);
     class->asign(_this, x);
 }
 static void *_add(const void *x)
 {
     void *_this = pop_this();
-    const struct Class *class = sizeOf(_MetaClass()) + (void*)classOf(_this);
+    const struct Class *class = offsetOf(classOf(_this), _Class());
     assert(class->add);
     return class->add(_this, x);
 }
 static void *_sub(const void *x)
 {
     void *_this = pop_this();
-    const struct Class *class = sizeOf(_MetaClass()) + (void*)classOf(_this);
+    const struct Class *class = offsetOf(classOf(_this), _Class());
     assert(class->sub);
     return class->sub(_this, x);
 }
 static void *_mul(const void *x)
 {
     void *_this = pop_this();
-    const struct Class *class = sizeOf(_MetaClass()) + (void*)classOf(_this);
+    const struct Class *class = offsetOf(classOf(_this), _Class());
     assert(class->mul);
     return class->mul(_this, x);
 }
 static void *_div(const void *x)
 {
     void *_this = pop_this();
-    const struct Class *class = sizeOf(_MetaClass()) + (void*)classOf(_this);
+    const struct Class *class = offsetOf(classOf(_this), _Class());
     assert(class->div);
     return class->div(_this, x);
 }
 static void *_mod(const void *x)
 {
     void *_this = pop_this();
-    const struct Class *class = sizeOf(_MetaClass()) + (void*)classOf(_this);
+    const struct Class *class = offsetOf(classOf(_this), _Class());
     assert(class->mod);
     return class->mod(_this, x);
 }
@@ -189,7 +189,7 @@ void initClass(void)
     }
     if (!__Class) {
         __Class = new(MetaClass, "Class",
-                      T(MetaClass), sizeof(struct Class) + sizeOf(_MetaClass()),
+                      T(MetaClass), sizeof(struct Class) + classSz(_MetaClass()),
                      _MetaClassS->ctor, _ctor);
     }
 }

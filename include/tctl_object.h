@@ -18,7 +18,6 @@
  * */
 
 #define VAEND NULL
-#define Object_size sizeof(*(Object)0)
 #define _T(__T) _Generic(__T, Import, default : 0)
 #define T(__T) _T(*(__T*)0)
 #define new(__T, ...) (T(__T) ? _new(T(__T), ##__VA_ARGS__, VAEND) : malloc(sizeof(__T)))
@@ -28,6 +27,8 @@ void _delete(void *this);
 
 const void *classOf(const void *this);
 size_t sizeOf(const void *this);
+size_t classSz(const void *this);
+void *offsetOf(const void *this, const void *class);
 
 #define INHERIT_METACLASS \
 struct {       \

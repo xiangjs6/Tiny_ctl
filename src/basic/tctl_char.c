@@ -20,89 +20,89 @@ static void *_ctor(void *_this, va_list *app)
 
 static bool _equal(const void *_this, const void *x)
 {
-    const struct Char *this = _this + Object_size;
-    const struct Char *p = x + Object_size;
+    const struct Char *this = offsetOf(_this, __Char);
+    const struct Char *p = offsetOf(x, __Char);
     return this->val == p->val;
 }
 
 static int _cmp(const void *_this, const void *x)
 {
-    const struct Char *this = _this + Object_size;
-    const struct Char *p = x + Object_size;
+    const struct Char *this = offsetOf(_this, __Char);
+    const struct Char *p = offsetOf(x, __Char);
     return this->val - p->val;
 }
 
 static void _inc(void *_this)
 {
-    struct Char *this = _this + Object_size;
+    struct Char *this = offsetOf(_this, __Char);
     this->val++;
 }
 
 static void _dec(void *_this)
 {
-    struct Char *this = _this + Object_size;
+    struct Char *this = offsetOf(_this, __Char);
     this->val--;
 }
 
 static void _self_add(void *_this, const void *x)
 {
-    struct Char *this = _this + Object_size;
-    const struct Char *p = x + Object_size;
+    struct Char *this = offsetOf(_this, __Char);
+    const struct Char *p = offsetOf(x, __Char);
     this->val += p->val;
 }
 
 static void _self_sub(void *_this, const void *x)
 {
-    struct Char *this = _this + Object_size;
-    const struct Char *p = x + Object_size;
+    struct Char *this = offsetOf(_this, __Char);
+    const struct Char *p = offsetOf(x, __Char);
     this->val -= p->val;
 }
 
 static void _asign(void *_this, const void *x)
 {
-    struct Char *this = _this + Object_size;
-    const struct Char *p = x + Object_size;
+    struct Char *this = offsetOf(_this, __Char);
+    const struct Char *p = offsetOf(x, __Char);
     this->val = p->val;
 }
 
 static void *_add(const void *_this, const void *x)
 {
-    const struct Char *this = _this + Object_size;
-    const struct Char *p = x + Object_size;
+    const struct Char *this = offsetOf(_this, __Char);
+    const struct Char *p = offsetOf(x, __Char);
     return new(Char, this->val + p->val);
 }
 
 static void *_sub(const void *_this, const void *x)
 {
-    const struct Char *this = _this + Object_size;
-    const struct Char *p = x + Object_size;
+    const struct Char *this = offsetOf(_this, __Char);
+    const struct Char *p = offsetOf(x, __Char);
     return new(Char, this->val - p->val);
 }
 
 static void *_mul(const void *_this, const void *x)
 {
-    const struct Char *this = _this + Object_size;
-    const struct Char *p = x + Object_size;
+    const struct Char *this = offsetOf(_this, __Char);
+    const struct Char *p = offsetOf(x, __Char);
     return new(Char, this->val * p->val);
 }
 
 static void *_div(const void *_this, const void *x)
 {
-    const struct Char *this = _this + Object_size;
-    const struct Char *p = x + Object_size;
+    const struct Char *this = offsetOf(_this, __Char);
+    const struct Char *p = offsetOf(x, __Char);
     return new(Char, this->val / p->val);
 }
 
 static void *_mod(const void *_this, const void *x)
 {
-    const struct Char *this = _this + Object_size;
-    const struct Char *p = x + Object_size;
+    const struct Char *this = offsetOf(_this, __Char);
+    const struct Char *p = offsetOf(x, __Char);
     return new(Char, this->val % p->val);
 }
 void initChar(void)
 {
     if (!__Char)
-        __Char = new(Class, "Char", T(Object), sizeof(struct Char) + Object_size,
+        __Char = new(Class, "Char", T(Object), sizeof(struct Char) + classSz(_Object()),
                     _MetaClassS->ctor, _ctor,
                     _ClassS->equal, _equal,
                     _ClassS->cmp, _cmp,

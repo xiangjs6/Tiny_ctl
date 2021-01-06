@@ -21,83 +21,83 @@ static void *_ctor(void *_this, va_list *app)
 
 static bool _equal(const void *_this, const void *x)
 {
-    const struct Double *this = _this + Object_size;
-    const struct Double *p = x + Object_size;
+    const struct Double *this = offsetOf(_this, __Double);
+    const struct Double *p = offsetOf(x, __Double);
     return this->val == p->val;
 }
 
 static int _cmp(const void *_this, const void *x)
 {
-    const struct Double *this = _this + Object_size;
-    const struct Double *p = x + Object_size;
+    const struct Double *this = offsetOf(_this, __Double);
+    const struct Double *p = offsetOf(x, __Double);
     return this->val - p->val;
 }
 
 static void _inc(void *_this)
 {
-    struct Double *this = _this + Object_size;
+    struct Double *this = offsetOf(_this, __Double);
     this->val++;
 }
 
 static void _dec(void *_this)
 {
-    struct Double *this = _this + Object_size;
+    struct Double *this = offsetOf(_this, __Double);
     this->val--;
 }
 
 static void _self_add(void *_this, const void *x)
 {
-    struct Double *this = _this + Object_size;
-    const struct Double *p = x + Object_size;
+    struct Double *this = offsetOf(_this, __Double);
+    const struct Double *p = offsetOf(x, __Double);
     this->val += p->val;
 }
 
 static void _self_sub(void *_this, const void *x)
 {
-    struct Double *this = _this + Object_size;
-    const struct Double *p = x;
+    struct Double *this = offsetOf(_this, __Double);
+    const struct Double *p = offsetOf(x, __Double);
     this->val -= p->val;
 }
 
 static void _asign(void *_this, const void *x)
 {
-    struct Double *this = _this + Object_size;
-    const struct Double *p = x + Object_size;
+    struct Double *this = offsetOf(_this, __Double);
+    const struct Double *p = offsetOf(x, __Double);
     this->val = p->val;
 }
 
 static void *_add(const void *_this, const void *x)
 {
-    const struct Double *this = _this + Object_size;
-    const struct Double *p = x + Object_size;
+    const struct Double *this = offsetOf(_this, __Double);
+    const struct Double *p = offsetOf(x, __Double);
     return new(Double, this->val + p->val);
 }
 
 static void *_sub(const void *_this, const void *x)
 {
-    const struct Double *this = _this + Object_size;
-    const struct Double *p = x + Object_size;
+    const struct Double *this = offsetOf(_this, __Double);
+    const struct Double *p = offsetOf(x, __Double);
     return new(Double, this->val - p->val);
 }
 
 static void *_mul(const void *_this, const void *x)
 {
-    const struct Double *this = _this + Object_size;
-    const struct Double *p = x + Object_size;
+    const struct Double *this = offsetOf(_this, __Double);
+    const struct Double *p = offsetOf(x, __Double);
     return new(Double, this->val * p->val);
 }
 
 static void *_div(const void *_this, const void *x)
 {
-    const struct Double *this = _this + Object_size;
-    const struct Double *p = x + Object_size;
+    const struct Double *this = offsetOf(_this, __Double);
+    const struct Double *p = offsetOf(x, __Double);
     return new(Double, this->val / p->val);
 }
 
 void initDouble(void)
 {
     if (!__Double)
-        __Double = new(Class, "Double", T(Object), sizeof(struct Double) + Object_size,
+        __Double = new(Class, "Double", T(Object), sizeof(struct Double) + classSz(_Object()),
                      _MetaClassS->ctor, _ctor,
                      _ClassS->equal, _equal,
                      _ClassS->cmp, _cmp,

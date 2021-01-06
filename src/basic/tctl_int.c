@@ -20,89 +20,89 @@ static void *_ctor(void *_this, va_list *app)
 
 static bool _equal(const void *_this, const void *x)
 {
-    const struct Int *this = _this + Object_size;
-    const struct Int *p = x + Object_size;
+    const struct Int *this = offsetOf(_this, __Int);
+    const struct Int *p = offsetOf(x, __Int);
     return this->val == p->val;
 }
 
 static int _cmp(const void *_this, const void *x)
 {
-    const struct Int *this = _this + Object_size;
-    const struct Int *p = x + Object_size;
+    const struct Int *this = offsetOf(_this, __Int);
+    const struct Int *p = offsetOf(x, __Int);
     return this->val - p->val;
 }
 
 static void _inc(void *_this)
 {
-    struct Int *this = _this + Object_size;
+    struct Int *this = offsetOf(_this, __Int);
     this->val++;
 }
 
 static void _dec(void *_this)
 {
-    struct Int *this = _this + Object_size;
+    struct Int *this = offsetOf(_this, __Int);
     this->val--;
 }
 
 static void _self_add(void *_this, const void *x)
 {
-    struct Int *this = _this + Object_size;
-    const struct Int *p = x + Object_size;
+    struct Int *this = offsetOf(_this, __Int);
+    const struct Int *p = offsetOf(x, __Int);
     this->val += p->val;
 }
 
 static void _self_sub(void *_this, const void *x)
 {
-    struct Int *this = _this + Object_size;
-    const struct Int *p = x + Object_size;
+    struct Int *this = offsetOf(_this, __Int);
+    const struct Int *p = offsetOf(x, __Int);
     this->val -= p->val;
 }
 
 static void _asign(void *_this, const void *x)
 {
-    struct Int *this = _this + Object_size;
-    const struct Int *p = x + Object_size;
+    struct Int *this = offsetOf(_this, __Int);
+    const struct Int *p = offsetOf(x, __Int);
     this->val = p->val;
 }
 
 static void *_add(const void *_this, const void *x)
 {
-    const struct Int *this = _this + Object_size;
-    const struct Int *p = x + Object_size;
+    const struct Int *this = offsetOf(_this, __Int);
+    const struct Int *p = offsetOf(x, __Int);
     return new(Int, this->val + p->val);
 }
 
 static void *_sub(const void *_this, const void *x)
 {
-    const struct Int *this = _this + Object_size;
-    const struct Int *p = x + Object_size;
+    const struct Int *this = offsetOf(_this, __Int);
+    const struct Int *p = offsetOf(x, __Int);
     return new(Int, this->val - p->val);
 }
 
 static void *_mul(const void *_this, const void *x)
 {
-    const struct Int *this = _this + Object_size;
-    const struct Int *p = x + Object_size;
+    const struct Int *this = offsetOf(_this, __Int);
+    const struct Int *p = offsetOf(x, __Int);
     return new(Int, this->val * p->val);
 }
 
 static void *_div(const void *_this, const void *x)
 {
-    const struct Int *this = _this + Object_size;
-    const struct Int *p = x + Object_size;
+    const struct Int *this = offsetOf(_this, __Int);
+    const struct Int *p = offsetOf(x, __Int);
     return new(Int, this->val / p->val);
 }
 
 static void *_mod(const void *_this, const void *x)
 {
-    const struct Int *this = _this + Object_size;
-    const struct Int *p = x + Object_size;
+    const struct Int *this = offsetOf(_this, __Int);
+    const struct Int *p = offsetOf(x, __Int);
     return new(Int, this->val % p->val);
 }
 void initInt(void)
 {
     if (!__Int)
-        __Int = new(Class, "Int", T(Object), sizeof(struct Int) + Object_size,
+        __Int = new(Class, "Int", T(Object), sizeof(struct Int) + classSz(_Object()),
                    _MetaClassS->ctor, _ctor,
                    _ClassS->equal, _equal,
                    _ClassS->cmp, _cmp,

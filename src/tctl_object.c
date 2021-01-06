@@ -105,6 +105,17 @@ size_t sizeOf(const void *_this)
     return class->size;
 }
 
+size_t classSz(const void *this)
+{
+    const struct MetaClass *class = this;
+    return class->size;
+}
+
+void *offsetOf(const void *this, const void *_class)
+{
+    const struct MetaClass *class = _class;
+    return (void*)this + classSz(class->super);
+}
 /*
  *	MetaClass
  */
