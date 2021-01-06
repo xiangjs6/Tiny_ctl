@@ -12,7 +12,7 @@ struct {              \
     INHERIT_METACLASS;\
     bool (*equal)(const void *x); \
     int (*cmp)(const void *x);    \
-    void *(*at)(int x);           \
+    void *(*brackets)(const void *x);           \
     void (*inc)(void);            \
     void (*dec)(void);            \
     void (*self_add)(const void *x);    \

@@ -10,7 +10,7 @@ struct Class {
     const struct MetaClass _;
     bool (*equal)(const void *_this, const void *x);
     int (*cmp)(const void *_this, const void *x);
-    void *(*at)(const void *_this, int x);
+    void *(*brackets)(const void *_this, const void *x);
     void (*inc)(void *_this);
     void (*dec)(void *_this);
     void (*self_add)(void *_this, const void *x);
@@ -27,7 +27,7 @@ struct ClassSelector {
     byte _[sizeof(struct MetaClassSelector)];
     bool (*equal)(const void *x);
     int (*cmp)(const void *x);
-    void *(*at)(int x);
+    void *(*brackets)(const void *x);
     void (*inc)(void);
     void (*dec)(void);
     void (*self_add)(const void *x);

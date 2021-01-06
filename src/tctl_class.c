@@ -10,7 +10,7 @@
 
 static bool _equal(const void *x);
 static int _cmp(const void *x);
-static void *_at(int x);
+static void *_brackets(const void *x);
 static void _inc(void);
 static void _dec(void);
 static void _self_add(const void *x);
@@ -26,7 +26,7 @@ volatile static struct ClassSelector ClassS = {
         {},
         _equal,
         _cmp,
-        _at,
+        _brackets,
         _inc,
         _dec,
         _self_add,
@@ -61,12 +61,12 @@ static int _cmp(const void *x)
     assert(class->cmp);
     return class->cmp(_this, x);
 }
-static void *_at(int x)
+static void *_brackets(const void *x)
 {
     void *_this = pop_this();
     const struct Class *class = classOf(_this);
-    assert(class->at);
-    return class->at(_this, x);
+    assert(class->brackets);
+    return class->brackets(_this, x);
 }
 static void _inc(void)
 {
