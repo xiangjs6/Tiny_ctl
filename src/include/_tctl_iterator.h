@@ -9,12 +9,18 @@
 
 struct IteratorClass {
     struct Class _;
-    void *(*derefer)(const void *x);
+    void *(*derefer)(const void *_this);
+};
+
+struct Iterator {
+    struct Object _;
+    byte _v[0];
 };
 
 struct IteratorSelector {
     char _[sizeof(struct ClassSelector)];
     void *(*derefer)(void);
 };
+
 extern const struct IteratorSelector *_IteratorS;
 #endif //TINY_CTL__TCTL_ITERATOR_H

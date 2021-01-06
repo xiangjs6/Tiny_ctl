@@ -6,7 +6,7 @@
 #define TINY_CTL_TCTL_ITERATOR_H
 #include "tctl_object.h"
 #include "tctl_class.h"
-#define INHERIT_ITERATORCLASS \
+#define INHERIT_ITERATOR \
 struct {                      \
     INHERIT_CLASS;            \
     void *(*derefer)(void);   \
@@ -14,22 +14,22 @@ struct {                      \
 
 typedef struct {
     union {
-        INHERIT_ITERATORCLASS *_s;
+        INHERIT_ITERATOR *_s;
         byte _pad[sizeof(*(Object)NULL)];
     };
-    void *val;
 } *Iterator;
 
 typedef struct {
     union {
-        INHERIT_ITERATORCLASS *_s;
+        INHERIT_ITERATOR *_s;
         byte _pad[sizeof(*(Object)NULL)];
     };
-    byte _o[0];
 } *IteratorClass;
-void initIteratorClass(void) __attribute__((constructor));
+void initIterator(void) __attribute__((constructor));
 
 const void *_IteratorClass(void);
+const void *_Iterator(void);
 
 #define ITERATORCLASS IteratorClass : _IteratorClass()
+#define ITERATOR Iterator : _Iterator()
 #endif //TINY_CTL_TCTL_ITERATOR_H
