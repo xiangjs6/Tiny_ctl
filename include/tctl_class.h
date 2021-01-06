@@ -30,7 +30,6 @@ typedef struct {
         INHERIT_CLASS *_s;
         byte _pad[sizeof(*(Object)NULL)];
     };
-    byte _o[0];
 } *Class;
 
 void initClass(void) __attribute__((constructor));

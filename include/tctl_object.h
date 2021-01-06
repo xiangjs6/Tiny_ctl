@@ -18,6 +18,7 @@
  * */
 
 #define VAEND NULL
+#define Object_size sizeof(*(Object)0)
 #define _T(__T) _Generic(__T, Import, default : 0)
 #define T(__T) _T(*(__T*)0)
 #define new(__T, ...) (T(__T) ? _new(T(__T), ##__VA_ARGS__, VAEND) : malloc(sizeof(__T)))
@@ -39,12 +40,10 @@ struct {       \
 typedef struct {
     INHERIT_METACLASS *_s;
     void *_c;
-    byte _o[0];
 } *Object;
 
 typedef struct {
     INHERIT_METACLASS *_s;
-    byte _o[0];
 } *MetaClass;
 const void *super(const void * this);	/* class' superclass */
 
