@@ -14,7 +14,7 @@
  *	initialization
  */
 
-static void *ctor(va_list *app);
+static void *ctor(void *mem, ...);
 static void *dtor(void);
 static int differ(const void *b);
 static int puto (FILE *fp);
@@ -171,12 +171,19 @@ void _delete(void *_this)
         free(class->dtor(_this));
 }
 
-static void *ctor(va_list *app)
+static void *ctor(void *mem, ...)
 {
     void *_this = pop_this();
     const struct MetaClass *class = classOf(_this);
     assert(class->ctor);
-    return class->ctor(_this, app);
+    va_list ap;
+    va_start(ap, mem);
+    struct Object *object = mem ? mem : calloc(1, class->size);
+    assert(object);
+    object->class = class;
+    object = class->ctor(object, &ap);
+    va_end(ap);
+    return object;
 }
 
 void *super_ctor(const void *_class, void *_this, va_list *app)

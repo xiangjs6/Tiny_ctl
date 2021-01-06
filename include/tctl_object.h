@@ -17,9 +17,10 @@
  * 4、遵守各个泛类对象指定的规则，比如迭代器
  * */
 
+#define VAEND NULL
 #define _T(__T) _Generic(__T, Import, default : 0)
 #define T(__T) _T(*(__T*)0)
-#define new(__T, ...) (T(__T) ? _new(T(__T), ##__VA_ARGS__, 0) : malloc(sizeof(__T)))
+#define new(__T, ...) (T(__T) ? _new(T(__T), ##__VA_ARGS__, VAEND) : malloc(sizeof(__T)))
 #define delete(this) (_T(this) ? _delete(this) : free(this))
 void *_new(const void *_class, ...);
 void _delete(void *this);
@@ -29,7 +30,7 @@ size_t sizeOf(const void *this);
 
 #define INHERIT_METACLASS \
 struct {       \
-    void *(*ctor)(va_list *app); \
+    void *(*ctor)(void *mem, ...); \
     void *(*dtor)(void);        \
     int (*differ)(const void *b); \
     int (*puto)(FILE *fp);  \

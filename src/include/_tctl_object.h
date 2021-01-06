@@ -27,7 +27,7 @@ void *super_dtor(const void *class, void *this);
 int super_differ(const void *class, const void *this, const void *b);
 int super_puto(const void *class, const void *this, FILE *fp);
 struct MetaClassSelector {
-    void *(*ctor)(va_list *app);
+    void *(*ctor)(void *mem, ...);
     void *(*dtor)(void);
     int (*differ)(const void *b);
     int (*puto)(FILE *fp);
