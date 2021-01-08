@@ -7,16 +7,6 @@
 #include "_tctl_class.h"
 #include "../../include/tctl_iterator.h"
 
-struct IteratorClass {
-    struct Class _;
-    void *(*derefer)(const void *_this);
-};
-
-struct Iterator {
-    struct Object _;
-    byte _v[0];
-};
-
 struct IteratorSelector {
     char _[sizeof(struct ClassSelector)];
     void *(*derefer)(void);

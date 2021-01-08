@@ -9,7 +9,16 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#define Import CLASS, OBJECT, ITERATORCLASS
+#define Import METACLASS, CLASS, OBJECT, ITERATORCLASS, ITERATOR
+
+struct IteratorClass {
+    void *(*derefer)(const void *_this);
+};
+
+struct Iterator {
+    byte _v[0];
+};
+
 static void *_derefer(void);
 static void *_class_ctor(void *_this, va_list *app);
 static void *_object_ctor(void *_this, va_list *app);
@@ -32,13 +41,13 @@ void initIterator(void)
         _IteratorS = (void*)&IteratorS;
     }
     if (!__IteratorClass) {
-        __IteratorClass = new(Class, "IteratorClass", T(Class),
-                              sizeof(struct IteratorClass),
+        __IteratorClass = new(MetaClass, "IteratorClass", T(Class),
+                              sizeof(struct IteratorClass) + classSz(_Class()),
                               _MetaClassS->ctor, _class_ctor);
     }
     if (!__Iterator) {
         __Iterator = new(IteratorClass, "Iterator", T(Object),
-                         sizeof(struct Iterator),
+                         sizeof(struct Iterator) + classSz(_Object()),
                          _MetaClassS->ctor, _object_ctor,
                          IteratorS.derefer, _object_derefer,
                          Selector, _IteratorS);
@@ -65,7 +74,7 @@ static void *_derefer(void)
 
 static void *_class_ctor(void *_this, va_list *app)
 {
-    struct IteratorClass *this = super_ctor(_IteratorClass(), _this, app);
+    struct IteratorClass *this = super_ctor(__IteratorClass, _this, app);
     va_list ap;
     va_copy(ap, *app);
     voidf selector;
@@ -83,7 +92,7 @@ static void *_class_ctor(void *_this, va_list *app)
 
 static void *_object_ctor(void *_this, va_list *app)
 {
-    struct Iterator *this = super_ctor(_Iterator(), _this, app);
+    struct Iterator *this = super_ctor(__Iterator, _this, app);
     return this;
 }
 
