@@ -2,7 +2,6 @@
 // Created by xjs on 2021/1/3.
 //
 
-#include <stdlib.h>
 #include "include/_tctl_double.h"
 #define Import CLASS, DOUBLE, OBJECT
 
@@ -97,7 +96,7 @@ static void *_div(const void *_this, const void *x)
 void initDouble(void)
 {
     if (!__Double)
-        __Double = new(Class, "Double", T(Object), sizeof(struct Double) + classSz(_Object()),
+        __Double = new(Class, "Double", T(Object), sizeof(struct Double) + classSz(_Object().class),
                      _MetaClassS->ctor, _ctor,
                      _ClassS->equal, _equal,
                      _ClassS->cmp, _cmp,
@@ -113,7 +112,8 @@ void initDouble(void)
                      Selector, _ClassS);
 }
 
-const void *_Double(void)
+Form_t _Double(void)
 {
-    return __Double;
+    Form_t t = {OBJ, {.class = __Double}};
+    return t;
 }

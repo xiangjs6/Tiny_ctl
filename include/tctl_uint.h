@@ -21,6 +21,6 @@ typedef struct {
 } *UInt;
 
 void initUInt(void) __attribute__((constructor));
-const void *_UInt(void);
+Form_t _UInt(void);
 #define UINT UInt : _UInt()
 #endif //TINY_CTL_TCTL_UINT_H

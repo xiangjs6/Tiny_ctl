@@ -3,7 +3,6 @@
 //
 
 #include "include/_tctl_int.h"
-#include <stdlib.h>
 #define Import CLASS, INT, OBJECT
 
 struct Int {
@@ -102,7 +101,7 @@ static void *_mod(const void *_this, const void *x)
 void initInt(void)
 {
     if (!__Int)
-        __Int = new(Class, "Int", T(Object), sizeof(struct Int) + classSz(_Object()),
+        __Int = new(Class, "Int", T(Object), sizeof(struct Int) + classSz(_Object().class),
                    _MetaClassS->ctor, _ctor,
                    _ClassS->equal, _equal,
                    _ClassS->cmp, _cmp,
@@ -119,7 +118,7 @@ void initInt(void)
                    Selector, _ClassS);
 }
 
-const void *_Int(void)
+Form_t _Int(void)
 {
-    return __Int;
+    return (Form_t){OBJ, {.class = __Int}};
 }

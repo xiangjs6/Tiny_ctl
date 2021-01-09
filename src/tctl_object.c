@@ -57,14 +57,16 @@ static const struct MetaClass _object[] = {
 static const void *__Object = _object;
 static const void *__MetaClass = _object + 1;
 
-const void *_Object(void)
+Form_t _Object(void)
 {
-    return __Object;
+    Form_t t = {OBJ , {.class = __Object}};
+    return t;
 }
 
-const void *_MetaClass(void)
+Form_t _MetaClass(void)
 {
-    return __MetaClass;
+    Form_t t = {OBJ , {.class = __MetaClass}};
+    return t;
 }
 /*
  *	Object
@@ -126,7 +128,7 @@ static void *MetaClass_ctor(void *_this, va_list *app)
     const size_t offset = offsetof(struct MetaClass, ctor);
 
     this->name = va_arg(*app, char*);
-    this->super = va_arg(*app, struct MetaClass*);
+    this->super = va_arg(*app, Form_t).class;
     assert(this->super);
     this->size = va_arg(*app, size_t);
 
@@ -173,9 +175,11 @@ const void *super(const void *_this)
  *	object management and selectors
  */
 
-void *_new(const void *_class, ...)
+void *_new(Form_t t, ...)
 {
-    const struct MetaClass *class = _class;
+    if (t.f == POD)
+        return malloc(t.size);
+    const struct MetaClass *class = t.class;
     struct Object *object;
     va_list ap;
 
@@ -183,17 +187,20 @@ void *_new(const void *_class, ...)
     object = calloc(1, class->size);
     assert(object);
     object->class = class;
-    va_start(ap, _class);
+    va_start(ap, t);
     class->ctor(object, &ap);
     va_end(ap);
     return object;
 }
 
-void _delete(void *_this)
+void _delete(Form_t t, void *_this)
 {
+    if (t.f == POD || !_this) {
+        free(_this);
+        return;
+    }
     const struct MetaClass *class = classOf(_this);
-    if (_this)
-        free(class->dtor(_this));
+    free(class->dtor(_this));
 }
 
 static void *ctor(void *mem, ...)

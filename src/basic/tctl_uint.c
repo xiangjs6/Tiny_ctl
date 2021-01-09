@@ -3,7 +3,6 @@
 //
 
 #include "include/_tctl_uint.h"
-#include <stdlib.h>
 #define Import CLASS, UINT, OBJECT
 
 struct UInt {
@@ -21,14 +20,14 @@ static void *_ctor(void *_this, va_list *app)
 static bool _equal(const void *_this, const void *x)
 {
     const struct UInt *this = offsetOf(_this, __UInt);
-    const struct UInt *p = offsetOf(x, _UInt());
+    const struct UInt *p = offsetOf(x, __UInt);
     return this->val == p->val;
 }
 
 static int _cmp(const void *_this, const void *x)
 {
     const struct UInt *this = offsetOf(_this, __UInt);
-    const struct UInt *p = offsetOf(x, _UInt());
+    const struct UInt *p = offsetOf(x, __UInt);
     return this->val - p->val;
 }
 
@@ -102,7 +101,7 @@ static void *_mod(const void *_this, const void *x)
 void initUInt(void)
 {
     if (!__UInt)
-        __UInt = new(Class, "UInt", T(Object), sizeof(struct UInt) + classSz(_Object()),
+        __UInt = new(Class, "UInt", T(Object), sizeof(struct UInt) + classSz(_Object().class),
                     _MetaClassS->ctor, _ctor,
                     _ClassS->equal, _equal,
                     _ClassS->cmp, _cmp,
@@ -119,7 +118,7 @@ void initUInt(void)
                     Selector, _ClassS);
 }
 
-const void *_UInt(void)
+Form_t _UInt(void)
 {
-    return __UInt;
+    return (Form_t){OBJ, {.class = __UInt}};
 }

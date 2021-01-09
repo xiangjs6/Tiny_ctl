@@ -7,7 +7,6 @@
 //#include "../include/auto_release_pool.h"
 #include <memory.h>
 #include <assert.h>
-#include <stdlib.h>
 
 #define Import METACLASS, CLASS, OBJECT, ITERATORCLASS, ITERATOR
 
@@ -42,26 +41,26 @@ void initIterator(void)
     }
     if (!__IteratorClass) {
         __IteratorClass = new(MetaClass, "IteratorClass", T(Class),
-                              sizeof(struct IteratorClass) + classSz(_Class()),
+                              sizeof(struct IteratorClass) + classSz(_Class().class),
                               _MetaClassS->ctor, _class_ctor);
     }
     if (!__Iterator) {
         __Iterator = new(IteratorClass, "Iterator", T(Object),
-                         sizeof(struct Iterator) + classSz(_Object()),
+                         sizeof(struct Iterator) + classSz(_Object().class),
                          _MetaClassS->ctor, _object_ctor,
                          IteratorS.derefer, _object_derefer,
                          Selector, _IteratorS);
     }
 }
 
-const void *_IteratorClass(void)
+Form_t _IteratorClass(void)
 {
-    return __IteratorClass;
+    return (Form_t){OBJ, {.class = __IteratorClass}};
 }
 
-const void *_Iterator(void)
+Form_t _Iterator(void)
 {
-    return __Iterator;
+    return (Form_t){OBJ, {.class = __Iterator}};
 }
 
 static void *_derefer(void)

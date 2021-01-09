@@ -18,12 +18,20 @@
  * */
 
 #define VAEND NULL
-#define _T(__T) _Generic(__T, Import, default : 0)
+
+typedef struct {
+    enum {OBJ, POD} f;
+    union {
+        size_t size;
+        const void *class;
+    };
+} Form_t;
+#define _T(__T) _Generic(__T, Import, default : (Form_t){POD, {.size = sizeof(__T)}})
 #define T(__T) _T(*(__T*)0)
-#define new(__T, ...) (T(__T) ? _new(T(__T), ##__VA_ARGS__, VAEND) : malloc(sizeof(__T)))
-#define delete(this) (_T(this) ? _delete(this) : free(this))
-void *_new(const void *_class, ...);
-void _delete(void *this);
+#define new(__T, ...) _new(T(__T), ##__VA_ARGS__, VAEND)
+#define delete(this) _delete(_T(this), this)
+void *_new(Form_t t, ...);
+void _delete(Form_t t, void *this);
 
 const void *classOf(const void *this);
 size_t sizeOf(const void *this);
@@ -31,7 +39,7 @@ size_t classSz(const void *this);
 void *offsetOf(const void *this, const void *class);
 
 #define INHERIT_METACLASS \
-struct {       \
+struct {                  \
     void *(*ctor)(void *mem, ...); \
     void *(*dtor)(void);        \
     int (*differ)(const void *b); \
@@ -52,8 +60,8 @@ void push_this(const void *);
 void *pop_this(void);
 #define THIS(p) (push_this(p), *(p->_s))
 
-const void *_Object(void);		/* new(Object); */
-const void *_MetaClass(void);	/* new(MetaClass, "name", super, size, sel, meth, ... 0); */
+Form_t _Object(void);		/* new(Object); */
+Form_t _MetaClass(void);	/* new(MetaClass, "name", super, size, sel, meth, ... 0); */
 
 #define METACLASS MetaClass : _MetaClass()
 #define OBJECT Object : _Object()

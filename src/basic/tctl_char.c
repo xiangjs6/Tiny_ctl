@@ -3,7 +3,6 @@
 //
 
 #include "include/_tctl_char.h"
-#include <stdlib.h>
 #define Import CLASS, CHAR, OBJECT
 
 struct Char {
@@ -102,7 +101,7 @@ static void *_mod(const void *_this, const void *x)
 void initChar(void)
 {
     if (!__Char)
-        __Char = new(Class, "Char", T(Object), sizeof(struct Char) + classSz(_Object()),
+        __Char = new(Class, "Char", T(Object), sizeof(struct Char) + classSz(_Object().class),
                     _MetaClassS->ctor, _ctor,
                     _ClassS->equal, _equal,
                     _ClassS->cmp, _cmp,
@@ -119,7 +118,7 @@ void initChar(void)
                     Selector, _ClassS);
 }
 
-const void *_Char(void)
+Form_t _Char(void)
 {
-    return __Char;
+    return (Form_t){OBJ, {.class = __Char}};
 }

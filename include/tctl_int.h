@@ -22,6 +22,6 @@ typedef struct {
 } *Int;
 
 void initInt(void) __attribute__((constructor));
-const void *_Int(void);
+Form_t _Int(void);
 #define INT Int : _Int()
 #endif //TINY_CTL_TCTL_INT_H

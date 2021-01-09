@@ -34,7 +34,7 @@ typedef struct {
 
 void initClass(void) __attribute__((constructor));
 
-const void *_Class(void);
+Form_t _Class(void);
 //extern const void *_Class;
 #define CLASS Class : _Class()
 #endif //TINY_CTL_TCTL_CLASS_H

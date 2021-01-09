@@ -27,8 +27,8 @@ typedef struct {
 } *IteratorClass;
 void initIterator(void) __attribute__((constructor));
 
-const void *_IteratorClass(void);
-const void *_Iterator(void);
+Form_t _IteratorClass(void);
+Form_t _Iterator(void);
 
 #define ITERATORCLASS IteratorClass : _IteratorClass()
 #define ITERATOR Iterator : _Iterator()

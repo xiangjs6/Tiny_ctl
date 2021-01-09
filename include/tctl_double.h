@@ -20,6 +20,6 @@ typedef struct {
 } *Double;
 
 void initDouble(void) __attribute__((constructor));
-const void *_Double(void);
+Form_t _Double(void);
 #define DOUBLE Double : _Double()
 #endif //TINY_CTL_TCTL_DOUBLE_H
