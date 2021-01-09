@@ -5,7 +5,6 @@
 #include "include/_tctl_class.h"
 #include <memory.h>
 #include <assert.h>
-#include <stdlib.h>
 #define Import METACLASS
 
 struct Class {
