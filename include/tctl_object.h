@@ -32,6 +32,7 @@ typedef struct {
 #define delete(this) _delete(_T(this), this)
 void *_new(Form_t t, ...);
 void _delete(Form_t t, void *this);
+void *construct(void *mem, const void *class, ...);
 
 const void *classOf(const void *this);
 size_t sizeOf(const void *this);

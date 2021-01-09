@@ -175,6 +175,21 @@ const void *super(const void *_this)
  *	object management and selectors
  */
 
+
+void *construct(void *mem, const void *_class, ...)
+{
+    const struct MetaClass *class = _class;
+    assert(class);
+    va_list ap;
+    va_start(ap, _class);
+    struct Object *obj = mem;
+    obj->class = class;
+    assert(mem);
+    class->ctor(obj, &ap);
+    va_end(ap);
+    return obj;
+}
+
 void *_new(Form_t t, ...)
 {
     if (t.f == POD)
