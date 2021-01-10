@@ -12,6 +12,7 @@
 
 struct IteratorClass {
     void *(*derefer)(const void *_this);
+    Form_t (*type)(const void *_this);
 };
 
 struct Iterator {
@@ -20,13 +21,16 @@ struct Iterator {
 };
 
 static void *_derefer(void);
+static Form_t _type(void);
 static void *_class_ctor(void *_this, va_list *app);
 static void *_object_ctor(void *_this, va_list *app);
 static void *_object_derefer(const void *_this);
+static Form_t _object_type(const void *_this);
 //init
 volatile static struct IteratorSelector IteratorS = {
         {},
-        _derefer
+        _derefer,
+        _type
 };
 const struct IteratorSelector *_IteratorS = NULL;
 
@@ -50,6 +54,7 @@ void initIterator(void)
                          sizeof(struct Iterator) + classSz(_Object().class),
                          _MetaClassS->ctor, _object_ctor,
                          IteratorS.derefer, _object_derefer,
+                         IteratorS.type, _object_type,
                          Selector, _IteratorS);
     }
 }
@@ -67,9 +72,17 @@ Form_t _Iterator(void)
 static void *_derefer(void)
 {
     void *_this = pop_this();
-    const struct IteratorClass *this = classOf(_this);
-    assert(this->derefer);
-    return this->derefer(_this);
+    const struct IteratorClass *class = classOf(_this);
+    assert(class->derefer);
+    return class->derefer(_this);
+}
+
+static Form_t _type(void)
+{
+    void *_this = pop_this();
+    const struct IteratorClass *class = classOf(_this);
+    assert(class->type);
+    return class->type(_this);
 }
 
 static void *_class_ctor(void *_this, va_list *app)
@@ -101,4 +114,10 @@ static void *_object_derefer(const void *_this)
 {
     const struct Iterator *this = _this;
     return (void*)this->_v;
+}
+
+static Form_t _object_type(const void *_this)
+{
+    const struct Iterator *this = _this;
+    return this->_t;
 }

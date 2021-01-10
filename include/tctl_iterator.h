@@ -10,6 +10,7 @@
 struct {                      \
     INHERIT_CLASS;            \
     void *(*derefer)(void);   \
+    Form_t (*type)(void);     \
 }
 
 typedef struct {
