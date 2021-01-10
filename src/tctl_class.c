@@ -187,7 +187,7 @@ void initClass(void)
         memcpy((void*)&ClassS, _MetaClassS, sizeof(*_MetaClassS));
     }
     if (!__Class) {
-        __Class = new(MetaClass, "Class",
+        __Class = new(T(MetaClass), "Class",
                       T(MetaClass), sizeof(struct Class) + classSz(_MetaClass().class),
                      _MetaClassS->ctor, _ctor);
     }

@@ -26,13 +26,18 @@ typedef struct {
         const void *class;
     };
 } Form_t;
-#define _T(__T) _Generic(__T, Import, default : (Form_t){POD, {.size = sizeof(__T)}})
-#define T(__T) _T(*(__T*)0)
-#define new(__T, ...) _new(T(__T), ##__VA_ARGS__, VAEND)
+
+struct _Form_t {
+    Form_t _;
+    void *mem;
+};
+#define _T(__T, ...) (struct _Form_t){_Generic(__T, Import,\
+                              default : (Form_t){POD, {.size = sizeof(__T)}}), ##__VA_ARGS__}
+#define T(__T, ...) _T(*(__T*)0, __VA_ARGS__)
+#define new(__T, ...) _new(__T, ##__VA_ARGS__, VAEND)
 #define delete(this) _delete(_T(this), this)
-void *_new(Form_t t, ...);
-void _delete(Form_t t, void *this);
-void *construct(void *mem, const void *class, ...);
+void *_new(struct _Form_t t, ...);
+void _delete(struct _Form_t t, void *this);
 
 const void *classOf(const void *this);
 size_t sizeOf(const void *this);

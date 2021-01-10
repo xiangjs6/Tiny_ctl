@@ -40,12 +40,12 @@ void initIterator(void)
         _IteratorS = (void*)&IteratorS;
     }
     if (!__IteratorClass) {
-        __IteratorClass = new(MetaClass, "IteratorClass", T(Class),
+        __IteratorClass = new(T(MetaClass), "IteratorClass", T(Class),
                               sizeof(struct IteratorClass) + classSz(_Class().class),
                               _MetaClassS->ctor, _class_ctor);
     }
     if (!__Iterator) {
-        __Iterator = new(IteratorClass, "Iterator", T(Object),
+        __Iterator = new(T(IteratorClass), "Iterator", T(Object),
                          sizeof(struct Iterator) + classSz(_Object().class),
                          _MetaClassS->ctor, _object_ctor,
                          IteratorS.derefer, _object_derefer,

@@ -68,40 +68,40 @@ static void *_add(const void *_this, const void *x)
 {
     const struct Int *this = offsetOf(_this, __Int);
     const struct Int *p = offsetOf(x, __Int);
-    return new(Int, this->val + p->val);
+    return new(T(Int), this->val + p->val);
 }
 
 static void *_sub(const void *_this, const void *x)
 {
     const struct Int *this = offsetOf(_this, __Int);
     const struct Int *p = offsetOf(x, __Int);
-    return new(Int, this->val - p->val);
+    return new(T(Int), this->val - p->val);
 }
 
 static void *_mul(const void *_this, const void *x)
 {
     const struct Int *this = offsetOf(_this, __Int);
     const struct Int *p = offsetOf(x, __Int);
-    return new(Int, this->val * p->val);
+    return new(T(Int), this->val * p->val);
 }
 
 static void *_div(const void *_this, const void *x)
 {
     const struct Int *this = offsetOf(_this, __Int);
     const struct Int *p = offsetOf(x, __Int);
-    return new(Int, this->val / p->val);
+    return new(T(Int), this->val / p->val);
 }
 
 static void *_mod(const void *_this, const void *x)
 {
     const struct Int *this = offsetOf(_this, __Int);
     const struct Int *p = offsetOf(x, __Int);
-    return new(Int, this->val % p->val);
+    return new(T(Int), this->val % p->val);
 }
 void initInt(void)
 {
     if (!__Int)
-        __Int = new(Class, "Int", T(Object), sizeof(struct Int) + classSz(_Object().class),
+        __Int = new(T(Class), "Int", T(Object), sizeof(struct Int) + classSz(_Object().class),
                    _MetaClassS->ctor, _ctor,
                    _ClassS->equal, _equal,
                    _ClassS->cmp, _cmp,

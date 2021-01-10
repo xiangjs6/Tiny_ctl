@@ -68,40 +68,40 @@ static void *_add(const void *_this, const void *x)
 {
     const struct UInt *this = offsetOf(_this, __UInt);
     const struct UInt *p = offsetOf(x, __UInt);
-    return new(UInt, this->val + p->val);
+    return new(T(UInt), this->val + p->val);
 }
 
 static void *_sub(const void *_this, const void *x)
 {
     const struct UInt *this = offsetOf(_this, __UInt);
     const struct UInt *p = offsetOf(x, __UInt);
-    return new(UInt, this->val - p->val);
+    return new(T(UInt), this->val - p->val);
 }
 
 static void *_mul(const void *_this, const void *x)
 {
     const struct UInt *this = offsetOf(_this, __UInt);
     const struct UInt *p = offsetOf(x, __UInt);
-    return new(UInt, this->val * p->val);
+    return new(T(UInt), this->val * p->val);
 }
 
 static void *_div(const void *_this, const void *x)
 {
     const struct UInt *this = offsetOf(_this, __UInt);
     const struct UInt *p = offsetOf(x, __UInt);
-    return new(UInt, this->val / p->val);
+    return new(T(UInt), this->val / p->val);
 }
 
 static void *_mod(const void *_this, const void *x)
 {
     const struct UInt *this = offsetOf(_this, __UInt);
     const struct UInt *p = offsetOf(x, __UInt);
-    return new(UInt, this->val % p->val);
+    return new(T(UInt), this->val % p->val);
 }
 void initUInt(void)
 {
     if (!__UInt)
-        __UInt = new(Class, "UInt", T(Object), sizeof(struct UInt) + classSz(_Object().class),
+        __UInt = new(T(Class), "UInt", T(Object), sizeof(struct UInt) + classSz(_Object().class),
                     _MetaClassS->ctor, _ctor,
                     _ClassS->equal, _equal,
                     _ClassS->cmp, _cmp,

@@ -69,34 +69,34 @@ static void *_add(const void *_this, const void *x)
 {
     const struct Double *this = offsetOf(_this, __Double);
     const struct Double *p = offsetOf(x, __Double);
-    return new(Double, this->val + p->val);
+    return new(T(Double), this->val + p->val);
 }
 
 static void *_sub(const void *_this, const void *x)
 {
     const struct Double *this = offsetOf(_this, __Double);
     const struct Double *p = offsetOf(x, __Double);
-    return new(Double, this->val - p->val);
+    return new(T(Double), this->val - p->val);
 }
 
 static void *_mul(const void *_this, const void *x)
 {
     const struct Double *this = offsetOf(_this, __Double);
     const struct Double *p = offsetOf(x, __Double);
-    return new(Double, this->val * p->val);
+    return new(T(Double), this->val * p->val);
 }
 
 static void *_div(const void *_this, const void *x)
 {
     const struct Double *this = offsetOf(_this, __Double);
     const struct Double *p = offsetOf(x, __Double);
-    return new(Double, this->val / p->val);
+    return new(T(Double), this->val / p->val);
 }
 
 void initDouble(void)
 {
     if (!__Double)
-        __Double = new(Class, "Double", T(Object), sizeof(struct Double) + classSz(_Object().class),
+        __Double = new(T(Class), "Double", T(Object), sizeof(struct Double) + classSz(_Object().class),
                      _MetaClassS->ctor, _ctor,
                      _ClassS->equal, _equal,
                      _ClassS->cmp, _cmp,

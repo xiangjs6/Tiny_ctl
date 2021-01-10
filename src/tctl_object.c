@@ -128,7 +128,7 @@ static void *MetaClass_ctor(void *_this, va_list *app)
     const size_t offset = offsetof(struct MetaClass, ctor);
 
     this->name = va_arg(*app, char*);
-    this->super = va_arg(*app, Form_t).class;
+    this->super = va_arg(*app, struct _Form_t)._.class;
     assert(this->super);
     this->size = va_arg(*app, size_t);
 
@@ -175,31 +175,22 @@ const void *super(const void *_this)
  *	object management and selectors
  */
 
-
-void *construct(void *mem, const void *_class, ...)
+void *_new(struct _Form_t t, ...)
 {
-    const struct MetaClass *class = _class;
-    assert(class);
-    va_list ap;
-    va_start(ap, _class);
-    struct Object *obj = mem;
-    obj->class = class;
-    assert(mem);
-    class->ctor(obj, &ap);
-    va_end(ap);
-    return obj;
-}
-
-void *_new(Form_t t, ...)
-{
-    if (t.f == POD)
-        return malloc(t.size);
-    const struct MetaClass *class = t.class;
+    if (t._.f == POD) {
+        if (t.mem)
+            return t.mem;
+        else
+            return malloc(t._.size);
+    }
+    const struct MetaClass *class = t._.class;
     struct Object *object;
     va_list ap;
-
     assert(class && class->size);
-    object = calloc(1, class->size);
+    if (t.mem)
+        object = t.mem;
+    else
+        object = calloc(1, class->size);
     assert(object);
     object->class = class;
     va_start(ap, t);
@@ -208,9 +199,9 @@ void *_new(Form_t t, ...)
     return object;
 }
 
-void _delete(Form_t t, void *_this)
+void _delete(struct _Form_t t, void *_this)
 {
-    if (t.f == POD || !_this) {
+    if (t._.f == POD || !_this) {
         free(_this);
         return;
     }

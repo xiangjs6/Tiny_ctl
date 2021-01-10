@@ -68,40 +68,40 @@ static void *_add(const void *_this, const void *x)
 {
     const struct Char *this = offsetOf(_this, __Char);
     const struct Char *p = offsetOf(x, __Char);
-    return new(Char, this->val + p->val);
+    return new(T(Char), this->val + p->val);
 }
 
 static void *_sub(const void *_this, const void *x)
 {
     const struct Char *this = offsetOf(_this, __Char);
     const struct Char *p = offsetOf(x, __Char);
-    return new(Char, this->val - p->val);
+    return new(T(Char), this->val - p->val);
 }
 
 static void *_mul(const void *_this, const void *x)
 {
     const struct Char *this = offsetOf(_this, __Char);
     const struct Char *p = offsetOf(x, __Char);
-    return new(Char, this->val * p->val);
+    return new(T(Char), this->val * p->val);
 }
 
 static void *_div(const void *_this, const void *x)
 {
     const struct Char *this = offsetOf(_this, __Char);
     const struct Char *p = offsetOf(x, __Char);
-    return new(Char, this->val / p->val);
+    return new(T(Char), this->val / p->val);
 }
 
 static void *_mod(const void *_this, const void *x)
 {
     const struct Char *this = offsetOf(_this, __Char);
     const struct Char *p = offsetOf(x, __Char);
-    return new(Char, this->val % p->val);
+    return new(T(Char), this->val % p->val);
 }
 void initChar(void)
 {
     if (!__Char)
-        __Char = new(Class, "Char", T(Object), sizeof(struct Char) + classSz(_Object().class),
+        __Char = new(T(Class), "Char", T(Object), sizeof(struct Char) + classSz(_Object().class),
                     _MetaClassS->ctor, _ctor,
                     _ClassS->equal, _equal,
                     _ClassS->cmp, _cmp,
