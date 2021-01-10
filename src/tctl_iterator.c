@@ -15,6 +15,7 @@ struct IteratorClass {
 };
 
 struct Iterator {
+    Form_t _t;
     byte _v[0];
 };
 
@@ -92,6 +93,7 @@ static void *_class_ctor(void *_this, va_list *app)
 static void *_object_ctor(void *_this, va_list *app)
 {
     struct Iterator *this = super_ctor(__Iterator, _this, app);
+    this->_t = va_arg(*app, Form_t);
     return this;
 }
 
