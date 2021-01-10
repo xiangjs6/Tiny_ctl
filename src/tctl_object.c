@@ -128,7 +128,7 @@ static void *MetaClass_ctor(void *_this, va_list *app)
     const size_t offset = offsetof(struct MetaClass, ctor);
 
     this->name = va_arg(*app, char*);
-    this->super = va_arg(*app, struct _Form_t)._.class;
+    this->super = va_arg(*app, Form_t).class;
     assert(this->super);
     this->size = va_arg(*app, size_t);
 
@@ -199,9 +199,9 @@ void *_new(struct _Form_t t, ...)
     return object;
 }
 
-void _delete(struct _Form_t t, void *_this)
+void _delete(Form_t t, void *_this)
 {
-    if (t._.f == POD || !_this) {
+    if (t.f == POD || !_this) {
         free(_this);
         return;
     }
