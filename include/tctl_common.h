@@ -12,4 +12,5 @@
 
 #define container_of(ptr, type, member) ((type *) ((char *)(ptr) - offsetof(type, member)))
 #define autofree(func) __attribute__((cleanup(func)))
+#define compose(...) __VA_ARGS__
 #endif //TINY_CTL_TCTL_COMMON_H
