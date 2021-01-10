@@ -31,8 +31,10 @@ struct _Form_t {
     Form_t _;
     void *mem;
 };
-#define _T(__T, ...) (struct _Form_t){_Generic(__T, Import,\
-                              default : (Form_t){POD, {.size = sizeof(__T)}}), ##__VA_ARGS__}
+
+#define _FORMINIT(_t, ...) (struct _Form_t){_t, ##__VA_ARGS__}
+#define _T(__T, ...) _FORMINIT(_Generic(__T, Import,\
+                              default : (Form_t){POD, {.size = sizeof(__T)}}), ##__VA_ARGS__)
 #define T(__T, ...) _T(*(__T*)0, __VA_ARGS__)
 #define new(__T, ...) _new(__T, ##__VA_ARGS__, VAEND)
 #define delete(this) _delete(_T(this), this)
