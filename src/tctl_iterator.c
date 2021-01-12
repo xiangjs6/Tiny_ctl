@@ -94,10 +94,10 @@ static void *_class_ctor(void *_this, va_list *app)
     while ((selector = va_arg(ap, voidf)))
     {
         voidf method = va_arg(ap, voidf);
-        if (selector == (voidf)IteratorS.derefer) {
+        if (selector == (voidf)IteratorS.derefer)
             *(voidf *) &this->derefer = method;
-            break;
-        }
+        else if (selector == (voidf)IteratorS.type)
+            *(voidf *) &this->type = method;
     }
     va_end(ap);
     return this;
