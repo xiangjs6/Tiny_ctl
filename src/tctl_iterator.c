@@ -107,17 +107,18 @@ static void *_object_ctor(void *_this, va_list *app)
 {
     struct Iterator *this = super_ctor(__Iterator, _this, app);
     this->_t = va_arg(*app, Form_t);
-    return this;
+    return (void*)this + sizeof(struct Iterator);
 }
 
 static void *_object_derefer(const void *_this)
 {
-    const struct Iterator *this = _this;
+    const struct Iterator *this = offsetOf(_this, __Iterator);
     return (void*)this->_v;
 }
 
 static Form_t _object_type(const void *_this)
 {
-    const struct Iterator *this = _this;
+    const struct Iterator *this = offsetOf(_this, __Iterator);
+    struct Iterator *aaaa = _this + sizeof(struct Iterator);
     return this->_t;
 }
