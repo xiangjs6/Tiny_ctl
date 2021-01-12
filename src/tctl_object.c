@@ -175,7 +175,7 @@ const void *super(const void *_this)
  *	object management and selectors
  */
 
-void *_new(struct _Form_t t, ...)
+void *_new(FormWO_t t, ...)
 {
     if (t._.f == POD) {
         if (t.mem)
