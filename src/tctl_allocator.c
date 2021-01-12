@@ -187,6 +187,8 @@ void *reallocate(void *p, size_t old_size, size_t new_size)
 
 void deallocate(void *p, size_t n)
 {
+    if (!p || !n)
+        return;
     if (n <= FRAGMENT_MAX_SIZE)
         __fragment_dealloc(p, n);
     else
