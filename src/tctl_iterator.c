@@ -72,7 +72,7 @@ Form_t _Iterator(void)
 static void *_derefer(void)
 {
     void *_this = pop_this();
-    const struct IteratorClass *class = classOf(_this);
+    const struct IteratorClass *class = offsetOf(classOf(_this), __IteratorClass);
     assert(class->derefer);
     return class->derefer(_this);
 }
@@ -80,7 +80,7 @@ static void *_derefer(void)
 static Form_t _type(void)
 {
     void *_this = pop_this();
-    const struct IteratorClass *class = classOf(_this);
+    const struct IteratorClass *class = offsetOf(classOf(_this), __IteratorClass);
     assert(class->type);
     return class->type(_this);
 }
