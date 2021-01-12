@@ -4,42 +4,39 @@
 
 #ifndef TINY_CTL_TCTL_VECTOR_H
 #define TINY_CTL_TCTL_VECTOR_H
+#include "tctl_common.h"
 #include "tctl_def.h"
 #include "tctl_iterator.h"
-#include "tctl_common.h"
 #include "tctl_portable.h"
+#include "tctl_class.h"
 
-typedef void *__vector_iter;
+#define INHERIT_VECTOR                          \
+struct {                                        \
+    INHERIT_CLASS;                              \
+    Iterator (*begin)(void);                    \
+    Iterator (*end)(void);                      \
+    void* (*front)(void);                       \
+    void* (*back)(void);                        \
+    size_t (*size)(void);                       \
+    size_t (*capacity)(void);                   \
+    bool (*empty)(void);                        \
+    void (*push_back)(const void* x);           \
+    void (*pop_back)(void);                     \
+    Iterator (*erase)(Iterator iter);           \
+    Iterator (*insert)(Iterator iter, void* x); \
+    void (*resize)(size_t new_size);            \
+    void (*clear)(void);                        \
+    void (*swap)(struct _Vector *_v);           \
+}
 
+typedef struct _Vector {
+    union {
+        INHERIT_VECTOR *_s;
+        byte _pad[sizeof(*(Object)NULL)];
+    };
+} *Vector;
 
-typedef struct {
-    const size_t memb_size;
-    size_t nmemb;
-    size_t total_storage_memb;
-    __vector_iter start_ptr;
-    __vector_iter finish_ptr;
-} __private_vector;
-
-typedef struct vector{
-    void *(*at)(int);
-    IterType (*begin)(void);
-    IterType (*end)(void);
-    void const *(*front)(void);
-    void const *(*back)(void);
-    size_t (*size)(void);
-    size_t (*capacity)(void);
-    bool (*empty)(void);
-    void (*push_back)(void *x);
-    void (*pop_back)(void);
-    IterType (*erase)(IterType iter);
-    IterType (*insert)(IterType iter, void *x);
-    void (*resize)(size_t new_size);
-    void (*clear)(void);
-    void (*swap)(struct vector*);
-    byte __obj_private[sizeof(__private_vector)];
-} vector;
-
-void init_vector(vector *p_vector, size_t memb_size);
-void destory_vector(vector *p_vector);
-vector creat_vector(size_t memb_size);
+void initVector(void) __attribute__((constructor));
+Form_t _Vector(void);
+#define VECTOR Vector : _Vector()
 #endif //TINY_CTL_TCTL_VECTOR_H

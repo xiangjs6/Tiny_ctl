@@ -2,260 +2,617 @@
 // Created by xjs on 2020/9/4.
 //
 
-#include "../include/tctl_vector.h"
+#include "include/_tctl_vector.h"
 #include "../include/tctl_allocator.h"
 #include "../include/auto_release_pool.h"
+#include "../include/tctl_int.h"
+#include "../include/tctl_algobase.h"
+#include "include/_tctl_iterator.h"
 #include <memory.h>
+#include <assert.h>
+
+#define Import CLASS, ITERATOR, ITERATORCLASS, OBJECT, METACLASS
+
+struct VectorClass {
+    Iterator (*begin)(const void *_this);
+    Iterator (*end)(const void *_this);
+    void *(*front)(const void *_this);
+    void *(*back)(const void *_this);
+    size_t (*size)(const void *_this);
+    size_t (*capacity)(const void *_this);
+    bool (*empty)(const void *_this);
+    void (*push_back)(void *_this, const void *x);
+    void (*pop_back)(void *_this);
+    Iterator (*erase)(void *_this, Iterator iter);
+    Iterator (*insert)(void *_this, Iterator iter, void *x);
+    void (*resize)(void *_this, size_t new_size);
+    void (*clear)(void *_this);
+    void (*swap)(void *_this, Vector _v);
+};
+
+struct Vector {
+    Form_t _t;
+    size_t nmemb;
+    size_t total_storage_memb;
+    void *start_ptr;
+    void *finish_ptr;
+};
+
+struct VectorIter {
+    size_t cur;
+    void *ptr;
+};
+
+static Iterator _begin(void);
+static Iterator _end(void);
+static void* _front(void);
+static void* _back(void);
+static size_t _size(void);
+static size_t _capacity(void);
+static bool _empty(void);
+static void _push_back(const void* x);
+static void _pop_back(void);
+static Iterator _erase(Iterator iter);
+static Iterator _insert(Iterator iter, void* x);
+static void _resize(size_t new_size);
+static void _clear(void);
+static void _swap(struct _Vector *_v);
+static void *_vectorclass_ctor(void *_this, va_list *app);
+static void *_vector_ctor(void *_this, va_list *app);
+static void _vector_swap(void *_this, Vector _v);
+static void _vector_clear(void *_this);
+static void _vector_resize(void *_this, size_t new_size);
+static Iterator _vector_insert(void *_this, Iterator _iter, void *_x);
+static Iterator _vector_erase(void *_this, Iterator _iter);
+static void _vector_pop_back(void *_this);
+static void _vector_push_back(void *_this, void *_x);
+static bool _vector_empty(const void *_this);
+static size_t _vector_capacity(const void *_this);
+static size_t _vector_size(const void *_this);
+static const void *_vector_back(const void *_this);
+static const void *_vector_front(const void *_this);
+static Iterator _vector_end(const void *_this);
+static Iterator _vector_begin(const void *_this);
+static void *_vector_brackets(const void *_this, void *_x);
+static void *_iter_sub(const void *_this, const void *_x);
+static void *_iter_add(const void *_this, const void *_x);
+static void _iter_asign(void *_this, const void *_x);
+static void _iter_self_sub(void *_this, const void *_x);
+static void _iter_self_add(void *_this, const void *_x);
+static void _iter_dec(void *_this);
+static void _iter_inc(void *_this);
+static void *_iter_bucket(const void *_this, void *_x);
+static int _iter_cmp(const void *_this, const void *_x);
+static bool _iter_equal(const void *_this, const void *_x);
+static void *_iter_ctor(void *_this, va_list *app);
+static void *_iter_derefer(const void *_this);
+//init
+static const void *__VectorIter = NULL;
+static const void *__Vector = NULL;
+static const void *__VectorClass = NULL;
+volatile static struct VectorSelector VectorS = {
+        {},
+        _begin,
+        _end,
+        _front,
+        _back,
+        _size,
+        _capacity,
+        _empty,
+        _push_back,
+        _pop_back,
+        _erase,
+        _insert,
+        _resize,
+        _clear,
+        _swap
+};
+const struct VectorSelector *_VectorS= NULL;
+
+void initVector(void)
+{
+    initClass();
+    initIterator();
+    if (!_VectorS) {
+        _VectorS = (void*)&VectorS;
+        memcpy((void*)&VectorS, _ClassS, sizeof(*_ClassS));
+    }
+    if (!__VectorIter) {
+        __VectorIter = new(T(IteratorClass), "VectorIter",
+                           T(Iterator), sizeof(struct VectorIter) + classSz(_Iterator().class),
+                           _MetaClassS->ctor, _iter_ctor,
+                           _ClassS->equal, _iter_equal,
+                           _ClassS->cmp, _iter_cmp,
+                           _ClassS->brackets, _iter_bucket,
+                           _ClassS->inc, _iter_inc,
+                           _ClassS->dec, _iter_dec,
+                           _ClassS->self_add, _iter_self_add,
+                           _ClassS->self_sub, _iter_self_sub,
+                           _ClassS->asign, _iter_asign,
+                           _ClassS->add, _iter_add,
+                           _ClassS->sub, _iter_sub,
+                           _IteratorS->derefer, _iter_derefer,
+                           Selector, _IteratorS
+                          );
+    }
+    if (!__VectorClass) {
+        __VectorClass = new(T(MetaClass), "VectorClass",
+                            T(Class), sizeof(struct VectorClass) + classSz(_Class().class),
+                            _MetaClassS->ctor, _vectorclass_ctor);
+    }
+    if (!__Vector) {
+        __Vector = new(_VectorClass(), "Vector",
+                       T(Object), sizeof(struct Vector) + classSz(_Object().class),
+                       _MetaClassS->ctor, _vector_ctor,
+                       _ClassS->brackets, _vector_brackets,
+                       VectorS.begin, _vector_begin,
+                       VectorS.end, _vector_end,
+                       VectorS.front, _vector_front,
+                       VectorS.back, _vector_back,
+                       VectorS.size, _vector_size,
+                       VectorS.capacity, _vector_capacity,
+                       VectorS.empty, _vector_empty,
+                       VectorS.push_back, _vector_push_back,
+                       VectorS.pop_back, _vector_pop_back,
+                       VectorS.erase, _vector_erase,
+                       VectorS.insert, _vector_insert,
+                       VectorS.resize, _vector_resize,
+                       VectorS.clear, _vector_clear,
+                       VectorS.swap, _vector_swap,
+                       Selector, _VectorS);
+    }
+}
+
+Form_t _Vector(void)
+{
+    Form_t t = {OBJ, .class = __Vector};
+    return t;
+}
+
+Form_t _VectorClass(void)
+{
+    Form_t t = {OBJ, .class = __VectorClass};
+    return t;
+}
+
+static Form_t _VectorIter(void)
+{
+    Form_t t = {OBJ, .class = __VectorIter};
+    return t;
+}
+
 //private
-static void *iter_at(__iterator *iter, int pos)
+static void fill_allocate(struct Vector *this)
 {
-    __vector_iter const *_iter = &iter->val;
-    vector *this = iter->__inner.obj_this;
-    __private_vector *p_private = (__private_vector*)this->__obj_private;
-    return *_iter + pos * p_private->memb_size;
+    size_t old_size = this->total_storage_memb;
+    size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
+    this->total_storage_memb *= 2;
+    this->total_storage_memb = this->total_storage_memb ? this->total_storage_memb : 1;
+    void *new_block = allocate(this->total_storage_memb * memb_size);
+    Iterator new_it = new(_VectorIter(), this->_t, 0, new_block);
+    Iterator first = new(_VectorIter(), this->_t, 0, this->start_ptr);
+    Iterator last = new(_VectorIter(), this->_t, this->nmemb, this->start_ptr);
+    copy(first, last, new_it);
+    if (this->_t.f != POD) {
+        for (; !THIS(first).equal(last); THIS(first).inc()) {
+            Object obj = THIS(first).derefer();
+            THIS(obj).dtor();
+        }
+    }
+    delete(new_it);
+    delete(first);
+    delete(last);
+    deallocate(this->start_ptr, old_size * memb_size);
+    this->start_ptr = new_block;
+    this->finish_ptr = this->start_ptr + memb_size * this->nmemb;
 }
 
-static void iter_inc(__iterator *iter)
-{
-    __vector_iter *_iter = (__vector_iter*)&iter->val;
-    vector *this = iter->__inner.obj_this;
-    __private_vector *p_private = (__private_vector*)this->__obj_private;
-    *_iter += p_private->memb_size;
-}
-
-static void iter_dec(__iterator *iter)
-{
-    __vector_iter *_iter = &iter->val;
-    vector *this = iter->__inner.obj_this;
-    __private_vector *p_private = (__private_vector*)this->__obj_private;
-    *_iter -= p_private->memb_size;
-}
-
-static void iter_add(__iterator *iter, int x)
-{
-    __vector_iter *_iter = &iter->val;
-    vector *this = iter->__inner.obj_this;
-    __private_vector *p_private = (__private_vector*)this->__obj_private;
-    *_iter += x * p_private->memb_size;
-}
-
-static void iter_sub(__iterator *iter, int x)
-{
-    __vector_iter *_iter = &iter->val;
-    vector *this = iter->__inner.obj_this;
-    __private_vector *p_private = (__private_vector*)this->__obj_private;
-    *_iter -= x * p_private->memb_size;
-}
-
-static long long iter_dist(const __iterator *minuend, const __iterator *subtraction)
-{
-    vector *this = minuend->__inner.obj_this;
-    __private_vector *p_private = (__private_vector*)this->__obj_private;
-    return (((__vector_iter)minuend->val) - ((__vector_iter)subtraction->val)) / (long long)p_private->memb_size;
-}
-
-static bool iter_equal(const __iterator *it1, const __iterator *it2)
-{
-    return it1->val == it2->val;
-}
-
-static const __iterator_obj_func  __def_vector_iter = {
-        iter_at,
-        iter_inc,
-        iter_dec,
-        iter_add,
-        iter_sub,
-        iter_dist,
-        iter_equal
-};
-
-static const iterator_func __def_vector_iter_func = INIT_ITER_FUNC(&__def_vector_iter);
-
-static void fill_allocate(vector *this)
-{
-    __private_vector *p_private = (__private_vector*)this->__obj_private;
-    size_t old_size = p_private->total_storage_memb;
-    p_private->total_storage_memb *= 2;
-    p_private->total_storage_memb = p_private->total_storage_memb ? p_private->total_storage_memb : 1;
-    p_private->start_ptr = reallocate(p_private->start_ptr, old_size * p_private->memb_size, p_private->total_storage_memb * p_private->memb_size);
-    p_private->finish_ptr = p_private->start_ptr + p_private->memb_size * p_private->nmemb;
-}
 //public
-static void *at(int pos)
+//Iterator
+static void *_iter_ctor(void *_this, va_list *app)
 {
-    vector *this = pop_this();
-    __private_vector *p_private = (__private_vector*)this->__obj_private;
-    //if (pos >= p_private->nmemb)
-    //    return NULL;
-    return p_private->start_ptr + p_private->memb_size * pos;
+    struct VectorIter *this = super_ctor(__VectorIter, _this, app);
+    this->cur = va_arg(*app, size_t);
+    this->ptr = va_arg(*app, void*);
+    return (void*)this + sizeof(struct VectorIter);
 }
-static IterType begin(void)
+static bool _iter_equal(const void *_this, const void *_x)
 {
-    vector *this = pop_this();
-    __private_vector *p_private = (__private_vector*)this->__obj_private;
-    struct __inner_iterator *start = ARP_MallocARel(sizeof(struct __inner_iterator) + sizeof(__vector_iter));
-    init_iter(start, sizeof(__vector_iter), this, p_private->memb_size, &__def_vector_iter_func);
-    //*(__vector_iter*)pair_iter->start->__inner.__address = p_private->start_ptr;
-    memcpy(start->__address, &p_private->start_ptr, sizeof(__vector_iter));
-    return start;
+    const struct VectorIter *this = offsetOf(_this, __VectorIter);
+    const struct VectorIter *x = offsetOf(_x, __VectorIter);
+    return this->cur == x->cur;
 }
-static IterType end(void)
+
+static int _iter_cmp(const void *_this, const void *_x)
 {
-    vector *this = pop_this();
-    __private_vector *p_private = (__private_vector*)this->__obj_private;
-    struct __inner_iterator *finish = ARP_MallocARel(sizeof(struct __inner_iterator) + sizeof(__vector_iter));
-    init_iter(finish, sizeof(__vector_iter), this, p_private->memb_size, &__def_vector_iter_func);
-    memcpy(finish->__address, &p_private->finish_ptr, sizeof(__vector_iter));
-    //pair_iter->finish_ptr = p_private->finish_ptr;
-    return finish;
+    const struct VectorIter *this = offsetOf(_this, __VectorIter);
+    const struct VectorIter *x = offsetOf(_x, __VectorIter);
+    return this->cur - x->cur;
 }
-static void const *front(void)
+
+static void *_iter_bucket(const void *_this, void *_x)
 {
-    vector *this = pop_this();
-    __private_vector *p_private = (__private_vector*)this->__obj_private;
-    return p_private->start_ptr;
+    const struct VectorIter *this = offsetOf(_this, __VectorIter);
+    const Iterator it = (void*)_this;
+    Int x = _x;
+    Form_t t = THIS(it).type();
+    size_t size = t.f == POD ? t.size : classSz(t.class);
+    return this->ptr + size * (x->val + this->cur);
 }
-static void const *back(void)
+
+static void _iter_inc(void *_this)
 {
-    vector *this = pop_this();
-    __private_vector *p_private = (__private_vector*)this->__obj_private;
-    return p_private->finish_ptr - p_private->memb_size;
+    struct VectorIter *this = offsetOf(_this, __VectorIter);
+    this->cur++;
 }
-static size_t size(void)
+
+static void _iter_dec(void *_this)
 {
-    vector *this = pop_this();
-    __private_vector *p_private = (__private_vector*)this->__obj_private;
-    return p_private->nmemb;
+    struct VectorIter *this = offsetOf(_this, __VectorIter);
+    this->cur--;
 }
-static size_t capacity(void)
+
+static void _iter_self_add(void *_this, const void *_x)
 {
-    vector *this = pop_this();
-    __private_vector *p_private = (__private_vector*)this->__obj_private;
-    return p_private->total_storage_memb - p_private->nmemb;
+    struct VectorIter *this = offsetOf(_this, __VectorIter);
+    Int x = (void*)_x;
+    this->cur += x->val;
 }
-static bool empty(void)
+
+static void _iter_self_sub(void *_this, const void *_x)
 {
-    vector *this = pop_this();
-    __private_vector *p_private = (__private_vector*)this->__obj_private;
-    return !p_private->nmemb;
+    struct VectorIter *this = offsetOf(_this, __VectorIter);
+    Int x = (void*)_x;
+    this->cur -= x->val;
 }
-static void push_back(void *x)
+
+static void _iter_asign(void *_this, const void *_x)
 {
-    vector *this = pop_this();
-    __private_vector *p_private = (__private_vector*)this->__obj_private;
-    if (!THIS(this).capacity())
+    struct VectorIter *this = offsetOf(_this, __VectorIter);
+    struct VectorIter *x = offsetOf(_x, __VectorIter);
+    *this = *x;
+}
+
+static void *_iter_add(const void *_this, const void *_x)
+{
+    struct VectorIter *this = offsetOf(_this, __VectorIter);
+    Iterator it = (void*)_this;
+    Int x = (void*)_x;
+    void *mem = ARP_MallocARelDtor(classSz(__VectorIter), NULL);
+    return new(compose(_VectorIter(), mem), THIS(it).type(), this->cur + x->val, this->ptr);
+}
+
+static void *_iter_sub(const void *_this, const void *_x)
+{
+    struct VectorIter *this = offsetOf(_this, __VectorIter);
+    Iterator it = (void*)_this;
+    Int x = (void*)_x;
+    void *mem = ARP_MallocARelDtor(classSz(__VectorIter), NULL);
+    return new(compose(_VectorIter(), mem), THIS(it).type(), this->cur - x->val, this->ptr);
+}
+
+static void *_iter_derefer(const void *_this)
+{
+    struct VectorIter *this = offsetOf(_this, __VectorIter);
+    Iterator it = (void*)_this;
+    Form_t t = THIS(it).type();
+    size_t memb_size = t.f == POD ? t.size : classSz(t.class);
+    return this->ptr + this->cur * memb_size;
+}
+
+//VectorClass
+static void *_vectorclass_ctor(void *_this, va_list *app)
+{
+    struct VectorClass *this = super_ctor(__VectorClass, _this, app);
+    voidf selector;
+    va_list ap;
+    va_copy(ap, *app);
+    voidf *begin = (void*)&VectorS + sizeof(VectorS._);
+    voidf *end = (void*)&VectorS + sizeof(VectorS);
+    voidf *this_begin = (void*)this;
+    while ((selector = va_arg(ap, voidf)))
+    {
+        voidf method = va_arg(ap, voidf);
+        for (voidf *p = begin; p != end; p++) {
+            if (*p == selector) {
+                size_t n = p - begin;
+                *(this_begin + n) = method;
+                break;
+            }
+        }
+    }
+    va_end(ap);
+    return (void*)this + sizeof(struct VectorClass);
+}
+
+//Vector
+static void *_vector_ctor(void *_this, va_list *app)
+{
+    struct Vector *this = super_ctor(__Vector, _this, app);
+    this->_t = va_arg(*app, Form_t);
+    this->nmemb = 0;
+    this->start_ptr = NULL;
+    this->finish_ptr = NULL;
+    this->total_storage_memb = 0;
+    return (void*)this + sizeof(struct Vector);
+}
+
+static void *_vector_brackets(const void *_this, void *_x)
+{
+    const struct Vector *this = offsetOf(_this, __Vector);
+    Int x = _x;
+    size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
+    return this->start_ptr + memb_size * x->val;
+}
+
+static Iterator _vector_begin(const void *_this)
+{
+    const struct Vector *this = offsetOf(_this, __Vector);
+    void *mem = ARP_MallocARel(classSz(__VectorIter));
+    return new(compose(_VectorIter(), mem), this->_t, 0, this->start_ptr);
+}
+
+static Iterator _vector_end(const void *_this)
+{
+    const struct Vector *this = offsetOf(_this, __Vector);
+    void *mem = ARP_MallocARel(classSz(__VectorIter));
+    return new(compose(_VectorIter(), mem), this->_t, this->nmemb, this->start_ptr);
+}
+
+static const void *_vector_front(const void *_this)
+{
+    const struct Vector *this = offsetOf(_this, __Vector);
+    return this->start_ptr;
+}
+
+static const void *_vector_back(const void *_this)
+{
+    const struct Vector *this = offsetOf(_this, __Vector);
+    size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
+    return this->finish_ptr - memb_size;
+}
+
+static size_t _vector_size(const void *_this)
+{
+    const struct Vector *this = offsetOf(_this, __Vector);
+    return this->nmemb;
+}
+
+static size_t _vector_capacity(const void *_this)
+{
+    const struct Vector *this = offsetOf(_this, __Vector);
+    return this->total_storage_memb - this->nmemb;
+}
+
+static bool _vector_empty(const void *_this)
+{
+    const struct Vector *this = offsetOf(_this, __Vector);
+    return !this->nmemb;
+}
+
+static void _vector_push_back(void *_this, void *_x)
+{
+    struct Vector *this = offsetOf(_this, __Vector);
+    size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
+    if (!_vector_capacity(_this))
+        fill_allocate((void*)this);
+    if (this->_t.f == POD)
+        memcpy(this->finish_ptr, _x, memb_size);
+    else
+        new(compose(this->_t, this->finish_ptr), _x);
+    this->nmemb++;
+    this->finish_ptr += memb_size;
+}
+
+static void _vector_pop_back(void *_this)
+{
+    struct Vector *this = offsetOf(_this, __Vector);
+    size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
+    this->nmemb--;
+    this->finish_ptr -= memb_size;
+    if (this->_t.f == OBJ) {
+        Object o = this->finish_ptr;
+        THIS(o).dtor();
+    }
+}
+
+static Iterator _vector_erase(void *_this, Iterator _iter)
+{
+    struct VectorIter *iter = offsetOf(_iter, __VectorIter);
+    struct Vector *this = offsetOf(_this, __Vector);
+    assert(iter->cur >= 0 && iter->cur < this->nmemb);
+    if (iter->cur == this->nmemb) {
+        _vector_pop_back(_this);
+        return _iter;
+    }
+    size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
+    Iterator target_it = new(_VectorIter(), this->_t, iter->cur, iter->ptr);
+    Iterator first = new(_VectorIter(), this->_t, iter->cur + 1, this->start_ptr);
+    Iterator last = new(_VectorIter(), this->_t, this->nmemb, this->start_ptr);
+    copy(first, last, target_it);
+    delete(target_it);
+    delete(first);
+    delete(last);
+    this->nmemb--;
+    this->finish_ptr -= memb_size;
+    if (this->_t.f == OBJ) {
+        Object o = this->finish_ptr;
+        THIS(o).dtor();
+    }
+    return _iter;
+}
+
+static Iterator _vector_insert(void *_this, Iterator _iter, void *_x)
+{
+    struct VectorIter *iter = offsetOf(_iter, __VectorIter);
+    struct Vector *this = offsetOf(_this, __Vector);
+    assert(iter->cur >= 0 && iter->cur <= this->nmemb);
+    if (iter->cur == this->nmemb) {
+        _vector_push_back(_this, _x);
+        return _iter;
+    }
+    if (!_vector_capacity(_this))
+        fill_allocate(_this);
+    size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
+    Iterator target_it = new(_VectorIter(), this->_t, iter->cur + 1, iter->ptr);
+    Iterator first = new(_VectorIter(), this->_t, iter->cur, this->start_ptr);
+    Iterator last = new(_VectorIter(), this->_t, this->nmemb, this->start_ptr);
+    copy(first, last, target_it);
+    delete(target_it);
+    delete(first);
+    delete(last);
+    this->nmemb++;
+    this->finish_ptr += memb_size;
+    return _iter;
+}
+
+static void _vector_resize(void *_this, size_t new_size)
+{
+    struct Vector *this = offsetOf(_this, __Vector);
+    while (new_size > this->total_storage_memb)
         fill_allocate(this);
-    memcpy(p_private->finish_ptr, x, p_private->memb_size);
-    p_private->nmemb++;
-    p_private->finish_ptr += p_private->memb_size;
-}
-static void pop_back(void)
-{
-    vector *this = pop_this();
-    __private_vector *p_private = (__private_vector*)this->__obj_private;
-    p_private->nmemb--;
-    p_private->finish_ptr -= p_private->memb_size;
-}
-static IterType erase(IterType iter)
-{
-    vector *this = pop_this();
-    __iterator *p_iter = iter;
-    __vector_iter const *_iter = &p_iter->val;//获取vector迭代器的地址
-    __private_vector *p_private = (__private_vector*)this->__obj_private;
-    if (*_iter > p_private->finish_ptr || *_iter < p_private->start_ptr)
-        return NULL;
-    size_t back_nmemb = p_private->nmemb - (*_iter - p_private->start_ptr) / p_private->memb_size - 1;
-    memmove(*_iter, *_iter + p_private->memb_size, p_private->memb_size * back_nmemb);
-    p_private->nmemb--;
-    p_private->finish_ptr -= p_private->memb_size;
-    return iter;
-}
-static IterType insert(IterType iter, void *x)
-{
-    vector *this = pop_this();
-    __iterator *p_iter = iter;
-    __vector_iter const *_iter = &p_iter->val;
-    __private_vector *p_private = (__private_vector*)this->__obj_private;
-    if (*_iter > p_private->finish_ptr || *_iter < p_private->start_ptr)
-        return NULL;
-    push_this(this);
-    if (!this->capacity())
-        fill_allocate(this);
-    size_t back_nmemb = p_private->nmemb - (*_iter - p_private->start_ptr) / p_private->memb_size;
-    memmove(*_iter + p_private->memb_size, *_iter, p_private->memb_size * back_nmemb);
-    memcpy(*_iter, x, p_private->memb_size);
-    p_private->nmemb++;
-    p_private->finish_ptr += p_private->memb_size;
-    return iter;
-}
-static void resize(size_t new_size)
-{
-    vector *this = pop_this();
-    __private_vector *p_private = (__private_vector*)this->__obj_private;
-    while (new_size > p_private->total_storage_memb)
-        fill_allocate(this);
-    p_private->nmemb = new_size;
-    p_private->finish_ptr = p_private->start_ptr + new_size * p_private->memb_size;
-}
-static void clear(void)
-{
-    vector *this = pop_this();
-    __private_vector *p_private = (__private_vector*)this->__obj_private;
-    p_private->nmemb = 0;
-    p_private->finish_ptr = p_private->start_ptr;
+    this->nmemb = new_size;
+    size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
+    this->finish_ptr = this->start_ptr + new_size * memb_size;
 }
 
-static void swap(struct vector *v)
+static void _vector_clear(void *_this)
 {
-    vector *this = pop_this();
-    __private_vector *p_private = (__private_vector*)this->__obj_private;
-    __private_vector *p_v_private = (__private_vector*)v->__obj_private;
-    if (p_private->memb_size != p_v_private->memb_size)
-        return;
-    __private_vector tmp = *p_private;
-    memcpy(p_private, p_v_private, sizeof(__private_vector));
-    memcpy(p_v_private, &tmp, sizeof(__private_vector));
+    struct Vector *this = offsetOf(_this, __Vector);
+    if (this->_t.f == OBJ) {
+        Iterator it = new(_VectorIter(), this->_t, 0, this->start_ptr);
+        Iterator end = new(_VectorIter(), this->_t, this->nmemb, this->start_ptr);
+        while (!THIS(it).equal(end))
+        {
+            Object obj = THIS(it).derefer();
+            THIS(obj).dtor();
+            THIS(it).inc();
+        }
+        delete(it);
+        delete(end);
+    }
+    this->nmemb = 0;
+    this->finish_ptr = this->start_ptr;
 }
 
-static const vector __def_vector = {
-        at,
-        begin,
-        end,
-        front,
-        back,
-        size,
-        capacity,
-        empty,
-        push_back,
-        pop_back,
-        erase,
-        insert,
-        resize,
-        clear,
-        swap
-};
-
-void init_vector(vector *p_vector, size_t memb_size)
+static void _vector_swap(void *_this, Vector _v)
 {
-    *p_vector = __def_vector;
-    __private_vector *__private = (__private_vector*)p_vector->__obj_private;
-    *(size_t *)&__private->memb_size = memb_size;
-    __private->nmemb = __private->total_storage_memb = 0;
-
-    //__private->start_ptr = reallocate(NULL, 0, nmemb * memb_size);
-    __private->finish_ptr = __private->start_ptr = NULL;
+    struct Vector *this = offsetOf(_this, __Vector);
+    struct Vector *v = offsetOf((void*)_v, __Vector);
+    struct Vector tmp = *v;
+    *v = *this;
+    *this = tmp;
 }
 
-void destory_vector(vector *p_vector)
+//selector
+static Iterator _begin(void)
 {
-    __private_vector *p_private = (__private_vector *)p_vector->__obj_private;
-    if (p_private->total_storage_memb)
-        deallocate(p_private->start_ptr, p_private->total_storage_memb * p_private->memb_size);
+    void *_this = pop_this();
+    const struct VectorClass *class = offsetOf(classOf(_this), __VectorClass);
+    assert(class->begin);
+    return class->begin(_this);
 }
 
-vector creat_vector(size_t memb_size)
+static Iterator _end(void)
 {
-    vector v;
-    init_vector(&v, memb_size);
-    return v;
+    void *_this = pop_this();
+    const struct VectorClass *class = offsetOf(classOf(_this), __VectorClass);
+    assert(class->end);
+    return class->end(_this);
+}
+
+static void* _front(void)
+{
+    void *_this = pop_this();
+    const struct VectorClass *class = offsetOf(classOf(_this), __VectorClass);
+    assert(class->front);
+    return class->front(_this);
+}
+
+static void* _back(void)
+{
+    void *_this = pop_this();
+    const struct VectorClass *class = offsetOf(classOf(_this), __VectorClass);
+    assert(class->back);
+    return class->back(_this);
+}
+
+static size_t _size(void)
+{
+    void *_this = pop_this();
+    const struct VectorClass *class = offsetOf(classOf(_this), __VectorClass);
+    assert(class->size);
+    return class->size(_this);
+}
+
+static size_t _capacity(void)
+{
+    void *_this = pop_this();
+    const struct VectorClass *class = offsetOf(classOf(_this), __VectorClass);
+    assert(class->capacity);
+    return class->capacity(_this);
+}
+
+static bool _empty(void)
+{
+    void *_this = pop_this();
+    const struct VectorClass *class = offsetOf(classOf(_this), __VectorClass);
+    assert(class->empty);
+    return class->empty(_this);
+}
+
+static void _push_back(const void* x)
+{
+    void *_this = pop_this();
+    const struct VectorClass *class = offsetOf(classOf(_this), __VectorClass);
+    assert(class->push_back);
+    return class->push_back(_this, x);
+}
+
+static void _pop_back(void)
+{
+    void *_this = pop_this();
+    const struct VectorClass *class = offsetOf(classOf(_this), __VectorClass);
+    assert(class->pop_back);
+    return class->pop_back(_this);
+}
+
+static Iterator _erase(Iterator iter)
+{
+    void *_this = pop_this();
+    const struct VectorClass *class = offsetOf(classOf(_this), __VectorClass);
+    assert(class->erase);
+    return class->erase(_this, iter);
+}
+
+static Iterator _insert(Iterator iter, void* x)
+{
+    void *_this = pop_this();
+    const struct VectorClass *class = offsetOf(classOf(_this), __VectorClass);
+    assert(class->insert);
+    return class->insert(_this, iter, x);
+}
+
+static void _resize(size_t new_size)
+{
+    void *_this = pop_this();
+    const struct VectorClass *class = offsetOf(classOf(_this), __VectorClass);
+    assert(class->resize);
+    return class->resize(_this, new_size);
+}
+
+static void _clear(void)
+{
+    void *_this = pop_this();
+    const struct VectorClass *class = offsetOf(classOf(_this), __VectorClass);
+    assert(class->clear);
+    return class->clear(_this);
+}
+
+static void _swap(struct _Vector *_v)
+{
+    void *_this = pop_this();
+    const struct VectorClass *class = offsetOf(classOf(_this), __VectorClass);
+    assert(class->swap);
+    return class->swap(_this, _v);
 }
