@@ -119,6 +119,5 @@ static void *_object_derefer(const void *_this)
 static Form_t _object_type(const void *_this)
 {
     const struct Iterator *this = offsetOf(_this, __Iterator);
-    struct Iterator *aaaa = _this + sizeof(struct Iterator);
     return this->_t;
 }
