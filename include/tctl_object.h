@@ -42,6 +42,9 @@ typedef struct {
 void *_new(FormWO_t t, ...);
 void _delete(Form_t t, void *this);
 
+//只能传对象
+void construct(Form_t t, void *mem, const void *x);
+void destroy(void *obj);
 const void *classOf(const void *this);
 size_t sizeOf(const void *this);
 size_t classSz(const void *this);

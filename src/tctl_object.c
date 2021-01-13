@@ -209,6 +209,17 @@ void _delete(Form_t t, void *_this)
     free(class->dtor(_this));
 }
 
+void construct(Form_t t, void *mem, const void *x)
+{
+    new(compose(t, mem), x);
+}
+
+void destroy(void *_obj)
+{
+    struct Object *obj = _obj;
+    obj->class->dtor(_obj);
+}
+
 static void *ctor(void *mem, ...)
 {
     void *_this = pop_this();
