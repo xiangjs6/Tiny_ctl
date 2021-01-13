@@ -278,7 +278,7 @@ static void *_iter_add(const void *_this, const void *_x)
     struct VectorIter *this = offsetOf(_this, __VectorIter);
     Iterator it = (void*)_this;
     Int x = (void*)_x;
-    void *mem = ARP_MallocARelDtor(classSz(__VectorIter), NULL);
+    void *mem = ARP_MallocARelDtor(classSz(__VectorIter), destroy);
     return new(compose(_VectorIter(), mem), THIS(it).type(), this->cur + x->val, this->ptr);
 }
 
@@ -287,7 +287,7 @@ static void *_iter_sub(const void *_this, const void *_x)
     struct VectorIter *this = offsetOf(_this, __VectorIter);
     Iterator it = (void*)_this;
     Int x = (void*)_x;
-    void *mem = ARP_MallocARelDtor(classSz(__VectorIter), NULL);
+    void *mem = ARP_MallocARelDtor(classSz(__VectorIter), destroy);
     return new(compose(_VectorIter(), mem), THIS(it).type(), this->cur - x->val, this->ptr);
 }
 
@@ -348,14 +348,14 @@ static void *_vector_brackets(const void *_this, void *_x)
 static Iterator _vector_begin(const void *_this)
 {
     const struct Vector *this = offsetOf(_this, __Vector);
-    void *mem = ARP_MallocARel(classSz(__VectorIter));
+    void *mem = ARP_MallocARelDtor(classSz(__VectorIter), destroy);
     return new(compose(_VectorIter(), mem), this->_t, 0, this->start_ptr);
 }
 
 static Iterator _vector_end(const void *_this)
 {
     const struct Vector *this = offsetOf(_this, __Vector);
-    void *mem = ARP_MallocARel(classSz(__VectorIter));
+    void *mem = ARP_MallocARelDtor(classSz(__VectorIter), destroy);
     return new(compose(_VectorIter(), mem), this->_t, this->nmemb, this->start_ptr);
 }
 
@@ -399,7 +399,7 @@ static void _vector_push_back(void *_this, void *_x)
     if (this->_t.f == POD)
         memcpy(this->finish_ptr, _x, memb_size);
     else
-        new(compose(this->_t, this->finish_ptr), _x);
+        construct(this->_t, this->finish_ptr, _x);
     this->nmemb++;
     this->finish_ptr += memb_size;
 }
@@ -412,7 +412,7 @@ static void _vector_pop_back(void *_this)
     this->finish_ptr -= memb_size;
     if (this->_t.f == OBJ) {
         Object o = this->finish_ptr;
-        THIS(o).dtor();
+        destroy(o);
     }
 }
 
@@ -426,6 +426,9 @@ static Iterator _vector_erase(void *_this, Iterator _iter)
         return _iter;
     }
     size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
+    void *p_target = iter->ptr + iter->cur * memb_size;
+    if (this->_t.f == OBJ)
+        destroy(p_target);
     Iterator target_it = new(_VectorIter(), this->_t, iter->cur, iter->ptr);
     Iterator first = new(_VectorIter(), this->_t, iter->cur + 1, this->start_ptr);
     Iterator last = new(_VectorIter(), this->_t, this->nmemb, this->start_ptr);
@@ -437,7 +440,7 @@ static Iterator _vector_erase(void *_this, Iterator _iter)
     this->finish_ptr -= memb_size;
     if (this->_t.f == OBJ) {
         Object o = this->finish_ptr;
-        THIS(o).dtor();
+        destroy(o);
     }
     return _iter;
 }
@@ -461,6 +464,11 @@ static Iterator _vector_insert(void *_this, Iterator _iter, void *_x)
     delete(target_it);
     delete(first);
     delete(last);
+    void *p_target = iter->ptr + iter->cur * memb_size;
+    if (this->_t.f == POD)
+        memcpy(p_target, _x, memb_size);
+    else
+        construct(this->_t, p_target, _x);
     this->nmemb++;
     this->finish_ptr += memb_size;
     return _iter;
@@ -485,7 +493,7 @@ static void _vector_clear(void *_this)
         while (!THIS(it).equal(end))
         {
             Object obj = THIS(it).derefer();
-            THIS(obj).dtor();
+            destroy(obj);
             THIS(it).inc();
         }
         delete(it);
