@@ -22,6 +22,7 @@ struct Class {
     void *(*mul)(const void *_this, const void *x);
     void *(*div)(const void *_this, const void *x);
     void *(*mod)(const void *_this, const void *x);
+    void *(*cast)(const void *_this, const char *c);
 };
 
 static bool _equal(const void *x);
@@ -37,6 +38,7 @@ static void *_sub(const void *x);
 static void *_mul(const void *x);
 static void *_div(const void *x);
 static void *_mod(const void *x);
+static void *_cast(const char *c);
 //init
 volatile static struct ClassSelector ClassS = {
         {},
@@ -52,7 +54,8 @@ volatile static struct ClassSelector ClassS = {
         _sub,
         _mul,
         _div,
-        _mod
+        _mod,
+        _cast
 };
 const struct ClassSelector *_ClassS = NULL;
 static const void *__Class = NULL;
@@ -153,6 +156,14 @@ static void *_mod(const void *x)
     const struct Class *class = offsetOf(classOf(_this), __Class);
     assert(class->mod);
     return class->mod(_this, x);
+}
+
+static void *_cast(const char *c)
+{
+    void *_this = pop_this();
+    const struct Class *class = offsetOf(classOf(_this), __Class);
+    assert(class->cast);
+    return class->cast(_this, c);
 }
 
 static void *_ctor(void *_this, va_list *app)

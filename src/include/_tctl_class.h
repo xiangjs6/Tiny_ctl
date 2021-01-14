@@ -22,6 +22,7 @@ struct ClassSelector {
     void *(*mul)(const void *x);
     void *(*div)(const void *x);
     void *(*mod)(const void *x);
+    void *(*cast)(const char *c);
 };
 extern const struct ClassSelector *_ClassS;
 
