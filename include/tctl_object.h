@@ -33,10 +33,11 @@ typedef struct {
     void *mem;
 } FormWO_t;
 
+#define ARRAY_T(__T, __N) _T(*(__T(*)[__N])0)
 #define FORM_WITH_OBJ(_t, ...) (FormWO_t){_t, ##__VA_ARGS__}
 #define _T(__T) _Generic(__T, Import,\
                               default : (Form_t){POD, {.size = sizeof(__T)}})
-#define T(__T, ...) _T(*(__T*)0), ##__VA_ARGS__
+#define T(__T, ...) _T((__T)0), ##__VA_ARGS__
 #define new(__T, ...) _new(FORM_WITH_OBJ(__T), ##__VA_ARGS__, VAEND)
 #define delete(this) _delete(_T(this), this)
 void *_new(FormWO_t t, ...);
