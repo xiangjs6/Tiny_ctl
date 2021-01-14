@@ -35,6 +35,7 @@ typedef struct {
 
 #define ARRAY_T(__T, __N) _T(*(__T(*)[__N])0)
 #define FORM_WITH_OBJ(_t, ...) (FormWO_t){_t, ##__VA_ARGS__}
+#define FWO(__V) FORM_WITH_OBJ(_T(__V), (void*)__V)
 #define _T(__T) _Generic(__T, Import,\
                               default : (Form_t){POD, {.size = sizeof(__T)}})
 #define T(__T, ...) _T((__T)0), ##__VA_ARGS__
