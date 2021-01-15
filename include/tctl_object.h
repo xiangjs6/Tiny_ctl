@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include "tctl_def.h"
+#include "map_macro.h"
 
 /*
  * tctl的对象规则
@@ -16,8 +17,6 @@
  * 3、建议私有成员函数使用同一结构体指针，指向一个不变常量上
  * 4、遵守各个泛类对象指定的规则，比如迭代器
  * */
-
-#define VAEND NULL
 
 typedef struct {
     enum {OBJ, POD} f;
@@ -33,19 +32,31 @@ typedef struct {
     void *mem;
 } FormWO_t;
 
-#define ARRAY_T(__T, __N) _T(*(__T(*)[__N])0)
+typedef struct {} *__ARG_P_t;
+void *_ToPoint(char t, size_t size, ...);
 #define FORM_WITH_OBJ(_t, ...) (FormWO_t){_t, ##__VA_ARGS__}
-#define FWO(__V) FORM_WITH_OBJ(_T(__V), (void*)__V)
+#define VAEND NULL
+#define VA_ADDR(arg) ((__ARG_P_t)&(arg))
+#define _VA_AUX(_t) FORM_WITH_OBJ(_T(_t), _Generic((0, _t), float : _ToPoint('f', sizeof(_t), _t),   \
+                                                       double : _ToPoint('f', sizeof(_t), _t),       \
+                                                       const float : _ToPoint('f', sizeof(_t), _t),  \
+                                                       const double : _ToPoint('f', sizeof(_t), _t), \
+                                                       __ARG_P_t : _t,                              \
+                                                       default : _ToPoint(0, sizeof(_t), _t)))
+#define VA(...) MAP_LIST(_VA_AUX, ##__VA_ARGS__)
+
 #define _T(__T) _Generic(__T, Import,\
                               default : (Form_t){POD, {.size = sizeof(__T)}})
-#define T(__T, ...) _T((__T)0), ##__VA_ARGS__
+#define T(__T, ...) _T(*(__T*)0), ##__VA_ARGS__
+#define ARRAY_T(__T, __N) _T(*(__T(*)[__N])0)
+
 #define new(__T, ...) _new(FORM_WITH_OBJ(__T), ##__VA_ARGS__, VAEND)
 #define delete(this) _delete(_T(this), this)
 void *_new(FormWO_t t, ...);
 void _delete(Form_t t, void *this);
 
 //只能传对象
-void construct(Form_t t, void *mem, const void *x);
+void construct(Form_t t, void *mem, FormWO_t x);
 void destroy(void *obj);
 const void *classOf(const void *this);
 size_t sizeOf(const void *this);

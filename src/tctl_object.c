@@ -5,6 +5,7 @@
 #include "../include/tctl_allocator.h"
 #include "../include/tctl_portable.h"
 #include "include/_tctl_object.h"
+#include "../include/auto_release_pool.h"
 #include <memory.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -209,8 +210,9 @@ void _delete(Form_t t, void *_this)
     free(class->dtor(_this));
 }
 
-void construct(Form_t t, void *mem, const void *x)
+void construct(Form_t t, void *mem, FormWO_t x)
 {
+    assert(mem);
     new(compose(t, mem), x);
 }
 
@@ -336,4 +338,52 @@ void *pop_this(void)
     ptr->head = node->next;
     deallocate(node, sizeof(struct this_node));
     return (void*)p;
+}
+
+void *_ToPoint(char t, size_t size, ...)
+{
+    int8_t one;
+    int16_t two;
+    int32_t four;
+    int64_t eight;
+    double lf;
+    float f;
+    void *res = ARP_MallocARel(size);
+    assert(size <= 8);
+    va_list ap;
+    va_start(ap, size);
+    if (t == 'f') {
+        lf = va_arg(ap, double);
+        if (size == 4) {
+            f = lf;
+            memcpy(res, &f, size);
+        } else {
+            memcpy(res, &lf, size);
+        }
+    } else {
+        switch (size) {
+            case 1:
+                four = va_arg(ap, int32_t);
+                one = four;
+                memcpy(res, &one, size);
+                break;
+            case 2:
+                four = va_arg(ap, int32_t);
+                two = four;
+                memcpy(res, &two, size);
+                break;
+            case 4:
+                four = va_arg(ap, int32_t);
+                res = ARP_MallocARel(4);
+                memcpy(res, &four, 4);
+                break;
+            case 8:
+                eight = va_arg(ap, int64_t);
+                res = ARP_MallocARel(8);
+                memcpy(res, &eight, 8);
+                break;
+        }
+    }
+    va_end(ap);
+    return res;
 }
