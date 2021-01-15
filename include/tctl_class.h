@@ -7,7 +7,7 @@
 
 #include "tctl_object.h"
 
-#define Cast(obj, __T) (push_this(obj), ((Class)obj)->_s->cast(#__T))
+#define Cast(obj, __T) __cast_aux(obj, #__T)
 #define INHERIT_CLASS \
 struct {              \
     INHERIT_METACLASS;\
@@ -35,6 +35,7 @@ typedef struct {
 } *Class;
 
 void initClass(void) __attribute__((constructor));
+void *__cast_aux(void *_this, const char *c);
 
 Form_t _Class(void);
 //extern const void *_Class;

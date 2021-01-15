@@ -190,6 +190,12 @@ static void *_ctor(void *_this, va_list *app)
     return (void*)this + sizeof(struct Class);
 }
 
+void *__cast_aux(void *_this, const char *c)
+{
+    const struct Class *class = offsetOf(classOf(_this), __Class);
+    assert(class->cast);
+    return class->cast(_this, c);
+}
 
 void initClass(void)
 {
