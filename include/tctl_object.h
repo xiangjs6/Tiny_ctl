@@ -37,7 +37,7 @@ void *_ToPoint(char t, size_t size, ...);
 #define FORM_WITH_OBJ(_t, ...) (FormWO_t){_t, ##__VA_ARGS__}
 #define VAEND NULL
 #define VA_ADDR(arg) ((__ARG_ADDR_t)&(arg))
-#define _VA_AUX(_t) FORM_WITH_OBJ(_T(_t), _Generic((0, _t), float : _ToPoint('f', sizeof(_t), _t),   \
+#define _VA_AUX(_t) FORM_WITH_OBJ(_T(_t), _Generic(_t, float : _ToPoint('f', sizeof(_t), _t),        \
                                                        double : _ToPoint('f', sizeof(_t), _t),       \
                                                        const float : _ToPoint('f', sizeof(_t), _t),  \
                                                        const double : _ToPoint('f', sizeof(_t), _t), \
