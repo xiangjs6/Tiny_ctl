@@ -5,7 +5,6 @@
 #include "../include/tctl_allocator.h"
 #include "../include/tctl_portable.h"
 #include "include/_tctl_object.h"
-#include "../include/auto_release_pool.h"
 #include <memory.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -348,7 +347,7 @@ void *_ToPoint(char t, size_t size, ...)
     int64_t eight;
     double lf;
     float f;
-    void *res = ARP_MallocARel(size);
+    void *res = NULL;
     assert(size <= 8);
     va_list ap;
     va_start(ap, size);
@@ -356,31 +355,29 @@ void *_ToPoint(char t, size_t size, ...)
         lf = va_arg(ap, double);
         if (size == 4) {
             f = lf;
-            memcpy(res, &f, size);
+            memcpy(&res, &f, size);
         } else {
-            memcpy(res, &lf, size);
+            memcpy(&res, &lf, size);
         }
     } else {
         switch (size) {
             case 1:
                 four = va_arg(ap, int32_t);
                 one = four;
-                memcpy(res, &one, size);
+                memcpy(&res, &one, size);
                 break;
             case 2:
                 four = va_arg(ap, int32_t);
                 two = four;
-                memcpy(res, &two, size);
+                memcpy(&res, &two, size);
                 break;
             case 4:
                 four = va_arg(ap, int32_t);
-                res = ARP_MallocARel(4);
-                memcpy(res, &four, 4);
+                memcpy(&res, &four, 4);
                 break;
             case 8:
                 eight = va_arg(ap, int64_t);
-                res = ARP_MallocARel(8);
-                memcpy(res, &eight, 8);
+                memcpy(&res, &eight, 8);
                 break;
         }
     }

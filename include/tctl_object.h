@@ -19,7 +19,7 @@
  * */
 
 typedef struct {
-    enum {OBJ, POD} f;
+    enum {OBJ, POD, ADDR} f;
     union {
         size_t size;
         const void *class;
@@ -32,21 +32,22 @@ typedef struct {
     void *mem;
 } FormWO_t;
 
-typedef struct {} *__ARG_P_t;
+typedef struct {} *__ARG_ADDR_t;
 void *_ToPoint(char t, size_t size, ...);
 #define FORM_WITH_OBJ(_t, ...) (FormWO_t){_t, ##__VA_ARGS__}
 #define VAEND NULL
-#define VA_ADDR(arg) ((__ARG_P_t)&(arg))
+#define VA_ADDR(arg) ((__ARG_ADDR_t)&(arg))
 #define _VA_AUX(_t) FORM_WITH_OBJ(_T(_t), _Generic((0, _t), float : _ToPoint('f', sizeof(_t), _t),   \
                                                        double : _ToPoint('f', sizeof(_t), _t),       \
                                                        const float : _ToPoint('f', sizeof(_t), _t),  \
                                                        const double : _ToPoint('f', sizeof(_t), _t), \
-                                                       __ARG_P_t : _t,                              \
+                                                       __ARG_ADDR_t : _t,                            \
                                                        default : _ToPoint(0, sizeof(_t), _t)))
 #define VA(...) MAP_LIST(_VA_AUX, ##__VA_ARGS__)
 
-#define _T(__T) _Generic(__T, Import,\
-                              default : (Form_t){POD, {.size = sizeof(__T)}})
+#define _T(__T) _Generic(__T, Import,                   \
+                         __ARG_ADDR_t : (Form_t){ADDR}, \
+                         default : (Form_t){POD, {.size = sizeof(__T)}})
 #define T(__T, ...) _T(*(__T*)0), ##__VA_ARGS__
 #define ARRAY_T(__T, __N) _T(*(__T(*)[__N])0)
 

@@ -17,7 +17,9 @@ static void *_ctor(void *_this, va_list *app)
     struct UInt *this = super_ctor(__UInt, _this, app);
     FormWO_t t = va_arg(*app, FormWO_t);
     if (t._.f == POD)
-        this->val = *(unsigned long long*)t.mem;
+        memcpy(&this->val, &t.mem, sizeof(unsigned long long));
+    else if (t._.f == ADDR)
+        memcpy(&this->val, t.mem, sizeof(unsigned long long));
     else
         this->val = *(unsigned long long*)Cast(t.mem, unsigned long long);
     return _this + sizeof(struct UInt);

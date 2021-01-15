@@ -17,9 +17,11 @@ static void *_ctor(void *_this, va_list *app)
     struct Char *this = super_ctor(__Char, _this, app);
     FormWO_t t = va_arg(*app, FormWO_t);
     if (t._.f == POD)
-        this->val = *(char*)t.mem;
+        memcpy(&this->val, &t.mem, sizeof(char));
+    else if (t._.f == ADDR)
+        memcpy(&this->val, t.mem, sizeof(char));
     else
-        this->val = *(char*)Cast(t.mem, long long);
+        this->val = *(char *) Cast(t.mem, char);
     return _this + sizeof(struct Char);
 }
 

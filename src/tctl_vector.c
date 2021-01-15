@@ -396,10 +396,15 @@ static void _vector_push_back(void *_this, FormWO_t _x)
     size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
     if (!_vector_capacity(_this))
         fill_allocate((void*)this);
-    if (this->_t.f == POD)
-        memcpy(this->finish_ptr, _x.mem, memb_size);
-    else
+    if (this->_t.f == POD) {
+        assert(_x._.f != OBJ);
+        if (_x._.f == ADDR)
+            memcpy(this->finish_ptr, _x.mem, memb_size);
+        else
+            memcpy(this->finish_ptr, &_x.mem, memb_size);
+    } else {
         construct(this->_t, this->finish_ptr, _x);
+    }
     this->nmemb++;
     this->finish_ptr += memb_size;
 }
@@ -465,10 +470,15 @@ static Iterator _vector_insert(void *_this, Iterator _iter, FormWO_t _x)
     delete(first);
     delete(last);
     void *p_target = iter->ptr + iter->cur * memb_size;
-    if (this->_t.f == POD)
-        memcpy(p_target, _x.mem, memb_size);
-    else
+    if (this->_t.f == POD) {
+        assert(_x._.f != OBJ);
+        if (_x._.f == ADDR)
+            memcpy(p_target, _x.mem, memb_size);
+        else
+            memcpy(p_target, &_x.mem, memb_size);
+    } else {
         construct(this->_t, p_target, _x);
+    }
     this->nmemb++;
     this->finish_ptr += memb_size;
     return _iter;
