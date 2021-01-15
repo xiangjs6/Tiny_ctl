@@ -3,6 +3,8 @@
 //
 
 #include "include/_tctl_double.h"
+#include "../../include/auto_release_pool.h"
+#include <string.h>
 #define Import CLASS, DOUBLE, OBJECT
 
 struct Double {
@@ -14,7 +16,11 @@ static const void *__Double = NULL;
 static void *_ctor(void *_this, va_list *app)
 {
     struct Double *this = super_ctor(__Double, _this, app);
-    this->val = va_arg(*app, double);
+    FormWO_t t = va_arg(*app, FormWO_t);
+    if (t._.f == POD)
+        this->val = *(double*)t.mem;
+    else
+        this->val = *(double*)Cast(t.mem, long long);
     return (void*)this + sizeof(struct Double);
 }
 
@@ -93,6 +99,62 @@ static void *_div(const void *_this, const void *x)
     return new(T(Double), this->val / p->val);
 }
 
+static void *_cast(const void *_this, const char *c)
+{
+    const struct Double *this = offsetOf(_this, __Double);
+    if (!strcmp(c, "long long")) {
+        long long *v = ARP_MallocARel(sizeof(long long));
+        *v = (long long)this->val;
+        return v;
+    }
+    if (!strcmp(c, "long")) {
+        long *v = ARP_MallocARel(sizeof(long));
+        *v = (long)this->val;
+        return v;
+    }
+    if (!strcmp(c, "int")) {
+        int *v = ARP_MallocARel(sizeof(int));
+        *v = (int)this->val;
+        return v;
+    }
+    if (!strcmp(c, "short")) {
+        short *v = ARP_MallocARel(sizeof(short));
+        *v = (short)this->val;
+        return v;
+    }
+    if (!strcmp(c, "char")) {
+        char *v = ARP_MallocARel(sizeof(char));
+        *v = (char)this->val;
+        return v;
+    }
+    if (!strcmp(c, "unsigned long long")) {
+        unsigned long long *v = ARP_MallocARel(sizeof(unsigned long long));
+        *v = (unsigned long long)this->val;
+        return v;
+    }
+    if (!strcmp(c, "unsigned long")) {
+        unsigned long *v = ARP_MallocARel(sizeof(unsigned long));
+        *v = (unsigned long)this->val;
+        return v;
+    }
+    if (!strcmp(c, "unsigned int")) {
+        unsigned int *v = ARP_MallocARel(sizeof(unsigned int));
+        *v = (unsigned int)this->val;
+        return v;
+    }
+    if (!strcmp(c, "unsigned short")) {
+        unsigned short *v = ARP_MallocARel(sizeof(unsigned short));
+        *v = (unsigned short)this->val;
+        return v;
+    }
+    if (!strcmp(c, "unsigned char")) {
+        unsigned char *v = ARP_MallocARel(sizeof(unsigned char));
+        *v = (unsigned char)this->val;
+        return v;
+    }
+    return NULL;
+}
+
 void initDouble(void)
 {
     if (!__Double)
@@ -109,6 +171,7 @@ void initDouble(void)
                      _ClassS->sub, _sub,
                      _ClassS->mul, _mul,
                      _ClassS->div, _div,
+                     _ClassS->cast, _cast,
                      Selector, _ClassS);
 }
 
@@ -116,4 +179,9 @@ Form_t _Double(void)
 {
     Form_t t = {OBJ, {.class = __Double}};
     return t;
+}
+
+void *DoubleToPoint(double x)
+{
+    return *(void**)&x;
 }

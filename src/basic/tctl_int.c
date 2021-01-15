@@ -3,6 +3,9 @@
 //
 
 #include "include/_tctl_int.h"
+#include "../../include/auto_release_pool.h"
+#include <stdarg.h>
+#include <string.h>
 #define Import CLASS, INT, OBJECT
 
 struct Int {
@@ -13,7 +16,11 @@ static const void *__Int = NULL;
 static void *_ctor(void *_this, va_list *app)
 {
     struct Int *this = super_ctor(__Int, _this, app);
-    this->val = va_arg(*app, long long);
+    FormWO_t t = va_arg(*app, FormWO_t);
+    if (t._.f == POD)
+        this->val = *(long long*)t.mem;
+    else
+        this->val = *(long long*)Cast(t.mem, long long);
     return _this + sizeof(struct Int);
 }
 
@@ -98,6 +105,63 @@ static void *_mod(const void *_this, const void *x)
     const struct Int *p = offsetOf(x, __Int);
     return new(T(Int), this->val % p->val);
 }
+
+static void *_cast(const void *_this, const char *c)
+{
+    const struct Int *this = offsetOf(_this, __Int);
+    if (!strcmp(c, "long long")) {
+        long long *v = ARP_MallocARel(sizeof(long long));
+        *v = (long long)this->val;
+        return v;
+    }
+    if (!strcmp(c, "long")) {
+        long *v = ARP_MallocARel(sizeof(long));
+        *v = (long)this->val;
+        return v;
+    }
+    if (!strcmp(c, "int")) {
+        int *v = ARP_MallocARel(sizeof(int));
+        *v = (int)this->val;
+        return v;
+    }
+    if (!strcmp(c, "short")) {
+        short *v = ARP_MallocARel(sizeof(short));
+        *v = (short)this->val;
+        return v;
+    }
+    if (!strcmp(c, "char")) {
+        char *v = ARP_MallocARel(sizeof(char));
+        *v = (char)this->val;
+        return v;
+    }
+    if (!strcmp(c, "unsigned long long")) {
+        unsigned long long *v = ARP_MallocARel(sizeof(unsigned long long));
+        *v = (unsigned long long)this->val;
+        return v;
+    }
+    if (!strcmp(c, "unsigned long")) {
+        unsigned long *v = ARP_MallocARel(sizeof(unsigned long));
+        *v = (unsigned long)this->val;
+        return v;
+    }
+    if (!strcmp(c, "unsigned int")) {
+        unsigned int *v = ARP_MallocARel(sizeof(unsigned int));
+        *v = (unsigned int)this->val;
+        return v;
+    }
+    if (!strcmp(c, "unsigned short")) {
+        unsigned short *v = ARP_MallocARel(sizeof(unsigned short));
+        *v = (unsigned short)this->val;
+        return v;
+    }
+    if (!strcmp(c, "unsigned char")) {
+        unsigned char *v = ARP_MallocARel(sizeof(unsigned char));
+        *v = (unsigned char)this->val;
+        return v;
+    }
+    return NULL;
+}
+
 void initInt(void)
 {
     if (!__Int)
@@ -115,6 +179,7 @@ void initInt(void)
                    _ClassS->mul, _mul,
                    _ClassS->div, _div,
                    _ClassS->mod, _mod,
+                   _ClassS->cast, _cast,
                    Selector, _ClassS);
 }
 

@@ -21,10 +21,10 @@ struct VectorClass {
     size_t (*size)(const void *_this);
     size_t (*capacity)(const void *_this);
     bool (*empty)(const void *_this);
-    void (*push_back)(void *_this, const void *x);
+    void (*push_back)(void *_this, FormWO_t _x);
     void (*pop_back)(void *_this);
     Iterator (*erase)(void *_this, Iterator iter);
-    Iterator (*insert)(void *_this, Iterator iter, void *x);
+    Iterator (*insert)(void *_this, Iterator iter, FormWO_t _x);
     void (*resize)(void *_this, size_t new_size);
     void (*clear)(void *_this);
     void (*swap)(void *_this, Vector _v);
@@ -50,10 +50,10 @@ static void* _back(void);
 static size_t _size(void);
 static size_t _capacity(void);
 static bool _empty(void);
-static void _push_back(const void* x);
+static void _push_back(FormWO_t x);
 static void _pop_back(void);
 static Iterator _erase(Iterator iter);
-static Iterator _insert(Iterator iter, void* x);
+static Iterator _insert(Iterator iter, FormWO_t x);
 static void _resize(size_t new_size);
 static void _clear(void);
 static void _swap(struct _Vector *_v);
@@ -62,10 +62,10 @@ static void *_vector_ctor(void *_this, va_list *app);
 static void _vector_swap(void *_this, Vector _v);
 static void _vector_clear(void *_this);
 static void _vector_resize(void *_this, size_t new_size);
-static Iterator _vector_insert(void *_this, Iterator _iter, void *_x);
+static Iterator _vector_insert(void *_this, Iterator _iter, FormWO_t x);
 static Iterator _vector_erase(void *_this, Iterator _iter);
 static void _vector_pop_back(void *_this);
-static void _vector_push_back(void *_this, void *_x);
+static void _vector_push_back(void *_this, FormWO_t x);
 static bool _vector_empty(const void *_this);
 static size_t _vector_capacity(const void *_this);
 static size_t _vector_size(const void *_this);
@@ -390,14 +390,14 @@ static bool _vector_empty(const void *_this)
     return !this->nmemb;
 }
 
-static void _vector_push_back(void *_this, void *_x)
+static void _vector_push_back(void *_this, FormWO_t _x)
 {
     struct Vector *this = offsetOf(_this, __Vector);
     size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
     if (!_vector_capacity(_this))
         fill_allocate((void*)this);
     if (this->_t.f == POD)
-        memcpy(this->finish_ptr, _x, memb_size);
+        memcpy(this->finish_ptr, _x.mem, memb_size);
     else
         construct(this->_t, this->finish_ptr, _x);
     this->nmemb++;
@@ -445,7 +445,7 @@ static Iterator _vector_erase(void *_this, Iterator _iter)
     return _iter;
 }
 
-static Iterator _vector_insert(void *_this, Iterator _iter, void *_x)
+static Iterator _vector_insert(void *_this, Iterator _iter, FormWO_t _x)
 {
     struct VectorIter *iter = offsetOf(_iter, __VectorIter);
     struct Vector *this = offsetOf(_this, __Vector);
@@ -466,7 +466,7 @@ static Iterator _vector_insert(void *_this, Iterator _iter, void *_x)
     delete(last);
     void *p_target = iter->ptr + iter->cur * memb_size;
     if (this->_t.f == POD)
-        memcpy(p_target, _x, memb_size);
+        memcpy(p_target, _x.mem, memb_size);
     else
         construct(this->_t, p_target, _x);
     this->nmemb++;
@@ -569,7 +569,7 @@ static bool _empty(void)
     return class->empty(_this);
 }
 
-static void _push_back(const void* x)
+static void _push_back(FormWO_t x)
 {
     void *_this = pop_this();
     const struct VectorClass *class = offsetOf(classOf(_this), __VectorClass);
@@ -593,7 +593,7 @@ static Iterator _erase(Iterator iter)
     return class->erase(_this, iter);
 }
 
-static Iterator _insert(Iterator iter, void* x)
+static Iterator _insert(Iterator iter, FormWO_t x)
 {
     void *_this = pop_this();
     const struct VectorClass *class = offsetOf(classOf(_this), __VectorClass);

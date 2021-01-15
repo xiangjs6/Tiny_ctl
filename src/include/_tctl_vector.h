@@ -15,10 +15,10 @@ struct VectorSelector {
     size_t (*size)(void);
     size_t (*capacity)(void);
     bool (*empty)(void);
-    void (*push_back)(const void* x);
+    void (*push_back)(FormWO_t x);
     void (*pop_back)(void);
     Iterator (*erase)(Iterator iter);
-    Iterator (*insert)(Iterator iter, void* x);
+    Iterator (*insert)(Iterator iter, FormWO_t x);
     void (*resize)(size_t new_size);
     void (*clear)(void);
     void (*swap)(struct _Vector *_v);
