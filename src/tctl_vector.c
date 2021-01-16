@@ -11,7 +11,7 @@
 #include <memory.h>
 #include <assert.h>
 
-#define Import CLASS, ITERATOR, ITERATORCLASS, OBJECT, METACLASS
+#define Import CLASS, ITERATOR, OBJECT, METACLASS
 
 struct VectorClass {
     Iterator (*begin)(const void *_this);
@@ -86,6 +86,7 @@ static int _iter_cmp(const void *_this, FormWO_t _x);
 static bool _iter_equal(const void *_this, FormWO_t _x);
 static void *_iter_ctor(void *_this, va_list *app);
 static void *_iter_derefer(const void *_this);
+static long long _iter_dist(const void *_this, Iterator _it);
 //init
 static const void *__VectorIter = NULL;
 static const void *__Vector = NULL;
@@ -118,7 +119,7 @@ void initVector(void)
         memcpy((void*)&VectorS, _ClassS, sizeof(*_ClassS));
     }
     if (!__VectorIter) {
-        __VectorIter = new(T(IteratorClass), "VectorIter",
+        __VectorIter = new(_IteratorClass(), "VectorIter",
                            T(Iterator), sizeof(struct VectorIter) + classSz(_Iterator().class),
                            _MetaClassS->ctor, _iter_ctor,
                            _ClassS->equal, _iter_equal,
@@ -132,6 +133,7 @@ void initVector(void)
                            _ClassS->add, _iter_add,
                            _ClassS->sub, _iter_sub,
                            _IteratorS->derefer, _iter_derefer,
+                           _IteratorS->dist, _iter_dist,
                            Selector, _IteratorS
                           );
     }
@@ -239,7 +241,9 @@ static void *_iter_bucket(const void *_this, FormWO_t _x)
     construct(_Int(), i_mem, _x);
     Form_t t = THIS(it).type();
     size_t size = t.f == POD ? t.size : classSz(t.class);
-    return this->ptr + size * (x->val + this->cur);
+    void *res = this->ptr + size * (x->val + this->cur);
+    destroy(x);
+    return res;
 }
 
 static void _iter_inc(void *_this)
@@ -261,6 +265,7 @@ static void _iter_self_add(void *_this, FormWO_t _x)
     Int x = (void*)tmp;
     construct(_Int(), tmp, _x);
     this->cur += x->val;
+    destroy(x);
 }
 
 static void _iter_self_sub(void *_this, FormWO_t _x)
@@ -270,6 +275,7 @@ static void _iter_self_sub(void *_this, FormWO_t _x)
     Int x = (void*)tmp;
     construct(_Int(), tmp, _x);
     this->cur -= x->val;
+    destroy(x);
 }
 
 static void _iter_asign(void *_this, FormWO_t _x)
@@ -287,7 +293,9 @@ static void *_iter_add(const void *_this, FormWO_t _x)
     Int x = (void*)i_mem;
     construct(_Int(), i_mem, _x);
     void *mem = ARP_MallocARelDtor(classSz(__VectorIter), destroy);
-    return new(compose(_VectorIter(), mem), THIS(it).type(), this->cur + x->val, this->ptr);
+    void *res = new(compose(_VectorIter(), mem), THIS(it).type(), this->cur + x->val, this->ptr);
+    destroy(x);
+    return res;
 }
 
 static void *_iter_sub(const void *_this, FormWO_t _x)
@@ -298,7 +306,9 @@ static void *_iter_sub(const void *_this, FormWO_t _x)
     Int x = (void*)i_mem;
     construct(_Int(), i_mem, _x);
     void *mem = ARP_MallocARelDtor(classSz(__VectorIter), destroy);
-    return new(compose(_VectorIter(), mem), THIS(it).type(), this->cur - x->val, this->ptr);
+    void *res = new(compose(_VectorIter(), mem), THIS(it).type(), this->cur - x->val, this->ptr);
+    destroy(x);
+    return res;
 }
 
 static void *_iter_derefer(const void *_this)
@@ -308,6 +318,13 @@ static void *_iter_derefer(const void *_this)
     Form_t t = THIS(it).type();
     size_t memb_size = t.f == POD ? t.size : classSz(t.class);
     return this->ptr + this->cur * memb_size;
+}
+
+static long long _iter_dist(const void *_this, Iterator _it)
+{
+    struct VectorIter *this = offsetOf(_this, __VectorIter);
+    struct VectorIter *it = offsetOf(_it, __VectorIter);
+    return it->cur - this->cur;
 }
 
 //VectorClass
@@ -354,7 +371,9 @@ static void *_vector_brackets(const void *_this, FormWO_t _x)
     Int x = (void*)i_mem;
     construct(_Int(), i_mem, _x);
     size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
-    return this->start_ptr + memb_size * x->val;
+    void *res = this->start_ptr + memb_size * x->val;
+    destroy(x);
+    return res;
 }
 
 static Iterator _vector_begin(const void *_this)

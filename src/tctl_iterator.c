@@ -8,11 +8,12 @@
 #include <memory.h>
 #include <assert.h>
 
-#define Import METACLASS, CLASS, OBJECT, ITERATORCLASS, ITERATOR
+#define Import METACLASS, CLASS, OBJECT, ITERATOR
 
 struct IteratorClass {
     void *(*derefer)(const void *_this);
     Form_t (*type)(const void *_this);
+    long long (*dist)(const void *_this, struct _Iterator *it);
 };
 
 struct Iterator {
@@ -26,11 +27,13 @@ static void *_class_ctor(void *_this, va_list *app);
 static void *_object_ctor(void *_this, va_list *app);
 static void *_object_derefer(const void *_this);
 static Form_t _object_type(const void *_this);
+static long long _dist(struct _Iterator *it);
 //init
 volatile static struct IteratorSelector IteratorS = {
         {},
         _derefer,
-        _type
+        _type,
+        _dist
 };
 const struct IteratorSelector *_IteratorS = NULL;
 
@@ -50,7 +53,7 @@ void initIterator(void)
                               _MetaClassS->ctor, _class_ctor);
     }
     if (!__Iterator) {
-        __Iterator = new(T(IteratorClass), "Iterator", T(Object),
+        __Iterator = new(_IteratorClass(), "Iterator", T(Object),
                          sizeof(struct Iterator) + classSz(_Object().class),
                          _MetaClassS->ctor, _object_ctor,
                          IteratorS.derefer, _object_derefer,
@@ -85,6 +88,14 @@ static Form_t _type(void)
     return class->type(_this);
 }
 
+static long long _dist(struct _Iterator *it)
+{
+    void *_this = pop_this();
+    const struct IteratorClass *class = offsetOf(classOf(_this), __IteratorClass);
+    assert(class->dist);
+    return class->dist(_this, it);
+}
+
 static void *_class_ctor(void *_this, va_list *app)
 {
     struct IteratorClass *this = super_ctor(__IteratorClass, _this, app);
@@ -98,6 +109,8 @@ static void *_class_ctor(void *_this, va_list *app)
             *(voidf *) &this->derefer = method;
         else if (selector == (voidf)IteratorS.type)
             *(voidf *) &this->type = method;
+        else if (selector == (voidf)IteratorS.dist)
+            *(voidf *) &this->dist = method;
     }
     va_end(ap);
     return this;
@@ -120,4 +133,20 @@ static Form_t _object_type(const void *_this)
 {
     const struct Iterator *this = offsetOf(_this, __Iterator);
     return this->_t;
+}
+
+long long distance(Iterator _a, Iterator _b)
+{
+    struct IteratorClass *a_class = offsetOf(classOf(_a), __IteratorClass);
+    struct IteratorClass *b_class = offsetOf(classOf(_b), __IteratorClass);
+    assert(a_class == b_class);
+    if (a_class->dist)
+        return a_class->dist(_a, _b);
+    long long dis = 0;
+    char tmp[sizeOf(_a)];
+    Iterator it = THIS(_a).ctor(tmp, THIS(_a).type(), VA(_a));
+    for (; !THIS(it).equal(VA(_b)); THIS(it).inc())
+        dis++;
+    destroy(it);
+    return dis;
 }

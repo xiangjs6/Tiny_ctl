@@ -7,30 +7,33 @@
 #include "tctl_object.h"
 #include "tctl_class.h"
 #define INHERIT_ITERATOR \
-struct {                      \
-    INHERIT_CLASS;            \
-    void *(*derefer)(void);   \
-    Form_t (*type)(void);     \
+struct {                                     \
+    INHERIT_CLASS;                           \
+    void *(*derefer)(void);                  \
+    Form_t (*type)(void);                    \
+    long long (*dist)(struct _Iterator *it); \
 }
 
-typedef struct {
+typedef struct _Iterator{
     union {
         INHERIT_ITERATOR *_s;
         byte _pad[sizeof(*(Object)NULL)];
     };
 } *Iterator;
 
-typedef struct {
-    union {
-        INHERIT_ITERATOR *_s;
-        byte _pad[sizeof(*(Object)NULL)];
-    };
-} *IteratorClass;
+//typedef struct {
+//    union {
+//        INHERIT_ITERATOR *_s;
+//        byte _pad[sizeof(*(Object)NULL)];
+//    };
+//} *IteratorClass;
 void initIterator(void) __attribute__((constructor));
 
 Form_t _IteratorClass(void);
 Form_t _Iterator(void);
 
-#define ITERATORCLASS IteratorClass : _IteratorClass()
+//#define ITERATORCLASS IteratorClass : _IteratorClass()
 #define ITERATOR Iterator : _Iterator()
+
+long long distance(Iterator, Iterator);
 #endif //TINY_CTL_TCTL_ITERATOR_H

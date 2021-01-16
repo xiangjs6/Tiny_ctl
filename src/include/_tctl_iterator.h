@@ -11,6 +11,7 @@ struct IteratorSelector {
     char _[sizeof(struct ClassSelector)];
     void *(*derefer)(void);
     Form_t (*type)(void);
+    long long (*dist)(struct _Iterator *it);
 };
 
 extern const struct IteratorSelector *_IteratorS;
