@@ -49,7 +49,7 @@ void *_AddrAux(int t, ...);
 #define _T(__T) _Generic(__T, Import,                                                         \
                          __ARG_ADDR_t : (Form_t){ADDR, {.size = (size_t)_AddrAux('s', __T)}}, \
                          default : (Form_t){POD, {.size = sizeof(__T)}})
-#define T(__T, ...) _T(*(__T*)0), ##__VA_ARGS__
+#define T(__T, ...) _T(*(__T volatile *)0), ##__VA_ARGS__
 #define ARRAY_T(__T, __N) _T(*(__T(*)[__N])0)
 
 #define new(__T, ...) _new(FORM_WITH_OBJ(__T), ##__VA_ARGS__, VAEND)
