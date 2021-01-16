@@ -339,7 +339,7 @@ void *pop_this(void)
     return (void*)p;
 }
 
-void *_ToPoint(char t, size_t size, ...)
+void *_ToPoint(int t, size_t size, ...)
 {
     int8_t one;
     int16_t two;

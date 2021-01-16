@@ -33,7 +33,7 @@ typedef struct {
 } FormWO_t;
 
 typedef struct {void *p; size_t size;} __ARG_ADDR_t;
-void *_ToPoint(char t, size_t size, ...);
+void *_ToPoint(int t, size_t size, ...);
 void *_AddrAux(int t, ...);
 #define FORM_WITH_OBJ(_t, ...) (FormWO_t){_t, ##__VA_ARGS__}
 #define VAEND NULL
