@@ -17,10 +17,28 @@ static const void *__UInt = NULL;
 static inline unsigned long long toUInt(FormWO_t t)
 {
     unsigned long long val;
+    unsigned char c;
+    unsigned short s;
+    unsigned int i;
     switch (t._.f) {
         case POD:
-            memcpy(&val, &t.mem, t._.size);
-            break;
+            switch (t._.size) {
+                case 1:
+                    memcpy(&c, &t.mem, t._.size);
+                    val = c;
+                    break;
+                case 2:
+                    memcpy(&s, &t.mem, t._.size);
+                    val = s;
+                    break;
+                case 4:
+                    memcpy(&i, &t.mem, t._.size);
+                    val = i;
+                    break;
+                case 8:
+                    memcpy(&val, &t.mem, t._.size);
+                    break;
+            }
         case ADDR:
             memcpy(&val, t.mem, t._.size);
             break;

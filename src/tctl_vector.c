@@ -73,7 +73,7 @@ static const void *_vector_back(const void *_this);
 static const void *_vector_front(const void *_this);
 static Iterator _vector_end(const void *_this);
 static Iterator _vector_begin(const void *_this);
-static void *_vector_brackets(const void *_this, void *_x);
+static void *_vector_brackets(const void *_this, FormWO_t _x);
 static void *_iter_sub(const void *_this, FormWO_t _x);
 static void *_iter_add(const void *_this, FormWO_t _x);
 static void _iter_asign(void *_this, FormWO_t _x);
@@ -234,7 +234,9 @@ static void *_iter_bucket(const void *_this, FormWO_t _x)
 {
     const struct VectorIter *this = offsetOf(_this, __VectorIter);
     const Iterator it = (void*)_this;
-    Int x = _x.mem;
+    char i_mem[classSz(_Int().class)];
+    Int x = (void*)i_mem;
+    construct(_Int(), i_mem, _x);
     Form_t t = THIS(it).type();
     size_t size = t.f == POD ? t.size : classSz(t.class);
     return this->ptr + size * (x->val + this->cur);
@@ -255,14 +257,18 @@ static void _iter_dec(void *_this)
 static void _iter_self_add(void *_this, FormWO_t _x)
 {
     struct VectorIter *this = offsetOf(_this, __VectorIter);
-    Int x = _x.mem;
+    char tmp[classSz(_Int().class)];
+    Int x = (void*)tmp;
+    construct(_Int(), tmp, _x);
     this->cur += x->val;
 }
 
 static void _iter_self_sub(void *_this, FormWO_t _x)
 {
     struct VectorIter *this = offsetOf(_this, __VectorIter);
-    Int x = _x.mem;
+    char tmp[classSz(_Int().class)];
+    Int x = (void*)tmp;
+    construct(_Int(), tmp, _x);
     this->cur -= x->val;
 }
 
@@ -277,7 +283,9 @@ static void *_iter_add(const void *_this, FormWO_t _x)
 {
     struct VectorIter *this = offsetOf(_this, __VectorIter);
     Iterator it = (void*)_this;
-    Int x = _x.mem;
+    char i_mem[classSz(_Int().class)];
+    Int x = (void*)i_mem;
+    construct(_Int(), i_mem, _x);
     void *mem = ARP_MallocARelDtor(classSz(__VectorIter), destroy);
     return new(compose(_VectorIter(), mem), THIS(it).type(), this->cur + x->val, this->ptr);
 }
@@ -286,7 +294,9 @@ static void *_iter_sub(const void *_this, FormWO_t _x)
 {
     struct VectorIter *this = offsetOf(_this, __VectorIter);
     Iterator it = (void*)_this;
-    Int x = _x.mem;
+    char i_mem[classSz(_Int().class)];
+    Int x = (void*)i_mem;
+    construct(_Int(), i_mem, _x);
     void *mem = ARP_MallocARelDtor(classSz(__VectorIter), destroy);
     return new(compose(_VectorIter(), mem), THIS(it).type(), this->cur - x->val, this->ptr);
 }
@@ -337,10 +347,12 @@ static void *_vector_ctor(void *_this, va_list *app)
     return (void*)this + sizeof(struct Vector);
 }
 
-static void *_vector_brackets(const void *_this, void *_x)
+static void *_vector_brackets(const void *_this, FormWO_t _x)
 {
     const struct Vector *this = offsetOf(_this, __Vector);
-    Int x = _x;
+    char i_mem[classSz(_Int().class)];
+    Int x = (void*)i_mem;
+    construct(_Int(), i_mem, _x);
     size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
     return this->start_ptr + memb_size * x->val;
 }

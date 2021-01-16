@@ -17,9 +17,15 @@ static const void *__Double = NULL;
 static inline double toDouble(FormWO_t t)
 {
     double val;
+    float f;
     switch (t._.f) {
         case POD:
-            memcpy(&val, &t.mem, t._.size);
+            if (t._.size == 4) {
+                memcpy(&f, &t.mem, t._.size);
+                val = f;
+            } else {
+                memcpy(&val, &t.mem, t._.size);
+            }
             break;
         case ADDR:
             memcpy(&val, t.mem, t._.size);

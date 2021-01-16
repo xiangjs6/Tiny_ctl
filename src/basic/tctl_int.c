@@ -18,9 +18,28 @@ static const void *__Int = NULL;
 static inline long long toInt(FormWO_t t)
 {
     long long val;
+    char c;
+    short s;
+    int i;
     switch (t._.f) {
         case POD:
-            memcpy(&val, &t.mem, t._.size);
+            switch (t._.size) {
+                case 1:
+                    memcpy(&c, &t.mem, t._.size);
+                    val = c;
+                    break;
+                case 2:
+                    memcpy(&s, &t.mem, t._.size);
+                    val = s;
+                    break;
+                case 4:
+                    memcpy(&i, &t.mem, t._.size);
+                    val = i;
+                    break;
+                case 8:
+                    memcpy(&val, &t.mem, t._.size);
+                    break;
+            }
             break;
         case ADDR:
             memcpy(&val, t.mem, t._.size);

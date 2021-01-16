@@ -17,9 +17,28 @@ static const void *__Char = NULL;
 static inline char toChar(FormWO_t t)
 {
     char val;
+    short s;
+    int i;
+    long long l;
     switch (t._.f) {
         case POD:
-            memcpy(&val, &t.mem, t._.size);
+            switch (t._.size) {
+                case 1:
+                    memcpy(&val, &t.mem, t._.size);
+                    break;
+                case 2:
+                    memcpy(&s, &t.mem, t._.size);
+                    val = s;
+                    break;
+                case 4:
+                    memcpy(&i, &t.mem, t._.size);
+                    val = i;
+                    break;
+                case 8:
+                    memcpy(&l, &t.mem, t._.size);
+                    val = l;
+                    break;
+            }
             break;
         case ADDR:
             memcpy(&val, t.mem, t._.size);
