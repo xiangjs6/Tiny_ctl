@@ -9,22 +9,22 @@
 
 #define Cast(obj, __T) __cast_aux(obj, #__T)
 #define INHERIT_CLASS \
-struct {              \
-    INHERIT_METACLASS;\
-    bool (*equal)(const void *x); \
-    int (*cmp)(const void *x);    \
-    void *(*brackets)(const void *x);           \
-    void (*inc)(void);            \
-    void (*dec)(void);            \
-    void (*self_add)(const void *x);    \
-    void (*self_sub)(const void *x);    \
-    void (*asign)(const void *x);       \
-    void *(*add)(const void *x);        \
-    void *(*sub)(const void *x);        \
-    void *(*mul)(const void *x);        \
-    void *(*div)(const void *x);        \
-    void *(*mod)(const void *x);        \
-    void *(*cast)(const char *c);       \
+struct {                           \
+    INHERIT_METACLASS;             \
+    bool (*equal)(FormWO_t x);     \
+    int (*cmp)(FormWO_t x);        \
+    void *(*brackets)(FormWO_t x); \
+    void (*inc)(void);             \
+    void (*dec)(void);             \
+    void (*self_add)(FormWO_t x);  \
+    void (*self_sub)(FormWO_t x);  \
+    void (*asign)(FormWO_t x);     \
+    void *(*add)(FormWO_t x);      \
+    void *(*sub)(FormWO_t x);      \
+    void *(*mul)(FormWO_t x);      \
+    void *(*div)(FormWO_t x);      \
+    void *(*mod)(FormWO_t x);      \
+    void *(*cast)(const char *c);  \
 }
 
 typedef struct {

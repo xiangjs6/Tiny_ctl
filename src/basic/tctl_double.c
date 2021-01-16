@@ -5,39 +5,52 @@
 #include "include/_tctl_double.h"
 #include "../../include/auto_release_pool.h"
 #include <string.h>
+#include <assert.h>
 #define Import CLASS, DOUBLE, OBJECT
 
 struct Double {
-    //struct Object _;
     double val;
 };
 
 static const void *__Double = NULL;
+
+static inline double toDouble(FormWO_t t)
+{
+    double val;
+    switch (t._.f) {
+        case POD:
+            memcpy(&val, &t.mem, t._.size);
+            break;
+        case ADDR:
+            memcpy(&val, t.mem, t._.size);
+            break;
+        case OBJ:
+            val = *(double*)Cast(t.mem, double);
+            break;
+    }
+    return val;
+}
+
 static void *_ctor(void *_this, va_list *app)
 {
     struct Double *this = super_ctor(__Double, _this, app);
     FormWO_t t = va_arg(*app, FormWO_t);
-    if (t._.f == POD)
-        memcpy(&this->val, &t.mem, sizeof(double));
-    else if (t._.f == ADDR)
-        memcpy(&this->val, t.mem, sizeof(double));
-    else
-        this->val = *(double*)Cast(t.mem, double);
+    this->val = toDouble(t);
     return (void*)this + sizeof(struct Double);
 }
 
-static bool _equal(const void *_this, const void *x)
+static bool _equal(const void *_this, FormWO_t x)
 {
     const struct Double *this = offsetOf(_this, __Double);
-    const struct Double *p = offsetOf(x, __Double);
-    return this->val == p->val;
+    double val = toDouble(x);
+    return this->val == val;
 }
 
-static int _cmp(const void *_this, const void *x)
+static int _cmp(const void *_this, FormWO_t x)
 {
     const struct Double *this = offsetOf(_this, __Double);
-    const struct Double *p = offsetOf(x, __Double);
-    return this->val - p->val;
+    double val = toDouble(x);
+    return this->val - val;
 }
 
 static void _inc(void *_this)
@@ -52,53 +65,57 @@ static void _dec(void *_this)
     this->val--;
 }
 
-static void _self_add(void *_this, const void *x)
+static void _self_add(void *_this, FormWO_t x)
 {
     struct Double *this = offsetOf(_this, __Double);
-    const struct Double *p = offsetOf(x, __Double);
-    this->val += p->val;
+    double val = toDouble(x);
+    this->val += val;
 }
 
-static void _self_sub(void *_this, const void *x)
+static void _self_sub(void *_this, FormWO_t x)
 {
     struct Double *this = offsetOf(_this, __Double);
-    const struct Double *p = offsetOf(x, __Double);
-    this->val -= p->val;
+    double val = toDouble(x);
+    this->val -= val;
 }
 
-static void _asign(void *_this, const void *x)
+static void _asign(void *_this, FormWO_t x)
 {
     struct Double *this = offsetOf(_this, __Double);
-    const struct Double *p = offsetOf(x, __Double);
-    this->val = p->val;
+    double val = toDouble(x);
+    this->val = val;
 }
 
-static void *_add(const void *_this, const void *x)
+static void *_add(const void *_this, FormWO_t x)
 {
     const struct Double *this = offsetOf(_this, __Double);
-    const struct Double *p = offsetOf(x, __Double);
-    return new(T(Double), this->val + p->val);
+    double val = toDouble(x) + this->val;
+    void *mem = ARP_MallocARelDtor(classSz(__Double), destroy);
+    return new(compose(_Double(), mem), VA(val));
 }
 
-static void *_sub(const void *_this, const void *x)
+static void *_sub(const void *_this, FormWO_t x)
 {
     const struct Double *this = offsetOf(_this, __Double);
-    const struct Double *p = offsetOf(x, __Double);
-    return new(T(Double), this->val - p->val);
+    double val = toDouble(x) - this->val;
+    void *mem = ARP_MallocARelDtor(classSz(__Double), destroy);
+    return new(compose(_Double(), mem), VA(val));
 }
 
-static void *_mul(const void *_this, const void *x)
+static void *_mul(const void *_this, FormWO_t x)
 {
     const struct Double *this = offsetOf(_this, __Double);
-    const struct Double *p = offsetOf(x, __Double);
-    return new(T(Double), this->val * p->val);
+    double val = toDouble(x) * this->val;
+    void *mem = ARP_MallocARelDtor(classSz(__Double), destroy);
+    return new(compose(_Double(), mem), VA(val));
 }
 
-static void *_div(const void *_this, const void *x)
+static void *_div(const void *_this, FormWO_t x)
 {
     const struct Double *this = offsetOf(_this, __Double);
-    const struct Double *p = offsetOf(x, __Double);
-    return new(T(Double), this->val / p->val);
+    double val = toDouble(x) / this->val;
+    void *mem = ARP_MallocARelDtor(classSz(__Double), destroy);
+    return new(compose(_Double(), mem), VA(val));
 }
 
 static void *_cast(const void *_this, const char *c)
@@ -154,6 +171,17 @@ static void *_cast(const void *_this, const char *c)
         *v = (unsigned char)this->val;
         return v;
     }
+    if (!strcmp(c, "float")) {
+        float *v = ARP_MallocARel(sizeof(float));
+        *v = (float)this->val;
+        return v;
+    }
+    if (!strcmp(c, "double")) {
+        double *v = ARP_MallocARel(sizeof(double));
+        *v = (double)this->val;
+        return v;
+    }
+    assert(0);
     return NULL;
 }
 
@@ -181,9 +209,4 @@ Form_t _Double(void)
 {
     Form_t t = {OBJ, {.class = __Double}};
     return t;
-}
-
-void *DoubleToPoint(double x)
-{
-    return *(void**)&x;
 }

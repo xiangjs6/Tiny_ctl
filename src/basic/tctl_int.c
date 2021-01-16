@@ -6,6 +6,7 @@
 #include "../../include/auto_release_pool.h"
 #include <stdarg.h>
 #include <string.h>
+#include <assert.h>
 #define Import CLASS, INT, OBJECT
 
 struct Int {
@@ -13,31 +14,44 @@ struct Int {
 };
 
 static const void *__Int = NULL;
+
+static inline long long toInt(FormWO_t t)
+{
+    long long val;
+    switch (t._.f) {
+        case POD:
+            memcpy(&val, &t.mem, t._.size);
+            break;
+        case ADDR:
+            memcpy(&val, t.mem, t._.size);
+            break;
+        case OBJ:
+            val = *(long long *) Cast(t.mem, long long);
+            break;
+    }
+    return val;
+}
+
 static void *_ctor(void *_this, va_list *app)
 {
     struct Int *this = super_ctor(__Int, _this, app);
     FormWO_t t = va_arg(*app, FormWO_t);
-    if (t._.f == POD)
-        memcpy(&this->val, &t.mem, sizeof(long long));
-    else if (t._.f == ADDR)
-        memcpy(&this->val, t.mem, sizeof(long long));
-    else
-        this->val = *(long long*)Cast(t.mem, long long);
+    this->val = toInt(t);
     return _this + sizeof(struct Int);
 }
 
-static bool _equal(const void *_this, const void *x)
+static bool _equal(const void *_this, FormWO_t x)
 {
     const struct Int *this = offsetOf(_this, __Int);
-    const struct Int *p = offsetOf(x, __Int);
-    return this->val == p->val;
+    long long val = toInt(x);
+    return this->val == val;
 }
 
-static int _cmp(const void *_this, const void *x)
+static int _cmp(const void *_this, FormWO_t x)
 {
     const struct Int *this = offsetOf(_this, __Int);
-    const struct Int *p = offsetOf(x, __Int);
-    return this->val - p->val;
+    long long val = toInt(x);
+    return this->val - val;
 }
 
 static void _inc(void *_this)
@@ -52,60 +66,76 @@ static void _dec(void *_this)
     this->val--;
 }
 
-static void _self_add(void *_this, const void *x)
+static void _self_add(void *_this, FormWO_t x)
 {
     struct Int *this = offsetOf(_this, __Int);
-    const struct Int *p = offsetOf(x, __Int);
-    this->val += p->val;
+    long long val = toInt(x);
+    this->val += val;
 }
 
-static void _self_sub(void *_this, const void *x)
+static void _self_sub(void *_this, FormWO_t x)
 {
     struct Int *this = offsetOf(_this, __Int);
-    const struct Int *p = offsetOf(x, __Int);
-    this->val -= p->val;
+    long long val;
+    switch (x._.f) {
+        case POD:
+            memcpy(&val, &x.mem, x._.size);
+            break;
+        case ADDR:
+            memcpy(&val, x.mem, x._.size);
+            break;
+        case OBJ:
+            val = *(long long*)Cast(x.mem, long long);
+            break;
+    }
+    this->val -= val;
 }
 
-static void _asign(void *_this, const void *x)
+static void _asign(void *_this, FormWO_t x)
 {
     struct Int *this = offsetOf(_this, __Int);
-    const struct Int *p = offsetOf(x, __Int);
-    this->val = p->val;
+    long long val = toInt(x);
+    this->val = val;
 }
 
-static void *_add(const void *_this, const void *x)
+static void *_add(const void *_this, FormWO_t x)
 {
     const struct Int *this = offsetOf(_this, __Int);
-    const struct Int *p = offsetOf(x, __Int);
-    return new(T(Int), this->val + p->val);
+    long long val = toInt(x) + this->val;
+    void *mem = ARP_MallocARelDtor(classSz(__Int), destroy);
+    return new(compose(_Int(), mem), VA(val));
 }
 
-static void *_sub(const void *_this, const void *x)
+static void *_sub(const void *_this, FormWO_t x)
 {
     const struct Int *this = offsetOf(_this, __Int);
-    const struct Int *p = offsetOf(x, __Int);
-    return new(T(Int), this->val - p->val);
+    long long val = toInt(x) - this->val;
+    void *mem = ARP_MallocARelDtor(classSz(__Int), destroy);
+    return new(compose(_Int(), mem), VA(val));
 }
 
-static void *_mul(const void *_this, const void *x)
+static void *_mul(const void *_this, FormWO_t x)
 {
     const struct Int *this = offsetOf(_this, __Int);
-    const struct Int *p = offsetOf(x, __Int);
-    return new(T(Int), this->val * p->val);
+    long long val = toInt(x) * this->val;
+    void *mem = ARP_MallocARelDtor(classSz(__Int), destroy);
+    return new(compose(_Int(), mem), VA(val));
 }
 
-static void *_div(const void *_this, const void *x)
+static void *_div(const void *_this, FormWO_t x)
 {
     const struct Int *this = offsetOf(_this, __Int);
-    const struct Int *p = offsetOf(x, __Int);
-    return new(T(Int), this->val / p->val);
+    long long val = toInt(x) / this->val;
+    void *mem = ARP_MallocARelDtor(classSz(__Int), destroy);
+    return new(compose(_Int(), mem), VA(val));
 }
 
-static void *_mod(const void *_this, const void *x)
+static void *_mod(const void *_this, FormWO_t x)
 {
     const struct Int *this = offsetOf(_this, __Int);
-    const struct Int *p = offsetOf(x, __Int);
-    return new(T(Int), this->val % p->val);
+    long long val = toInt(x) % this->val;
+    void *mem = ARP_MallocARelDtor(classSz(__Int), destroy);
+    return new(compose(_Int(), mem), VA(val));
 }
 
 static void *_cast(const void *_this, const char *c)
@@ -161,6 +191,17 @@ static void *_cast(const void *_this, const char *c)
         *v = (unsigned char)this->val;
         return v;
     }
+    if (!strcmp(c, "float")) {
+        float *v = ARP_MallocARel(sizeof(float));
+        *v = (float)this->val;
+        return v;
+    }
+    if (!strcmp(c, "double")) {
+        double *v = ARP_MallocARel(sizeof(double));
+        *v = (double)this->val;
+        return v;
+    }
+    assert(0);
     return NULL;
 }
 

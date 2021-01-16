@@ -8,36 +8,35 @@
 #define Import METACLASS
 
 struct Class {
-    //const struct MetaClass _;
-    bool (*equal)(const void *_this, const void *x);
-    int (*cmp)(const void *_this, const void *x);
-    void *(*brackets)(const void *_this, const void *x);
+    bool (*equal)(const void *_this, FormWO_t x);
+    int (*cmp)(const void *_this, FormWO_t x);
+    void *(*brackets)(const void *_this, FormWO_t x);
     void (*inc)(void *_this);
     void (*dec)(void *_this);
-    void (*self_add)(void *_this, const void *x);
-    void (*self_sub)(void *_this, const void *x);
-    void (*asign)(void *_this, const void *x);
-    void *(*add)(const void *_this, const void *x);
-    void *(*sub)(const void *_this, const void *x);
-    void *(*mul)(const void *_this, const void *x);
-    void *(*div)(const void *_this, const void *x);
-    void *(*mod)(const void *_this, const void *x);
+    void (*self_add)(void *_this, FormWO_t x);
+    void (*self_sub)(void *_this, FormWO_t x);
+    void (*asign)(void *_this, FormWO_t x);
+    void *(*add)(const void *_this, FormWO_t x);
+    void *(*sub)(const void *_this, FormWO_t x);
+    void *(*mul)(const void *_this, FormWO_t x);
+    void *(*div)(const void *_this, FormWO_t x);
+    void *(*mod)(const void *_this, FormWO_t x);
     void *(*cast)(const void *_this, const char *c);
 };
 
-static bool _equal(const void *x);
-static int _cmp(const void *x);
-static void *_brackets(const void *x);
+static bool _equal(FormWO_t x);
+static int _cmp(FormWO_t x);
+static void *_brackets(FormWO_t x);
 static void _inc(void);
 static void _dec(void);
-static void _self_add(const void *x);
-static void _self_sub(const void *x);
-static void _asign(const void *x);
-static void *_add(const void *x);
-static void *_sub(const void *x);
-static void *_mul(const void *x);
-static void *_div(const void *x);
-static void *_mod(const void *x);
+static void _self_add(FormWO_t x);
+static void _self_sub(FormWO_t x);
+static void _asign(FormWO_t x);
+static void *_add(FormWO_t x);
+static void *_sub(FormWO_t x);
+static void *_mul(FormWO_t x);
+static void *_div(FormWO_t x);
+static void *_mod(FormWO_t x);
 static void *_cast(const char *c);
 //init
 volatile static struct ClassSelector ClassS = {
@@ -66,27 +65,30 @@ Form_t _Class(void)
 }
 
 //selector
-static bool _equal(const void *x)
+static bool _equal(FormWO_t x)
 {
     void *_this = pop_this();
     const struct Class *class = offsetOf(classOf(_this), __Class);
     assert(class->equal);
     return class->equal(_this, x);
 }
-static int _cmp(const void *x)
+
+static int _cmp(FormWO_t x)
 {
     void *_this = pop_this();
     const struct Class *class = offsetOf(classOf(_this), __Class);
     assert(class->cmp);
     return class->cmp(_this, x);
 }
-static void *_brackets(const void *x)
+
+static void *_brackets(FormWO_t x)
 {
     void *_this = pop_this();
     const struct Class *class = offsetOf(classOf(_this), __Class);
     assert(class->brackets);
     return class->brackets(_this, x);
 }
+
 static void _inc(void)
 {
     void *_this = pop_this();
@@ -94,6 +96,7 @@ static void _inc(void)
     assert(class->inc);
     return class->inc(_this);
 }
+
 static void _dec(void)
 {
     void *_this = pop_this();
@@ -101,56 +104,64 @@ static void _dec(void)
     assert(class->dec);
     return class->dec(_this);
 }
-static void _self_add(const void *x)
+
+static void _self_add(FormWO_t x)
 {
     void *_this = pop_this();
     const struct Class *class = offsetOf(classOf(_this), __Class);
     assert(class->self_add);
     class->self_add(_this, x);
 }
-static void _self_sub(const void *x)
+
+static void _self_sub(FormWO_t x)
 {
     void *_this = pop_this();
     const struct Class *class = offsetOf(classOf(_this), __Class);
     assert(class->self_sub);
     class->self_sub(_this, x);
 }
-static void _asign(const void *x)
+
+static void _asign(FormWO_t x)
 {
     void *_this = pop_this();
     const struct Class *class = offsetOf(classOf(_this), __Class);
     assert(class->asign);
     class->asign(_this, x);
 }
-static void *_add(const void *x)
+
+static void *_add(FormWO_t x)
 {
     void *_this = pop_this();
     const struct Class *class = offsetOf(classOf(_this), __Class);
     assert(class->add);
     return class->add(_this, x);
 }
-static void *_sub(const void *x)
+
+static void *_sub(FormWO_t x)
 {
     void *_this = pop_this();
     const struct Class *class = offsetOf(classOf(_this), __Class);
     assert(class->sub);
     return class->sub(_this, x);
 }
-static void *_mul(const void *x)
+
+static void *_mul(FormWO_t x)
 {
     void *_this = pop_this();
     const struct Class *class = offsetOf(classOf(_this), __Class);
     assert(class->mul);
     return class->mul(_this, x);
 }
-static void *_div(const void *x)
+
+static void *_div(FormWO_t x)
 {
     void *_this = pop_this();
     const struct Class *class = offsetOf(classOf(_this), __Class);
     assert(class->div);
     return class->div(_this, x);
 }
-static void *_mod(const void *x)
+
+static void *_mod(FormWO_t x)
 {
     void *_this = pop_this();
     const struct Class *class = offsetOf(classOf(_this), __Class);

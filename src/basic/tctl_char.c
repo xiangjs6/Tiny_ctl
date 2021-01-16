@@ -5,6 +5,7 @@
 #include "include/_tctl_char.h"
 #include "../../include/auto_release_pool.h"
 #include <string.h>
+#include <assert.h>
 #define Import CLASS, CHAR, OBJECT
 
 struct Char {
@@ -12,31 +13,44 @@ struct Char {
 };
 
 static const void *__Char = NULL;
+
+static inline char toChar(FormWO_t t)
+{
+    char val;
+    switch (t._.f) {
+        case POD:
+            memcpy(&val, &t.mem, t._.size);
+            break;
+        case ADDR:
+            memcpy(&val, t.mem, t._.size);
+            break;
+        case OBJ:
+            val = *(char*)Cast(t.mem, char);
+            break;
+    }
+    return val;
+}
+
 static void *_ctor(void *_this, va_list *app)
 {
     struct Char *this = super_ctor(__Char, _this, app);
     FormWO_t t = va_arg(*app, FormWO_t);
-    if (t._.f == POD)
-        memcpy(&this->val, &t.mem, sizeof(char));
-    else if (t._.f == ADDR)
-        memcpy(&this->val, t.mem, sizeof(char));
-    else
-        this->val = *(char *) Cast(t.mem, char);
+    this->val = toChar(t);
     return _this + sizeof(struct Char);
 }
 
-static bool _equal(const void *_this, const void *x)
+static bool _equal(const void *_this, FormWO_t x)
 {
     const struct Char *this = offsetOf(_this, __Char);
-    const struct Char *p = offsetOf(x, __Char);
-    return this->val == p->val;
+    char val = toChar(x);
+    return this->val == val;
 }
 
-static int _cmp(const void *_this, const void *x)
+static int _cmp(const void *_this, FormWO_t x)
 {
     const struct Char *this = offsetOf(_this, __Char);
-    const struct Char *p = offsetOf(x, __Char);
-    return this->val - p->val;
+    char val = toChar(x);
+    return this->val - val;
 }
 
 static void _inc(void *_this)
@@ -51,60 +65,65 @@ static void _dec(void *_this)
     this->val--;
 }
 
-static void _self_add(void *_this, const void *x)
+static void _self_add(void *_this, FormWO_t x)
 {
     struct Char *this = offsetOf(_this, __Char);
-    const struct Char *p = offsetOf(x, __Char);
-    this->val += p->val;
+    char val = toChar(x);
+    this->val += val;
 }
 
-static void _self_sub(void *_this, const void *x)
+static void _self_sub(void *_this, FormWO_t x)
 {
     struct Char *this = offsetOf(_this, __Char);
-    const struct Char *p = offsetOf(x, __Char);
-    this->val -= p->val;
+    char val = toChar(x);
+    this->val -= val;
 }
 
-static void _asign(void *_this, const void *x)
+static void _asign(void *_this, FormWO_t x)
 {
     struct Char *this = offsetOf(_this, __Char);
-    const struct Char *p = offsetOf(x, __Char);
-    this->val = p->val;
+    char val = toChar(x);
+    this->val = val;
 }
 
-static void *_add(const void *_this, const void *x)
+static void *_add(const void *_this, FormWO_t x)
 {
     const struct Char *this = offsetOf(_this, __Char);
-    const struct Char *p = offsetOf(x, __Char);
-    return new(T(Char), this->val + p->val);
+    char val = toChar(x) + this->val;
+    void *mem = ARP_MallocARelDtor(classSz(__Char), destroy);
+    return new(compose(_Char(), mem), VA(val));
 }
 
-static void *_sub(const void *_this, const void *x)
+static void *_sub(const void *_this, FormWO_t x)
 {
     const struct Char *this = offsetOf(_this, __Char);
-    const struct Char *p = offsetOf(x, __Char);
-    return new(T(Char), this->val - p->val);
+    char val = toChar(x) - this->val;
+    void *mem = ARP_MallocARelDtor(classSz(__Char), destroy);
+    return new(compose(_Char(), mem), VA(val));
 }
 
-static void *_mul(const void *_this, const void *x)
+static void *_mul(const void *_this, FormWO_t x)
 {
     const struct Char *this = offsetOf(_this, __Char);
-    const struct Char *p = offsetOf(x, __Char);
-    return new(T(Char), this->val * p->val);
+    char val = toChar(x) * this->val;
+    void *mem = ARP_MallocARelDtor(classSz(__Char), destroy);
+    return new(compose(_Char(), mem), VA(val));
 }
 
-static void *_div(const void *_this, const void *x)
+static void *_div(const void *_this, FormWO_t x)
 {
     const struct Char *this = offsetOf(_this, __Char);
-    const struct Char *p = offsetOf(x, __Char);
-    return new(T(Char), this->val / p->val);
+    char val = toChar(x) / this->val;
+    void *mem = ARP_MallocARelDtor(classSz(__Char), destroy);
+    return new(compose(_Char(), mem), VA(val));
 }
 
-static void *_mod(const void *_this, const void *x)
+static void *_mod(const void *_this, FormWO_t x)
 {
     const struct Char *this = offsetOf(_this, __Char);
-    const struct Char *p = offsetOf(x, __Char);
-    return new(T(Char), this->val % p->val);
+    char val = toChar(x) % this->val;
+    void *mem = ARP_MallocARelDtor(classSz(__Char), destroy);
+    return new(compose(_Char(), mem), VA(val));
 }
 
 static void *_cast(const void *_this, const char *c)
@@ -160,6 +179,17 @@ static void *_cast(const void *_this, const char *c)
         *v = (unsigned char)this->val;
         return v;
     }
+    if (!strcmp(c, "float")) {
+        float *v = ARP_MallocARel(sizeof(float));
+        *v = (float)this->val;
+        return v;
+    }
+    if (!strcmp(c, "double")) {
+        double *v = ARP_MallocARel(sizeof(double));
+        *v = (double)this->val;
+        return v;
+    }
+    assert(0);
     return NULL;
 }
 

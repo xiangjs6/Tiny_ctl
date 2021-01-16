@@ -4,6 +4,7 @@
 
 #include "include/_tctl_uint.h"
 #include <string.h>
+#include <assert.h>
 #include "../../include/auto_release_pool.h"
 #define Import CLASS, UINT, OBJECT
 
@@ -12,31 +13,44 @@ struct UInt {
 };
 
 static const void *__UInt = NULL;
+
+static inline unsigned long long toUInt(FormWO_t t)
+{
+    unsigned long long val;
+    switch (t._.f) {
+        case POD:
+            memcpy(&val, &t.mem, t._.size);
+            break;
+        case ADDR:
+            memcpy(&val, t.mem, t._.size);
+            break;
+        case OBJ:
+            val = *(unsigned long long *) Cast(t.mem, unsigned long long);
+            break;
+    }
+    return val;
+}
+
 static void *_ctor(void *_this, va_list *app)
 {
     struct UInt *this = super_ctor(__UInt, _this, app);
     FormWO_t t = va_arg(*app, FormWO_t);
-    if (t._.f == POD)
-        memcpy(&this->val, &t.mem, sizeof(unsigned long long));
-    else if (t._.f == ADDR)
-        memcpy(&this->val, t.mem, sizeof(unsigned long long));
-    else
-        this->val = *(unsigned long long*)Cast(t.mem, unsigned long long);
+    this->val = toUInt(t);
     return _this + sizeof(struct UInt);
 }
 
-static bool _equal(const void *_this, const void *x)
+static bool _equal(const void *_this, FormWO_t x)
 {
     const struct UInt *this = offsetOf(_this, __UInt);
-    const struct UInt *p = offsetOf(x, __UInt);
-    return this->val == p->val;
+    unsigned long long val = toUInt(x);
+    return this->val == val;
 }
 
-static int _cmp(const void *_this, const void *x)
+static int _cmp(const void *_this, FormWO_t x)
 {
     const struct UInt *this = offsetOf(_this, __UInt);
-    const struct UInt *p = offsetOf(x, __UInt);
-    return this->val - p->val;
+    unsigned long long val = toUInt(x);
+    return this->val - val;
 }
 
 static void _inc(void *_this)
@@ -51,46 +65,65 @@ static void _dec(void *_this)
     this->val--;
 }
 
-static void _self_add(void *_this, const void *x)
+static void _self_add(void *_this, FormWO_t x)
 {
     struct UInt *this = offsetOf(_this, __UInt);
-    const struct UInt *p = offsetOf(x, __UInt);
-    this->val += p->val;
+    unsigned long long val = toUInt(x);
+    this->val += val;
 }
 
-static void _self_sub(void *_this, const void *x)
+static void _self_sub(void *_this, FormWO_t x)
 {
     struct UInt *this = offsetOf(_this, __UInt);
-    const struct UInt *p = offsetOf(x, __UInt);
-    this->val -= p->val;
+    unsigned long long val = toUInt(x);
+    this->val -= val;
 }
 
-static void _asign(void *_this, const void *x)
+static void _asign(void *_this, FormWO_t x)
 {
     struct UInt *this = offsetOf(_this, __UInt);
-    const struct UInt *p = offsetOf(x, __UInt);
-    this->val = p->val;
+    unsigned long long val = toUInt(x);
+    this->val = val;
 }
 
-static void *_add(const void *_this, const void *x)
+static void *_add(const void *_this, FormWO_t x)
 {
     const struct UInt *this = offsetOf(_this, __UInt);
-    const struct UInt *p = offsetOf(x, __UInt);
-    return new(T(UInt), this->val + p->val);
+    unsigned long long val = toUInt(x) + this->val;
+    void *mem = ARP_MallocARelDtor(classSz(__UInt), destroy);
+    return new(compose(_UInt(), mem), VA(val));
 }
 
-static void *_sub(const void *_this, const void *x)
+static void *_sub(const void *_this, FormWO_t x)
 {
     const struct UInt *this = offsetOf(_this, __UInt);
-    const struct UInt *p = offsetOf(x, __UInt);
-    return new(T(UInt), this->val - p->val);
+    unsigned long long val = toUInt(x) - this->val;
+    void *mem = ARP_MallocARelDtor(classSz(__UInt), destroy);
+    return new(compose(_UInt(), mem), VA(val));
 }
 
-static void *_mul(const void *_this, const void *x)
+static void *_mul(const void *_this, FormWO_t x)
 {
     const struct UInt *this = offsetOf(_this, __UInt);
-    const struct UInt *p = offsetOf(x, __UInt);
-    return new(T(UInt), this->val * p->val);
+    unsigned long long val = toUInt(x) * this->val;
+    void *mem = ARP_MallocARelDtor(classSz(__UInt), destroy);
+    return new(compose(_UInt(), mem), VA(val));
+}
+
+static void *_div(const void *_this, FormWO_t x)
+{
+    const struct UInt *this = offsetOf(_this, __UInt);
+    unsigned long long val = toUInt(x) / this->val;
+    void *mem = ARP_MallocARelDtor(classSz(__UInt), destroy);
+    return new(compose(_UInt(), mem), VA(val));
+}
+
+static void *_mod(const void *_this, FormWO_t x)
+{
+    const struct UInt *this = offsetOf(_this, __UInt);
+    unsigned long long val = toUInt(x) % this->val;
+    void *mem = ARP_MallocARelDtor(classSz(__UInt), destroy);
+    return new(compose(_UInt(), mem), VA(val));
 }
 
 static void *_cast(const void *_this, const char *c)
@@ -146,22 +179,20 @@ static void *_cast(const void *_this, const char *c)
         *v = (unsigned char)this->val;
         return v;
     }
+    if (!strcmp(c, "float")) {
+        float *v = ARP_MallocARel(sizeof(float));
+        *v = (float)this->val;
+        return v;
+    }
+    if (!strcmp(c, "double")) {
+        double *v = ARP_MallocARel(sizeof(double));
+        *v = (double)this->val;
+        return v;
+    }
+    assert(0);
     return NULL;
 }
 
-static void *_div(const void *_this, const void *x)
-{
-    const struct UInt *this = offsetOf(_this, __UInt);
-    const struct UInt *p = offsetOf(x, __UInt);
-    return new(T(UInt), this->val / p->val);
-}
-
-static void *_mod(const void *_this, const void *x)
-{
-    const struct UInt *this = offsetOf(_this, __UInt);
-    const struct UInt *p = offsetOf(x, __UInt);
-    return new(T(UInt), this->val % p->val);
-}
 void initUInt(void)
 {
     if (!__UInt)
