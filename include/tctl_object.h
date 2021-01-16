@@ -45,8 +45,8 @@ void *_ToPoint(char t, size_t size, ...);
                                                        default : _ToPoint(0, sizeof(_t), _t)))
 #define VA(...) MAP_LIST(_VA_AUX, ##__VA_ARGS__)
 
-#define _T(__T) _Generic(__T, Import,                   \
-                         __ARG_ADDR_t : (Form_t){ADDR}, \
+#define _T(__T) _Generic(__T, Import,                                           \
+                         __ARG_ADDR_t : (Form_t){ADDR, {.size = sizeof(*__T)}}, \
                          default : (Form_t){POD, {.size = sizeof(__T)}})
 #define T(__T, ...) _T(*(__T*)0), ##__VA_ARGS__
 #define ARRAY_T(__T, __N) _T(*(__T(*)[__N])0)
