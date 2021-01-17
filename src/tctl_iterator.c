@@ -146,7 +146,8 @@ long long distance(Iterator _a, Iterator _b)
         return a_class->dist(_a, _b);
     long long dis = 0;
     char tmp[sizeOf(_a)];
-    Iterator it = THIS(_a).ctor(tmp, THIS(_a).type(), VA(_a));
+    Form_t t = THIS(_a).type();
+    Iterator it = THIS(_a).ctor(tmp, VA(VA_ADDR(t), _a));
     for (; !THIS(it).equal(VA(_b)); THIS(it).inc())
         dis++;
     destroy(it);

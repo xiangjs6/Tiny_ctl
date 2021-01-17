@@ -209,7 +209,7 @@ static size_t _dealIterVarySize(void *src, size_t size)
 static void *_dealIterVaryArg(FormWO_t t, char *type)
 {
     if (t._.f == OBJ) {
-        if (t._.class == __VectorIter) {
+        if (t._.class == _Iterator().class) {
             *type = 'I';
             return t.mem;
         }
