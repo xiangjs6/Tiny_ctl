@@ -50,7 +50,7 @@ void initIterator(void)
     if (!__IteratorClass) {
         __IteratorClass = new(T(MetaClass), "IteratorClass", T(Class),
                               sizeof(struct IteratorClass) + classSz(_Class().class),
-                              _MetaClassS->ctor, _class_ctor);
+                              _MetaClassS->ctor, _class_ctor, NULL);
     }
     if (!__Iterator) {
         __Iterator = new(_IteratorClass(), "Iterator", T(Object),
@@ -58,7 +58,7 @@ void initIterator(void)
                          _MetaClassS->ctor, _object_ctor,
                          IteratorS.derefer, _object_derefer,
                          IteratorS.type, _object_type,
-                         Selector, _IteratorS);
+                         Selector, _IteratorS, NULL);
     }
 }
 
@@ -119,7 +119,9 @@ static void *_class_ctor(void *_this, va_list *app)
 static void *_object_ctor(void *_this, va_list *app)
 {
     struct Iterator *this = super_ctor(__Iterator, _this, app);
-    this->_t = va_arg(*app, Form_t);
+    FormWO_t t = va_arg(*app, FormWO_t);
+    assert(t._.f == ADDR);
+    this->_t = *(Form_t*)t.mem;
     return (void*)this + sizeof(struct Iterator);
 }
 

@@ -217,6 +217,6 @@ void initClass(void)
     if (!__Class) {
         __Class = new(T(MetaClass), "Class",
                       T(MetaClass), sizeof(struct Class) + classSz(_MetaClass().class),
-                     _MetaClassS->ctor, _ctor);
+                     _MetaClassS->ctor, _ctor, NULL);
     }
 }

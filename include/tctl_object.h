@@ -19,7 +19,7 @@
  * */
 
 typedef struct {
-    enum {OBJ, POD, ADDR} f;
+    enum {OBJ, POD, ADDR, END} f;
     union {
         size_t size;
         const void *class;
@@ -36,7 +36,7 @@ typedef struct {void *p; size_t size;} __ARG_ADDR_t;
 void *_ToPoint(int t, size_t size, ...);
 void *_AddrAux(int t, ...);
 #define FORM_WITH_OBJ(_t, ...) (FormWO_t){_t, ##__VA_ARGS__}
-#define VAEND NULL
+#define VAEND (FormWO_t){{END}}
 #define VA_ADDR(arg) ((__ARG_ADDR_t){&(arg), sizeof(arg)})
 #define _VA_AUX(_t) FORM_WITH_OBJ(_T(_t), _Generic(_t, float : _ToPoint('f', sizeof(_t), _t),        \
                                                        double : _ToPoint('f', sizeof(_t), _t),       \

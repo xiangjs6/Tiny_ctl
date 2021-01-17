@@ -2,7 +2,6 @@
 ## 记录问题：
 1. hashtable的__next_prime以后调用lower_bound算法
 2. power算法待解决
-3. 迭代器的构造函数，VAEND宏重新写
 ## 编译使用
 ```shell
 cd src

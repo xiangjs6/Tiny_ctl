@@ -208,7 +208,7 @@ void initDouble(void)
                      _ClassS->mul, _mul,
                      _ClassS->div, _div,
                      _ClassS->cast, _cast,
-                     Selector, _ClassS);
+                     Selector, _ClassS, NULL);
 }
 
 Form_t _Double(void)

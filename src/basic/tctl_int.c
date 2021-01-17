@@ -242,7 +242,7 @@ void initInt(void)
                    _ClassS->div, _div,
                    _ClassS->mod, _mod,
                    _ClassS->cast, _cast,
-                   Selector, _ClassS);
+                   Selector, _ClassS, NULL);
 }
 
 Form_t _Int(void)

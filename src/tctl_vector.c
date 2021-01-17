@@ -8,8 +8,9 @@
 #include "../include/tctl_int.h"
 #include "../include/tctl_algobase.h"
 #include "include/_tctl_iterator.h"
-#include <memory.h>
 #include <assert.h>
+#include <stdarg.h>
+#include <string.h>
 
 #define Import CLASS, ITERATOR, OBJECT, METACLASS
 
@@ -134,13 +135,12 @@ void initVector(void)
                            _ClassS->sub, _iter_sub,
                            _IteratorS->derefer, _iter_derefer,
                            _IteratorS->dist, _iter_dist,
-                           Selector, _IteratorS
-                          );
+                           Selector, _IteratorS, NULL);
     }
     if (!__VectorClass) {
         __VectorClass = new(T(MetaClass), "VectorClass",
                             T(Class), sizeof(struct VectorClass) + classSz(_Class().class),
-                            _MetaClassS->ctor, _vectorclass_ctor);
+                            _MetaClassS->ctor, _vectorclass_ctor, NULL);
     }
     if (!__Vector) {
         __Vector = new(_VectorClass(), "Vector",
@@ -161,7 +161,7 @@ void initVector(void)
                        VectorS.resize, _vector_resize,
                        VectorS.clear, _vector_clear,
                        VectorS.swap, _vector_swap,
-                       Selector, _VectorS);
+                       Selector, _VectorS, NULL);
     }
 }
 
@@ -184,6 +184,59 @@ static Form_t _VectorIter(void)
 }
 
 //private
+static size_t _dealIterVarySize(void *src, size_t size)
+{
+    if (size == 1) {
+        char c;
+        memcpy(&c, src, size);
+        size = c;
+    } else if (size == 2) {
+        short s;
+        memcpy(&s, src, size);
+        size = s;
+    } else if (size == 4) {
+        int i;
+        memcpy(&i, src, size);
+        size = i;
+    } else if (size == 8) {
+        long long l;
+        memcpy(&l, src, size);
+        size = l;
+    }
+    return size;
+}
+
+static void *_dealIterVaryArg(FormWO_t t, char *type)
+{
+    if (t._.f == OBJ) {
+        if (t._.class == __VectorIter) {
+            *type = 'I';
+            return t.mem;
+        }
+        if (*type == 'p')
+            return Cast(t.mem, "point");
+        if (*type == 'S')
+            return Cast(t.mem, "size");
+    } else if (t._.f == POD) {
+        if (*type == 'P') {
+            assert(t._.size == sizeof(void*));
+            return t.mem;
+        }
+        if (*type == 'S') {
+            size_t size = _dealIterVarySize(&t.mem, t._.size);
+            return (void*)size;
+        }
+    } else if (t._.f == ADDR) {
+        if (*type == 'P')
+            return *(void**)t.mem;
+        if (*type == 'S') {
+            size_t size = _dealIterVarySize(t.mem, t._.size);
+            return (void*)size;
+        }
+    }
+    assert(0);
+    return NULL;
+}
 static void fill_allocate(struct Vector *this)
 {
     size_t old_size = this->total_storage_memb;
@@ -191,9 +244,9 @@ static void fill_allocate(struct Vector *this)
     this->total_storage_memb *= 2;
     this->total_storage_memb = this->total_storage_memb ? this->total_storage_memb : 1;
     void *new_block = allocate(this->total_storage_memb * memb_size);
-    Iterator new_it = new(_VectorIter(), this->_t, 0, new_block);
-    Iterator first = new(_VectorIter(), this->_t, 0, this->start_ptr);
-    Iterator last = new(_VectorIter(), this->_t, this->nmemb, this->start_ptr);
+    Iterator new_it = new(_VectorIter(), VA(VA_ADDR(this->_t), 0, new_block));
+    Iterator first = new(_VectorIter(), VA(VA_ADDR(this->_t), 0, this->start_ptr));
+    Iterator last = new(_VectorIter(), VA(VA_ADDR(this->_t), this->nmemb, this->start_ptr));
     copy(first, last, new_it);
     if (this->_t.f != POD) {
         for (; !THIS(first).equal(VA(last)); THIS(first).inc()) {
@@ -214,8 +267,23 @@ static void fill_allocate(struct Vector *this)
 static void *_iter_ctor(void *_this, va_list *app)
 {
     struct VectorIter *this = super_ctor(__VectorIter, _this, app);
-    this->cur = va_arg(*app, size_t);
-    this->ptr = va_arg(*app, void*);
+    FormWO_t t;
+    const static char s[2] = {'S', 'P'};
+    const char *s_p = s;
+    while ((t = va_arg(*app, FormWO_t))._.f != END)
+    {
+        char c = *s_p++;
+        void *res = _dealIterVaryArg(t, &c);
+        if (c == 'I') {
+            struct VectorIter *it = offsetOf(res, __VectorIter);
+            *this = *it;
+            break;
+        } else if (c == 'S') {
+            this->cur = (size_t)res;
+        } else if (c == 'P') {
+            this->ptr = res;
+        }
+    }
     return (void*)this + sizeof(struct VectorIter);
 }
 static bool _iter_equal(const void *_this, FormWO_t _x)
@@ -293,7 +361,8 @@ static void *_iter_add(const void *_this, FormWO_t _x)
     Int x = (void*)i_mem;
     construct(_Int(), i_mem, _x);
     void *mem = ARP_MallocARelDtor(classSz(__VectorIter), destroy);
-    void *res = new(compose(_VectorIter(), mem), THIS(it).type(), this->cur + x->val, this->ptr);
+    Form_t t = THIS(it).type();
+    void *res = new(compose(_VectorIter(), mem), VA(VA_ADDR(t), this->cur + x->val, this->ptr));
     destroy(x);
     return res;
 }
@@ -306,7 +375,8 @@ static void *_iter_sub(const void *_this, FormWO_t _x)
     Int x = (void*)i_mem;
     construct(_Int(), i_mem, _x);
     void *mem = ARP_MallocARelDtor(classSz(__VectorIter), destroy);
-    void *res = new(compose(_VectorIter(), mem), THIS(it).type(), this->cur - x->val, this->ptr);
+    Form_t t = THIS(it).type();
+    void *res = new(compose(_VectorIter(), mem), VA(VA_ADDR(t), this->cur - x->val, this->ptr));
     destroy(x);
     return res;
 }
@@ -378,16 +448,16 @@ static void *_vector_brackets(const void *_this, FormWO_t _x)
 
 static Iterator _vector_begin(const void *_this)
 {
-    const struct Vector *this = offsetOf(_this, __Vector);
+    struct Vector *this = offsetOf(_this, __Vector);
     void *mem = ARP_MallocARelDtor(classSz(__VectorIter), destroy);
-    return new(compose(_VectorIter(), mem), this->_t, 0, this->start_ptr);
+    return new(compose(_VectorIter(), mem), VA(VA_ADDR(this->_t), 0, this->start_ptr));
 }
 
 static Iterator _vector_end(const void *_this)
 {
-    const struct Vector *this = offsetOf(_this, __Vector);
+    struct Vector *this = offsetOf(_this, __Vector);
     void *mem = ARP_MallocARelDtor(classSz(__VectorIter), destroy);
-    return new(compose(_VectorIter(), mem), this->_t, this->nmemb, this->start_ptr);
+    return new(compose(_VectorIter(), mem), VA(VA_ADDR(this->_t), this->nmemb, this->start_ptr));
 }
 
 static const void *_vector_front(const void *_this)
@@ -465,9 +535,9 @@ static Iterator _vector_erase(void *_this, Iterator _iter)
     void *p_target = iter->ptr + iter->cur * memb_size;
     if (this->_t.f == OBJ)
         destroy(p_target);
-    Iterator target_it = new(_VectorIter(), this->_t, iter->cur, iter->ptr);
-    Iterator first = new(_VectorIter(), this->_t, iter->cur + 1, this->start_ptr);
-    Iterator last = new(_VectorIter(), this->_t, this->nmemb, this->start_ptr);
+    Iterator target_it = new(_VectorIter(), VA(VA_ADDR(this->_t), iter->cur, iter->ptr));
+    Iterator first = new(_VectorIter(), VA(VA_ADDR(this->_t), iter->cur + 1, this->start_ptr));
+    Iterator last = new(_VectorIter(), VA(VA_ADDR(this->_t), this->nmemb, this->start_ptr));
     copy(first, last, target_it);
     delete(target_it);
     delete(first);
@@ -493,9 +563,9 @@ static Iterator _vector_insert(void *_this, Iterator _iter, FormWO_t _x)
     if (!_vector_capacity(_this))
         fill_allocate(_this);
     size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
-    Iterator target_it = new(_VectorIter(), this->_t, iter->cur + 1, iter->ptr);
-    Iterator first = new(_VectorIter(), this->_t, iter->cur, this->start_ptr);
-    Iterator last = new(_VectorIter(), this->_t, this->nmemb, this->start_ptr);
+    Iterator target_it = new(_VectorIter(), VA(VA_ADDR(this->_t), iter->cur + 1, iter->ptr));
+    Iterator first = new(_VectorIter(), VA(VA_ADDR(this->_t), iter->cur, this->start_ptr));
+    Iterator last = new(_VectorIter(), VA(VA_ADDR(this->_t), this->nmemb, this->start_ptr));
     copy(first, last, target_it);
     delete(target_it);
     delete(first);
@@ -529,8 +599,8 @@ static void _vector_clear(void *_this)
 {
     struct Vector *this = offsetOf(_this, __Vector);
     if (this->_t.f == OBJ) {
-        Iterator it = new(_VectorIter(), this->_t, 0, this->start_ptr);
-        Iterator end = new(_VectorIter(), this->_t, this->nmemb, this->start_ptr);
+        Iterator it = new(_VectorIter(), VA(VA_ADDR(this->_t), 0, this->start_ptr));
+        Iterator end = new(_VectorIter(), VA(VA_ADDR(this->_t), this->nmemb, this->start_ptr));
         while (!THIS(it).equal(VA(end)))
         {
             Object obj = THIS(it).derefer();
