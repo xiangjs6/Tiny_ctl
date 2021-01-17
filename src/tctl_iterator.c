@@ -6,7 +6,6 @@
 //#include "tctl_allocator.h"
 //#include "../include/auto_release_pool.h"
 #include <memory.h>
-#include <assert.h>
 
 #define Import METACLASS, CLASS, OBJECT, ITERATOR
 
@@ -120,8 +119,9 @@ static void *_object_ctor(void *_this, va_list *app)
 {
     struct Iterator *this = super_ctor(__Iterator, _this, app);
     FormWO_t t = va_arg(*app, FormWO_t);
-    assert(t._.f == ADDR);
-    this->_t = *(Form_t*)t.mem;
+    assert(t._.f >= FORM);
+    t._.f -= FORM;
+    this->_t = t._;
     return (void*)this + sizeof(struct Iterator);
 }
 

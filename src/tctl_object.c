@@ -5,8 +5,8 @@
 #include "../include/tctl_allocator.h"
 #include "../include/tctl_portable.h"
 #include "include/_tctl_object.h"
+#include <stdarg.h>
 #include <memory.h>
-#include <assert.h>
 #include <stdlib.h>
 
 
@@ -400,4 +400,13 @@ void *_AddrAux(int t, ...)
             break;
     }
     return res;
+}
+
+Form_t _FormAux(int t, ...)
+{
+    va_list ap;
+    va_start(ap, t);
+    Form_t f = va_arg(ap, Form_t);
+    va_end(ap);
+    return (Form_t){FORM + f.f, {f.size}};
 }

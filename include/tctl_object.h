@@ -7,19 +7,12 @@
 
 #include <stdio.h>
 #include <stdarg.h>
+#include <assert.h>
 #include "tctl_def.h"
 #include "map_macro.h"
 
-/*
- * tctl的对象规则
- * 1、使用对象前调用THIS或者push_this传递对象地址，并且在对象方法中使用pop_this获取地址（关键）
- * 2、建议将私有变量重新封装到单独结构体中，并将其大小填充到对象结构体
- * 3、建议私有成员函数使用同一结构体指针，指向一个不变常量上
- * 4、遵守各个泛类对象指定的规则，比如迭代器
- * */
-
 typedef struct {
-    enum {OBJ, POD, ADDR, END} f;
+    enum {OBJ, POD, ADDR, END, FORM} f;
     union {
         size_t size;
         const void *class;
@@ -35,23 +28,35 @@ typedef struct {
 typedef struct {void *p; size_t size;} __ARG_ADDR_t;
 void *_ToPoint(int t, size_t size, ...);
 void *_AddrAux(int t, ...);
+Form_t _FormAux(int t, ...);
+//FormWO_t的初始化宏
 #define FORM_WITH_OBJ(_t, ...) (FormWO_t){_t, ##__VA_ARGS__}
+//VA的结尾描述变量
 #define VAEND (FormWO_t){{END}}
+//获取变量的地址，并生成__ARG_ADDR_t变量
 #define VA_ADDR(arg) ((__ARG_ADDR_t){&(arg), sizeof(arg)})
+//为每个变量生成对应的FormWO_t变量
 #define _VA_AUX(_t) FORM_WITH_OBJ(_T(_t), _Generic(_t, float : _ToPoint('f', sizeof(_t), _t),        \
                                                        double : _ToPoint('f', sizeof(_t), _t),       \
                                                        const float : _ToPoint('f', sizeof(_t), _t),  \
                                                        const double : _ToPoint('f', sizeof(_t), _t), \
                                                        __ARG_ADDR_t : _AddrAux('a', _t),             \
+                                                       Form_t : NULL,                                \
                                                        default : _ToPoint(0, sizeof(_t), _t)))
+//用于各个函数调用时的参数列表中，对每一个放入该宏的参数，都会计算它的Form_t并生成FormWO_t变量
 #define VA(...) MAP_LIST(_VA_AUX, ##__VA_ARGS__)
 
+//对变量本身去生成对应的Form_t
 #define _T(__T) _Generic(__T, Import,                                                         \
                          __ARG_ADDR_t : (Form_t){ADDR, {.size = (size_t)_AddrAux('s', __T)}}, \
+                         Form_t : _FormAux(0, __T),                                           \
                          default : (Form_t){POD, {.size = sizeof(__T)}})
-#define T(__T, ...) _T(*(__T volatile *)0), ##__VA_ARGS__
+//由类型名生成Form_t变量，Form_t变量名不能放入宏中
+#define T(__T, ...) _Generic(*(__T volatile *)0, Form_t : assert(0), default : _T(*(__T volatile *)0)), ##__VA_ARGS__
+//当创建数组类型时，使用ARRAY_T()替代T()
 #define ARRAY_T(__T, __N) _T(*(__T(*)[__N])0)
 
+//创建对象时应该使用VA()，创建新类时不能使用VA()，应按照MetaClass创建类
 #define new(__T, ...) _new(FORM_WITH_OBJ(__T), ##__VA_ARGS__, VAEND)
 #define delete(this) _delete(_T(this), this)
 void *_new(FormWO_t t, ...);

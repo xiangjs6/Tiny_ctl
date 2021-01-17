@@ -8,7 +8,6 @@
 #include "../include/tctl_int.h"
 #include "../include/tctl_algobase.h"
 #include "include/_tctl_iterator.h"
-#include <assert.h>
 #include <stdarg.h>
 #include <string.h>
 
@@ -244,9 +243,9 @@ static void fill_allocate(struct Vector *this)
     this->total_storage_memb *= 2;
     this->total_storage_memb = this->total_storage_memb ? this->total_storage_memb : 1;
     void *new_block = allocate(this->total_storage_memb * memb_size);
-    Iterator new_it = new(_VectorIter(), VA(VA_ADDR(this->_t), 0, new_block));
-    Iterator first = new(_VectorIter(), VA(VA_ADDR(this->_t), 0, this->start_ptr));
-    Iterator last = new(_VectorIter(), VA(VA_ADDR(this->_t), this->nmemb, this->start_ptr));
+    Iterator new_it = new(_VectorIter(), VA(this->_t, 0, new_block));
+    Iterator first = new(_VectorIter(), VA(this->_t, 0, this->start_ptr));
+    Iterator last = new(_VectorIter(), VA(this->_t, this->nmemb, this->start_ptr));
     copy(first, last, new_it);
     if (this->_t.f != POD) {
         for (; !THIS(first).equal(VA(last)); THIS(first).inc()) {
@@ -362,7 +361,7 @@ static void *_iter_add(const void *_this, FormWO_t _x)
     construct(_Int(), i_mem, _x);
     void *mem = ARP_MallocARelDtor(classSz(__VectorIter), destroy);
     Form_t t = THIS(it).type();
-    void *res = new(compose(_VectorIter(), mem), VA(VA_ADDR(t), this->cur + x->val, this->ptr));
+    void *res = new(compose(_VectorIter(), mem), VA(t, this->cur + x->val, this->ptr));
     destroy(x);
     return res;
 }
@@ -376,7 +375,7 @@ static void *_iter_sub(const void *_this, FormWO_t _x)
     construct(_Int(), i_mem, _x);
     void *mem = ARP_MallocARelDtor(classSz(__VectorIter), destroy);
     Form_t t = THIS(it).type();
-    void *res = new(compose(_VectorIter(), mem), VA(VA_ADDR(t), this->cur - x->val, this->ptr));
+    void *res = new(compose(_VectorIter(), mem), VA(t, this->cur - x->val, this->ptr));
     destroy(x);
     return res;
 }
@@ -426,7 +425,10 @@ static void *_vectorclass_ctor(void *_this, va_list *app)
 static void *_vector_ctor(void *_this, va_list *app)
 {
     struct Vector *this = super_ctor(__Vector, _this, app);
-    this->_t = va_arg(*app, Form_t);
+    FormWO_t t = va_arg(*app, FormWO_t);
+    assert(t._.f >= FORM);
+    t._.f -= FORM;
+    this->_t = t._;
     this->nmemb = 0;
     this->start_ptr = NULL;
     this->finish_ptr = NULL;
@@ -450,14 +452,14 @@ static Iterator _vector_begin(const void *_this)
 {
     struct Vector *this = offsetOf(_this, __Vector);
     void *mem = ARP_MallocARelDtor(classSz(__VectorIter), destroy);
-    return new(compose(_VectorIter(), mem), VA(VA_ADDR(this->_t), 0, this->start_ptr));
+    return new(compose(_VectorIter(), mem), VA(this->_t, 0, this->start_ptr));
 }
 
 static Iterator _vector_end(const void *_this)
 {
     struct Vector *this = offsetOf(_this, __Vector);
     void *mem = ARP_MallocARelDtor(classSz(__VectorIter), destroy);
-    return new(compose(_VectorIter(), mem), VA(VA_ADDR(this->_t), this->nmemb, this->start_ptr));
+    return new(compose(_VectorIter(), mem), VA(this->_t, this->nmemb, this->start_ptr));
 }
 
 static const void *_vector_front(const void *_this)
@@ -535,9 +537,9 @@ static Iterator _vector_erase(void *_this, Iterator _iter)
     void *p_target = iter->ptr + iter->cur * memb_size;
     if (this->_t.f == OBJ)
         destroy(p_target);
-    Iterator target_it = new(_VectorIter(), VA(VA_ADDR(this->_t), iter->cur, iter->ptr));
-    Iterator first = new(_VectorIter(), VA(VA_ADDR(this->_t), iter->cur + 1, this->start_ptr));
-    Iterator last = new(_VectorIter(), VA(VA_ADDR(this->_t), this->nmemb, this->start_ptr));
+    Iterator target_it = new(_VectorIter(), VA(this->_t, iter->cur, iter->ptr));
+    Iterator first = new(_VectorIter(), VA(this->_t, iter->cur + 1, this->start_ptr));
+    Iterator last = new(_VectorIter(), VA(this->_t, this->nmemb, this->start_ptr));
     copy(first, last, target_it);
     delete(target_it);
     delete(first);
@@ -563,9 +565,9 @@ static Iterator _vector_insert(void *_this, Iterator _iter, FormWO_t _x)
     if (!_vector_capacity(_this))
         fill_allocate(_this);
     size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
-    Iterator target_it = new(_VectorIter(), VA(VA_ADDR(this->_t), iter->cur + 1, iter->ptr));
-    Iterator first = new(_VectorIter(), VA(VA_ADDR(this->_t), iter->cur, this->start_ptr));
-    Iterator last = new(_VectorIter(), VA(VA_ADDR(this->_t), this->nmemb, this->start_ptr));
+    Iterator target_it = new(_VectorIter(), VA(this->_t, iter->cur + 1, iter->ptr));
+    Iterator first = new(_VectorIter(), VA(this->_t, iter->cur, this->start_ptr));
+    Iterator last = new(_VectorIter(), VA(this->_t, this->nmemb, this->start_ptr));
     copy(first, last, target_it);
     delete(target_it);
     delete(first);
@@ -599,8 +601,8 @@ static void _vector_clear(void *_this)
 {
     struct Vector *this = offsetOf(_this, __Vector);
     if (this->_t.f == OBJ) {
-        Iterator it = new(_VectorIter(), VA(VA_ADDR(this->_t), 0, this->start_ptr));
-        Iterator end = new(_VectorIter(), VA(VA_ADDR(this->_t), this->nmemb, this->start_ptr));
+        Iterator it = new(_VectorIter(), VA(this->_t, 0, this->start_ptr));
+        Iterator end = new(_VectorIter(), VA(this->_t, this->nmemb, this->start_ptr));
         while (!THIS(it).equal(VA(end)))
         {
             Object obj = THIS(it).derefer();
