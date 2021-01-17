@@ -54,7 +54,10 @@ static void *_ctor(void *_this, va_list *app)
 {
     struct Char *this = super_ctor(__Char, _this, app);
     FormWO_t t = va_arg(*app, FormWO_t);
-    this->val = toChar(t);
+    if (t._.f == END)
+        this->val = 0;
+    else
+        this->val = toChar(t);
     return _this + sizeof(struct Char);
 }
 

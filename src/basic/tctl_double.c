@@ -41,7 +41,10 @@ static void *_ctor(void *_this, va_list *app)
 {
     struct Double *this = super_ctor(__Double, _this, app);
     FormWO_t t = va_arg(*app, FormWO_t);
-    this->val = toDouble(t);
+    if (t._.f == END)
+        this->val = 0;
+    else
+        this->val = toDouble(t);
     return (void*)this + sizeof(struct Double);
 }
 
