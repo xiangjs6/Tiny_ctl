@@ -9,6 +9,7 @@
 #include "../include/tctl_algobase.h"
 #include "include/_tctl_iterator.h"
 #include <stdarg.h>
+#include <stdio.h>
 #include <string.h>
 
 #define Import CLASS, ITERATOR, OBJECT, METACLASS
@@ -274,6 +275,7 @@ static void *_iter_ctor(void *_this, va_list *app)
         char c = *s_p++;
         void *res = _dealIterVaryArg(t, &c);
         if (c == 'I') {
+            assert(classOf(res) == __VectorIter);
             struct VectorIter *it = offsetOf(res, __VectorIter);
             *this = *it;
             break;
