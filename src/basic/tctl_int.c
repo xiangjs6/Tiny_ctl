@@ -15,7 +15,7 @@ struct Int {
 
 static const void *__Int = NULL;
 
-static inline long long toInt(FormWO_t t)
+inline long long toInt(FormWO_t t)
 {
     long long val;
     char c;
@@ -53,13 +53,14 @@ static inline long long toInt(FormWO_t t)
 
 static void *_ctor(void *_this, va_list *app)
 {
-    struct Int *this = super_ctor(__Int, _this, app);
+    _this = super_ctor(__Int, _this, app);
+    struct Int *this = offsetOf(_this, __Int);
     FormWO_t t = va_arg(*app, FormWO_t);
     if (t._.f == END)
         this->val = 0;
     else
         this->val = toInt(t);
-    return _this + sizeof(struct Int);
+    return _this;
 }
 
 static bool _equal(const void *_this, FormWO_t x)

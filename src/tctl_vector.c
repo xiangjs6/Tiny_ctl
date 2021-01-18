@@ -6,6 +6,7 @@
 #include "../include/tctl_allocator.h"
 #include "../include/auto_release_pool.h"
 #include "../include/tctl_int.h"
+#include "../include/tctl_uint.h"
 #include "../include/tctl_algobase.h"
 #include "include/_tctl_iterator.h"
 #include <stdarg.h>
@@ -237,6 +238,40 @@ static void *_dealIterVaryArg(FormWO_t t, char *type)
     assert(0);
     return NULL;
 }
+
+static void _dealVectorArgs(void *_this, FormWO_t *args, int n)
+{
+    struct Vector *this = offsetOf(_this, __Vector);
+    if (args->_.f == POD || args->_.f == ADDR || args->_.class != _Iterator().class) { //size_type n, T value = T() 构造方法
+        unsigned long long nmemb = toUInt(*args);
+        if (n == 1) {
+            for (size_t i = 0; i < nmemb; i++)
+                _vector_push_back(_this, VAEND);
+        } else {
+            for (size_t i = 0; i < nmemb; i++)
+                _vector_push_back(_this, args[1]);
+        }
+    } else { //Iterator first, Iterator last 迭代器构造方法
+        assert(n == 2);
+        assert(args[1]._.class == _Iterator().class);
+        Iterator first = args[0].mem;
+        char first_mem[sizeOf(first)];
+        first = THIS(first).ctor(first_mem, VA(THIS(first).type(), first));
+        Iterator last = args[1].mem;
+        char last_mem[sizeOf(last)];
+        last = THIS(last).ctor(last_mem, VA(THIS(last).type(), last));
+        Form_t t =THIS(first).type();
+        while (!THIS(first).equal(VA(last)))
+        {
+            void *obj = THIS(first).derefer();
+            _vector_push_back(_this, FORM_WITH_OBJ(t, obj));
+            THIS(first).inc();
+        }
+        destroy(first);
+        destroy(last);
+    }
+}
+
 static void fill_allocate(struct Vector *this)
 {
     size_t old_size = this->total_storage_memb;
@@ -266,7 +301,8 @@ static void fill_allocate(struct Vector *this)
 //Iterator
 static void *_iter_ctor(void *_this, va_list *app)
 {
-    struct VectorIter *this = super_ctor(__VectorIter, _this, app);
+    _this = super_ctor(__VectorIter, _this, app);
+    struct VectorIter *this = offsetOf(_this, __VectorIter);
     FormWO_t t;
     const static char s[2] = {'S', 'P'};
     const char *s_p = s;
@@ -285,7 +321,7 @@ static void *_iter_ctor(void *_this, va_list *app)
             this->ptr = res;
         }
     }
-    return (void*)this + sizeof(struct VectorIter);
+    return _this;
 }
 static bool _iter_equal(const void *_this, FormWO_t _x)
 {
@@ -401,7 +437,8 @@ static long long _iter_dist(const void *_this, Iterator _it)
 //VectorClass
 static void *_vectorclass_ctor(void *_this, va_list *app)
 {
-    struct VectorClass *this = super_ctor(__VectorClass, _this, app);
+    _this = super_ctor(__VectorClass, _this, app);
+    struct VectorClass *this = offsetOf(_this, __VectorClass);
     voidf selector;
     va_list ap;
     va_copy(ap, *app);
@@ -420,13 +457,14 @@ static void *_vectorclass_ctor(void *_this, va_list *app)
         }
     }
     va_end(ap);
-    return (void*)this + sizeof(struct VectorClass);
+    return _this;
 }
 
 //Vector
 static void *_vector_ctor(void *_this, va_list *app)
 {
-    struct Vector *this = super_ctor(__Vector, _this, app);
+    _this = super_ctor(__Vector, _this, app);
+    struct Vector *this = offsetOf(_this, __Vector);
     FormWO_t t = va_arg(*app, FormWO_t);
     assert(t._.f >= FORM);
     t._.f -= FORM;
@@ -435,7 +473,16 @@ static void *_vector_ctor(void *_this, va_list *app)
     this->start_ptr = NULL;
     this->finish_ptr = NULL;
     this->total_storage_memb = 0;
-    return (void*)this + sizeof(struct Vector);
+    FormWO_t args[2];
+    int i = 0;
+    while ((t = va_arg(*app, FormWO_t))._.f != END)
+    {
+        assert(i < 2);
+        args[i++] = t;
+    }
+    if (i)
+        _dealVectorArgs(_this, args, i);
+    return _this;
 }
 
 static void *_vector_brackets(const void *_this, FormWO_t _x)

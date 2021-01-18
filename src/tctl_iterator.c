@@ -97,7 +97,8 @@ static long long _dist(struct _Iterator *it)
 
 static void *_class_ctor(void *_this, va_list *app)
 {
-    struct IteratorClass *this = super_ctor(__IteratorClass, _this, app);
+    _this = super_ctor(__IteratorClass, _this, app);
+    struct IteratorClass *this = offsetOf(_this, __IteratorClass);
     va_list ap;
     va_copy(ap, *app);
     voidf selector;
@@ -112,17 +113,18 @@ static void *_class_ctor(void *_this, va_list *app)
             *(voidf *) &this->dist = method;
     }
     va_end(ap);
-    return this;
+    return _this;
 }
 
 static void *_object_ctor(void *_this, va_list *app)
 {
-    struct Iterator *this = super_ctor(__Iterator, _this, app);
+    _this = super_ctor(__Iterator, _this, app);
+    struct Iterator *this = offsetOf(_this, __Iterator);
     FormWO_t t = va_arg(*app, FormWO_t);
     assert(t._.f >= FORM);
     t._.f -= FORM;
     this->_t = t._;
-    return (void*)this + sizeof(struct Iterator);
+    return _this;
 }
 
 static void *_object_derefer(const void *_this)

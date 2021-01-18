@@ -3,6 +3,7 @@
 //
 
 #include "include/_tctl_class.h"
+#include "include/_tctl_object.h"
 #include <memory.h>
 #include <assert.h>
 #define Import METACLASS
@@ -179,7 +180,8 @@ static void *_cast(const char *c)
 
 static void *_ctor(void *_this, va_list *app)
 {
-    struct Class *this = super_ctor(__Class, _this, app);
+    _this = super_ctor(__Class, _this, app);
+    struct Class *this = offsetOf(_this, __Class);
     voidf selector;
     va_list ap;
     va_copy(ap, *app);
@@ -198,7 +200,7 @@ static void *_ctor(void *_this, va_list *app)
         }
     }
     va_end(ap);
-    return (void*)this + sizeof(struct Class);
+    return _this;
 }
 
 void *__cast_aux(void *_this, const char *c)

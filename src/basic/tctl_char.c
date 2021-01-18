@@ -14,7 +14,7 @@ struct Char {
 
 static const void *__Char = NULL;
 
-static inline char toChar(FormWO_t t)
+inline char toChar(FormWO_t t)
 {
     char val;
     short s;
@@ -52,13 +52,14 @@ static inline char toChar(FormWO_t t)
 
 static void *_ctor(void *_this, va_list *app)
 {
-    struct Char *this = super_ctor(__Char, _this, app);
+    _this = super_ctor(__Char, _this, app);
+    struct Char *this = offsetOf(_this, __Char);
     FormWO_t t = va_arg(*app, FormWO_t);
     if (t._.f == END)
         this->val = 0;
     else
         this->val = toChar(t);
-    return _this + sizeof(struct Char);
+    return _this;
 }
 
 static bool _equal(const void *_this, FormWO_t x)

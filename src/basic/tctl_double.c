@@ -14,7 +14,7 @@ struct Double {
 
 static const void *__Double = NULL;
 
-static inline double toDouble(FormWO_t t)
+inline double toDouble(FormWO_t t)
 {
     double val;
     float f;
@@ -39,13 +39,14 @@ static inline double toDouble(FormWO_t t)
 
 static void *_ctor(void *_this, va_list *app)
 {
-    struct Double *this = super_ctor(__Double, _this, app);
+    _this = super_ctor(__Double, _this, app);
+    struct Double *this = offsetOf(_this, __Double);
     FormWO_t t = va_arg(*app, FormWO_t);
     if (t._.f == END)
         this->val = 0;
     else
         this->val = toDouble(t);
-    return (void*)this + sizeof(struct Double);
+    return _this;
 }
 
 static bool _equal(const void *_this, FormWO_t x)

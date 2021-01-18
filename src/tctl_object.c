@@ -75,7 +75,7 @@ static void *Object_ctor(void *_this, va_list *app)
 {
     struct Object *this = _this;
     this->s = ((struct Object*)classOf(_this))->s;
-    return _this + sizeof(struct Object);
+    return _this;
 }
 
 static void *Object_dtor(void *_this)
@@ -154,7 +154,7 @@ static void *MetaClass_ctor(void *_this, va_list *app)
             *(void **) &this->_.s = method;
     }
     va_end(ap);
-    return _this + sizeof(struct MetaClass);
+    return _this;
 }
 
 static void *MetaClass_dtor(void *_this)
@@ -194,7 +194,7 @@ void *_new(FormWO_t t, ...)
     assert(object);
     object->class = class;
     va_start(ap, t);
-    class->ctor(object, &ap);
+    object = class->ctor(object, &ap);
     va_end(ap);
     return object;
 }
@@ -231,7 +231,7 @@ static void *ctor(void *mem, ...)
     struct Object *object = mem ? mem : calloc(1, class->size);
     assert(object);
     object->class = class;
-    class->ctor(object, &ap);
+    object = class->ctor(object, &ap);
     va_end(ap);
     return object;
 }

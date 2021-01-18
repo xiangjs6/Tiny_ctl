@@ -14,7 +14,7 @@ struct UInt {
 
 static const void *__UInt = NULL;
 
-static inline unsigned long long toUInt(FormWO_t t)
+inline unsigned long long toUInt(FormWO_t t)
 {
     unsigned long long val;
     unsigned char c;
@@ -39,6 +39,7 @@ static inline unsigned long long toUInt(FormWO_t t)
                     memcpy(&val, &t.mem, t._.size);
                     break;
             }
+            break;
         case ADDR:
             memcpy(&val, t.mem, t._.size);
             break;
@@ -51,13 +52,14 @@ static inline unsigned long long toUInt(FormWO_t t)
 
 static void *_ctor(void *_this, va_list *app)
 {
-    struct UInt *this = super_ctor(__UInt, _this, app);
+    _this = super_ctor(__UInt, _this, app);
+    struct UInt *this = offsetOf(_this, __UInt);
     FormWO_t t = va_arg(*app, FormWO_t);
     if (t._.f == END)
         this->val = 0;
     else
         this->val = toUInt(t);
-    return _this + sizeof(struct UInt);
+    return _this;
 }
 
 static bool _equal(const void *_this, FormWO_t x)
