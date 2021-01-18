@@ -242,7 +242,9 @@ static void *_dealIterVaryArg(FormWO_t t, char *type)
 static void _dealVectorArgs(void *_this, FormWO_t *args, int n)
 {
     struct Vector *this = offsetOf(_this, __Vector);
-    if (args->_.f == POD || args->_.f == ADDR || args->_.class != _Iterator().class) { //size_type n, T value = T() 构造方法
+    if (args->_.class == _Vector().class) { //复制一个Vector
+        new(compose(_Vector(), _this), VA(this->_t, _vector_begin(args->mem), _vector_end(args->mem)));
+    } else if (args->_.f == POD || args->_.f == ADDR || args->_.class != _Iterator().class) { //size_type n, T value = T() 构造方法
         unsigned long long nmemb = toUInt(*args);
         if (n == 1) {
             for (size_t i = 0; i < nmemb; i++)
