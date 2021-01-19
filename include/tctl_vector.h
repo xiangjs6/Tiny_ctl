@@ -26,15 +26,16 @@ struct {                                           \
     Iterator (*insert)(Iterator iter, FormWO_t x); \
     void (*resize)(size_t new_size);               \
     void (*clear)(void);                           \
-    void (*swap)(struct _Vector *_v);              \
+    void (*swap)(Vector _v);                       \
 }
 
-typedef struct _Vector {
+typedef struct _Vector *Vector;
+struct _Vector {
     union {
         INHERIT_VECTOR *_s;
         byte _pad[sizeof(*(Object)NULL)];
     };
-} *Vector;
+};
 
 void initVector(void) __attribute__((constructor));
 Form_t _Vector(void);

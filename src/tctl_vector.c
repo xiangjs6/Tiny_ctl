@@ -2,6 +2,7 @@
 // Created by xjs on 2020/9/4.
 //
 
+#include "include/_tctl_object.h"
 #include "include/_tctl_vector.h"
 #include "../include/tctl_allocator.h"
 #include "../include/auto_release_pool.h"
@@ -45,6 +46,7 @@ struct VectorIter {
     void *ptr;
 };
 
+//selector
 static Iterator _begin(void);
 static Iterator _end(void);
 static void* _front(void);
@@ -58,9 +60,12 @@ static Iterator _erase(Iterator iter);
 static Iterator _insert(Iterator iter, FormWO_t x);
 static void _resize(size_t new_size);
 static void _clear(void);
-static void _swap(struct _Vector *_v);
+static void _swap(Vector _v);
+//vectorclass
 static void *_vectorclass_ctor(void *_this, va_list *app);
+//vector
 static void *_vector_ctor(void *_this, va_list *app);
+static void *_vector_dtor(void *_this);
 static void _vector_swap(void *_this, Vector _v);
 static void _vector_clear(void *_this);
 static void _vector_resize(void *_this, size_t new_size);
@@ -76,6 +81,7 @@ static const void *_vector_front(const void *_this);
 static Iterator _vector_end(const void *_this);
 static Iterator _vector_begin(const void *_this);
 static void *_vector_brackets(const void *_this, FormWO_t _x);
+//iterator
 static void *_iter_sub(const void *_this, FormWO_t _x);
 static void *_iter_add(const void *_this, FormWO_t _x);
 static void _iter_asign(void *_this, FormWO_t _x);
@@ -83,7 +89,7 @@ static void _iter_self_sub(void *_this, FormWO_t _x);
 static void _iter_self_add(void *_this, FormWO_t _x);
 static void _iter_dec(void *_this);
 static void _iter_inc(void *_this);
-static void *_iter_bucket(const void *_this, FormWO_t _x);
+static void *_iter_brackets(const void *_this, FormWO_t _x);
 static int _iter_cmp(const void *_this, FormWO_t _x);
 static bool _iter_equal(const void *_this, FormWO_t _x);
 static void *_iter_ctor(void *_this, va_list *app);
@@ -126,7 +132,7 @@ void initVector(void)
                            _MetaClassS->ctor, _iter_ctor,
                            _ClassS->equal, _iter_equal,
                            _ClassS->cmp, _iter_cmp,
-                           _ClassS->brackets, _iter_bucket,
+                           _ClassS->brackets, _iter_brackets,
                            _ClassS->inc, _iter_inc,
                            _ClassS->dec, _iter_dec,
                            _ClassS->self_add, _iter_self_add,
@@ -147,6 +153,7 @@ void initVector(void)
         __Vector = new(_VectorClass(), "Vector",
                        T(Object), sizeof(struct Vector) + classSz(_Object().class),
                        _MetaClassS->ctor, _vector_ctor,
+                       _MetaClassS->dtor, _vector_dtor,
                        _ClassS->brackets, _vector_brackets,
                        VectorS.begin, _vector_begin,
                        VectorS.end, _vector_end,
@@ -348,7 +355,7 @@ static int _iter_cmp(const void *_this, FormWO_t _x)
     return this->cur - x->cur;
 }
 
-static void *_iter_bucket(const void *_this, FormWO_t _x)
+static void *_iter_brackets(const void *_this, FormWO_t _x)
 {
     const struct VectorIter *this = offsetOf(_this, __VectorIter);
     const Iterator it = (void*)_this;
@@ -493,6 +500,13 @@ static void *_vector_ctor(void *_this, va_list *app)
     }
     if (i)
         _dealVectorArgs(_this, args, i);
+    return _this;
+}
+
+static void *_vector_dtor(void *_this)
+{
+    _this = super_dtor(__Vector, _this);
+    _vector_clear(_this);
     return _this;
 }
 
@@ -790,7 +804,7 @@ static void _clear(void)
     return class->clear(_this);
 }
 
-static void _swap(struct _Vector *_v)
+static void _swap(Vector _v)
 {
     void *_this = pop_this();
     const struct VectorClass *class = offsetOf(classOf(_this), __VectorClass);

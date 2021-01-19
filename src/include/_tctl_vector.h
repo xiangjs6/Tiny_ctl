@@ -21,7 +21,7 @@ struct VectorSelector {
     Iterator (*insert)(Iterator iter, FormWO_t x);
     void (*resize)(size_t new_size);
     void (*clear)(void);
-    void (*swap)(struct _Vector *_v);
+    void (*swap)(Vector _v);
 };
 Form_t _VectorClass(void);
 #endif //TINY_CTL__TCTL_VECTOR_H
