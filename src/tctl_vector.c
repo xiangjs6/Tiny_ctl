@@ -506,7 +506,10 @@ static void *_vector_ctor(void *_this, va_list *app)
 static void *_vector_dtor(void *_this)
 {
     _this = super_dtor(__Vector, _this);
+    struct Vector *this = offsetOf(_this, __Vector);
     _vector_clear(_this);
+    size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
+    deallocate(this->start_ptr, this->total_storage_memb * memb_size);
     return _this;
 }
 
