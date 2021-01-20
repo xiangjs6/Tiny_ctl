@@ -5,7 +5,7 @@
 #ifndef TINY_CTL_TCTL_CLASS_H
 #define TINY_CTL_TCTL_CLASS_H
 
-#include "tctl_object.h"
+#include "tctl_metaclass.h"
 
 #define Cast(obj, __T) __cast_aux(obj, #__T)
 #define INHERIT_CLASS \
@@ -30,14 +30,22 @@ struct {                           \
 typedef struct {
     union {
         INHERIT_CLASS *_s;
-        byte _pad[sizeof(*(Object)NULL)];
+        byte _pad[sizeof(*(MetaObject)NULL)];
     };
 } *Class;
+
+typedef struct {
+    union {
+        INHERIT_CLASS *_s;
+        byte _pad[sizeof(*(MetaObject)NULL)];
+    };
+} *Object;
 
 void initClass(void) __attribute__((constructor));
 void *__cast_aux(void *_this, const char *c);
 
 Form_t _Class(void);
-//extern const void *_Class;
+Form_t _Object(void);
 #define CLASS Class : _Class()
+#define OBJECT Object : _Object()
 #endif //TINY_CTL_TCTL_CLASS_H

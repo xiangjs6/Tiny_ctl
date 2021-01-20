@@ -4,19 +4,19 @@
 
 #include "../include/tctl_allocator.h"
 #include "../include/tctl_portable.h"
-#include "include/_tctl_object.h"
+#include "include/_tctl_metaclass.h"
 #include <stdarg.h>
 #include <memory.h>
 #include <stdlib.h>
 
 
-struct Object {
+struct MetaObject {
     const void *s;
     const struct MetaClass *class;	/* object's description */
 };
 
 struct MetaClass {
-    const struct Object _;			/* class' description */
+    const struct MetaObject _;			/* class' description */
     const char *name;				/* class' name */
     const struct MetaClass *super;		/* class' super class */
     size_t size;					/* class' object's size */
@@ -45,7 +45,7 @@ const struct MetaClassSelector *_MetaClassS = &MetaClassS;
 const void *Selector = &MetaClassS;
 static const struct MetaClass _object[] = {
         {{&MetaClassS, _object + 1},
-                "Object", _object, sizeof(struct Object),
+                "Object", _object, sizeof(struct MetaObject),
                 Object_ctor, Object_dtor, Object_differ, Object_puto
         },
         {{&MetaClassS, _object + 1},
@@ -54,12 +54,12 @@ static const struct MetaClass _object[] = {
         }
 };
 
-static const void *__Object = _object;
+static const void *__MetaObject = _object;
 static const void *__MetaClass = _object + 1;
 
-Form_t _Object(void)
+Form_t _MetaObject(void)
 {
-    Form_t t = {OBJ , {.class = __Object}};
+    Form_t t = {OBJ , {.class = __MetaObject}};
     return t;
 }
 
@@ -73,8 +73,8 @@ Form_t _MetaClass(void)
  */
 static void *Object_ctor(void *_this, va_list *app)
 {
-    struct Object *this = _this;
-    this->s = ((struct Object*)classOf(_this))->s;
+    struct MetaObject *this = _this;
+    this->s = ((struct MetaObject*)classOf(_this))->s;
     return _this;
 }
 
@@ -96,7 +96,7 @@ static int Object_puto(const void *_this, FILE *fp)
 
 const void *classOf(const void *_this)
 {
-    const struct Object *this = _this;
+    const struct MetaObject *this = _this;
     assert(this && this->class);
     return this->class;
 }
@@ -184,7 +184,7 @@ void *_new(FormWO_t t, ...)
             return malloc(t._.size);
     }
     const struct MetaClass *class = t._.class;
-    struct Object *object;
+    struct MetaObject *object;
     va_list ap;
     assert(class && class->size);
     if (t.mem)
@@ -217,7 +217,7 @@ void construct(Form_t t, void *mem, FormWO_t x)
 
 void destroy(void *_obj)
 {
-    struct Object *obj = _obj;
+    struct MetaObject *obj = _obj;
     obj->class->dtor(_obj);
 }
 
@@ -228,7 +228,7 @@ static void *ctor(void *mem, ...)
     assert(class->ctor);
     va_list ap;
     va_start(ap, mem);
-    struct Object *object = mem ? mem : calloc(1, class->size);
+    struct MetaObject *object = mem ? mem : calloc(1, class->size);
     assert(object);
     object->class = class;
     object = class->ctor(object, &ap);

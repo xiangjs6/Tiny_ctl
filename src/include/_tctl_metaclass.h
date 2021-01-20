@@ -2,9 +2,9 @@
 // Created by xjs on 2020/12/29.
 //
 
-#ifndef TINY_CTL__TCTL_OBJECT_H
-#define TINY_CTL__TCTL_OBJECT_H
-#include "../../include/tctl_object.h"
+#ifndef TINY_CTL__TCTL_METACLASS_H
+#define TINY_CTL__TCTL_METACLASS_H
+#include "../../include/tctl_metaclass.h"
 typedef void (*voidf)();	/* generic function pointer */
 
 void *super_ctor(const void *class, void *this, va_list *app);
@@ -19,4 +19,4 @@ struct MetaClassSelector {
 };
 extern const struct MetaClassSelector *_MetaClassS;
 extern const void *Selector;
-#endif //TINY_CTL__TCTL_OBJECT_H
+#endif //TINY_CTL__TCTL_METACLASS_H

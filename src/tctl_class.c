@@ -3,10 +3,10 @@
 //
 
 #include "include/_tctl_class.h"
-#include "include/_tctl_object.h"
+#include "include/_tctl_metaclass.h"
 #include <memory.h>
 #include <assert.h>
-#define Import METACLASS
+#define Import METACLASS, METAOBJECT
 
 struct Class {
     bool (*equal)(const void *_this, FormWO_t x);
@@ -24,6 +24,8 @@ struct Class {
     void *(*mod)(const void *_this, FormWO_t x);
     void *(*cast)(const void *_this, const char *c);
 };
+
+struct Object {};
 
 static bool _equal(FormWO_t x);
 static int _cmp(FormWO_t x);
@@ -59,10 +61,17 @@ volatile static struct ClassSelector ClassS = {
 };
 const struct ClassSelector *_ClassS = NULL;
 static const void *__Class = NULL;
+static const void *__Object = NULL;
 
 Form_t _Class(void)
 {
     return (Form_t){OBJ, {.class = __Class}};
+}
+
+Form_t _Object(void)
+{
+    Form_t t = {OBJ , {.class = __Object}};
+    return t;
 }
 
 //selector
@@ -178,7 +187,7 @@ static void *_cast(const char *c)
     return class->cast(_this, c);
 }
 
-static void *_ctor(void *_this, va_list *app)
+static void *_class_ctor(void *_this, va_list *app)
 {
     _this = super_ctor(__Class, _this, app);
     struct Class *this = offsetOf(_this, __Class);
@@ -219,6 +228,10 @@ void initClass(void)
     if (!__Class) {
         __Class = new(T(MetaClass), "Class",
                       T(MetaClass), sizeof(struct Class) + classSz(_MetaClass().class),
-                     _MetaClassS->ctor, _ctor, NULL);
+                     _MetaClassS->ctor, _class_ctor, NULL);
+    }
+    if (!__Object) {
+        __Object = new(T(MetaClass), "Object",
+                       T(MetaObject), sizeof(struct Object) + classSz(_MetaObject().class), NULL);
     }
 }

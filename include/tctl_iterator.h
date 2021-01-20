@@ -4,7 +4,7 @@
 
 #ifndef TINY_CTL_TCTL_ITERATOR_H
 #define TINY_CTL_TCTL_ITERATOR_H
-#include "tctl_object.h"
+#include "tctl_metaclass.h"
 #include "tctl_class.h"
 #define INHERIT_ITERATOR \
 struct {                                     \

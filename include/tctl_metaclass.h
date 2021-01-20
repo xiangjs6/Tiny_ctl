@@ -2,8 +2,8 @@
 // Created by xjs on 2020/8/31.
 //
 
-#ifndef TINY_CTL_TCTL_OBJECT_H
-#define TINY_CTL_TCTL_OBJECT_H
+#ifndef TINY_CTL_TCTL_METACLASS_H
+#define TINY_CTL_TCTL_METACLASS_H
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -81,7 +81,7 @@ struct {                  \
 typedef struct {
     INHERIT_METACLASS *_s;
     void *_c;
-} *Object;
+} *MetaObject;
 
 typedef struct {
     INHERIT_METACLASS *_s;
@@ -92,10 +92,10 @@ void push_this(const void *);
 void *pop_this(void);
 #define THIS(p) (push_this(p), *(p->_s))
 
-Form_t _Object(void);		/* new(Object); */
+Form_t _MetaObject(void);		/* new(Object); */
 Form_t _MetaClass(void);	/* new(MetaClass, "name", super, size, sel, meth, ... 0); */
 
 #define METACLASS MetaClass : _MetaClass()
-#define OBJECT Object : _Object()
+#define METAOBJECT MetaObject : _MetaObject()
 
-#endif //TINY_CTL_TCTL_OBJECT_H
+#endif //TINY_CTL_TCTL_METACLASS_H

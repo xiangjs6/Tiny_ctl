@@ -4,7 +4,7 @@
 
 #ifndef TINY_CTL__TCTL_CLASS_H
 #define TINY_CTL__TCTL_CLASS_H
-#include "_tctl_object.h"
+#include "_tctl_metaclass.h"
 #include "../../include/tctl_class.h"
 
 struct ClassSelector {
