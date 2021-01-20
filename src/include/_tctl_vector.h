@@ -24,4 +24,5 @@ struct VectorSelector {
     void (*swap)(Vector _v);
 };
 Form_t _VectorClass(void);
+extern const struct VectorSelector *_VectorS;
 #endif //TINY_CTL__TCTL_VECTOR_H
