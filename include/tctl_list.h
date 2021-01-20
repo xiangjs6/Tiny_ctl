@@ -8,49 +8,40 @@
 #include "tctl_iterator.h"
 #include "tctl_common.h"
 
-typedef struct __list list;
+#define INHERIT_LIST                                                           \
+struct {                                             \
+    INHERIT_CLASS;                                   \
+    Iterator (*begin)(void);                         \
+    Iterator (*end)(void);                           \
+    void* (*front)(void);                            \
+    void* (*back)(void);                             \
+    size_t (*size)(void);                            \
+    bool (*empty)(void);                             \
+    void (*push_back)(FormWO_t x);                   \
+    void (*push_front)(FormWO_t x);                  \
+    void (*pop_back)(void);                          \
+    void (*pop_front)(void);                         \
+    Iterator (*erase)(Iterator iter);                \
+    Iterator (*insert)(Iterator iter, FormWO_t x);   \
+    void (*remove)(FormWO_t x);                      \
+    void (*unique)(void);                            \
+    void (*splice)(Iterator position, List l, ...);  \
+    void (*merge)(List l, Compare cmp);              \
+    void (*reverse)(void);                           \
+    void (*sort)(Compare cmp);                       \
+    void (*clear)(void);                             \
+    void (*swap)(List l);                            \
+}
 
-struct __list_node {
-    struct __list_node *pre;
-    struct __list_node *next;
-    byte data[0];
+typedef struct _List *List;
+struct _List {
+    union {
+        INHERIT_LIST *_s;
+        byte _pad[sizeof(*(Object)NULL)];
+    };
 };
 
-typedef void *__list_iter;
-
-typedef struct {
-    const size_t memb_size;
-    struct __list_node *node;
-    __list_iter start_ptr;
-    __list_iter finish_ptr;
-} __private_list;
-
-struct __list{
-    void *(*at)(int);
-    void (*push_front)(void *x);
-    void (*push_back)(void *x);
-    IterType (*erase)(IterType iter);
-    IterType (*insert)(IterType iter, void *x);
-    void (*pop_front)(void);
-    void (*pop_back)(void);
-    void (*clear)(void);
-    void (*remove)(void *value);
-    void (*unique)(void);
-    void (*splice)(const IterType position, list *l, const IterType first, const IterType last);
-    void (*merge)(list *l, Compare);
-    void (*reverse)(void);
-    void (*swap)(list *l);
-    void (*sort)(Compare);
-    IterType (*begin)(void);
-    IterType (*end)(void);
-    size_t (*size)(void);
-    bool (*empty)(void);
-    void const *(*front)(void);
-    void const *(*back)(void);
-    byte __obj_private[sizeof(__private_list)];
-};
-
-void init_list(list *p_list, size_t memb_size);
-void destory_list(list *p_list);
-list creat_list(size_t memb_size);
+void initList(void) __attribute__((constructor));
+Form_t _List(void);
+#define LIST List : _List()
 #endif //TINY_CTL_TCTL_LIST_H
