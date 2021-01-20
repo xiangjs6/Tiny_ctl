@@ -8,11 +8,12 @@
 #include <stdint.h>
 #include <stddef.h>
 #include "tctl_common.h"
+#include "tctl_metaclass.h"
 
 typedef long long offset_t;
 typedef char byte;
 
-typedef int (*Compare)(const void *, const void *);
+typedef int (*Compare)(FormWO_t, FormWO_t);
 typedef size_t (*HashFunc)(const void *);
 typedef void *(*ExtractKey)(const void *);
 
