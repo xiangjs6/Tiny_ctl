@@ -8,8 +8,10 @@
 #include "include/_tctl_metaclass.h"
 #include "include/_tctl_iterator.h"
 #include "../include/tctl_int.h"
+#include "../include/tctl_uint.h"
 #include <assert.h>
 #include <stdarg.h>
+#include <stdio.h>
 #include <string.h>
 
 #define Import CLASS, OBJECT, METACLASS, ITERATOR, LIST
@@ -257,6 +259,48 @@ static void _transfer(struct ListNode *pos, struct ListNode *first, struct ListN
     first_node->pre = pos_pre_node;
 }
 
+static void _dealListArgs(void *_this, FormWO_t *args, int n)
+{
+    struct List *this = offsetOf(_this, __List);
+    if (args->_.class == __List) { //复制一个List
+        struct List *L = offsetOf(args->mem, __List);
+        struct ListNode *node = L->_end.nxt;
+        Form_t t = this->_t;
+        while (node != &L->_end)
+        {
+            void *obj = node->data;
+            _list_push_back(_this, FORM_WITH_OBJ(t, obj));
+            node = node->nxt;
+        }
+    } else if (args->_.f == POD || args->_.f == ADDR || args->_.class != _Iterator().class) { //size_type n, T value = T() 构造方法
+        unsigned long long nmemb = toUInt(*args);
+        if (n == 1) {
+            for (size_t i = 0; i < nmemb; i++)
+                _list_push_back(_this, VAEND);
+        } else {
+            for (size_t i = 0; i < nmemb; i++)
+                _list_push_back(_this, args[1]);
+        }
+    } else { //Iterator first, Iterator last 迭代器构造方法
+        assert(n == 2);
+        assert(args[1]._.class == _Iterator().class); //因为上面的if已经检测过args[0]
+        Iterator first = args[0].mem;
+        char first_mem[sizeOf(first)];
+        first = THIS(first).ctor(first_mem, VA(THIS(first).type(), first));
+        Iterator last = args[1].mem;
+        char last_mem[sizeOf(last)];
+        last = THIS(last).ctor(last_mem, VA(THIS(last).type(), last));
+        Form_t t = THIS(first).type();
+        while (!THIS(first).equal(VA(last)))
+        {
+            void *obj = THIS(first).derefer();
+            _list_push_back(_this, FORM_WITH_OBJ(t, obj));
+            THIS(first).inc();
+        }
+        destroy(first);
+        destroy(last);
+    }
+}
 //public
 //Iterator
 static void *_iter_ctor(void *_this, va_list *app)
@@ -264,7 +308,17 @@ static void *_iter_ctor(void *_this, va_list *app)
     _this = super_ctor(__ListIter, _this, app);
     struct ListIter *this = offsetOf(_this, __ListIter);
     FormWO_t t = va_arg(*app, FormWO_t);
-    this->node = t.mem;
+    if (t._.f == OBJ) {
+        if (t._.class == _Iterator().class) {
+            assert(classOf(t.mem) == __ListIter);
+            struct ListIter *it = offsetOf(t.mem, __ListIter);
+            *this = *it;
+        }
+    } else if (t._.f == POD) {
+        this->node = t.mem;
+    } else {
+        this->node = *(struct ListNode**)t.mem;
+    }
     return _this;
 }
 
@@ -337,6 +391,15 @@ static void *_list_ctor(void *_this, va_list *app)
     this->_t = t._;
     this->_end.nxt = &this->_end;
     this->_end.pre = &this->_end;
+    FormWO_t args[2];
+    int i = 0;
+    while ((t = va_arg(*app, FormWO_t))._.f != END)
+    {
+        assert(i < 2);
+        args[i++] = t;
+    }
+    if (i)
+        _dealListArgs(_this, args, i);
     return _this;
 }
 
