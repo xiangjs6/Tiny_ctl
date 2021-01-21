@@ -250,16 +250,11 @@ static void _dealVectorArgs(void *_this, FormWO_t *args, int n)
 {
     struct Vector *this = offsetOf(_this, __Vector);
     if (args->_.class == _Vector().class) { //复制一个Vector
-        Iterator first = _vector_begin(args->mem);
-        Iterator last = _vector_end(args->mem);
+        struct Vector *v = offsetOf(args->mem, __Vector);
+        size_t v_memb_size = v->_t.f == POD ? v->_t.size : classSz(v->_t.class);
         Form_t t = this->_t;
-        while (!THIS(first).equal(VA(last)))
-        {
-            void *obj = THIS(first).derefer();
-            _vector_push_back(_this, FORM_WITH_OBJ(t, obj));
-            THIS(first).inc();
-        }
-        //因为内存释放池会自动调用析构函数，所以不需要调用destory
+        for (char (*ptr)[v_memb_size] = v->start_ptr; (void*)ptr < v->finish_ptr; ptr++)
+            _vector_push_back(_this, FORM_WITH_OBJ(t, ptr));
     } else if (args->_.f == POD || args->_.f == ADDR || args->_.class != _Iterator().class) { //size_type n, T value = T() 构造方法
         unsigned long long nmemb = toUInt(*args);
         if (n == 1) {
