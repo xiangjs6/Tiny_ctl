@@ -7,6 +7,7 @@
 #include "../include/auto_release_pool.h"
 #include "include/_tctl_metaclass.h"
 #include "include/_tctl_iterator.h"
+#include "../include/tctl_int.h"
 #include <assert.h>
 #include <stdarg.h>
 #include <string.h>
@@ -76,6 +77,7 @@ static void *_listclass_ctor(void *_this, va_list *app);
 //list
 static void *_list_ctor(void *_this, va_list *app);
 static void *_list_dtor(void *_this);
+static void *_list_brackets(const void *_this, FormWO_t x);
 static Iterator _list_begin(const void *_this);
 static Iterator _list_end(const void *_this);
 static void* _list_front(const void *_this);
@@ -161,6 +163,7 @@ void initList(void)
                        T(Object), sizeof(struct List) + classSz(_Object().class),
                        _MetaClassS->ctor, _list_ctor,
                        _MetaClassS->dtor, _list_dtor,
+                       _ClassS->brackets, _list_brackets,
                        ListS.begin, _list_begin,
                        ListS.end, _list_end,
                        ListS.front, _list_front,
@@ -345,6 +348,19 @@ static void *_list_dtor(void *_this)
     return _this;
 }
 
+static void *_list_brackets(const void *_this, FormWO_t x)
+{
+    struct List *this = offsetOf(_this, __List);
+    struct ListNode *node = this->_end.nxt;
+    long long n = toInt(x);
+    while (n > 0 && node != &this->_end)
+    {
+        node = node->nxt;
+        n--;
+    }
+    assert(!n);
+    return node->data;
+}
 static Iterator _list_begin(const void *_this)
 {
     struct List *this = offsetOf(_this, __List);
@@ -453,6 +469,7 @@ static void _list_remove(void *_this, FormWO_t x)
                 _erase_aux(this, node);
                 break;
             }
+            node = node->nxt;
         }
     }
 }
@@ -497,7 +514,7 @@ static void _list_splice(void *_this, Iterator _position, List l, va_list *app)
     int n = 0;
     while ((t = va_arg(*app, FormWO_t))._.f != END)
     {
-        assert(n >= 2);
+        assert(n < 2);
         args[n++] = t;
     }
     struct ListNode *pos_node = ((struct ListIter*)offsetOf(_position, __ListIter))->node;
