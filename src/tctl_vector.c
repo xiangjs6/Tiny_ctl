@@ -443,6 +443,7 @@ static void *_iter_derefer(const void *_this)
 static long long _iter_dist(const void *_this, Iterator _it)
 {
     struct VectorIter *this = offsetOf(_this, __VectorIter);
+    assert(classOf(_it) == __VectorIter);
     struct VectorIter *it = offsetOf(_it, __VectorIter);
     return it->cur - this->cur;
 }
@@ -599,6 +600,7 @@ static void _vector_pop_back(void *_this)
 static Iterator _vector_erase(void *_this, Iterator _iter)
 {
     struct VectorIter *iter = offsetOf(_iter, __VectorIter);
+    assert(classOf(_iter) == __VectorIter);
     struct Vector *this = offsetOf(_this, __Vector);
     assert(iter->cur >= 0 && iter->cur < this->nmemb);
     if (iter->cur == this->nmemb) {
@@ -628,6 +630,7 @@ static Iterator _vector_erase(void *_this, Iterator _iter)
 static Iterator _vector_insert(void *_this, Iterator _iter, FormWO_t _x)
 {
     struct VectorIter *iter = offsetOf(_iter, __VectorIter);
+    assert(classOf(_iter) == __VectorIter);
     struct Vector *this = offsetOf(_this, __Vector);
     assert(iter->cur >= 0 && iter->cur <= this->nmemb);
     if (iter->cur == this->nmemb) {

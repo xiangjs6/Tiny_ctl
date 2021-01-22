@@ -496,6 +496,7 @@ static void _list_pop_front(void *_this)
 static Iterator _list_erase(void *_this, Iterator iter)
 {
     struct List *this = offsetOf(_this, __List);
+    assert(classOf(iter) == __ListIter);
     struct ListIter *it = offsetOf(iter, __ListIter);
     it->node = _erase_aux(this, it->node);
     return iter;
@@ -504,6 +505,7 @@ static Iterator _list_erase(void *_this, Iterator iter)
 static Iterator _list_insert(void *_this, Iterator iter, FormWO_t x)
 {
     struct List *this = offsetOf(_this, __List);
+    assert(classOf(iter) == __ListIter);
     struct ListIter *it = offsetOf(iter, __ListIter);
     it->node = _insert_aux(this, it->node, x);
     return iter;
@@ -580,6 +582,7 @@ static void _list_splice(void *_this, Iterator _position, List l, va_list *app)
         assert(n < 2);
         args[n++] = t;
     }
+    assert(classOf(_position) == __ListIter);
     struct ListNode *pos_node = ((struct ListIter*)offsetOf(_position, __ListIter))->node;
     struct ListNode *first_node = NULL;
     struct ListNode *last_node = NULL;
