@@ -662,7 +662,12 @@ static void _vector_resize(void *_this, size_t new_size)
         fill_allocate(this);
     this->nmemb = new_size;
     size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
+    char *old_finish_ptr = this->finish_ptr;
     this->finish_ptr = this->start_ptr + new_size * memb_size;
+    if (this->_t.f == OBJ) {
+        for (; old_finish_ptr < (char*)this->finish_ptr; old_finish_ptr += memb_size)
+            construct(this->_t, old_finish_ptr, VAEND);
+    }
 }
 
 static void _vector_clear(void *_this)
