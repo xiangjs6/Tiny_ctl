@@ -608,9 +608,6 @@ static Iterator _vector_erase(void *_this, Iterator _iter)
         return _iter;
     }
     size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
-    void *p_target = iter->ptr + iter->cur * memb_size;
-    if (this->_t.f == OBJ)
-        destroy(p_target);
     Iterator target_it = new(_VectorIter(), VA(this->_t, iter->cur, iter->ptr));
     Iterator first = new(_VectorIter(), VA(this->_t, iter->cur + 1, this->start_ptr));
     Iterator last = new(_VectorIter(), VA(this->_t, this->nmemb, this->start_ptr));
@@ -618,12 +615,7 @@ static Iterator _vector_erase(void *_this, Iterator _iter)
     delete(target_it);
     delete(first);
     delete(last);
-    this->nmemb--;
-    this->finish_ptr -= memb_size;
-    if (this->_t.f == OBJ) {
-        Object o = this->finish_ptr;
-        destroy(o);
-    }
+    _vector_pop_back(_this);
     return _iter;
 }
 
