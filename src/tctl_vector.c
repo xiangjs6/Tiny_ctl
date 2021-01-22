@@ -576,7 +576,7 @@ static void _vector_push_back(void *_this, FormWO_t _x)
         assert(_x._.f != OBJ);
         if (_x._.f == ADDR)
             memcpy(this->finish_ptr, _x.mem, memb_size);
-        else
+        else if (_x._.f == POD)
             memcpy(this->finish_ptr, &_x.mem, memb_size);
     } else {
         construct(this->_t, this->finish_ptr, _x);
@@ -652,7 +652,7 @@ static Iterator _vector_insert(void *_this, Iterator _iter, FormWO_t _x)
         assert(_x._.f != OBJ);
         if (_x._.f == ADDR)
             memcpy(p_target, _x.mem, memb_size);
-        else
+        else if (_x._.f == POD)
             memcpy(p_target, &_x.mem, memb_size);
     } else {
         Object obj = p_target;

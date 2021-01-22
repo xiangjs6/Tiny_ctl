@@ -216,7 +216,7 @@ static struct ListNode *_insert_aux(struct List *this, struct ListNode *node, Fo
         assert(_x._.f != OBJ);
         if (_x._.f == ADDR)
             memcpy(new_node->data, _x.mem, memb_size);
-        else
+        else if (_x._.f == POD)
             memcpy(new_node->data, &_x.mem, memb_size);
     } else {
         construct(this->_t, new_node->data, _x);
