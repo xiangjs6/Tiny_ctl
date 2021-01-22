@@ -5,46 +5,40 @@
 #ifndef TINY_CTL_TCTL_DEQUE_H
 #define TINY_CTL_TCTL_DEQUE_H
 
-#include "tctl_object.h"
+#include "tctl_metaclass.h"
 #include "tctl_def.h"
 #include "tctl_iterator.h"
+#include "tctl_class.h"
 
-typedef struct {
-    void *cur;
-    void *first;
-    void *last;
-    void **map_node;
-} __deque_iter;
+#define INHERIT_DEQUE                              \
+struct {                                           \
+    INHERIT_CLASS;                                 \
+    Iterator (*begin)(void);                       \
+    Iterator (*end)(void);                         \
+    void* (*front)(void);                          \
+    void* (*back)(void);                           \
+    size_t (*size)(void);                          \
+    bool (*empty)(void);                           \
+    void (*push_back)(FormWO_t x);                 \
+    void (*push_front)(FormWO_t x);                \
+    void (*pop_back)(void);                        \
+    void (*pop_front)(void);                       \
+    Iterator (*erase)(Iterator iter);              \
+    Iterator (*insert)(Iterator iter, FormWO_t x); \
+    void (*resize)(size_t new_size);               \
+    void (*clear)(void);                           \
+    void (*swap)(Deque _v);                        \
+}
 
-typedef struct {
-    size_t nmemb;
-    size_t memb_size;
-    void **mmap;
-    size_t mmap_len;
-    size_t block_nmemb;
-    __deque_iter start_ptr;
-    __deque_iter finish_ptr;
-} __private_deque;
+typedef struct _Deque *Deque;
+struct _Deque {
+    union {
+        INHERIT_DEQUE *_s;
+        byte _pad[sizeof(*(Object)NULL)];
+    };
+};
 
-typedef struct {
-    IterType (*begin)(void);
-    IterType (*end)(void);
-    size_t (*size)(void);
-    bool (*empty)(void);
-    void *(*at)(int);
-    void const *(*front)(void);
-    void const *(*back)(void);
-    void (*push_back)(void *x);
-    void (*push_front)(void *x);
-    void (*pop_back)(void);
-    void (*pop_front)(void);
-    IterType (*insert)(IterType, void *x);
-    IterType (*erase)(IterType);
-    void (*clear)(void);
-    byte __obj_private[sizeof(__private_deque)];
-} deque;
-
-void init_deque(deque *p_deque, size_t memb_size, size_t block_nmemb);
-void destory_deque(deque *p_deque);
-deque creat_deque(size_t memb_size, size_t block_nmemb);
+void initDeque(void) __attribute__((constructor));
+Form_t _Deque(void);
+#define DEQUE Deque: _Deque()
 #endif //TINY_CTL_TCTL_DEQUE_H

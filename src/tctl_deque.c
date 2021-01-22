@@ -3,412 +3,407 @@
 //
 #include "../include/tctl_allocator.h"
 #include "../include/tctl_deque.h"
+#include "../include/tctl_algobase.h"
+#include "include/_tctl_deque.h"
 #include "../include/auto_release_pool.h"
+#include "include/_tctl_metaclass.h"
+#include <assert.h>
+#include <cstdarg>
+#include <cstddef>
 #include <memory.h>
+#include <pthread.h>
+#include <string.h>
+
+#define Import CLASS, ITERATOR, OBJECT, METACLASS
+struct DequeIter {
+    void *cur;
+    void *first;
+    void *last;
+    void **map_node;
+};
+
+struct Deque {
+    Form_t _t;
+    void **map;
+    size_t map_size;
+    size_t buf_size;
+    struct DequeIter start;
+    struct DequeIter finish;
+};
+
+struct DequeClass {
+    Iterator (*begin)(const void *_this);
+    Iterator (*end)(const void *_this);
+    void* (*front)(const void *_this);
+    void* (*back)(const void *_this);
+    size_t (*size)(const void *_this);
+    bool (*empty)(const void *_this);
+    void (*push_back)(void *_this, FormWO_t x);
+    void (*push_front)(void *_this, FormWO_t x);
+    void (*pop_back)(void *_this);
+    void (*pop_front)(void *_this);
+    Iterator (*erase)(void *_this, Iterator iter);
+    Iterator (*insert)(void *_this, Iterator iter, FormWO_t x);
+    void (*resize)(void *_this, size_t new_size);
+    void (*clear)(void *_this);
+    void (*swap)(void *_this, Deque _d);
+};
+
+//selector
+static Iterator _begin(void);
+static Iterator _end(void);
+static void* _front(void);
+static void* _back(void);
+static size_t _size(void);
+static bool _empty(void);
+static void _push_back(FormWO_t x);
+static void _push_front(FormWO_t x);
+static void _pop_back(void);
+static void _pop_front(void);
+static Iterator _erase(Iterator iter);
+static Iterator _insert(Iterator iter, FormWO_t x);
+static void _resize(size_t new_size);
+static void _clear(void);
+static void _swap(Deque _d);
+//dequeclass
+static void *_dequeclass_ctor(void *_this, va_list *app);
+//deque
+static void *_deque_ctor(void *_this, va_list *app);
+static void *_deque_dtor(void *_this);
+static void _deque_swap(void *_this, Deque _d);
+static void _deque_clear(void *_this);
+static void _deque_resize(void *_this, size_t new_size);
+static Iterator _deque_insert(void *_this, Iterator _iter, FormWO_t x);
+static Iterator _deque_erase(void *_this, Iterator _iter);
+static void _deque_pop_front(void *_this);
+static void _deque_pop_back(void *_this);
+static void _deque_push_front(void *_this, FormWO_t x);
+static void _deque_push_back(void *_this, FormWO_t x);
+static bool _deque_empty(const void *_this);
+static size_t _deque_max_size(const void *_this);
+static size_t _deque_size(const void *_this);
+static const void *_deque_back(const void *_this);
+static const void *_deque_front(const void *_this);
+static Iterator _deque_end(const void *_this);
+static Iterator _deque_begin(const void *_this);
+static void *_deque_brackets(const void *_this, FormWO_t _x);
+//iterator
+static void *_iter_sub(const void *_this, FormWO_t _x);
+static void *_iter_add(const void *_this, FormWO_t _x);
+static void _iter_asign(void *_this, FormWO_t _x);
+static void _iter_self_sub(void *_this, FormWO_t _x);
+static void _iter_self_add(void *_this, FormWO_t _x);
+static void _iter_dec(void *_this);
+static void _iter_inc(void *_this);
+static void *_iter_brackets(const void *_this, FormWO_t _x);
+static int _iter_cmp(const void *_this, FormWO_t _x);
+static bool _iter_equal(const void *_this, FormWO_t _x);
+static void *_iter_ctor(void *_this, va_list *app);
+static void *_iter_derefer(const void *_this);
+static long long _iter_dist(const void *_this, Iterator _it);
+//init
+static const void *__DequeIter = NULL;
+static const void *__Deque = NULL;
+static const void *__DequeClass = NULL;
+volatile static struct DequeSelector DequeS = {
+        {},
+        _begin,
+        _end,
+        _front,
+        _back,
+        _size,
+        _max_size,
+        _empty,
+        _push_back,
+        _push_front,
+        _pop_back,
+        _pop_front,
+        _erase,
+        _insert,
+        _resize,
+        _clear,
+        _swap
+};
+const struct DequeSelector *_DequeS= NULL;
+
+void initdeque(void){}
+
+Form_t _Deque(void)
+{
+    Form_t t = {OBJ, .class = __Deque};
+    return t;
+}
+
+Form_t _DequeClass(void)
+{
+    Form_t t = {OBJ, .class = __DequeClass};
+    return t;
+}
+
+static Form_t _DequeIter(void)
+{
+    Form_t t = {OBJ, .class = __DequeIter};
+    return t;
+}
 //private
-static void *iter_at(__iterator *iter, int pos)
+static void extend_map(struct Deque *this)
 {
-    deque *this = iter->__inner.obj_this;
-    long long dist = ITER(iter).dist(THIS(this).begin());
-    dist += pos;
-    return THIS(this).at(dist);
+    size_t old_len = this->map_size;
+    size_t start_offset = this->start.map_node - this->map;
+    size_t finish_offset = this->finish.map_node - this->start.map_node;
+    this->map_size *= 2;
+    this->map = reallocate(this->map, old_len, this->map_size);
+    memmove(this->map + old_len / 2, this->map + start_offset, old_len * sizeof(void*));
+
+    this->start.map_node = this->map + old_len / 2;
+    this->finish.map_node = this->start.map_node + finish_offset;
 }
 
-static void iter_inc(__iterator *iter)
-{
-    deque *this = iter->__inner.obj_this;
-    __private_deque *p_private = (__private_deque*)this->__obj_private;
-    __deque_iter *_iter = (__deque_iter*)iter->__inner.__address;
-    _iter->cur += p_private->memb_size;
-    if (_iter->cur == _iter->last) {
-        _iter->map_node++;
-        _iter->first = *_iter->map_node;
-        _iter->last = _iter->first + p_private->block_nmemb * p_private->memb_size;
-        _iter->cur = _iter->first;
-    }
-}
-
-static void iter_dec(__iterator *iter)
-{
-    deque *this = iter->__inner.obj_this;
-    __private_deque *p_private = (__private_deque*)this->__obj_private;
-    __deque_iter *_iter = (__deque_iter*)iter->__inner.__address;
-    if (_iter->cur == _iter->first) {
-        _iter->map_node--;
-        _iter->first = *_iter->map_node;
-        _iter->last = _iter->first + p_private->block_nmemb * p_private->memb_size;
-        _iter->cur = _iter->last;
-    }
-    _iter->cur -= p_private->memb_size;
-}
-
-static void iter_add(__iterator *iter, int v)
-{
-    deque *this = iter->__inner.obj_this;
-    __private_deque *p_private = (__private_deque*)this->__obj_private;
-    __deque_iter *_iter = (__deque_iter*)iter->__inner.__address;
-    size_t block_len = _iter->last - _iter->cur;
-    if (v < block_len) {
-        _iter->cur += p_private->memb_size * v;
-        return;
-    }
-    v -= block_len;
-    int block_index = v / (int)p_private->block_nmemb + 1;
-    void **node = _iter->map_node + block_index;
-    _iter->map_node = node;
-    _iter->first = *node;
-    _iter->last = *node + p_private->memb_size * p_private->block_nmemb;
-    _iter->cur = *node + (v % p_private->block_nmemb) * p_private->block_nmemb;
-}
-
-static void iter_sub(__iterator *iter, int v)
-{
-    deque *this = iter->__inner.obj_this;
-    __private_deque *p_private = (__private_deque*)this->__obj_private;
-    __deque_iter *_iter = (__deque_iter*)iter->__inner.__address;
-    size_t block_len = _iter->cur - _iter->first;
-    if (v <= block_len) {
-        _iter->cur -= p_private->memb_size * v;
-        return;
-    }
-    v -= block_len;
-    int block_index = v / (int)p_private->block_nmemb + 1;
-    void **node = _iter->map_node - block_index;
-    _iter->map_node = node;
-    _iter->first = *node;
-    _iter->last = *node + p_private->memb_size * p_private->block_nmemb;
-    _iter->cur = _iter->last - (v % p_private->block_nmemb) * p_private->block_nmemb;
-}
-
-static long long iter_dist(const __iterator *minuend, const __iterator *subtraction)
-{
-    __deque_iter *_minuend = (__deque_iter*)minuend->__inner.__address;
-    __deque_iter *_subtraction = (__deque_iter*)subtraction->__inner.__address;
-    deque *this = minuend->__inner.obj_this;
-    __private_deque *p_private = (__private_deque*)this->__obj_private;
-    if (_minuend->map_node == _subtraction->map_node)
-        return (_minuend->cur - _subtraction->cur) / p_private->memb_size;
-    long long block_diff = _minuend->map_node - _subtraction->map_node;
-    long long res = block_diff < 0 ?
-                    -(_minuend->last - _minuend->cur + _subtraction->cur - _subtraction->first) :
-                    _minuend->cur - _minuend->first + _subtraction->last - _subtraction->cur;
-    block_diff = block_diff > 0 ? block_diff - 1 : block_diff + 1;
-    return res / (long long)p_private->memb_size + block_diff * p_private->block_nmemb;
-}
-
-static bool iter_equal(const __iterator *it1, const __iterator *it2)
-{
-    return it1->val == it2->val;
-}
-
-static const __iterator_obj_func  __def_deque_iter = {
-        iter_at,
-        iter_inc,
-        iter_dec,
-        iter_add,
-        iter_sub,
-        iter_dist,
-        iter_equal
-};
-
-static const iterator_func __def_deque_iter_func = INIT_ITER_FUNC(&__def_deque_iter);
-
-static void extend_map(__private_deque *p_private)
-{
-    size_t old_len = p_private->mmap_len;
-    size_t start_off = p_private->start_ptr.map_node - p_private->mmap;
-    size_t finish_off = p_private->finish_ptr.map_node - p_private->start_ptr.map_node;
-    p_private->mmap_len = 2 * p_private->mmap_len;
-    p_private->mmap = reallocate(p_private->mmap, old_len * sizeof(void*), p_private->mmap_len * sizeof(void*));
-    memmove(p_private->mmap + old_len / 2, p_private->mmap + start_off, old_len * sizeof(void*));
-
-    p_private->start_ptr.map_node = p_private->mmap + old_len / 2;
-    p_private->start_ptr.cur = *p_private->start_ptr.map_node + (p_private->start_ptr.cur - p_private->start_ptr.first);
-    p_private->start_ptr.first = *p_private->start_ptr.map_node;
-    p_private->start_ptr.last = *p_private->start_ptr.map_node + p_private->memb_size * p_private->block_nmemb;
-
-    p_private->finish_ptr.map_node = p_private->start_ptr.map_node + finish_off;
-    p_private->finish_ptr.cur = *p_private->finish_ptr.map_node + (p_private->finish_ptr.cur - p_private->finish_ptr.first);
-    p_private->finish_ptr.first = *p_private->finish_ptr.map_node;
-    p_private->finish_ptr.last = *p_private->finish_ptr.map_node + p_private->memb_size * p_private->block_nmemb;
-}
 //public
-static IterType begin(void)
+//Iterator
+//DequeClass
+//Deque
+static void *_deque_ctor(void *_this, va_list *app)
 {
-    deque *this = pop_this();
-    __private_deque *p_private = (__private_deque*)this->__obj_private;
-    struct __inner_iterator *start = ARP_MallocARel(sizeof(struct __inner_iterator) + sizeof(__deque_iter));
-    init_iter(start, sizeof(__deque_iter), this, p_private->memb_size, &__def_deque_iter_func);
-    memcpy(start->__address, &p_private->start_ptr, sizeof(__deque_iter));
-    return start;
-}
-static IterType end(void)
-{
-    deque *this = pop_this();
-    __private_deque *p_private = (__private_deque*)this->__obj_private;
-    struct __inner_iterator *finish = ARP_MallocARel(sizeof(struct __inner_iterator) + sizeof(__deque_iter));
-    init_iter(finish, sizeof(__deque_iter), this, p_private->memb_size, &__def_deque_iter_func);
-    memcpy(finish->__address, &p_private->finish_ptr, sizeof(__deque_iter));
-    return finish;
-}
-static size_t size(void)
-{
-    deque *this = pop_this();
-    __private_deque *p_private = (__private_deque*)this->__obj_private;
-    return p_private->nmemb;
+    _this = super_ctor(__Deque, _this, app);
+    struct Deque *this = offsetOf(_this, __Deque);
+    FormWO_t t = va_arg(*app, FormWO_t);
+    assert(t._.f >= FORM);
+    t._.f -= FORM;
+    this->_t = t._;
+    this->buf_size = 512;
+    this->map_size = 1;
+    this->map = allocate(this->map_size * sizeof(void*));
+
+    size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
+    *this->map = allocate(memb_size * this->buf_size);
+
+    this->start.map_node = this->map;
+    this->start.first = this->start.cur = *this->map;
+    this->start.last = (char*)(this->map) + memb_size * this->buf_size;
+    this->finish = this->start;
+    return _this;
 }
 
-static bool empty(void)
+static void *_deque_dtor(void *_this)
 {
-    deque *this = pop_this();
-    __private_deque *p_private = (__private_deque*)this->__obj_private;
-    return p_private->nmemb;
+    _this = super_dtor(__Deque, _this);
+    struct Deque *this = offsetOf(_this, __Deque);
+    _deque_clear(_this);
+    size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
+    deallocate(*this->start.map_node, memb_size * this->buf_size);
+    deallocate(this->map, this->map_size * sizeof(void*));
+    return _this;
 }
-static void *at(int pos)
+
+static Iterator _deque_begin(const void *_this)
 {
-    deque *this = pop_this();
-    __private_deque *p_private = (__private_deque*)this->__obj_private;
-    if (pos >= p_private->nmemb || pos < 0)
-        return NULL;
-    const __deque_iter *start_ptr = &p_private->start_ptr;
-    //__deque_iter *finish_iter = p_private->finish.ptr;
-    size_t start_len = (start_ptr->last - start_ptr->cur) / p_private->memb_size;
-    //size_t finish_len = finish_iter->cur - finish_iter->first;
-    if (pos < start_len)
-        return start_ptr->cur + pos * p_private->memb_size;
-    pos -= start_len;
-    int block_index = pos / (int)p_private->block_nmemb + 1;
-    void **p_block = start_ptr->map_node + block_index;
-    pos %= p_private->block_nmemb;
-    return *p_block + pos * p_private->memb_size;
+    struct Deque *this = offsetOf(_this, __Deque);
+    void *mem = ARP_MallocDtor(classSz(__DequeIter), destroy);
+    return new(compose(_DequeIter(), mem), VA(this->_t, VA_ADDR(this->start)));
 }
-static void const *front(void)
+
+static Iterator _deque_end(const void *_this)
 {
-    deque *this = pop_this();
-    __private_deque *p_private = (__private_deque*)this->__obj_private;
-    return p_private->start_ptr.cur;
+    struct Deque *this = offsetOf(_this, __Deque);
+    void *mem = ARP_MallocDtor(classSz(__DequeIter), destroy);
+    return new(compose(_DequeIter(), mem), VA(this->_t, VA_ADDR(this->finish)));
 }
-static void const *back(void)
+
+static const void *_deque_front(const void *_this)
 {
-    deque *this = pop_this();
-    __private_deque *p_private = (__private_deque*)this->__obj_private;
-    __deque_iter *finish_iter = &p_private->finish_ptr;
-    return finish_iter->cur - p_private->memb_size;
+    struct Deque *this = offsetOf(_this, __Deque);
+    return this->start.cur;
 }
-static void push_back(void *x)
+
+static const void *_deque_back(const void *_this)
 {
-    deque *this = pop_this();
-    __private_deque *p_private = (__private_deque*)this->__obj_private;
-    __deque_iter *finish_ptr = &p_private->finish_ptr;
-    if (finish_ptr->cur == finish_ptr->last) {
-        if (finish_ptr->map_node == p_private->mmap + p_private->mmap_len - 1)
-            extend_map(p_private);
-        finish_ptr->map_node++;
-        *finish_ptr->map_node = allocate(p_private->block_nmemb * p_private->memb_size);
-        finish_ptr->cur = finish_ptr->first = *finish_ptr->map_node;
-        finish_ptr->last = *finish_ptr->map_node + p_private->memb_size * p_private->block_nmemb;
+    struct Deque *this = offsetOf(_this, __Deque);
+    return this->finish.cur;
+}
+
+static size_t _deque_size(const void *_this)
+{
+    struct Deque *this = offsetOf(_this, __Deque);
+    size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
+    struct DequeIter *start = &this->start;
+    struct DequeIter *finish = &this->finish;
+    if (start->map_node == finish->map_node)
+        return ((char*)finish->cur - (char*)start->cur) / memb_size;
+    size_t block_diff = finish->map_node - start->map_node - 1;
+    long long res = finish->cur - finish->first + start->last - start->cur;
+    return res / memb_size + block_diff * this->buf_size;
+}
+
+static bool _deque_empty(const void *_this)
+{
+    struct Deque *this = offsetOf(_this, __Deque);
+    return this->start.map_node == this->finish.map_node && 
+           this->start.cur == this->finish.cur;
+}
+
+static void _deque_push_back(void *_this, FormWO_t _x)
+{
+    struct Deque *this = offsetOf(_this, __Deque);
+    struct DequeIter *finish = &this->finish;
+    size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
+    if (finish->cur == finish->last) {
+        if (finish->map_node == this->map + this->map_size - 1)
+            extend_map(this);
+        finish->map_node++;
+        *finish->map_node = allocate(this->buf_size * memb_size);
+        finish->cur = finish->first = *finish->map_node;
+        finish->last = (char*)*finish->map_node + memb_size * this->buf_size;
     }
-    memcpy(finish_ptr->cur, x, p_private->memb_size);
-    finish_ptr->cur += p_private->memb_size;
-    p_private->nmemb++;
-}
-static void push_front(void *x)
-{
-    deque *this = pop_this();
-    __private_deque *p_private = (__private_deque*)this->__obj_private;
-    __deque_iter *start_ptr = &p_private->start_ptr;
-    if (start_ptr->cur == start_ptr->first) {
-        if (start_ptr->map_node == p_private->mmap)
-            extend_map(p_private);
-        start_ptr->map_node--;
-        *start_ptr->map_node = allocate(p_private->block_nmemb * p_private->memb_size);
-        start_ptr->cur = start_ptr->last = *start_ptr->map_node + p_private->memb_size * p_private->block_nmemb;
-        start_ptr->first = *start_ptr->map_node;
-    }
-    start_ptr->cur -= p_private->memb_size;
-    memcpy(start_ptr->cur, x, p_private->memb_size);
-    p_private->nmemb++;
-}
-static void pop_back(void)
-{
-    deque *this = pop_this();
-    __private_deque *p_private = (__private_deque*)this->__obj_private;
-    if (!p_private->nmemb)
-        return;
-    __deque_iter *finish_ptr = &p_private->finish_ptr;
-    finish_ptr->cur -= p_private->memb_size;
-    if (finish_ptr->cur == finish_ptr->first) {
-        deallocate(*finish_ptr->map_node, p_private->block_nmemb * p_private->memb_size);
-        finish_ptr->map_node--;
-        finish_ptr->cur = finish_ptr->last = *finish_ptr->map_node + p_private->memb_size * p_private->block_nmemb;
-        finish_ptr->first = *finish_ptr->map_node;
-    }
-    p_private->nmemb--;
-}
-static void pop_front(void)
-{
-    deque *this = pop_this();
-    __private_deque *p_private = (__private_deque*)this->__obj_private;
-    if (!p_private->nmemb)
-        return;
-    __deque_iter *start_ptr = &p_private->start_ptr;
-    start_ptr->cur += p_private->memb_size;
-    if (start_ptr->cur == start_ptr->last) {
-        deallocate(*start_ptr->map_node, p_private->block_nmemb * p_private->memb_size);
-        start_ptr->map_node++;
-        start_ptr->cur = start_ptr->first = *start_ptr->map_node;
-        start_ptr->last = *start_ptr->map_node + p_private->memb_size * p_private->block_nmemb;
-    }
-    p_private->nmemb--;
-//    if (--p_private)
-}
-static IterType insert(IterType iter, void *x)
-{
-    deque *this = pop_this();
-    __private_deque *p_private = (__private_deque*)this->__obj_private;
-    __iterator *__iter = iter;
-    const __deque_iter *_d_iter = (__deque_iter*)__iter->__inner.__address;
-    if (_d_iter->map_node - p_private->start_ptr.map_node < p_private->finish_ptr.map_node - _d_iter->map_node) {
-        THIS(this).push_front(x);
-        __deque_iter in_iter = p_private->start_ptr;
-        while (in_iter.map_node != _d_iter->map_node)
-        {
-            __deque_iter next_iter;
-            next_iter.map_node = in_iter.map_node + 1;
-            next_iter.first = *next_iter.map_node;
-            next_iter.last = *next_iter.map_node + p_private->block_nmemb * p_private->memb_size;
-            next_iter.cur = next_iter.first;
-            memmove(in_iter.cur, in_iter.cur + p_private->memb_size, in_iter.last - in_iter.cur - p_private->memb_size);
-            memcpy(in_iter.last - p_private->memb_size, next_iter.first, p_private->memb_size);
-            in_iter = next_iter;
-        }
-        memmove(in_iter.first, in_iter.first + p_private->memb_size, _d_iter->cur - in_iter.first - p_private->memb_size);
-        memcpy(_d_iter->cur - p_private->memb_size, x, p_private->memb_size);
+    if (this->_t.f == POD) {
+        assert(_x._.f != OBJ);
+        if (_x._.f == ADDR)
+            memcpy(finish->cur, _x.mem, memb_size);
+        else if (_x._.f == POD)
+            memcpy(finish->cur, &_x.mem, memb_size);
     } else {
-        THIS(this).push_back(x);
-        __deque_iter in_iter = p_private->finish_ptr;
-        while (in_iter.map_node != _d_iter->map_node)
-        {
-            __deque_iter next_iter;
-            next_iter.map_node = in_iter.map_node - 1;
-            next_iter.first = *next_iter.map_node;
-            next_iter.last = *next_iter.map_node + p_private->block_nmemb * p_private->memb_size;
-            next_iter.cur = next_iter.last;
-            memmove(in_iter.first + p_private->memb_size, in_iter.first, in_iter.cur - in_iter.first - p_private->memb_size);
-            memcpy(in_iter.first, next_iter.last - p_private->memb_size, p_private->memb_size);
-            in_iter = next_iter;
-        }
-        memmove(_d_iter->cur + p_private->memb_size, _d_iter->cur, _d_iter->last - _d_iter->cur - p_private->memb_size);
-        memcpy(_d_iter->cur, x, p_private->memb_size);
+        construct(this->_t, finish->cur, _x);
     }
-    return iter;
+    finish->cur = (char*)finish->cur + memb_size;
 }
-static IterType erase(IterType iter)
+
+static void _deque_push_front(void *_this, FormWO_t _x)
 {
-    __iterator *__iter = iter;
-    __deque_iter in_iter = *(__deque_iter*)__iter->__inner.__address;
-    deque *this = pop_this();
-    __private_deque *p_private = (__private_deque*)this->__obj_private;
-    if (in_iter.map_node - p_private->start_ptr.map_node < p_private->finish_ptr.map_node - in_iter.map_node) {
+    struct Deque *this = offsetOf(_this, __Deque);
+    struct DequeIter *start = &this->start;
+    size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
+    if (start->cur == start->first) {
+        if (start->map_node == this->map)
+            extend_map(this);
+        start->map_node--;
+        *start->map_node = allocate(this->buf_size * memb_size);
+        start->cur = start->last = (char*)*start->map_node + memb_size * this->buf_size;
+        start->first = *start->map_node;
+    }
+    start->cur = (char*)start->cur - memb_size;
+    if (this->_t.f == POD) {
+        assert(_x._.f != OBJ);
+        if (_x._.f == ADDR)
+            memcpy(start->cur, _x.mem, memb_size);
+        else if (_x._.f == POD)
+            memcpy(start->cur, &_x.mem, memb_size);
+    } else {
+        construct(this->_t, start->cur, _x);
+    }
+}
+
+static void _deque_pop_back(void *_this)
+{
+    struct Deque *this = offsetOf(_this, __Deque);
+    assert(!_deque_empty(this));
+    struct DequeIter *finish = &this->finish;
+    size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
+    finish->cur = (char*)finish->cur - memb_size;
+    if (finish->cur == finish->first) {
+        deallocate(*finish->map_node, this->buf_size * memb_size);
+        finish->map_node--;
+        finish->cur = finish->last = (char*)*finish->map_node + this->buf_size * memb_size;
+        finish->first = *finish->map_node;
+    }
+}
+
+static void _deque_pop_front(void *_this)
+{
+    struct Deque *this = offsetOf(_this, __Deque);
+    assert(!_deque_empty(this));
+    struct DequeIter *start = &this->start;
+    size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
+    if (start->cur == start->last) {
+        deallocate(*start->map_node, this->buf_size * memb_size);
+        start->map_node++;
+        start->cur = start->first = *start->map_node;
+        start->last = (char*)*start->map_node + this->buf_size * memb_size;
+    }
+}
+
+static Iterator _deque_erase(void *_this, Iterator _iter)
+{
+    struct Deque *this = offsetOf(_this, __Deque);
+    assert(!_deque_empty(this));
+    Iterator first = _deque_begin(_this);
+    Iterator last = _deque_end(_this);
+    long long front_dist = _iter_dist(_iter, first);
+    long long back_dist = _iter_dist(last, _iter);
+    if (front_dist < back_dist) {
         //复制内存块，移动内存
-        while(in_iter.map_node != p_private->start_ptr.map_node)
-        {
-            __deque_iter next_iter;
-            next_iter.map_node = in_iter.map_node - 1;
-            next_iter.first = *next_iter.map_node;
-            next_iter.last = *next_iter.map_node + p_private->memb_size * p_private->block_nmemb;
-            next_iter.cur = next_iter.last - p_private->memb_size;
-            memmove(in_iter.first + p_private->memb_size, in_iter.first, in_iter.cur - in_iter.first);
-            memcpy(in_iter.first, next_iter.cur, p_private->memb_size);
-            in_iter = next_iter;
-        }
-        memmove(p_private->start_ptr.cur + p_private->memb_size, p_private->start_ptr.cur, in_iter.cur - p_private->start_ptr.cur);
-        THIS(this).pop_front();
+        Iterator iter_pre = _iter_sub(_iter, VA(1));
+        Iterator first_next = _iter_add(first, VA(1));
+        copy(first, iter_pre, first_next);
+        _deque_pop_front(_this);
+        _iter_inc(_iter);//传出去的迭代器后前移动
     } else {
-        while(in_iter.map_node != p_private->finish_ptr.map_node)
-        {
-            __deque_iter next_iter;
-            next_iter.map_node = in_iter.map_node + 1;
-            next_iter.first = *next_iter.map_node;
-            next_iter.last = *next_iter.map_node + p_private->memb_size * p_private->block_nmemb;
-            next_iter.cur = next_iter.first;
-            memmove(in_iter.cur, in_iter.cur + p_private->memb_size, in_iter.last - in_iter.cur - p_private->memb_size);
-            memcpy(in_iter.last - p_private->memb_size, next_iter.cur, p_private->memb_size);
-            in_iter = next_iter;
-        }
-        memmove(in_iter.cur, in_iter.cur + p_private->memb_size, p_private->finish_ptr.cur - in_iter.cur - p_private->memb_size);
-        THIS(this).pop_back();
+        Iterator iter_next = _iter_add(_iter, VA(1));
+        copy(iter_next, last, _iter);
+        _deque_pop_back(_this);
     }
-    return iter;
+    return _iter;
 }
-static void clear(void)
+
+static Iterator _deque_insert(void *_this, Iterator _iter, FormWO_t x)
 {
-    deque *this = pop_this();
-    __private_deque *p_private = (__private_deque*)this->__obj_private;
-    void **mid = p_private->mmap + p_private->mmap_len / 2;
-    while (p_private->start_ptr.map_node != mid)
-    {
-        deallocate(*p_private->start_ptr.map_node, p_private->memb_size * p_private->block_nmemb);
-        p_private->start_ptr.map_node++;
+    struct Deque *this = offsetOf(_this, __Deque);
+    assert(!_deque_empty(this));
+    Iterator first = _deque_begin(_this);
+    Iterator last = _deque_end(_this);
+    long long front_dist = _iter_dist(_iter, first);
+    long long back_dist = _iter_dist(last, _iter);
+    if (front_dist < back_dist) {
+        //复制内存块，移动内存
+        _deque_push_front(_this, VAEND);//VAEND填充FormWO_t，让其调用无参构造函数
+        Iterator first_pre = _iter_sub(first, VA(1));
+        copy(first, _iter, first_pre);
+        _iter_dec(_iter);
+        Object obj = _iter_derefer(_iter);
+        THIS(obj).asign(x);
+    } else {
+        _deque_push_back(_this, VAEND);
+        Iterator iter_next = _iter_add(_iter, VA(1));
+        copy(_iter, last, iter_next);
+        Object obj = _iter_derefer(_iter);
+        THIS(obj).asign(x);
     }
-    while (p_private->finish_ptr.map_node != mid)
-    {
-        deallocate(*p_private->finish_ptr.map_node, p_private->memb_size * p_private->block_nmemb);
-        p_private->finish_ptr.map_node--;
+    return _iter;
+}
+
+static void _deque_swap(void *_this, Deque _d)
+{
+    struct Deque *this = offsetOf(_this, __Deque);
+    struct Deque *D = offsetOf(_d, __Deque);
+    assert(this->_t.f == D->_t.f && this->_t.class == D->_t.class);
+    struct Deque tmp = *this;
+    *this = *D;
+    *D = tmp;
+}
+
+static void _deque_clear(void *_this)
+{
+    struct Deque *this = offsetOf(_this, __Deque);
+    size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
+    for (void **node = this->start.map_node + 1; node < this->finish.map_node; node++) {
+        char *end = (char*)*node + this->buf_size;
+        for (char *ptr = *node; ptr < end; ptr += memb_size)
+            destroy(ptr);
+        deallocate(*node, this->buf_size);
     }
-    p_private->start_ptr.first = p_private->finish_ptr.first = *mid;
-    p_private->start_ptr.cur = p_private->finish_ptr.cur = *mid;
-    p_private->start_ptr.last = p_private->finish_ptr.last = *mid + p_private->block_nmemb * p_private->memb_size;
-    p_private->nmemb = 0;
+    if (this->start.map_node != this->finish.map_node) {
+        for (char *ptr = this->finish.cur; ptr >= (char*)this->finish.first; ptr -= memb_size)
+            destroy(ptr);
+        for (char *ptr = this->start.cur; ptr < (char*)this->start.last; ptr += memb_size)
+            destroy(ptr);
+        deallocate(*this->finish.map_node, this->buf_size);
+    } else {
+        for (char *ptr = this->start.cur; ptr < (char*)this->start.last; ptr += memb_size)
+            destroy(ptr);
+    }
+    this->finish = this->start;
 }
 
-
-
-static const deque __def_deque = {
-        begin,
-        end,
-        size,
-        empty,
-        at,
-        front,
-        back,
-        push_back,
-        push_front,
-        pop_back,
-        pop_front,
-        insert,
-        erase,
-        clear
-};
-
-void init_deque(deque *p_deque, size_t memb_size, size_t block_nmemb)
+static void _deque_resize(void *_this, size_t new_size)
 {
-   *p_deque = __def_deque;
-   __private_deque *p_private = (__private_deque*)p_deque->__obj_private;
-   p_private->nmemb = 0;
-   p_private->block_nmemb = block_nmemb;
-   p_private->memb_size = memb_size;
-   p_private->mmap_len = 1;
-   p_private->mmap = reallocate(NULL, 0, p_private->mmap_len * sizeof(void*));
-   *p_private->mmap = allocate(memb_size * block_nmemb);
-
-   p_private->start_ptr.map_node = p_private->mmap;
-   p_private->start_ptr.first = p_private->start_ptr.cur = *p_private->start_ptr.map_node;
-   p_private->start_ptr.last = *p_private->start_ptr.map_node + memb_size * block_nmemb;
-   p_private->finish_ptr = p_private->start_ptr;
 }
-
-void destory_deque(deque *p_deque)
-{
-    __private_deque *p_private = (__private_deque*)p_deque->__obj_private;
-    THIS(p_deque).clear();
-    deallocate(*p_private->start_ptr.map_node, p_private->memb_size * p_private->block_nmemb);
-    deallocate(p_private->mmap, p_private->mmap_len);
-}
-
-deque creat_deque(size_t memb_size, size_t block_nmemb)
-{
-    deque deq;
-    init_deque(&deq, memb_size, block_nmemb);
-    return deq;
-}
+static void *_deque_brackets(const void *_this, FormWO_t _x);
