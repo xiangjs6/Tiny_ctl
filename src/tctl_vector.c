@@ -652,7 +652,8 @@ static Iterator _vector_insert(void *_this, Iterator _iter, FormWO_t _x)
         else
             memcpy(p_target, &_x.mem, memb_size);
     } else {
-        construct(this->_t, p_target, _x);
+        Object obj = p_target;
+        THIS(obj).asign(_x);
     }
     this->nmemb++;
     this->finish_ptr += memb_size;
