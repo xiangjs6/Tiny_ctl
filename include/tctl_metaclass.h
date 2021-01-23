@@ -90,7 +90,7 @@ const void *super(const void * this);	/* class' superclass */
 
 void push_this(const void *);
 void *pop_this(void);
-#define THIS(p) (push_this(p), *(p->_s))
+#define THIS(p) (push_this(p), *((p)->_s))
 
 Form_t _MetaObject(void);		/* new(Object); */
 Form_t _MetaClass(void);	/* new(MetaClass, "name", super, size, sel, meth, ... 0); */
