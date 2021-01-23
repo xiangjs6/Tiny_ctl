@@ -25,4 +25,6 @@ struct DequeSelector {
     void (*clear)(void);
     void (*swap)(Deque _d);
 };
+Form_t _DequeClass(void);
+extern const struct DequeSelector *_DequeS;
 #endif //TINY_CTL__TCTL_DEQUE_H
