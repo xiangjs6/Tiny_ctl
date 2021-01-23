@@ -354,13 +354,10 @@ static void *_iter_brackets(const void *_this, FormWO_t _x)
 {
     const struct VectorIter *this = offsetOf(_this, __VectorIter);
     const Iterator it = (void*)_this;
-    char i_mem[classSz(_Int().class)];
-    Int x = (void*)i_mem;
-    construct(_Int(), i_mem, _x);
+    long long x =   toInt(_x);
     Form_t t = THIS(it).type();
     size_t size = t.f == POD ? t.size : classSz(t.class);
-    void *res = this->ptr + size * (x->val + this->cur);
-    destroy(x);
+    void *res = this->ptr + size * (x + this->cur);
     return res;
 }
 
@@ -512,12 +509,10 @@ static void *_vector_dtor(void *_this)
 static void *_vector_brackets(const void *_this, FormWO_t _x)
 {
     const struct Vector *this = offsetOf(_this, __Vector);
-    char i_mem[classSz(_Int().class)];
-    Int x = (void*)i_mem;
-    construct(_Int(), i_mem, _x);
+    long long x = toInt(_x);
+    assert(x >= 0 && x < this->nmemb);
     size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
-    void *res = this->start_ptr + memb_size * x->val;
-    destroy(x);
+    void *res = this->start_ptr + memb_size * x;
     return res;
 }
 
