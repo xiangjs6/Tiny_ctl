@@ -349,7 +349,7 @@ static void _iter_self_add(void *_this, FormWO_t _x)
         this->map_node = node;
         this->first = *node;
         this->last = (char*)*node + buf_size * memb_size;
-        this->cur = (char*)this->first + (offset - node_offset * buf_size);
+        this->cur = (char*)this->first + (offset - node_offset * buf_size) * memb_size;
     }
 }
 
@@ -394,14 +394,6 @@ static long long _iter_dist(const void *_this, Iterator _it)
     size_t buf_size = ((char*)this->last - (char*)this->first) / memb_size;
     struct DequeIter *it = offsetOf(_it, __DequeIter);
     return dist_aux(this, it, memb_size, buf_size);
-    if (this->map_node == it->map_node)
-        return ((char*)it->cur - (char*)this->cur) / memb_size;
-    long long node_dist = it->map_node - this->map_node;
-    long long res = node_dist < 0 ?
-                    -((char*)it->last - (char*)it->cur + (char*)this->cur - (char*)this->first) :
-                    (char*)it->cur - (char*)it->first + (char*)this->last - (char*)this->cur;
-    node_dist = node_dist > 0 ? node_dist - 1 : node_dist + 1;
-    return res / (long long)memb_size + node_dist * buf_size;
 }
 
 //DequeClass
@@ -439,7 +431,7 @@ static void *_deque_ctor(void *_this, va_list *app)
     assert(t._.f >= FORM);
     t._.f -= FORM;
     this->_t = t._;
-    this->buf_size = 5;
+    this->buf_size = 512;
     this->map_size = 1;
     this->map = allocate(this->map_size * sizeof(void*));
 
