@@ -211,6 +211,18 @@ static void extend_map(struct Deque *this)
     this->finish.map_node = this->start.map_node + finish_offset;
 }
 
+static long long dist_aux(const struct DequeIter *it1, const struct DequeIter *it2, size_t memb_size, size_t buf_size)
+{
+    if (it1->map_node == it2->map_node)
+        return ((char*)it2->cur - (char*)it1->cur) / memb_size;
+    long long node_dist = it2->map_node - it1->map_node;
+    long long res = node_dist < 0 ?
+                    -((char*)it2->last - (char*)it2->cur + (char*)it1->cur - (char*)it1->first) :
+                    (char*)it2->cur - (char*)it2->first + (char*)it1->last - (char*)it1->cur;
+    node_dist = node_dist > 0 ? node_dist - 1 : node_dist + 1;
+    return res / (long long)memb_size + node_dist * buf_size;
+}
+
 //public
 //Iterator
 static void *_iter_ctor(void *_this, va_list *app)
@@ -305,7 +317,7 @@ static void _iter_dec(void *_this)
     size_t buf_size = ((char*)this->last - (char*)this->first) / memb_size;
     if (this->cur == this->first) {
         this->map_node--;
-        this->cur = *this->map_node;
+        this->first = *this->map_node;
         this->last = this->cur = (char*)*this->map_node + buf_size * memb_size;
     }
     this->cur = (char*)this->cur - memb_size;
@@ -326,32 +338,18 @@ static void _iter_self_add(void *_this, FormWO_t _x)
     size_t memb_size = t.f == OBJ ? classSz(t.class) : t.size;
     size_t buf_size = ((char*)this->last - (char*)this->first) / memb_size;
     long long x = toInt(_x);
-    size_t front_len = ((char*)this->cur - (char*)this->first) / memb_size;
-    size_t back_len = ((char*)this->last - (char*)this->cur) / memb_size;
-    if (x >= 0) {
-        if (x < back_len) {
-            this->cur = (char*)this->cur + memb_size * x;
-        } else {
-            x -= back_len;
-            int node_index = x / buf_size + 1;
-            void **node = this->map_node + node_index;
-            x %= buf_size;
-            this->first = *node;
-            this->last = (char*)*node + buf_size * memb_size;
-            this->cur = (char*)*node + x * memb_size;
-        }
+    long long offset = x + (this->cur - this->first) / memb_size;
+    if (offset >= 0 && offset < buf_size) {
+        this->cur = (char*)this->cur + memb_size * x;
     } else {
-        if (-x < front_len) {
-            this->cur = (char*)this->cur + memb_size * x;
-        } else {
-            x += front_len;
-            int node_index = x / buf_size - 1; //这是负数
-            void **node = this->map_node + node_index;
-            x %= buf_size;
-            this->first = *node;
-            this->last = (char*)*node + buf_size * memb_size;
-            this->cur = this->last + x * memb_size;
-        }
+        long long node_offset = offset > 0 ?
+                                offset / buf_size :
+                                -(-offset - 1) / buf_size - 1;
+        void **node = this->map_node + node_offset;
+        this->map_node = node;
+        this->first = *node;
+        this->last = (char*)*node + buf_size * memb_size;
+        this->cur = (char*)this->first + (offset - node_offset * buf_size);
     }
 }
 
@@ -365,8 +363,8 @@ static void *_iter_add(const void *_this, FormWO_t _x)
 {
     Iterator it = (void*)_this;
     void *mem = ARP_MallocARelDtor(classSz(__DequeIter), destroy);
-    Iterator new_it = mem;
-    construct(THIS(it).type(), mem, VA(it));
+    Form_t t = THIS(it).type();
+    Iterator new_it = new(compose(_DequeIter(), mem), VA(t, it));
     _iter_self_add(new_it, _x);
     return new_it;
 }
@@ -375,8 +373,8 @@ static void *_iter_sub(const void *_this, FormWO_t _x)
 {
     Iterator it = (void*)_this;
     void *mem = ARP_MallocARelDtor(classSz(__DequeIter), destroy);
-    Iterator new_it = mem;
-    construct(THIS(it).type(), mem, VA(it));
+    Form_t t = THIS(it).type();
+    Iterator new_it = new(compose(_DequeIter(), mem), VA(t, it));
     _iter_self_sub(new_it, _x);
     return new_it;
 }
@@ -395,6 +393,7 @@ static long long _iter_dist(const void *_this, Iterator _it)
     size_t memb_size = t.f == OBJ ? classSz(t.class) : t.size;
     size_t buf_size = ((char*)this->last - (char*)this->first) / memb_size;
     struct DequeIter *it = offsetOf(_it, __DequeIter);
+    return dist_aux(this, it, memb_size, buf_size);
     if (this->map_node == it->map_node)
         return ((char*)it->cur - (char*)this->cur) / memb_size;
     long long node_dist = it->map_node - this->map_node;
@@ -440,7 +439,7 @@ static void *_deque_ctor(void *_this, va_list *app)
     assert(t._.f >= FORM);
     t._.f -= FORM;
     this->_t = t._;
-    this->buf_size = 1;
+    this->buf_size = 5;
     this->map_size = 1;
     this->map = allocate(this->map_size * sizeof(void*));
 
@@ -488,7 +487,10 @@ static const void *_deque_front(const void *_this)
 static const void *_deque_back(const void *_this)
 {
     struct Deque *this = offsetOf(_this, __Deque);
-    return this->finish.cur;
+    size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
+    if (this->finish.cur == this->finish.first)
+        return *(this->finish.map_node - 1) + (this->buf_size - 1) * memb_size;
+    return this->finish.cur - memb_size;
 }
 
 static size_t _deque_size(const void *_this)
@@ -516,14 +518,6 @@ static void _deque_push_back(void *_this, FormWO_t _x)
     struct Deque *this = offsetOf(_this, __Deque);
     struct DequeIter *finish = &this->finish;
     size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
-    if (finish->cur == finish->last) {
-        if (finish->map_node == this->map + this->map_size - 1)
-            extend_map(this);
-        finish->map_node++;
-        *finish->map_node = allocate(this->buf_size * memb_size);
-        finish->cur = finish->first = *finish->map_node;
-        finish->last = (char*)*finish->map_node + memb_size * this->buf_size;
-    }
     if (this->_t.f == POD) {
         assert(_x._.f != OBJ);
         if (_x._.f == ADDR)
@@ -534,6 +528,14 @@ static void _deque_push_back(void *_this, FormWO_t _x)
         construct(this->_t, finish->cur, _x);
     }
     finish->cur = (char*)finish->cur + memb_size;
+    if (finish->cur == finish->last) {
+        if (finish->map_node == this->map + this->map_size - 1)
+            extend_map(this);
+        finish->map_node++;
+        *finish->map_node = allocate(this->buf_size * memb_size);
+        finish->cur = finish->first = *finish->map_node;
+        finish->last = (char*)*finish->map_node + memb_size * this->buf_size;
+    }
 }
 
 static void _deque_push_front(void *_this, FormWO_t _x)
@@ -567,13 +569,15 @@ static void _deque_pop_back(void *_this)
     assert(!_deque_empty(this));
     struct DequeIter *finish = &this->finish;
     size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
-    finish->cur = (char*)finish->cur - memb_size;
     if (finish->cur == finish->first) {
         deallocate(*finish->map_node, this->buf_size * memb_size);
         finish->map_node--;
         finish->cur = finish->last = (char*)*finish->map_node + this->buf_size * memb_size;
         finish->first = *finish->map_node;
     }
+    finish->cur = (char*)finish->cur - memb_size;
+    if (this->_t.f == OBJ)
+        destroy(finish->cur);
 }
 
 static void _deque_pop_front(void *_this)
@@ -582,6 +586,9 @@ static void _deque_pop_front(void *_this)
     assert(!_deque_empty(this));
     struct DequeIter *start = &this->start;
     size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
+    if (this->_t.f == OBJ)
+        destroy(start->cur);
+    start->cur = (char*)start->cur + memb_size;
     if (start->cur == start->last) {
         deallocate(*start->map_node, this->buf_size * memb_size);
         start->map_node++;
@@ -592,49 +599,70 @@ static void _deque_pop_front(void *_this)
 
 static Iterator _deque_erase(void *_this, Iterator _iter)
 {
+    assert(classOf(_iter) == __DequeIter && !_deque_empty(_this));
     struct Deque *this = offsetOf(_this, __Deque);
-    assert(!_deque_empty(this));
-    Iterator first = _deque_begin(_this);
-    Iterator last = _deque_end(_this);
-    long long front_dist = _iter_dist(_iter, first);
-    long long back_dist = _iter_dist(last, _iter);
-    if (front_dist < back_dist) {
-        //复制内存块，移动内存
-        Iterator iter_pre = _iter_sub(_iter, VA(1));
-        Iterator first_next = _iter_add(first, VA(1));
-        copy(first, iter_pre, first_next);
+    struct DequeIter *it = offsetOf(_iter, __DequeIter);
+    size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
+    Iterator next = _iter_add(_iter, VA(1));
+    offset_t index = dist_aux(&this->start, it, memb_size, this->buf_size);
+    if (index < _deque_size(_this) / 2) {
+        Iterator front = _deque_begin(_this);
+        copy_backward(front, _iter, next);
         _deque_pop_front(_this);
-        _iter_inc(_iter);//传出去的迭代器后前移动
     } else {
-        Iterator iter_next = _iter_add(_iter, VA(1));
-        copy(iter_next, last, _iter);
+        Iterator back = _deque_end(_this);
+        copy(next, back, _iter);
         _deque_pop_back(_this);
     }
+    *it = this->start;
+    _iter_self_add(_iter, VA(index));
     return _iter;
 }
 
 static Iterator _deque_insert(void *_this, Iterator _iter, FormWO_t x)
 {
+    assert(classOf(_iter) == __DequeIter);
     struct Deque *this = offsetOf(_this, __Deque);
-    assert(!_deque_empty(this));
-    Iterator first = _deque_begin(_this);
-    Iterator last = _deque_end(_this);
-    long long front_dist = _iter_dist(_iter, first);
-    long long back_dist = _iter_dist(last, _iter);
-    if (front_dist < back_dist) {
-        //复制内存块，移动内存
-        _deque_push_front(_this, VAEND);//VAEND填充FormWO_t，让其调用无参构造函数
-        Iterator first_pre = _iter_sub(first, VA(1));
-        copy(first, _iter, first_pre);
+    struct DequeIter *it = offsetOf(_iter, __DequeIter);
+    if (it->cur == this->start.cur) {
+        _deque_push_front(_this, x);
+        *it = this->start;
+        return _iter;
+    } else if (it->cur == this->finish.cur) {
+        _deque_push_back(_this, x);
+        *it = this->finish;
         _iter_dec(_iter);
+        return _iter;
+    }
+    size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
+    offset_t index = dist_aux(&this->start, it, memb_size, this->buf_size);
+    if (index < _deque_size(_this) / 2) {
+        _deque_push_front(_this, VAEND);
+        Iterator front1 = _deque_begin(_this);
+        Iterator front2 = _iter_add(front1, VA(1));
+        *it = this->start;
+        _iter_self_add(_iter, VA(index + 1));
+        copy(front2, _iter, front1);
+        _iter_dec(_iter);
+    } else {
+        _deque_push_back(_this, VAEND);
+        Iterator back1 = _deque_end(_this);
+        _iter_dec(back1);
+        Iterator back2 = _iter_sub(back1, VA(1));
+        *it = this->start;
+        _iter_self_add(_iter, VA(index));
+        copy_backward(_iter, back2, back1);
+    }
+    //赋值
+    if (this->_t.f == OBJ) {
         Object obj = _iter_derefer(_iter);
         THIS(obj).asign(x);
     } else {
-        _deque_push_back(_this, VAEND);
-        Iterator iter_next = _iter_add(_iter, VA(1));
-        copy(_iter, last, iter_next);
-        Object obj = _iter_derefer(_iter);
-        THIS(obj).asign(x);
+        assert(x._.f != OBJ);
+        if (x._.f == POD)
+            memcpy(_iter_derefer(_iter), &x.mem, this->_t.size);
+        else if (x._.f == ADDR)
+            memcpy(_iter_derefer(_iter), x.mem, this->_t.size);
     }
     return _iter;
 }
@@ -655,19 +683,25 @@ static void _deque_clear(void *_this)
     size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
     for (void **node = this->start.map_node + 1; node < this->finish.map_node; node++) {
         char *end = (char*)*node + this->buf_size;
-        for (char *ptr = *node; ptr < end; ptr += memb_size)
-            destroy(ptr);
+        if (this->_t.f == OBJ) {
+            for (char *ptr = *node; ptr < end; ptr += memb_size)
+                destroy(ptr);
+        }
         deallocate(*node, this->buf_size);
     }
     if (this->start.map_node != this->finish.map_node) {
-        for (char *ptr = this->finish.cur; ptr >= (char*)this->finish.first; ptr -= memb_size)
-            destroy(ptr);
-        for (char *ptr = this->start.cur; ptr < (char*)this->start.last; ptr += memb_size)
-            destroy(ptr);
+        if (this->_t.f == OBJ) {
+            for (char *ptr = this->finish.first; ptr < (char *) this->finish.cur; ptr += memb_size)
+                destroy(ptr);
+            for (char *ptr = this->start.cur; ptr < (char *) this->start.last; ptr += memb_size)
+                destroy(ptr);
+        }
         deallocate(*this->finish.map_node, this->buf_size);
     } else {
-        for (char *ptr = this->start.cur; ptr < (char*)this->finish.cur; ptr += memb_size)
-            destroy(ptr);
+        if (this->_t.f == OBJ) {
+            for (char *ptr = this->start.cur; ptr < (char *) this->finish.cur; ptr += memb_size)
+                destroy(ptr);
+        }
     }
     this->finish = this->start;
 }
