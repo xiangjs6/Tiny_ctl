@@ -527,14 +527,14 @@ static void *_deque_dtor(void *_this)
 static Iterator _deque_begin(const void *_this)
 {
     struct Deque *this = offsetOf(_this, __Deque);
-    void *mem = ARP_MallocDtor(classSz(__DequeIter), destroy);
+    void *mem = ARP_MallocARelDtor(classSz(__DequeIter), destroy);
     return new(compose(_DequeIter(), mem), VA(this->_t, VA_ADDR(this->start)));
 }
 
 static Iterator _deque_end(const void *_this)
 {
     struct Deque *this = offsetOf(_this, __Deque);
-    void *mem = ARP_MallocDtor(classSz(__DequeIter), destroy);
+    void *mem = ARP_MallocARelDtor(classSz(__DequeIter), destroy);
     return new(compose(_DequeIter(), mem), VA(this->_t, VA_ADDR(this->finish)));
 }
 
