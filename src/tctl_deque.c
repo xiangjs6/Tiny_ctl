@@ -489,8 +489,8 @@ static void *_deque_ctor(void *_this, va_list *app)
     assert(t._.f >= FORM);
     t._.f -= FORM;
     this->_t = t._;
-    this->buf_size = 512;
-    this->map_size = 1;
+    this->buf_size = 1;
+    this->map_size = 2; //必须为2的倍数，不然expand_map无法正确放置start地址
     this->map = allocate(this->map_size * sizeof(void*));
 
     size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
