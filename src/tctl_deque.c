@@ -5,6 +5,7 @@
 #include "../include/tctl_deque.h"
 #include "../include/tctl_algobase.h"
 #include "../include/tctl_int.h"
+#include "../include/tctl_uint.h"
 #include "../include/auto_release_pool.h"
 #include "include/_tctl_deque.h"
 #include "include/_tctl_metaclass.h"
@@ -221,6 +222,63 @@ static long long dist_aux(const struct DequeIter *it1, const struct DequeIter *i
                     (char*)it2->cur - (char*)it2->first + (char*)it1->last - (char*)it1->cur;
     node_dist = node_dist > 0 ? node_dist - 1 : node_dist + 1;
     return res / (long long)memb_size + node_dist * buf_size;
+}
+
+static void _dealDequeArgs(void *_this, FormWO_t *args, int n)
+{
+    struct Deque *this = offsetOf(_this, __Deque);
+    if (args->_.class == __Deque) { //复制一个Deque
+        struct Deque *d = offsetOf(args->mem, __Deque);
+        size_t d_memb_size = d->_t.f == POD ? d->_t.size : classSz(d->_t.class);
+        Form_t t = d->_t;
+        struct DequeIter it = d->start;
+        while (it.cur != d->finish.cur) {
+            if (t.f == POD) {
+                char (*p)[t.size] = it.cur;
+                _deque_push_back(_this, VA(VA_ADDR(*p)));
+            } else if (t.f == OBJ) {
+                _deque_push_back(_this, FORM_WITH_OBJ(t, it.cur));
+            }
+            it.cur = (char*)it.cur + d_memb_size;
+            if (it.cur == it.last) {
+                it.map_node++;
+                it.first = it.cur = *it.map_node;
+                it.last = (char*)*it.map_node + d_memb_size * d->buf_size;
+            }
+        }
+    } else if (args->_.f == POD || args->_.f == ADDR || args->_.class != _Iterator().class) { //size_type n, T value = T() 构造方法
+        unsigned long long nmemb = toUInt(*args);
+        if (n == 1) {
+            for (size_t i = 0; i < nmemb; i++)
+                _deque_push_back(_this, VAEND);
+        } else {
+            for (size_t i = 0; i < nmemb; i++)
+                _deque_push_back(_this, args[1]);
+        }
+    } else { //Iterator first, Iterator last 迭代器构造方法
+        assert(n == 2);
+        assert(args[1]._.class == _Iterator().class);
+        Iterator first = args[0].mem;
+        char first_mem[sizeOf(first)];
+        first = THIS(first).ctor(first_mem, VA(THIS(first).type(), first));
+        Iterator last = args[1].mem;
+        char last_mem[sizeOf(last)];
+        last = THIS(last).ctor(last_mem, VA(THIS(last).type(), last));
+        Form_t t = THIS(first).type();
+        while (!THIS(first).equal(VA(last)))
+        {
+            void *obj = THIS(first).derefer();
+            if (t.f == POD) {
+                char (*p)[t.size] = obj;;
+                _deque_push_back(_this, VA(VA_ADDR(*p)));
+            } else if (t.f == OBJ) {
+                _deque_push_back(_this, FORM_WITH_OBJ(t, obj));
+            }
+            THIS(first).inc();
+        }
+        destroy(first);
+        destroy(last);
+    }
 }
 
 //public
@@ -442,6 +500,16 @@ static void *_deque_ctor(void *_this, va_list *app)
     this->start.first = this->start.cur = *this->map;
     this->start.last = (char*)(*this->map) + memb_size * this->buf_size;
     this->finish = this->start;
+
+    FormWO_t args[2];
+    int i = 0;
+    while ((t = va_arg(*app, FormWO_t))._.f != END)
+    {
+        assert(i < 2);
+        args[i++] = t;
+    }
+    if (i)
+        _dealDequeArgs(_this, args, i);
     return _this;
 }
 
