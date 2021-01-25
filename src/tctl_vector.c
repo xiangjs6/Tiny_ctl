@@ -584,6 +584,8 @@ static void _vector_push_back(void *_this, FormWO_t _x)
             memcpy(this->finish_ptr, _x.mem, memb_size);
         else if (_x._.f == POD)
             memcpy(this->finish_ptr, &_x.mem, memb_size);
+        else if (_x._.f == END)
+            memset(this->finish_ptr, 0, memb_size);
     } else {
         construct(this->_t, this->finish_ptr, _x);
     }
@@ -652,6 +654,8 @@ static Iterator _vector_insert(void *_this, Iterator _iter, FormWO_t _x)
             memcpy(p_target, _x.mem, memb_size);
         else if (_x._.f == POD)
             memcpy(p_target, &_x.mem, memb_size);
+        else if (_x._.f == END)
+            memset(p_target, 0, memb_size);
     } else {
         Object obj = p_target;
         THIS(obj).assign(_x);

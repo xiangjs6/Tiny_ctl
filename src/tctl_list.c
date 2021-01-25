@@ -218,6 +218,8 @@ static struct ListNode *_insert_aux(struct List *this, struct ListNode *node, Fo
             memcpy(new_node->data, _x.mem, memb_size);
         else if (_x._.f == POD)
             memcpy(new_node->data, &_x.mem, memb_size);
+        else if (_x._.f == END)
+            memset(new_node->data, 0, memb_size);
     } else {
         construct(this->_t, new_node->data, _x);
     }
