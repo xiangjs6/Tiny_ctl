@@ -489,7 +489,7 @@ static void *_deque_ctor(void *_this, va_list *app)
     assert(t._.f >= FORM);
     t._.f -= FORM;
     this->_t = t._;
-    this->buf_size = 1;
+    this->buf_size = 512;
     this->map_size = 2; //必须为2的倍数，不然expand_map无法正确放置start地址
     this->map = allocate(this->map_size * sizeof(void*));
 
@@ -584,6 +584,8 @@ static void _deque_push_back(void *_this, FormWO_t _x)
             memcpy(finish->cur, _x.mem, memb_size);
         else if (_x._.f == POD)
             memcpy(finish->cur, &_x.mem, memb_size);
+        else if (_x._.f == END)
+            memset(finish->cur, 0, memb_size);
     } else {
         construct(this->_t, finish->cur, _x);
     }
@@ -618,6 +620,8 @@ static void _deque_push_front(void *_this, FormWO_t _x)
             memcpy(start->cur, _x.mem, memb_size);
         else if (_x._.f == POD)
             memcpy(start->cur, &_x.mem, memb_size);
+        else if (_x._.f == END)
+            memset(start->cur, 0, memb_size);
     } else {
         construct(this->_t, start->cur, _x);
     }
@@ -723,6 +727,8 @@ static Iterator _deque_insert(void *_this, Iterator _iter, FormWO_t x)
             memcpy(_iter_derefer(_iter), &x.mem, this->_t.size);
         else if (x._.f == ADDR)
             memcpy(_iter_derefer(_iter), x.mem, this->_t.size);
+        else if (x._.f == END)
+            memset(_iter_derefer(_iter), 0, memb_size);
     }
     return _iter;
 }
