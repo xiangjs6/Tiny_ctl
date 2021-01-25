@@ -90,7 +90,7 @@ static void *_deque_brackets(const void *_this, FormWO_t _x);
 //iterator
 static void *_iter_sub(const void *_this, FormWO_t _x);
 static void *_iter_add(const void *_this, FormWO_t _x);
-static void _iter_asign(void *_this, FormWO_t _x);
+static void _iter_assign(void *_this, FormWO_t _x);
 static void _iter_self_sub(void *_this, FormWO_t _x);
 static void _iter_self_add(void *_this, FormWO_t _x);
 static void _iter_dec(void *_this);
@@ -144,7 +144,7 @@ void initDeque(void)
                            _ClassS->dec, _iter_dec,
                            _ClassS->self_add, _iter_self_add,
                            _ClassS->self_sub, _iter_self_sub,
-                           _ClassS->asign, _iter_asign,
+                           _ClassS->assign, _iter_assign,
                            _ClassS->add, _iter_add,
                            _ClassS->sub, _iter_sub,
                            _IteratorS->derefer, _iter_derefer,
@@ -295,7 +295,7 @@ static void *_iter_ctor(void *_this, va_list *app)
     if (t._.f == ADDR) 
         memcpy(this, t.mem, t._.size);
     else if (t._.f == OBJ)
-        _iter_asign(_this, t);
+        _iter_assign(_this, t);
     return _this;
 }
 
@@ -381,7 +381,7 @@ static void _iter_dec(void *_this)
     this->cur = (char*)this->cur - memb_size;
 }
 
-static void _iter_asign(void *_this, FormWO_t _x)
+static void _iter_assign(void *_this, FormWO_t _x)
 {
     struct DequeIter *this = offsetOf(_this, __DequeIter);
     assert(classOf(_x.mem) == __DequeIter);
@@ -716,7 +716,7 @@ static Iterator _deque_insert(void *_this, Iterator _iter, FormWO_t x)
     //赋值
     if (this->_t.f == OBJ) {
         Object obj = _iter_derefer(_iter);
-        THIS(obj).asign(x);
+        THIS(obj).assign(x);
     } else {
         assert(x._.f != OBJ);
         if (x._.f == POD)

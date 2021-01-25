@@ -84,7 +84,7 @@ static void *_vector_brackets(const void *_this, FormWO_t _x);
 //iterator
 static void *_iter_sub(const void *_this, FormWO_t _x);
 static void *_iter_add(const void *_this, FormWO_t _x);
-static void _iter_asign(void *_this, FormWO_t _x);
+static void _iter_assign(void *_this, FormWO_t _x);
 static void _iter_self_sub(void *_this, FormWO_t _x);
 static void _iter_self_add(void *_this, FormWO_t _x);
 static void _iter_dec(void *_this);
@@ -137,7 +137,7 @@ void initVector(void)
                            _ClassS->dec, _iter_dec,
                            _ClassS->self_add, _iter_self_add,
                            _ClassS->self_sub, _iter_self_sub,
-                           _ClassS->asign, _iter_asign,
+                           _ClassS->assign, _iter_assign,
                            _ClassS->add, _iter_add,
                            _ClassS->sub, _iter_sub,
                            _IteratorS->derefer, _iter_derefer,
@@ -404,7 +404,7 @@ static void _iter_self_sub(void *_this, FormWO_t _x)
     destroy(x);
 }
 
-static void _iter_asign(void *_this, FormWO_t _x)
+static void _iter_assign(void *_this, FormWO_t _x)
 {
     struct VectorIter *this = offsetOf(_this, __VectorIter);
     struct VectorIter *x = offsetOf(_x.mem, __VectorIter);
@@ -654,7 +654,7 @@ static Iterator _vector_insert(void *_this, Iterator _iter, FormWO_t _x)
             memcpy(p_target, &_x.mem, memb_size);
     } else {
         Object obj = p_target;
-        THIS(obj).asign(_x);
+        THIS(obj).assign(_x);
     }
     this->nmemb++;
     this->finish_ptr += memb_size;

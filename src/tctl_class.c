@@ -16,7 +16,7 @@ struct Class {
     void (*dec)(void *_this);
     void (*self_add)(void *_this, FormWO_t x);
     void (*self_sub)(void *_this, FormWO_t x);
-    void (*asign)(void *_this, FormWO_t x);
+    void (*assign)(void *_this, FormWO_t x);
     void *(*add)(const void *_this, FormWO_t x);
     void *(*sub)(const void *_this, FormWO_t x);
     void *(*mul)(const void *_this, FormWO_t x);
@@ -34,7 +34,7 @@ static void _inc(void);
 static void _dec(void);
 static void _self_add(FormWO_t x);
 static void _self_sub(FormWO_t x);
-static void _asign(FormWO_t x);
+static void _assign(FormWO_t x);
 static void *_add(FormWO_t x);
 static void *_sub(FormWO_t x);
 static void *_mul(FormWO_t x);
@@ -51,7 +51,7 @@ volatile static struct ClassSelector ClassS = {
         _dec,
         _self_add,
         _self_sub,
-        _asign,
+        _assign,
         _add,
         _sub,
         _mul,
@@ -131,12 +131,12 @@ static void _self_sub(FormWO_t x)
     class->self_sub(_this, x);
 }
 
-static void _asign(FormWO_t x)
+static void _assign(FormWO_t x)
 {
     void *_this = pop_this();
     const struct Class *class = offsetOf(classOf(_this), __Class);
-    assert(class->asign);
-    class->asign(_this, x);
+    assert(class->assign);
+    class->assign(_this, x);
 }
 
 static void *_add(FormWO_t x)

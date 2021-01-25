@@ -101,7 +101,7 @@ static void _list_sort(void *_this, Compare cmp);
 static void _list_clear(void *_this);
 static void _list_swap(void *_this, List _l);
 //iterator
-static void _iter_asign(void *_this, FormWO_t _x);
+static void _iter_assign(void *_this, FormWO_t _x);
 static void _iter_dec(void *_this);
 static void _iter_inc(void *_this);
 static bool _iter_equal(const void *_this, FormWO_t _x);
@@ -151,7 +151,7 @@ void initList(void)
                          _ClassS->equal, _iter_equal,
                          _ClassS->inc, _iter_inc,
                          _ClassS->dec, _iter_dec,
-                         _ClassS->asign, _iter_asign,
+                         _ClassS->assign, _iter_assign,
                          _IteratorS->derefer, _iter_derefer,
                          Selector, _IteratorS, NULL);
     }
@@ -351,7 +351,7 @@ static void _iter_dec(void *_this)
     this->node = this->node->pre;
 }
 
-static void _iter_asign(void *_this, FormWO_t _x)
+static void _iter_assign(void *_this, FormWO_t _x)
 {
     struct ListIter *this = offsetOf(_this, __ListIter);
     struct ListIter *x = offsetOf(_x.mem, __ListIter);

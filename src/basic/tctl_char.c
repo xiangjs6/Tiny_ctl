@@ -102,7 +102,7 @@ static void _self_sub(void *_this, FormWO_t x)
     this->val -= val;
 }
 
-static void _asign(void *_this, FormWO_t x)
+static void _assign(void *_this, FormWO_t x)
 {
     struct Char *this = offsetOf(_this, __Char);
     char val = toChar(x);
@@ -227,7 +227,7 @@ void initChar(void)
                     _ClassS->dec, _dec,
                     _ClassS->self_add, _self_add,
                     _ClassS->self_sub, _self_sub,
-                    _ClassS->asign, _asign,
+                    _ClassS->assign, _assign,
                     _ClassS->add, _add,
                     _ClassS->sub, _sub,
                     _ClassS->mul, _mul,

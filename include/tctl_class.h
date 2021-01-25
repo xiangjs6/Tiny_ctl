@@ -18,7 +18,7 @@ struct {                           \
     void (*dec)(void);             \
     void (*self_add)(FormWO_t x);  \
     void (*self_sub)(FormWO_t x);  \
-    void (*asign)(FormWO_t x);     \
+    void (*assign)(FormWO_t x);    \
     void *(*add)(FormWO_t x);      \
     void *(*sub)(FormWO_t x);      \
     void *(*mul)(FormWO_t x);      \
