@@ -265,11 +265,16 @@ static void _dealListArgs(void *_this, FormWO_t *args, int n)
     if (args->_.class == __List) { //复制一个List
         struct List *L = offsetOf(args->mem, __List);
         struct ListNode *node = L->_end.nxt;
-        Form_t t = this->_t;
+        Form_t t = L->_t;
         while (node != &L->_end)
         {
             void *obj = node->data;
-            _list_push_back(_this, FORM_WITH_OBJ(t, obj));
+            if (t.f == POD) {
+                char (*p)[t.size] = obj;
+                _list_push_back(_this, VA(VA_ADDR(*p)));
+            } else if (t.f == OBJ) {
+                _list_push_back(_this, FORM_WITH_OBJ(t, obj));
+            }
             node = node->nxt;
         }
     } else if (args->_.f == POD || args->_.f == ADDR || args->_.class != _Iterator().class) { //size_type n, T value = T() 构造方法
@@ -294,7 +299,12 @@ static void _dealListArgs(void *_this, FormWO_t *args, int n)
         while (!THIS(first).equal(VA(last)))
         {
             void *obj = THIS(first).derefer();
-            _list_push_back(_this, FORM_WITH_OBJ(t, obj));
+            if (t.f == POD) {
+                char (*p)[t.size] = obj;
+                _list_push_back(_this, VA(VA_ADDR(*p)));
+            } else if (t.f == OBJ) {
+                _list_push_back(_this, FORM_WITH_OBJ(t, obj));
+            }
             THIS(first).inc();
         }
         destroy(first);

@@ -252,9 +252,15 @@ static void _dealVectorArgs(void *_this, FormWO_t *args, int n)
     if (args->_.class == _Vector().class) { //复制一个Vector
         struct Vector *v = offsetOf(args->mem, __Vector);
         size_t v_memb_size = v->_t.f == POD ? v->_t.size : classSz(v->_t.class);
-        Form_t t = this->_t;
-        for (char (*ptr)[v_memb_size] = v->start_ptr; (void*)ptr < v->finish_ptr; ptr++)
-            _vector_push_back(_this, FORM_WITH_OBJ(t, ptr));
+        Form_t t = v->_t;
+        for (char (*ptr)[v_memb_size] = v->start_ptr; (void*)ptr < v->finish_ptr; ptr++) {
+            if (t.f == POD) {
+                char (*p)[t.size] = ptr;
+                _vector_push_back(_this, VA(VA_ADDR(*p)));
+            } else if (t.f == OBJ) {
+                _vector_push_back(_this, FORM_WITH_OBJ(t, ptr));
+            }
+        }
     } else if (args->_.f == POD || args->_.f == ADDR || args->_.class != _Iterator().class) { //size_type n, T value = T() 构造方法
         unsigned long long nmemb = toUInt(*args);
         if (n == 1) {
@@ -277,7 +283,12 @@ static void _dealVectorArgs(void *_this, FormWO_t *args, int n)
         while (!THIS(first).equal(VA(last)))
         {
             void *obj = THIS(first).derefer();
-            _vector_push_back(_this, FORM_WITH_OBJ(t, obj));
+            if (t.f == POD) {
+                char (*p)[t.size] = obj;
+                _vector_push_back(_this, VA(VA_ADDR(*p)));
+            } else if (t.f == OBJ) {
+                _vector_push_back(_this, FORM_WITH_OBJ(t, obj));
+            }
             THIS(first).inc();
         }
         destroy(first);
