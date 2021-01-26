@@ -260,10 +260,10 @@ static void _dealDequeArgs(void *_this, FormWO_t *args, int n)
         assert(args[1]._.class == _Iterator().class);
         Iterator first = args[0].mem;
         char first_mem[sizeOf(first)];
-        first = THIS(first).ctor(first_mem, VA(THIS(first).type(), first));
+        first = THIS(first).ctor(first_mem, VA(first), VAEND);
         Iterator last = args[1].mem;
         char last_mem[sizeOf(last)];
-        last = THIS(last).ctor(last_mem, VA(THIS(last).type(), last));
+        last = THIS(last).ctor(last_mem, VA(last), VAEND);
         Form_t t = THIS(first).type();
         while (!THIS(first).equal(VA(last)))
         {
@@ -421,8 +421,7 @@ static void *_iter_add(const void *_this, FormWO_t _x)
 {
     Iterator it = (void*)_this;
     void *mem = ARP_MallocARelDtor(classSz(__DequeIter), destroy);
-    Form_t t = THIS(it).type();
-    Iterator new_it = new(compose(_DequeIter(), mem), VA(t, it));
+    Iterator new_it = new(compose(_DequeIter(), mem), VA(it));
     _iter_self_add(new_it, _x);
     return new_it;
 }
@@ -431,8 +430,7 @@ static void *_iter_sub(const void *_this, FormWO_t _x)
 {
     Iterator it = (void*)_this;
     void *mem = ARP_MallocARelDtor(classSz(__DequeIter), destroy);
-    Form_t t = THIS(it).type();
-    Iterator new_it = new(compose(_DequeIter(), mem), VA(t, it));
+    Iterator new_it = new(compose(_DequeIter(), mem), VA(it));
     _iter_self_sub(new_it, _x);
     return new_it;
 }
@@ -528,14 +526,14 @@ static Iterator _deque_begin(const void *_this)
 {
     struct Deque *this = offsetOf(_this, __Deque);
     void *mem = ARP_MallocARelDtor(classSz(__DequeIter), destroy);
-    return new(compose(_DequeIter(), mem), VA(this->_t, VA_ADDR(this->start)));
+    return new(compose(_DequeIter(), mem), VA(this->_t, RandomAccessIter, VA_ADDR(this->start)));
 }
 
 static Iterator _deque_end(const void *_this)
 {
     struct Deque *this = offsetOf(_this, __Deque);
     void *mem = ARP_MallocARelDtor(classSz(__DequeIter), destroy);
-    return new(compose(_DequeIter(), mem), VA(this->_t, VA_ADDR(this->finish)));
+    return new(compose(_DequeIter(), mem), VA(this->_t, RandomAccessIter, VA_ADDR(this->finish)));
 }
 
 static const void *_deque_front(const void *_this)

@@ -293,10 +293,10 @@ static void _dealListArgs(void *_this, FormWO_t *args, int n)
         assert(args[1]._.class == _Iterator().class); //因为上面的if已经检测过args[0]
         Iterator first = args[0].mem;
         char first_mem[sizeOf(first)];
-        first = THIS(first).ctor(first_mem, VA(THIS(first).type(), first));
+        first = THIS(first).ctor(first_mem, VA(first));
         Iterator last = args[1].mem;
         char last_mem[sizeOf(last)];
-        last = THIS(last).ctor(last_mem, VA(THIS(last).type(), last));
+        last = THIS(last).ctor(last_mem, VA(last));
         Form_t t = THIS(first).type();
         while (!THIS(first).equal(VA(last)))
         {
@@ -440,14 +440,14 @@ static Iterator _list_begin(const void *_this)
 {
     struct List *this = offsetOf(_this, __List);
     void *mem = ARP_MallocARelDtor(classSz(__ListIter), destroy);
-    return new(compose(_ListIter(), mem), VA(this->_t, this->_end.nxt));
+    return new(compose(_ListIter(), mem), VA(this->_t, BidirectionalIter, this->_end.nxt));
 }
 
 static Iterator _list_end(const void *_this)
 {
     struct List *this = offsetOf(_this, __List);
     void *mem = ARP_MallocARelDtor(classSz(__ListIter), destroy);
-    return new(compose(_ListIter(), mem), VA(this->_t, &this->_end));
+    return new(compose(_ListIter(), mem), VA(this->_t, BidirectionalIter, &this->_end));
 }
 
 static void* _list_front(const void *_this)
