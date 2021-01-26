@@ -14,11 +14,19 @@ struct {                                     \
     long long (*dist)(struct _Iterator *it); \
 }
 
+enum IterRank {
+    ForwardIter,
+    BidirectionalIter,
+    RandomAccessIter,
+    SequenceIter
+};
+
 typedef struct _Iterator{
     union {
         INHERIT_ITERATOR *_s;
         byte _pad[sizeof(*(Object)NULL)];
     };
+    const enum IterRank rank;
 } *Iterator;
 
 //typedef struct {

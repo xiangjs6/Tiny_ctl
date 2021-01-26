@@ -5,7 +5,10 @@
 #include "include/_tctl_iterator.h"
 //#include "tctl_allocator.h"
 //#include "../include/auto_release_pool.h"
+#include <assert.h>
 #include <memory.h>
+#include <stdarg.h>
+#include <string.h>
 
 #define Import METACLASS, CLASS, OBJECT, ITERATOR
 
@@ -16,6 +19,7 @@ struct IteratorClass {
 };
 
 struct Iterator {
+    enum IterRank rank;
     Form_t _t;
     byte _v[0];
 };
@@ -120,10 +124,24 @@ static void *_object_ctor(void *_this, va_list *app)
 {
     _this = super_ctor(__Iterator, _this, app);
     struct Iterator *this = offsetOf(_this, __Iterator);
+    va_list ap;
+    va_copy(ap, *app);
     FormWO_t t = va_arg(*app, FormWO_t);
+    if (t._.f == OBJ) {
+        assert(t._.class == __Iterator);
+        struct Iterator *it = offsetOf(t.mem, __Iterator);
+        *this = *it;
+        va_copy(*app, ap);
+        va_end(ap);
+        return _this;
+    }
     assert(t._.f >= FORM);
     t._.f -= FORM;
     this->_t = t._;
+    t  = va_arg(*app, FormWO_t);
+    assert(t._.f == POD);
+    memcpy(&this->rank, &t.mem, t._.size);
+    va_end(ap);
     return _this;
 }
 
@@ -149,7 +167,7 @@ long long distance(Iterator _a, Iterator _b)
     long long dis = 0;
     char tmp[sizeOf(_a)];
     Form_t t = THIS(_a).type();
-    Iterator it = THIS(_a).ctor(tmp, VA(t, _a), VAEND);
+    Iterator it = THIS(_a).ctor(tmp, VA(_a), VAEND);
     for (; !THIS(it).equal(VA(_b)); THIS(it).inc())
         dis++;
     destroy(it);
