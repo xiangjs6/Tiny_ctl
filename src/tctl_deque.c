@@ -709,7 +709,6 @@ static Iterator _deque_insert(void *_this, Iterator _iter, FormWO_t x)
     } else {
         _deque_push_back(_this, VAEND);
         Iterator back1 = _deque_end(_this);
-        _iter_dec(back1);
         Iterator back2 = _iter_sub(back1, VA(1));
         *it = this->start;
         _iter_self_add(_iter, VA(index));
