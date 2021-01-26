@@ -3,8 +3,7 @@
 ## 记录问题：
 1. hashtable的__next_prime以后调用lower_bound算法
 2. power算法待解决
-3. 迭代器增加rank等级，和无参构造方法
-4. 将class和object的继承分开
+3. 将class和object的继承分开
 ## 编译使用
 ```shell
 cd src
