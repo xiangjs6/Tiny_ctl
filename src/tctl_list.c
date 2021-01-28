@@ -221,7 +221,7 @@ static struct ListNode *_insert_aux(struct List *this, struct ListNode *node, Fo
         else if (_x._.f == END)
             memset(new_node->data, 0, memb_size);
     } else {
-        construct(this->_t, new_node->data, _x);
+        construct(this->_t, new_node->data, _x, VAEND);
     }
     new_node->nxt = node;
     node->pre->nxt = new_node;

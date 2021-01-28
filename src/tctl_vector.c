@@ -116,7 +116,7 @@ volatile static struct VectorSelector VectorS = {
         _clear,
         _swap
 };
-const struct VectorSelector *_VectorS= NULL;
+const struct VectorSelector *_VectorS = NULL;
 
 void initVector(void)
 {
@@ -389,7 +389,7 @@ static void _iter_self_add(void *_this, FormWO_t _x)
     struct VectorIter *this = offsetOf(_this, __VectorIter);
     char tmp[classSz(_Int().class)];
     Int x = (void*)tmp;
-    construct(_Int(), tmp, _x);
+    construct(_Int(), tmp, _x, VAEND);
     this->cur += x->val;
     destroy(x);
 }
@@ -399,7 +399,7 @@ static void _iter_self_sub(void *_this, FormWO_t _x)
     struct VectorIter *this = offsetOf(_this, __VectorIter);
     char tmp[classSz(_Int().class)];
     Int x = (void*)tmp;
-    construct(_Int(), tmp, _x);
+    construct(_Int(), tmp, _x, VAEND);
     this->cur -= x->val;
     destroy(x);
 }
@@ -417,7 +417,7 @@ static void *_iter_add(const void *_this, FormWO_t _x)
     Iterator it = (void*)_this;
     char i_mem[classSz(_Int().class)];
     Int x = (void*)i_mem;
-    construct(_Int(), i_mem, _x);
+    construct(_Int(), i_mem, _x, VAEND);
     void *mem = ARP_MallocARelDtor(classSz(__VectorIter), destroy);
     Form_t t = THIS(it).type();
     void *res = new(compose(_VectorIter(), mem), VA(t, SequenceIter, this->cur + x->val, this->ptr));
@@ -431,7 +431,7 @@ static void *_iter_sub(const void *_this, FormWO_t _x)
     Iterator it = (void*)_this;
     char i_mem[classSz(_Int().class)];
     Int x = (void*)i_mem;
-    construct(_Int(), i_mem, _x);
+    construct(_Int(), i_mem, _x, VAEND);
     void *mem = ARP_MallocARelDtor(classSz(__VectorIter), destroy);
     Form_t t = THIS(it).type();
     void *res = new(compose(_VectorIter(), mem), VA(t, SequenceIter, this->cur - x->val, this->ptr));
@@ -587,7 +587,7 @@ static void _vector_push_back(void *_this, FormWO_t _x)
         else if (_x._.f == END)
             memset(this->finish_ptr, 0, memb_size);
     } else {
-        construct(this->_t, this->finish_ptr, _x);
+        construct(this->_t, this->finish_ptr, _x, VAEND);
     }
     this->nmemb++;
     this->finish_ptr += memb_size;

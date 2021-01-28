@@ -10,8 +10,8 @@ struct VectorSelector {
     char _[sizeof(struct ClassSelector)];
     Iterator (*begin)(void);
     Iterator (*end)(void);
-    void* (*front)(void);
-    void* (*back)(void);
+    void *(*front)(void);
+    void *(*back)(void);
     size_t (*size)(void);
     size_t (*capacity)(void);
     bool (*empty)(void);

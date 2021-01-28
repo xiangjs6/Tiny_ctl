@@ -585,7 +585,7 @@ static void _deque_push_back(void *_this, FormWO_t _x)
         else if (_x._.f == END)
             memset(finish->cur, 0, memb_size);
     } else {
-        construct(this->_t, finish->cur, _x);
+        construct(this->_t, finish->cur, _x, VAEND);
     }
     finish->cur = (char*)finish->cur + memb_size;
     if (finish->cur == finish->last) {
@@ -621,7 +621,7 @@ static void _deque_push_front(void *_this, FormWO_t _x)
         else if (_x._.f == END)
             memset(start->cur, 0, memb_size);
     } else {
-        construct(this->_t, start->cur, _x);
+        construct(this->_t, start->cur, _x, VAEND);
     }
 }
 
