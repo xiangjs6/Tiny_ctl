@@ -4,25 +4,28 @@
 
 #ifndef TINY_CTL_TCTL_QUEUE_H
 #define TINY_CTL_TCTL_QUEUE_H
+#include "tctl_class.h"
 #include "tctl_def.h"
 #include "tctl_deque.h"
+#include "tctl_metaclass.h"
 
-#define QUEUE_BLOCK_SIZE 512
-typedef struct {
-    deque c;
-} __private_queue;
+#define QUEUE_FUNC            \
+struct {                      \
+    CLASS_FUNC;               \
+    void *(*front)(void);     \
+    void *(*back)(void);      \
+    void (*push)(FormWO_t x); \
+    void (*pop)(void);        \
+    bool (*empty)(void);      \
+    size_t (*size)(void);     \
+}                              
 
-typedef struct {
-    bool (*empty)(void);
-    size_t (*size)(void);
-    void const *(*front)(void);
-    void const *(*back)(void);
-    void (*push)(void*);
-    void (*pop)(void);
-    byte __obj_private[sizeof(__private_queue)];
-} queue;
+typedef struct _Queue *Queue;
+struct _Queue{
+    METAOBJECT_HEAD(QUEUE_FUNC);
+};
 
-void init_queue(queue *p_queue, size_t memb_size);
-void destory_queue(queue *p_queue);
-queue creat_queue(size_t memb_size);
+void initQueue(void) __attribute__((constructor));
+Form_t _Queue(void);
+#define QUEUE Queue : _Queue()
 #endif //TINY_CTL_TCTL_QUEUE_H
