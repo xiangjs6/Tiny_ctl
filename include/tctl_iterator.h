@@ -6,9 +6,9 @@
 #define TINY_CTL_TCTL_ITERATOR_H
 #include "tctl_metaclass.h"
 #include "tctl_class.h"
-#define INHERIT_ITERATOR \
+#define ITERATOR_FUNC                        \
 struct {                                     \
-    INHERIT_CLASS;                           \
+    CLASS_FUNC;                              \
     void *(*derefer)(void);                  \
     Form_t (*type)(void);                    \
     long long (*dist)(struct _Iterator *it); \
@@ -21,20 +21,16 @@ enum IterRank {
     SequenceIter
 };
 
+#define ITERATOR_OBJ          \
+struct {                      \
+    const enum IterRank rank; \
+}
+
 typedef struct _Iterator{
-    union {
-        INHERIT_ITERATOR *_s;
-        byte _pad[sizeof(*(Object)NULL)];
-    };
-    const enum IterRank rank;
+    METAOBJECT_HEAD(ITERATOR_FUNC);
+    ITERATOR_OBJ;
 } *Iterator;
 
-//typedef struct {
-//    union {
-//        INHERIT_ITERATOR *_s;
-//        byte _pad[sizeof(*(Object)NULL)];
-//    };
-//} *IteratorClass;
 void initIterator(void) __attribute__((constructor));
 
 Form_t _IteratorClass(void);

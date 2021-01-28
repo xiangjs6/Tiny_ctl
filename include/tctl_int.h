@@ -6,19 +6,22 @@
 #define TINY_CTL_TCTL_INT_H
 
 #include "tctl_class.h"
+#include "tctl_metaclass.h"
 
-#define INHERIT_INT \
-struct {            \
-    INHERIT_CLASS;  \
+#define INT_FUNC \
+struct {         \
+    CLASS_FUNC;  \
 }
 
 //由于对齐原因，所以直接使用long long长度的整型
+#define INT_OBJ    \
+struct {           \
+    long long val; \
+}
+
 typedef struct {
-    union {
-        INHERIT_INT *_s;
-        char _pad[sizeof(*(Object)NULL)];
-    };
-    long long val;
+    METAOBJECT_HEAD(INT_FUNC);
+    INT_OBJ;
 } *Int;
 
 void initInt(void) __attribute__((constructor));

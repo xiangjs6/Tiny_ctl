@@ -11,6 +11,7 @@ void *super_ctor(const void *class, void *this, va_list *app);
 void *super_dtor(const void *class, void *this);
 int super_differ(const void *class, const void *this, const void *b);
 int super_puto(const void *class, const void *this, FILE *fp);
+//因为继承的时候想要隐藏父类的函数，所以不使用宏
 struct MetaClassSelector {
     void *(*ctor)(void *mem, ...);
     void *(*dtor)(void);

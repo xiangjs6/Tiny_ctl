@@ -273,7 +273,7 @@ int super_differ(const void *_class, const void *_this, const void *b)
     return superclass->differ(_this, b);
 }
 
-static int puto (FILE *fp)
+static int puto(FILE *fp)
 {
     const void *_this = pop_this();
     const struct MetaClass *class = classOf(_this);

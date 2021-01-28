@@ -7,10 +7,11 @@
 
 #include "tctl_iterator.h"
 #include "tctl_common.h"
+#include "tctl_metaclass.h"
 
-#define INHERIT_LIST                                                           \
+#define LIST_FUNC                                    \
 struct {                                             \
-    INHERIT_CLASS;                                   \
+    CLASS_FUNC;                                      \
     Iterator (*begin)(void);                         \
     Iterator (*end)(void);                           \
     void* (*front)(void);                            \
@@ -35,10 +36,7 @@ struct {                                             \
 
 typedef struct _List *List;
 struct _List {
-    union {
-        INHERIT_LIST *_s;
-        byte _pad[sizeof(*(Object)NULL)];
-    };
+    METAOBJECT_HEAD(LIST_FUNC);
 };
 
 void initList(void) __attribute__((constructor));

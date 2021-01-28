@@ -7,10 +7,9 @@
 
 #include "tctl_metaclass.h"
 
-#define Cast(obj, __T) __cast_aux(obj, #__T)
-#define INHERIT_CLASS \
+#define CLASS_FUNC                 \
 struct {                           \
-    INHERIT_METACLASS;             \
+    METACLASS_FUNC;                \
     bool (*equal)(FormWO_t x);     \
     int (*cmp)(FormWO_t x);        \
     void *(*brackets)(FormWO_t x); \
@@ -28,20 +27,16 @@ struct {                           \
 }
 
 typedef struct {
-    union {
-        INHERIT_CLASS *_s;
-        byte _pad[sizeof(*(MetaObject)NULL)];
-    };
+    METAOBJECT_HEAD(CLASS_FUNC);
 } *Class;
 
 typedef struct {
-    union {
-        INHERIT_CLASS *_s;
-        byte _pad[sizeof(*(MetaObject)NULL)];
-    };
+    METAOBJECT_HEAD(CLASS_FUNC);
 } *Object;
 
 void initClass(void) __attribute__((constructor));
+
+#define Cast(obj, __T) __cast_aux(obj, #__T)
 void *__cast_aux(void *_this, const char *c);
 
 Form_t _Class(void);

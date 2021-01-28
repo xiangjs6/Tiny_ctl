@@ -10,9 +10,9 @@
 #include "tctl_iterator.h"
 #include "tctl_class.h"
 
-#define INHERIT_DEQUE                              \
+#define DEQUE_FUNC                                 \
 struct {                                           \
-    INHERIT_CLASS;                                 \
+    CLASS_FUNC;                                    \
     Iterator (*begin)(void);                       \
     Iterator (*end)(void);                         \
     void* (*front)(void);                          \
@@ -32,10 +32,7 @@ struct {                                           \
 
 typedef struct _Deque *Deque;
 struct _Deque {
-    union {
-        INHERIT_DEQUE *_s;
-        byte _pad[sizeof(*(Object)NULL)];
-    };
+    METAOBJECT_HEAD(DEQUE_FUNC);
 };
 
 void initDeque(void) __attribute__((constructor));

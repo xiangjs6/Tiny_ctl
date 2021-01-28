@@ -6,19 +6,22 @@
 #define TINY_CTL_TCTL_CHAR_H
 #include "tctl_common.h"
 #include "tctl_class.h"
+#include "tctl_metaclass.h"
 
-#define INHERIT_CHAR \
-struct {            \
-    INHERIT_CLASS;  \
+#define CHAR_FUNC \
+struct {          \
+    CLASS_FUNC;   \
+}
+
+#define CHAR_OBJ \
+struct {         \
+    char val;    \
 }
 
 //调整到一个字节对齐
 typedef struct {
-    union {
-        INHERIT_CHAR *_s;
-        char _pad[sizeof(*(Object)NULL)];
-    };
-    char val;
+    METAOBJECT_HEAD(CHAR_FUNC);
+    CHAR_OBJ;
 } BYTE_ALIGNED *Char ;
 
 void initChar(void) __attribute__((constructor));

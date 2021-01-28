@@ -5,18 +5,21 @@
 #ifndef TINY_CTL_TCTL_DOUBLE_H
 #define TINY_CTL_TCTL_DOUBLE_H
 #include "tctl_class.h"
+#include "tctl_metaclass.h"
 
-#define INHERIT_DOUBLE \
+#define DOUBLE_FUNC \
 struct {            \
-    INHERIT_CLASS;  \
+    CLASS_FUNC;     \
+}
+
+#define DOUBLE_OBJ \
+struct {           \
+    double val;    \
 }
 
 typedef struct {
-    union {
-        INHERIT_DOUBLE *_s;
-        char _pad[sizeof(*(Object)NULL)];
-    };
-    double val;
+    METAOBJECT_HEAD(DOUBLE_FUNC);
+    DOUBLE_OBJ;
 } *Double;
 
 void initDouble(void) __attribute__((constructor));

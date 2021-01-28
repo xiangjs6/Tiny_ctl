@@ -70,23 +70,26 @@ size_t sizeOf(const void *this);
 size_t classSz(const void *this);
 void *offsetOf(const void *this, const void *class);
 
-#define INHERIT_METACLASS \
-struct {                  \
+#define METACLASS_FUNC             \
+struct {                           \
     void *(*ctor)(void *mem, ...); \
-    void *(*dtor)(void);        \
-    int (*differ)(const void *b); \
-    int (*puto)(FILE *fp);  \
+    void *(*dtor)(void);           \
+    int (*differ)(const void *b);  \
+    int (*puto)(FILE *fp);         \
 }
 
 typedef struct {
-    INHERIT_METACLASS *_s;
+    METACLASS_FUNC *_s;
     void *_c;
 } *MetaObject;
 
+#define METAOBJECT_HEAD(Func) union { Func *_s; char __[sizeof(*(MetaObject)NULL)]; }
+
 typedef struct {
-    INHERIT_METACLASS *_s;
+    METACLASS_FUNC *_s;
 } *MetaClass;
-const void *super(const void * this);	/* class' superclass */
+
+const void *super(const void *this);	/* class' superclass */
 
 void push_this(const void *);
 void *pop_this(void);

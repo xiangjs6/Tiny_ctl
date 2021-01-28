@@ -7,12 +7,13 @@
 #include "tctl_common.h"
 #include "tctl_def.h"
 #include "tctl_iterator.h"
+#include "tctl_metaclass.h"
 #include "tctl_portable.h"
 #include "tctl_class.h"
 
-#define INHERIT_VECTOR                             \
+#define VECTOR_FUNC                                \
 struct {                                           \
-    INHERIT_CLASS;                                 \
+    CLASS_FUNC;                                    \
     Iterator (*begin)(void);                       \
     Iterator (*end)(void);                         \
     void* (*front)(void);                          \
@@ -31,10 +32,7 @@ struct {                                           \
 
 typedef struct _Vector *Vector;
 struct _Vector {
-    union {
-        INHERIT_VECTOR *_s;
-        byte _pad[sizeof(*(Object)NULL)];
-    };
+    METAOBJECT_HEAD(VECTOR_FUNC);
 };
 
 void initVector(void) __attribute__((constructor));

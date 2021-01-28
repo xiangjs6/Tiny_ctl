@@ -5,19 +5,21 @@
 #ifndef TINY_CTL_TCTL_UINT_H
 #define TINY_CTL_TCTL_UINT_H
 #include "tctl_class.h"
+#include "tctl_metaclass.h"
 
-#define INHERIT_UINT \
-struct {            \
-    INHERIT_CLASS;  \
+#define UINT_FUNC \
+struct {          \
+    CLASS_FUNC;   \
 }
 
-//由于对齐原因，所以直接使用long long长度的整型
+#define UINT_OBJ            \
+struct {                    \
+    unsigned long long val; \
+}
+
 typedef struct {
-    union {
-        INHERIT_UINT *_s;
-        char _pad[sizeof(*(Object)NULL)];
-    };
-    unsigned long long val;
+    METAOBJECT_HEAD(UINT_FUNC);
+    UINT_OBJ;
 } *UInt;
 
 void initUInt(void) __attribute__((constructor));
