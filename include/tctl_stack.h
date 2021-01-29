@@ -4,23 +4,27 @@
 
 #ifndef TINY_CTL_TCTL_STACK_H
 #define TINY_CTL_TCTL_STACK_H
+#include "tctl_class.h"
+#include "tctl_def.h"
 #include "tctl_deque.h"
-#define STACK_BLOCK_SIZE 512
+#include "tctl_metaclass.h"
 
-typedef struct {
-    deque c;
-} __private_stack;
+#define STACK_FUNC            \
+struct {                      \
+    CLASS_FUNC;               \
+    void *(*top)(void);       \
+    void (*push)(FormWO_t x); \
+    void (*pop)(void);        \
+    bool (*empty)(void);      \
+    size_t (*size)(void);     \
+}
 
-typedef struct {
-    bool (*empty)(void);
-    size_t (*size)(void);
-    void *(*top)(void);
-    void (*push)(void*);
-    void (*pop)(void);
-    byte __obj_private[sizeof(__private_stack)];
-} stack;
+typedef struct _Stack *Stack;
+struct _Stack {
+    METAOBJECT_HEAD(STACK_FUNC);
+};
 
-void init_stack(stack *p_stack, size_t memb_size);
-void destory_stack(stack *p_stack);
-stack creat_stack(size_t memb_size);
+void initStack(void) __attribute__((constructor));
+Form_t _Stack(void);
+#define STACK Stack : _Stack()
 #endif //TINY_CTL_TCTL_STACK_H
