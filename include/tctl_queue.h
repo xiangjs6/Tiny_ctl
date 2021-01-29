@@ -18,10 +18,10 @@ struct {                      \
     void (*pop)(void);        \
     bool (*empty)(void);      \
     size_t (*size)(void);     \
-}                              
+}
 
 typedef struct _Queue *Queue;
-struct _Queue{
+struct _Queue {
     METAOBJECT_HEAD(QUEUE_FUNC);
 };
 
