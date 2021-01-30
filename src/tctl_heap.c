@@ -3,81 +3,153 @@
 //
 
 #include "../include/tctl_heap.h"
+#include "include/_tctl_metaclass.h"
+#include <assert.h>
 #include <memory.h>
+#include <stdlib.h>
+#define Import ITERATOR
 //private
-void adjust_heap(const __iterator *first, long long holo_index, long long len, const void *x,  Compare cmp)
+static void adjust_heap(const Iterator first, long long holo_index, long long len, const FormWO_t x,  Compare cmp)
 {
+    assert(first->rank >= RandomAccessIter);
     long long top_index = holo_index;
-    for ( long long i = holo_index * 2 + 1; i < len; i = i * 2 + 1) {
-        if (i + 1 < len && cmp(ITER(first).at(i + 1), ITER(first).at(i)) > 0)
+    Form_t t = THIS(first).type();
+    for (long long i = holo_index * 2 + 1; i < len; i = i * 2 + 1) {
+        if (i + 1 < len &&
+            cmp(FORM_WITH_OBJ(t, THIS(first).brackets(VA(i + 1))), FORM_WITH_OBJ(t, THIS(first).brackets(VA(i)))) > 0)
             i++;
-        if (cmp(x, ITER(first).at(i)) >= 0)
+        if (cmp(x, FORM_WITH_OBJ(t, THIS(first).brackets(VA(i)))) >= 0)
             break;
-        memcpy(ITER(first).at(top_index), ITER(first).at(i), first->__inner.memb_size);
+        if (t.f == POD)
+            memcpy(THIS(first).brackets(VA(top_index)), THIS(first).brackets(VA(i)), t.size);
+        else if (t.f == OBJ) {
+            Object obj = THIS(first).brackets(VA(top_index));
+            THIS(obj).assign(FORM_WITH_OBJ(t, THIS(first).brackets(VA(i))));
+        }
         top_index = i;
     }
-    memcpy(ITER(first).at(top_index), x, first->__inner.memb_size);
+    if (t.f == POD)
+        memcpy(THIS(first).brackets(VA(top_index)), x.mem, t.size);
+    else if (t.f == OBJ) {
+        Object obj = THIS(first).brackets(VA(top_index));
+        THIS(obj).assign(x);
+    }
 }
 
 //public
-void make_heap(const __iterator *first, const __iterator *last, Compare cmp)
+void make_heap(const Iterator _first, const Iterator _last, Compare cmp)
 {
-    __iterator *_first = copy_iter(first);
-    __iterator *_last = copy_iter(last);
-    byte x[_first->__inner.memb_size];
-    long long dist = ITER(_last).dist(_first);
+    Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    Iterator last = THIS(_last).ctor(NULL, VA(_last), VAEND);
+    Form_t t = THIS(first).type();
+    size_t memb_size = t.f == POD ? t.size : classSz(t.class);
+    void *x = malloc(memb_size);
+    if (t.f == OBJ)
+        construct(t, x, VAEND);
+    long long dist = distance(first, last);
     for (int i = dist / 2 - 1; i>= 0; i--) {
-        memcpy(x, ITER(_first).at(i), sizeof(x));
-        adjust_heap(_first, i, dist, x, cmp);
+        if (t.f == POD)
+            memcpy(x, THIS(first).brackets(VA(i)), memb_size);
+        else {
+            Object obj = x;
+            THIS(obj).assign(FORM_WITH_OBJ(t, THIS(first).brackets(VA(i))));
+        }
+        adjust_heap(first, i, dist, FORM_WITH_OBJ(t, x), cmp);
     }
-    free_iter(_first);
-    free_iter(_last);
+    if (t.f == OBJ)
+        destroy(x);
+    free(x);
+    delete(first);
+    delete(last);
 }
 
-void push_heap(const __iterator *first, const __iterator *last, Compare cmp)
+void push_heap(const Iterator _first, const Iterator _last, Compare cmp)
 {
-    __iterator *_first = copy_iter(first);
-    __iterator *_last = copy_iter(last);
-    byte x[_first->__inner.memb_size];
-    long long cur_index = ITER(_last).dist(_first) - 1;
+    Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    Iterator last = THIS(_last).ctor(NULL, VA(_last), VAEND);
+    Form_t t = THIS(first).type();
+    size_t memb_size = t.f == POD ? t.size : classSz(t.class);
+    void *x = malloc(memb_size);
+    if (t.f == OBJ)
+        construct(t, x, VAEND);
+    long long cur_index = distance(first, last) - 1;
     long long father = cur_index / 2 - (cur_index + 1) % 2;
-    memcpy(x, ITER(_first).at(cur_index), sizeof(x));
-    while (father >= 0 && cmp(x, ITER(_first).at(father)) >= 0)
+    if (t.f == POD)
+        memcpy(x, THIS(first).brackets(VA(cur_index)), memb_size);
+    else {
+        Object obj = x;
+        THIS(obj).assign(FORM_WITH_OBJ(t, THIS(first).brackets(VA(cur_index))));
+    }
+    while (father >= 0 &&
+           cmp(FORM_WITH_OBJ(t, x), FORM_WITH_OBJ(t, THIS(first).brackets(VA(father)))) >= 0)
     {
-        memcpy(ITER(_first).at(cur_index), ITER(_first).at(father), _first->__inner.memb_size);
+        if (t.f == POD)
+            memcpy(THIS(first).brackets(VA(cur_index)), THIS(first).brackets(VA(father)), memb_size);
+        else {
+            Object obj = THIS(first).brackets(VA(cur_index));
+            THIS(obj).assign(FORM_WITH_OBJ(t, THIS(first).brackets(VA(father))));
+        }
         cur_index = father;
         father = cur_index / 2 - (cur_index + 1) % 2;
     }
-    if (cur_index != ITER(_last).dist(_first) - 1)
-        memcpy(ITER(_first).at(cur_index), x, _first->__inner.memb_size);
-    free_iter(_first);
-    free_iter(_last);
-}
-
-void pop_heap(const __iterator *first, const __iterator *last, Compare cmp)
-{
-    __iterator *_first = copy_iter(first);
-    __iterator *_last = copy_iter(last);
-    byte x[_first->__inner.memb_size];
-    ITER(_last).dec();
-    memcpy(x, _last->val, _last->__inner.memb_size);
-    memcpy(_last->val, _first->val, _first->__inner.memb_size);
-    long long dist = ITER(_last).dist(_first);
-    adjust_heap(_first, 0, dist, x, cmp);
-    copy_iter(_first);
-    copy_iter(_last);
-}
-
-void sort_heap(const __iterator *first, const __iterator *last, Compare cmp)
-{
-    __iterator *_first = copy_iter(first);
-    __iterator *_last = copy_iter(last);
-    make_heap(_first, _last, cmp);
-    while (_last->val != _first->val)
-    {
-        pop_heap(_first, _last, cmp);
-        ITER(_last).dec();
+    if (cur_index != distance(first, last) - 1) {
+        if (t.f == POD)
+            memcpy(THIS(first).brackets(VA(cur_index)), x, memb_size);
+        else {
+            Object obj = THIS(first).brackets(VA(cur_index));
+            THIS(obj).assign(FORM_WITH_OBJ(t, x));
+        }
     }
-    free_iter(_first);
-    free_iter(_last);
+    if (t.f == OBJ)
+        destroy(x);
+    free(x);
+    delete(first);
+    delete(last);
 }
+
+void pop_heap(const Iterator _first, const Iterator _last, Compare cmp)
+{
+    Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    Iterator last = THIS(_last).ctor(NULL, VA(_last), VAEND);
+    THIS(last).dec();
+
+    Form_t t = THIS(first).type();
+    size_t memb_size = t.f == POD ? t.size : classSz(t.class);
+    void *x = malloc(memb_size);
+    if (t.f == OBJ)
+        construct(t, x, VAEND);
+    if (t.f == POD)
+        memcpy(x, THIS(last).derefer(), memb_size);
+    else {
+        Object obj = x;
+        THIS(obj).assign(FORM_WITH_OBJ(t, THIS(last).derefer()));
+    }
+    if (t.f == POD)
+        memcpy(THIS(last).derefer(), THIS(first).derefer(), memb_size);
+    else {
+        Object obj = THIS(last).derefer();
+        THIS(obj).assign(FORM_WITH_OBJ(t, THIS(first).derefer()));
+    }
+    long long dist = distance(first, last);
+    adjust_heap(first, 0, dist, FORM_WITH_OBJ(t, x), cmp);
+    if (t.f == OBJ)
+        destroy(x);
+    free(x);
+    delete(first);
+    delete(last);
+}
+
+void sort_heap(const Iterator _first, const Iterator _last, Compare cmp)
+{
+    Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    Iterator last = THIS(_last).ctor(NULL, VA(_last), VAEND);
+    make_heap(first, last, cmp);
+    while (!THIS(last).equal(VA(first)))
+    {
+        pop_heap(first, last, cmp);
+        THIS(last).dec();
+    }
+    delete(first);
+    delete(last);
+}
+
