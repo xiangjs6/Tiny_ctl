@@ -30,7 +30,7 @@ void *_ToPoint(int t, size_t size, ...);
 void *_AddrAux(int t, ...);
 Form_t _FormAux(int t, ...);
 //FormWO_t的初始化宏
-#define FORM_WITH_OBJ(_t, ...) (FormWO_t){_t, ##__VA_ARGS__}
+#define FORM_WITH_OBJ(_t, ...) (FormWO_t){_t, __VA_ARGS__}
 //VA的结尾描述变量
 #define VAEND (FormWO_t){{END}}
 //获取变量的地址，并生成__ARG_ADDR_t变量
