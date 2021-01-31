@@ -42,6 +42,7 @@ Form_t _FormAux(int t, ...);
                                                        const double : _ToPoint('f', sizeof(_t), _t), \
                                                        __ARG_ADDR_t : _AddrAux('a', _t),             \
                                                        Form_t : NULL,                                \
+                                                       FormWO_t : _ToPoint('o', 0, _t),              \
                                                        default : _ToPoint(0, sizeof(_t), _t)))
 //用于各个函数调用时的参数列表中，对每一个放入该宏的参数，都会计算它的Form_t并生成FormWO_t变量
 #define VA(...) MAP_LIST(_VA_AUX, ##__VA_ARGS__)
@@ -50,6 +51,7 @@ Form_t _FormAux(int t, ...);
 #define _T(__T) _Generic(__T, Import,                                                         \
                          __ARG_ADDR_t : (Form_t){ADDR, {.size = (size_t)_AddrAux('s', __T)}}, \
                          Form_t : _FormAux(0, __T),                                           \
+                         FormWO_t : _FormAux(1, __T),                                         \
                          default : (Form_t){POD, {.size = sizeof(__T)}})
 //由类型名生成Form_t变量，Form_t变量名不能放入宏中
 #define T(__T, ...) _Generic(*(__T volatile *)0, Form_t : assert(0), default : _T(*(__T volatile *)0)), ##__VA_ARGS__

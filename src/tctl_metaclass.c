@@ -372,6 +372,8 @@ void *_ToPoint(int t, size_t size, ...)
         } else {
             memcpy(&res, &lf, size);
         }
+    } else if (t == 'o'){
+        res = va_arg(ap, FormWO_t).mem;
     } else {
         switch (size) {
             case 1:
@@ -419,7 +421,12 @@ Form_t _FormAux(int t, ...)
 {
     va_list ap;
     va_start(ap, t);
-    Form_t f = va_arg(ap, Form_t);
+    Form_t f;
+    if (t == 0) {
+        f = va_arg(ap, Form_t);
+        f.f += FORM;
+    } else
+        f = va_arg(ap, FormWO_t)._;
     va_end(ap);
-    return (Form_t){FORM + f.f, {f.size}};
+    return f;
 }
