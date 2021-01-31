@@ -133,9 +133,8 @@ static void *_Priority_queue_ctor(void *_this, va_list *app)
     struct Priority_queue *this = offsetOf(_this, __Priority_queue);
     this->c = malloc(classSz(_Vector().class));
     construct_v(_Vector(), this->c, app);
-    //FormWO_t t = va_arg(*app, FormWO_t);
-    //this->cmp = t.mem;
-    this->cmp = va_arg(*app, Compare);
+    FormWO_t t = va_arg(*app, FormWO_t);
+    this->cmp = t.mem;
     return _this;
 }
 
