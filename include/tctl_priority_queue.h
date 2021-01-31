@@ -5,23 +5,27 @@
 #ifndef TINY_CTL_TCTL_PRIORITY_QUEUE_H
 #define TINY_CTL_TCTL_PRIORITY_QUEUE_H
 
-#include "tctl_vector.h"
+#include "tctl_metaclass.h"
+#include "tctl_class.h"
 #include "tctl_def.h"
-typedef struct {
-    vector c;
-    Compare cmp;
-} __private_priority_queue;
 
-typedef struct {
-    bool (*empty)(void);
-    size_t (*size)(void);
-    void const *(*top)(void);
-    void (*push)(void*);
-    void (*pop)(void);
-    byte __obj_private[sizeof(__private_priority_queue)];
-} priority_queue;
+#define PRIORITY_QUEUE_FUNC       \
+struct {                          \
+    CLASS_FUNC;                   \
+    void *(*top)(void);           \
+    void (*push)(FormWO_t x);     \
+    void (*pop)(void);            \
+    bool (*empty)(void);          \
+    size_t (*size)(void);         \
+    void (*swap)(Priority_queue); \
+}
 
-void init_priority_queue(priority_queue *p, size_t memb_size, Compare cmp);
-void destory_priority_queue(priority_queue *p);
-priority_queue creat_priority_queue(size_t memb_size, Compare cmp);
+typedef struct _Priority_queue *Priority_queue;
+struct _Priority_queue {
+    METAOBJECT_HEAD(PRIORITY_QUEUE_FUNC);
+};
+
+void initPriority_queue(void) __attribute__((constructor));
+Form_t _Priority_queue(void);
+#define PRIORITY_QUEUE Priority_queue : _Priority_queue()
 #endif //TINY_CTL_TCTL_PRIORITY_QUEUE_H
