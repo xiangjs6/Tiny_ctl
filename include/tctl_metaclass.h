@@ -8,11 +8,10 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <assert.h>
-#include "tctl_def.h"
 #include "map_macro.h"
 
 typedef struct {
-    enum {OBJ, POD, ADDR, END, FORM} f;
+    enum {OBJ, POD, ADDR, FUNC, END, FORM} f;
     union {
         size_t size;
         const void *class;
@@ -26,17 +25,20 @@ typedef struct {
 } FormWO_t;
 
 typedef struct {void *p; size_t size;} __ARG_ADDR_t;
-void *_ToPoint(int t, size_t size, ...);
-void *_AddrAux(int t, ...);
-Form_t _FormAux(int t, ...);
+void *_ToPoint(int t, size_t size, ...); //用于OBJ和POD
+void *_AddrAux(int t, ...); //用于地址类型
+Form_t _FormAux(int t, ...); //用于将Form_t和FormWO_t转化成Form_t Form_t会改变f FormWO_t不变
 //FormWO_t的初始化宏
 #define FORM_WITH_OBJ(_t, ...) (FormWO_t){_t, __VA_ARGS__}
 //VA的结尾描述变量
 #define VAEND (FormWO_t){{END}}
 //获取变量的地址，并生成__ARG_ADDR_t变量
 #define VA_ADDR(arg) ((__ARG_ADDR_t){&(arg), sizeof(arg)})
+//遇到需要传入函数指针时，VA_FUNC()创造FormWO_t
+#define VA_FUNC(fun) (FORM_WITH_OBJ((Form_t){FUNC, sizeof(&fun)}, fun))
 //为每个变量生成对应的FormWO_t变量
-#define _VA_AUX(_t) FORM_WITH_OBJ(_T(_t), _Generic(_t, float : _ToPoint('f', sizeof(_t), _t),        \
+#define _VA_AUX(_t) FORM_WITH_OBJ(_T(_t), _Generic(_t,                                               \
+                                                       float : _ToPoint('f', sizeof(_t), _t),        \
                                                        double : _ToPoint('f', sizeof(_t), _t),       \
                                                        const float : _ToPoint('f', sizeof(_t), _t),  \
                                                        const double : _ToPoint('f', sizeof(_t), _t), \

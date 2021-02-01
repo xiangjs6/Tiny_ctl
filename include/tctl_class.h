@@ -6,6 +6,7 @@
 #define TINY_CTL_TCTL_CLASS_H
 
 #include "tctl_metaclass.h"
+#include "tctl_def.h"
 
 #define CLASS_FUNC                 \
 struct {                           \
