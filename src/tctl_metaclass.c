@@ -372,7 +372,7 @@ void *_ToPoint(int t, size_t size, ...)
         } else {
             memcpy(&res, &lf, size);
         }
-    } else if (t == 'o'){
+    } else if (t == 'F'){
         res = va_arg(ap, FormWO_t).mem;
     } else {
         switch (size) {
@@ -397,23 +397,6 @@ void *_ToPoint(int t, size_t size, ...)
         }
     }
     va_end(ap);
-    return res;
-}
-
-void *_AddrAux(int t, ...)
-{
-    va_list ap;
-    va_start(ap, t);
-    __ARG_ADDR_t x = va_arg(ap, __ARG_ADDR_t);
-    void *res;
-    switch (t) {
-        case 'a':
-            res = x.p;
-            break;
-        case 's':
-            res = (void*)x.size;
-            break;
-    }
     return res;
 }
 

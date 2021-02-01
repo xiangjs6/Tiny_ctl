@@ -24,16 +24,14 @@ typedef struct {
     void *mem;
 } FormWO_t;
 
-typedef struct {void *p; size_t size;} __ARG_ADDR_t;
 void *_ToPoint(int t, size_t size, ...); //用于OBJ和POD
-void *_AddrAux(int t, ...); //用于地址类型
 Form_t _FormAux(int t, ...); //用于将Form_t和FormWO_t转化成Form_t Form_t会改变f FormWO_t不变
 //FormWO_t的初始化宏
 #define FORM_WITH_OBJ(_t, ...) (FormWO_t){_t, __VA_ARGS__}
 //VA的结尾描述变量
 #define VAEND (FormWO_t){{END}}
 //获取变量的地址，并生成__ARG_ADDR_t变量
-#define VA_ADDR(arg) ((__ARG_ADDR_t){&(arg), sizeof(arg)})
+#define VA_ADDR(arg) (FORM_WITH_OBJ((Form_t){ADDR, sizeof(arg)}, &(arg)))
 //遇到需要传入函数指针时，VA_FUNC()创造FormWO_t
 #define VA_FUNC(fun) (FORM_WITH_OBJ((Form_t){FUNC, sizeof(&fun)}, fun))
 //为每个变量生成对应的FormWO_t变量
@@ -42,16 +40,14 @@ Form_t _FormAux(int t, ...); //用于将Form_t和FormWO_t转化成Form_t Form_t�
                                                        double : _ToPoint('f', sizeof(_t), _t),       \
                                                        const float : _ToPoint('f', sizeof(_t), _t),  \
                                                        const double : _ToPoint('f', sizeof(_t), _t), \
-                                                       __ARG_ADDR_t : _AddrAux('a', _t),             \
                                                        Form_t : NULL,                                \
-                                                       FormWO_t : _ToPoint('o', 0, _t),              \
+                                                       FormWO_t : _ToPoint('F', 0, _t),              \
                                                        default : _ToPoint(0, sizeof(_t), _t)))
 //用于各个函数调用时的参数列表中，对每一个放入该宏的参数，都会计算它的Form_t并生成FormWO_t变量
 #define VA(...) MAP_LIST(_VA_AUX, ##__VA_ARGS__)
 
 //对变量本身去生成对应的Form_t
 #define _T(__T) _Generic(__T, Import,                                                         \
-                         __ARG_ADDR_t : (Form_t){ADDR, {.size = (size_t)_AddrAux('s', __T)}}, \
                          Form_t : _FormAux(0, __T),                                           \
                          FormWO_t : _FormAux(1, __T),                                         \
                          default : (Form_t){POD, {.size = sizeof(__T)}})
