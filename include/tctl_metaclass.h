@@ -47,9 +47,9 @@ Form_t _FormAux(int t, ...); //用于将Form_t和FormWO_t转化成Form_t Form_t�
 #define VA(...) MAP_LIST(_VA_AUX, ##__VA_ARGS__)
 
 //对变量本身去生成对应的Form_t
-#define _T(__T) _Generic(__T, Import,                                                         \
-                         Form_t : _FormAux(0, __T),                                           \
-                         FormWO_t : _FormAux(1, __T),                                         \
+#define _T(__T) _Generic(__T, Import,                                    \
+                         Form_t : _FormAux(0, __T),                      \
+                         FormWO_t : _FormAux(1, __T),                    \
                          default : (Form_t){POD, {.size = sizeof(__T)}})
 //由类型名生成Form_t变量，Form_t变量名不能放入宏中
 #define T(__T, ...) _Generic(*(__T volatile *)0, Form_t : assert(0), default : _T(*(__T volatile *)0)), ##__VA_ARGS__
