@@ -6,7 +6,6 @@
 //#include "tctl_allocator.h"
 //#include "../include/auto_release_pool.h"
 #include <assert.h>
-#include <memory.h>
 #include <stdarg.h>
 #include <string.h>
 
@@ -166,7 +165,6 @@ long long distance(Iterator _a, Iterator _b)
         return a_class->dist(_a, _b);
     long long dis = 0;
     char tmp[sizeOf(_a)];
-    Form_t t = THIS(_a).type();
     Iterator it = THIS(_a).ctor(tmp, VA(_a), VAEND);
     for (; !THIS(it).equal(VA(_b)); THIS(it).inc())
         dis++;
