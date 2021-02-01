@@ -134,6 +134,7 @@ static void *_Priority_queue_ctor(void *_this, va_list *app)
     this->c = malloc(classSz(_Vector().class));
     construct_v(_Vector(), this->c, app);
     FormWO_t t = va_arg(*app, FormWO_t);
+    assert(t._.f == FUNC);
     this->cmp = t.mem;
     return _this;
 }
