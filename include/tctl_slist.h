@@ -22,6 +22,7 @@ struct {                                                  \
     void (*pop_front)(void);                              \
     Iterator (*erase_after)(Iterator iter);               \
     Iterator (*insert_after)(Iterator iter, FormWO_t x);  \
+    void (*reverse)(void);                                \
     void (*clear)(void);                                  \
     void (*swap)(Slist l);                                \
 }
