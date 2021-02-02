@@ -2,185 +2,465 @@
 // Created by xjs on 2020/9/29.
 //
 
-#include "../include/tctl_slist.h"
+#include "include/_tctl_slist.h"
+#include "include/_tctl_iterator.h"
+#include "include/_tctl_metaclass.h"
 #include "../include/tctl_allocator.h"
-#include "../include/tctl_common.h"
 #include "../include/auto_release_pool.h"
-#include "memory.h"
-//private
-static void iter_inc(__iterator *p)
-{
-    struct __slist_node *node = container_of(p->val, struct __slist_node, data);
-    p->val = node->next ? node->next->data : NULL;
-}
+#include <memory.h>
+#include <assert.h>
+#include <stdarg.h>
 
-static bool iter_equal(const __iterator *it1, const __iterator *it2)
-{
-    return it1->val == it2->val;
-}
+#define Import CLASS, OBJECT, METACLASS, ITERATOR, SLIST
 
-static const __iterator_obj_func __def_slist_iter = {
-        NULL,
-        iter_inc,
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        iter_equal
+struct SlistNode {
+    struct SlistNode *nxt;
+    byte data[0];
 };
 
-static const iterator_func __def_slist_iter_func = INIT_ITER_FUNC(&__def_slist_iter);
+struct SlistClass {
+    Iterator (*begin)(void *_this);
+    Iterator (*end)(void *_this);
+    void* (*front)(void *_this);
+    size_t (*size)(void *_this);
+    bool (*empty)(void *_this);
+    void (*push_front)(void *_this, FormWO_t x);
+    void (*pop_front)(void *_this);
+    Iterator (*erase_after)(void *_this, Iterator iter);
+    Iterator (*insert_after)(void *_this, Iterator iter, FormWO_t x);
+    void (*clear)(void *_this);
+    void (*swap)(void *_this, Slist l);
+};
 
-static void __insert_after(slist *this, struct __slist_node *node, void *x)
+struct Slist {
+    Form_t _t;
+    struct SlistNode _head;
+};
+
+struct SlistIter {
+    struct SlistNode *node;
+};
+
+//selector
+static Iterator _begin(void);
+static Iterator _end(void);
+static void *_front(void);
+static size_t _size(void);
+static bool _empty(void);
+static void _push_front(FormWO_t x);
+static void _pop_front(void);
+static Iterator _erase_after(Iterator iter);
+static Iterator _insert_after(Iterator iter, FormWO_t x);
+static void _clear(void);
+static void _swap(Slist l);
+//slistclass
+static void *_slistclass_ctor(void *_this, va_list *app);
+//slist
+static void *_slist_ctor(void *_this, va_list *app);
+static void *_slist_dtor(void *_this);
+static Iterator _slist_begin(const void *_this);
+static Iterator _slist_end(const void *_this);
+static void *_slist_front(const void *_this);
+static size_t _slist_size(const void *_this);
+static bool _slist_empty(const void *_this);
+static void _slist_push_front(void *_this, FormWO_t x);
+static void _slist_pop_front(void *_this);
+static Iterator _slist_erase_after(void *_this, Iterator iter);
+static Iterator _slist_insert_after(void *_this, Iterator iter, FormWO_t x);
+static void _slist_clear(void *_this);
+static void _slist_swap(void *_this, Slist _l);
+//iterator
+static void _iter_assign(void *_this, FormWO_t _x);
+static void _iter_inc(void *_this);
+static bool _iter_equal(const void *_this, FormWO_t _x);
+static void *_iter_ctor(void *_this, va_list *app);
+static void *_iter_derefer(const void *_this);
+//init
+static const void *__SlistIter = NULL;
+static const void *__Slist = NULL;
+static const void *__SlistClass = NULL;
+volatile static struct SlistSelector SlistS = {
+    {},
+    _begin,
+    _end,
+    _front,
+    _size,
+    _empty,
+    _push_front,
+    _pop_front,
+    _erase_after,
+    _insert_after,
+    _clear,
+    _swap
+};
+const struct SlistSelector *_SlistS = NULL;
+
+void initSlist(void)
 {
-    __private_slist *p_private = (__private_slist*)this->__obj_private;
-    struct __slist_node *new_node = allocate(sizeof(struct __slist_node) + p_private->memb_size);
-    new_node->next = node->next;
-    node->next = new_node;
-    memcpy(new_node->data, x, p_private->memb_size);
+    initClass();
+    initIterator();
+    if (!_SlistS) {
+        _SlistS = (void*)&SlistS;
+        memcpy((void*)&SlistS, _ClassS, sizeof(*_ClassS));
+    }
+    if (!__SlistIter) {
+        __SlistIter = new(_IteratorClass(), "SlistIter",
+                         T(Iterator), sizeof(struct SlistIter) + classSz(_Iterator().class),
+                         _MetaClassS->ctor, _iter_ctor,
+                         _ClassS->equal, _iter_equal,
+                         _ClassS->inc, _iter_inc,
+                         _ClassS->assign, _iter_assign,
+                         _IteratorS->derefer, _iter_derefer,
+                         Selector, _IteratorS, NULL);
+    }
+    if (!__SlistClass) {
+        __SlistClass = new(T(MetaClass), "SlistClass",
+                           T(Class), sizeof(struct SlistClass) + classSz(_Class().class),
+                           _MetaClassS->ctor, _slistclass_ctor, NULL);
+    }
+    if (!__Slist) {
+        __Slist = new(_SlistClass(), "Slist",
+                       T(Object), sizeof(struct Slist) + classSz(_Object().class),
+                       _MetaClassS->ctor, _slist_ctor,
+                       _MetaClassS->dtor, _slist_dtor,
+                       SlistS.begin, _slist_begin,
+                       SlistS.end, _slist_end,
+                       SlistS.front, _slist_front,
+                       SlistS.size, _slist_size,
+                       SlistS.empty, _slist_empty,
+                       SlistS.push_front, _slist_push_front,
+                       SlistS.pop_front, _slist_pop_front,
+                       SlistS.erase_after, _slist_erase_after,
+                       SlistS.insert_after, _slist_insert_after,
+                       SlistS.clear, _slist_clear,
+                       SlistS.swap, _slist_swap,
+                       Selector, _SlistS, NULL);
+    }
 }
 
-static void __erase_after(slist *this, struct __slist_node *node)
+Form_t _Slist(void)
 {
-    __private_slist *p_private = (__private_slist*)this->__obj_private;
-    struct __slist_node *old_node = node->next;
-    node->next = old_node->next;
-    deallocate(old_node, sizeof(struct __slist_node) + p_private->memb_size);
+    Form_t t = {OBJ, .class = __Slist};
+    return t;
+}
+
+Form_t _SlistClass(void)
+{
+    Form_t t = {OBJ, .class = __SlistClass};
+    return t;
+}
+
+static Form_t _SlistIter(void)
+{
+    Form_t t = {OBJ, .class = __SlistIter};
+    return t;
 }
 
 //public
-static IterType begin(void)
+//Iterator
+static void *_iter_ctor(void *_this, va_list *app)
 {
-    slist *this = pop_this();
-    __private_slist *p_private = (__private_slist*)this->__obj_private;
-    p_private->start_ptr = p_private->head.next ? p_private->head.next->data : NULL;
-    struct __inner_iterator *start = ARP_MallocARel(sizeof(struct __inner_iterator) + sizeof(__slist_iter));
-    init_iter(start, sizeof(__slist_iter), this, p_private->memb_size, &__def_slist_iter_func);
-    memcpy(start->__address, &p_private->start_ptr, sizeof(__slist_iter));
-    return start;
-}
-
-static IterType end(void)
-{
-    slist *this = pop_this();
-    __private_slist *p_private = (__private_slist*)this->__obj_private;
-    struct __inner_iterator *finish = allocate(sizeof(struct __inner_iterator) + sizeof(__slist_iter));
-    init_iter(finish, sizeof(__slist_iter), this, p_private->memb_size, &__def_slist_iter_func);
-    memcpy(finish->__address, &p_private->finish_ptr, sizeof(__slist_iter));
-    return finish;
-}
-
-static size_t size(void)
-{
-    slist *this = pop_this();
-    __private_slist *p_private = (__private_slist*)this->__obj_private;
-    size_t count = 0;
-    struct __slist_node *node = p_private->head.next;
-    while (node)
-    {
-        node = node->next;
-        count++;
+    _this = super_ctor(__SlistIter, _this, app);
+    struct SlistIter *this = offsetOf(_this, __SlistIter);
+    FormWO_t t = va_arg(*app, FormWO_t);
+    if (t._.f == OBJ) {
+        if (t._.class == _Iterator().class) {
+            assert(classOf(t.mem) == __SlistIter);
+            struct SlistIter *it = offsetOf(t.mem, __SlistIter);
+            *this = *it;
+        }
+    } else if (t._.f == POD) {
+        this->node = t.mem;
+    } else {
+        this->node = *(struct SlistNode**)t.mem;
     }
-    return count;
+    return _this;
 }
 
-static bool empty(void)
+static bool _iter_equal(const void *_this, FormWO_t _x)
 {
-    slist *this = pop_this();
-    __private_slist *p_private = (__private_slist*)this->__obj_private;
-    return !p_private->head.next;
+    const struct SlistIter *this = offsetOf(_this, __SlistIter);
+    const struct SlistIter *x = offsetOf(_x.mem, __SlistIter);
+    return this->node == x->node;
 }
 
-static void swap(slist *l)
+static void _iter_inc(void *_this)
 {
-    slist *this = pop_this();
-    __private_slist *p_private = (__private_slist*)this->__obj_private;
-    __private_slist *p_l_private = (__private_slist*)l->__obj_private;
-    if (p_private->memb_size != p_l_private->memb_size)
-        return;
-    struct __slist_node *node = p_private->head.next;
-    p_private->head.next = p_l_private->head.next;
-    p_l_private->head.next = node;
+    struct SlistIter *this = offsetOf(_this, __SlistIter);
+    this->node = this->node->nxt;
 }
 
-static void *front(void)
+static void _iter_assign(void *_this, FormWO_t _x)
 {
-    slist *this = pop_this();
-    __private_slist *p_private = (__private_slist*)this->__obj_private;
-    return p_private->head.next->data;
+    struct SlistIter *this = offsetOf(_this, __SlistIter);
+    struct SlistIter *x = offsetOf(_x.mem, __SlistIter);
+    this->node = x->node;
 }
 
-static void push_front(void *x)
+static void *_iter_derefer(const void *_this)
 {
-    slist *this = pop_this();
-    __private_slist *p_private = (__private_slist*)this->__obj_private;
-    __insert_after(this, &p_private->head, x);
+    struct SlistIter *this = offsetOf(_this, __SlistIter);
+    return this->node->data;
 }
 
-static void pop_front(void)
+//SlistClass
+static void *_slistclass_ctor(void *_this, va_list *app)
 {
-    slist *this = pop_this();
-    __private_slist *p_private = (__private_slist*)this->__obj_private;
-    __erase_after(this, &p_private->head);
+    _this = super_ctor(__SlistClass, _this, app);
+    struct ListClass *this = offsetOf(_this, __SlistClass);
+    voidf selector;
+    va_list ap;
+    va_copy(ap, *app);
+    voidf *begin = (void*)&SlistS + sizeof(SlistS._);
+    voidf *end = (void*)&SlistS + sizeof(SlistS);
+    voidf *this_begin = (void*)this;
+    while ((selector = va_arg(ap, voidf)))
+    {
+        voidf method = va_arg(ap, voidf);
+        for (voidf *p = begin; p != end; p++) {
+            if (*p == selector) {
+                size_t n = p - begin;
+                *(this_begin + n) = method;
+                break;
+            }
+        }
+    }
+    va_end(ap);
+    return _this;
 }
 
-static IterType insert_after(IterType iter, void *x)
+//Slist
+static void *_slist_ctor(void *_this, va_list *app)
 {
-    slist *this = pop_this();
-    __iterator *__iter = iter;
-    struct __slist_node *node = container_of(__iter->val, struct __slist_node, data);
-    __insert_after(this, node, x);
+    _this = super_ctor(__Slist, _this, app);
+    struct Slist *this = offsetOf(_this, __Slist);
+    FormWO_t t = va_arg(*app, FormWO_t);
+    assert(t._.f >= FORM);
+    t._.f -=FORM;
+    this->_t = t._;
+    this->_head.nxt = NULL;
+    return _this;
+}
+
+static void *_slist_dtor(void *_this)
+{
+    _this = super_dtor(__Slist, _this);
+    struct Slist *this = offsetOf(_this, __Slist);
+    _slist_clear(_this);
+    return _this;
+}
+
+static Iterator _slist_begin(const void *_this)
+{
+    struct Slist *this = offsetOf(_this, __Slist);
+    void *mem = ARP_MallocARelDtor(classSz(__SlistIter), destroy);
+    return construct(_SlistIter(), mem, VA(this->_t, ForwardIter, this->_head.nxt));
+}
+
+static Iterator _slist_end(const void *_this)
+{
+    struct Slist *this = offsetOf(_this, __Slist);
+    void *mem = ARP_MallocARelDtor(classSz(__SlistIter), destroy);
+    return construct(_SlistIter(), mem, VA(this->_t, ForwardIter, NULL));
+}
+
+static void *_slist_front(const void *_this)
+{
+    struct Slist *this = offsetOf(_this, __Slist);
+    return this->_head.nxt->data;
+}
+
+static size_t _slist_size(const void *_this)
+{
+    struct Slist *this = offsetOf(_this, __Slist);
+    struct SlistNode *node = this->_head.nxt;
+    size_t size = 0;
+    while (node != NULL)
+    {
+        size++;
+        node = node->nxt;
+    }
+    return size;
+}
+
+static bool _slist_empty(const void *_this)
+{
+    struct Slist *this = offsetOf(_this, __Slist);
+    return this->_head.nxt == NULL;
+}
+
+static void _slist_push_front(void *_this, FormWO_t _x)
+{
+    struct Slist *this = offsetOf(_this, __Slist);
+    size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
+    struct SlistNode *new_node = allocate(sizeof(struct SlistNode) + memb_size);
+    if (this->_t.f == POD) {
+        assert(_x._.f != OBJ);
+        if (_x._.f == ADDR)
+            memcpy(new_node->data, _x.mem, memb_size);
+        else if (_x._.f == POD)
+            memcpy(new_node->data, &_x.mem, memb_size);
+        else if (_x._.f == END)
+            memset(new_node->data, 0, memb_size);
+    } else {
+        construct(this->_t, new_node->data, _x, VAEND);
+    }
+    new_node->nxt = this->_head.nxt;
+    this->_head.nxt = new_node;
+}
+
+static void _slist_pop_front(void *_this)
+{
+    assert(!_slist_empty(_this));
+    struct Slist *this = offsetOf(_this, __Slist);
+    size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
+    struct SlistNode *node = this->_head.nxt;
+    if (this->_t.f == OBJ)
+        destroy(node->data);
+    this->_head.nxt = this->_head.nxt->nxt;
+    deallocate(node, memb_size + sizeof(struct SlistNode));
+}
+
+static Iterator _slist_erase_after(void *_this, Iterator iter)
+{
+    struct Slist *this = offsetOf(_this, __Slist);
+    assert(classOf(iter) == __SlistIter);
+    struct SlistIter *it = offsetOf(iter, __SlistIter);
+    struct SlistNode *node = it->node->nxt;
+    size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
+    assert(it->node);
+    it->node->nxt =  node->nxt;
+    if (this->_t.f == OBJ)
+        destroy(node->data);
+    deallocate(node, memb_size + sizeof(struct SlistNode));
     return iter;
 }
 
-static IterType erase_after(IterType iter)
+static Iterator _slist_insert_after(void *_this, Iterator iter, FormWO_t _x)
 {
-    slist *this = pop_this();
-    __iterator *__iter = iter;
-    struct __slist_node *node = container_of(__iter->val, struct __slist_node, data);
-    __erase_after(this, node);
+    struct Slist *this = offsetOf(_this, __Slist);
+    assert(classOf(iter) == __SlistIter);
+    struct SlistIter *it = offsetOf(iter, __SlistIter);
+    struct SlistNode *node = it->node->nxt;
+    size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
+    struct SlistNode *new_node = allocate(sizeof(struct SlistNode) + memb_size);
+    if (this->_t.f == POD) {
+        assert(_x._.f != OBJ);
+        if (_x._.f == ADDR)
+            memcpy(new_node->data, _x.mem, memb_size);
+        else if (_x._.f == POD)
+            memcpy(new_node->data, &_x.mem, memb_size);
+        else if (_x._.f == END)
+            memset(new_node->data, 0, memb_size);
+    } else {
+        construct(this->_t, new_node->data, _x, VAEND);
+    }
+    new_node->nxt = it->node->nxt;
+    it->node->nxt = new_node;
     return iter;
 }
 
-static void clear(void)
+static void _slist_clear(void *_this)
 {
-    slist *this = pop_this();
-    while (!THIS(this).empty())
-        THIS(this).pop_front();
+    struct Slist *this = offsetOf(_this, __Slist);
+    while (this->_head.nxt != NULL)
+        _slist_pop_front(_this);
 }
 
-static const slist __def_slist = {
-        begin,
-        end,
-        size,
-        empty,
-        swap,
-        front,
-        push_front,
-        pop_front,
-        insert_after,
-        erase_after,
-        clear,
-};
-void init_slist(slist *p_slist, size_t memb_size)
+static void _slist_swap(void *_this, Slist _l)
 {
-    *p_slist = __def_slist;
-    __private_slist *p_private = (__private_slist*)p_slist->__obj_private;
-    p_private->head.next = NULL;
-    p_private->memb_size = memb_size;
-    p_private->finish_ptr = NULL;
-    p_private->start_ptr = NULL;
+    struct Slist *this = offsetOf(_this, __Slist);
+    struct Slist *l = offsetOf(_l, __Slist);
+    struct SlistNode *temp = this->_head.nxt;
+    this->_head.nxt = l->_head.nxt;
+    l->_head.nxt = temp;
 }
 
-void destory_slist(slist *p_list)
+//selector
+static Iterator _begin(void)
 {
-    //__private_slist *p_private = (__private_slist*)p_list->__obj_private;
-    THIS(p_list).clear();
+    void *_this = pop_this();
+    const struct SlistClass *class = offsetOf(classOf(_this), __SlistClass);
+    assert(class->begin);
+    return class->begin(_this);
 }
 
-slist creat_slist(size_t memb_size)
+static Iterator _end(void)
 {
-    slist sl;
-    init_slist(&sl, memb_size);
-    return sl;
+    void *_this = pop_this();
+    const struct SlistClass *class = offsetOf(classOf(_this), __SlistClass);
+    assert(class->end);
+    return class->end(_this);
+}
+
+static void *_front(void)
+{
+    void *_this = pop_this();
+    const struct SlistClass *class = offsetOf(classOf(_this), __SlistClass);
+    assert(class->front);
+    return class->front(_this);
+}
+
+static size_t _size(void)
+{
+    void *_this = pop_this();
+    const struct SlistClass *class = offsetOf(classOf(_this), __SlistClass);
+    assert(class->size);
+    return class->size(_this);
+}
+
+static bool _empty(void)
+{
+    void *_this = pop_this();
+    const struct SlistClass *class = offsetOf(classOf(_this), __SlistClass);
+    assert(class->empty);
+    return class->empty(_this);
+}
+
+static void _push_front(FormWO_t x)
+{
+    void *_this = pop_this();
+    const struct SlistClass *class = offsetOf(classOf(_this), __SlistClass);
+    assert(class->push_front);
+    class->push_front(_this, x);
+}
+
+static void _pop_front(void)
+{
+    void *_this = pop_this();
+    const struct SlistClass *class = offsetOf(classOf(_this), __SlistClass);
+    assert(class->pop_front);
+    class->pop_front(_this);
+}
+
+static Iterator _erase_after(Iterator iter)
+{
+    void *_this = pop_this();
+    const struct SlistClass *class = offsetOf(classOf(_this), __SlistClass);
+    assert(class->erase_after);
+    return class->erase_after(_this, iter);
+}
+
+static Iterator _insert_after(Iterator iter, FormWO_t x)
+{
+    void *_this = pop_this();
+    const struct SlistClass *class = offsetOf(classOf(_this), __SlistClass);
+    assert(class->insert_after);
+    return class->insert_after(_this, iter, x);
+}
+
+static void _clear(void)
+{
+    void *_this = pop_this();
+    const struct SlistClass *class = offsetOf(classOf(_this), __SlistClass);
+    assert(class->clear);
+    class->clear(_this);
+}
+
+static void _swap(Slist l)
+{
+    void *_this = pop_this();
+    const struct SlistClass *class = offsetOf(classOf(_this), __SlistClass);
+    assert(class->clear);
+    class->swap(_this, l);
 }

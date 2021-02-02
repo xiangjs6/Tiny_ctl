@@ -7,36 +7,31 @@
 
 #include "tctl_def.h"
 #include "tctl_iterator.h"
-typedef void *__slist_iter;
+#include "tctl_metaclass.h"
+#include "tctl_class.h"
 
-struct __slist_node{
-    struct __slist_node *next;
-    byte data[0];
-} ;
+#define SLIST_FUNC                                        \
+struct {                                                  \
+    CLASS_FUNC;                                           \
+    Iterator (*begin)(void);                              \
+    Iterator (*end)(void);                                \
+    void* (*front)(void);                                 \
+    size_t (*size)(void);                                 \
+    bool (*empty)(void);                                  \
+    void (*push_front)(FormWO_t x);                       \
+    void (*pop_front)(void);                              \
+    Iterator (*erase_after)(Iterator iter);               \
+    Iterator (*insert_after)(Iterator iter, FormWO_t x);  \
+    void (*clear)(void);                                  \
+    void (*swap)(Slist l);                                \
+}
 
-typedef struct {
-    size_t memb_size;
-    struct __slist_node head;
-    __slist_iter start_ptr;
-    __slist_iter finish_ptr;
-} __private_slist;
+typedef struct _Slist *Slist;
+struct _Slist {
+    METAOBJECT_HEAD(SLIST_FUNC);
+};
 
-typedef struct slist {
-    IterType (*begin)(void);
-    IterType (*end)(void);
-    size_t (*size)(void);
-    bool (*empty)(void);
-    void (*swap)(struct slist*);
-    void *(*front)(void);
-    void (*push_front)(void *x);
-    void (*pop_front)(void);
-    IterType (*insert_after)(IterType iter, void *x);
-    IterType (*erase_after)(IterType iter);
-    void (*clear)(void);
-    byte __obj_private[sizeof(__private_slist)];
-} slist;
-
-void init_slist(slist *p_slist, size_t memb_size);
-void destory_slist(slist *p_slist);
-slist creat_slist(size_t memb_size);
+void initSlist(void) __attribute__((constructor));
+Form_t _Slist(void);
+#define SLIST Slist : _Slist()
 #endif //TINY_CTL_TCTL_SLIST_H
