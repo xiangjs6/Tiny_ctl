@@ -56,8 +56,8 @@ struct ListIter {
 //selector
 static Iterator _begin(void);
 static Iterator _end(void);
-static void* _front(void);
-static void* _back(void);
+static void *_front(void);
+static void *_back(void);
 static size_t _size(void);
 static bool _empty(void);
 static void _push_back(FormWO_t x);
@@ -82,8 +82,8 @@ static void *_list_dtor(void *_this);
 static void *_list_brackets(const void *_this, FormWO_t x);
 static Iterator _list_begin(const void *_this);
 static Iterator _list_end(const void *_this);
-static void* _list_front(const void *_this);
-static void* _list_back(const void *_this);
+static void *_list_front(const void *_this);
+static void *_list_back(const void *_this);
 static size_t _list_size(const void *_this);
 static bool _list_empty(const void *_this);
 static void _list_push_back(void *_this, FormWO_t x);
@@ -450,13 +450,13 @@ static Iterator _list_end(const void *_this)
     return new(compose(_ListIter(), mem), VA(this->_t, BidirectionalIter, &this->_end));
 }
 
-static void* _list_front(const void *_this)
+static void *_list_front(const void *_this)
 {
     struct List *this = offsetOf(_this, __List);
     return this->_end.nxt->data;
 }
 
-static void* _list_back(const void *_this)
+static void *_list_back(const void *_this)
 {
     struct List *this = offsetOf(_this, __List);
     return this->_end.pre->data;
@@ -745,7 +745,7 @@ static Iterator _end(void)
     return class->end(_this);
 }
 
-static void* _front(void)
+static void *_front(void)
 {
     void *_this = pop_this();
     const struct ListClass *class = offsetOf(classOf(_this), __ListClass);
@@ -753,7 +753,7 @@ static void* _front(void)
     return class->front(_this);
 }
 
-static void* _back(void)
+static void *_back(void)
 {
     void *_this = pop_this();
     const struct ListClass *class = offsetOf(classOf(_this), __ListClass);
