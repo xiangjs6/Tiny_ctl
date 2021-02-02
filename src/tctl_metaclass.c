@@ -209,23 +209,25 @@ void _delete(Form_t t, void *_this)
     free(class->dtor(_this));
 }
 
-void construct_v(Form_t t, void *mem, va_list *app)
+void *construct_v(Form_t t, void *mem, va_list *app)
 {
+    assert(mem);
     const struct MetaClass *class = t.class;
     struct MetaObject *object = mem;
     assert(class && class->size);
     assert(object);
     object->class = class;
     object = class->ctor(object, app);
+    return object;
 }
 
-void construct(Form_t t, void *mem, ...)
+void *construct(Form_t t, void *mem, ...)
 {
-    assert(mem);
     va_list ap;
     va_start(ap, mem);
-    construct_v(t, mem, &ap);
+    struct MetaObject *object = construct_v(t, mem, &ap);
     va_end(ap);
+    return object;
 }
 
 void destroy(void *_obj)
