@@ -5,10 +5,11 @@
 #include "../include/tctl_allocator.h"
 #include "../include/auto_release_pool.h"
 #include "include/_tctl_iterator.h"
+#include "../include/tctl_stack.h"
 #include <assert.h>
 #include <string.h>
 
-#define Import CLASS, OBJECT, METACLASS, ITERATOR, RB_TREE
+#define Import CLASS, OBJECT, METACLASS, ITERATOR, RB_TREE, STACK
 
 enum _Color {_RED, _BLACK};
 
@@ -456,6 +457,82 @@ static bool _find_aux(struct RB_tree *this, FormWO_t _x, struct RB_treeNode **pa
     *is_unique = save_is_unique;
     return &(*parent)->right == next;
 }
+
+static struct RB_treeNode *copyTree(struct RB_treeNode *node, Form_t t)
+{
+    size_t memb_size = t.f == POD ? t.size : classSz(t.class);
+    struct RB_treeNode *new_tree = _creat_rb_node();
+    new_tree->color = node->color;
+    new_tree->base_ptr = allocate(memb_size);
+    if (t.f == POD)
+        memcpy(new_tree->base_ptr, node->base_ptr, memb_size);
+    else
+        construct(t, new_tree->base_ptr, FORM_WITH_OBJ(t, node->base_ptr), VAEND);
+
+    Stack stack_left = new(T(Stack), VA(T(struct RB_treeNode*)));
+    Stack stack_right = new(T(Stack), VA(T(struct RB_treeNode*)));
+
+    THIS(stack_left).push(VA(node));
+    THIS(stack_right).push(VA(new_tree));
+
+    while (!THIS(stack_left).empty())
+    {
+        struct RB_treeNode *pleft = *(struct RB_treeNode**)THIS(stack_left).top();
+        struct RB_treeNode *pright = *(struct RB_treeNode**)THIS(stack_right).top();
+        THIS(stack_left).pop();  
+        THIS(stack_right).pop();
+        if (pleft->right != NULL) {
+            THIS(stack_left).push(VA(pleft->right));
+            struct RB_treeNode *n = _creat_rb_node();
+            n->color = pleft->right->color;
+            n->parent = pright;
+            n->base_ptr = allocate(memb_size);
+            if (t.f == POD)
+                memcpy(n->base_ptr, pleft->right->base_ptr, memb_size);
+            else
+                construct(t, n->base_ptr, FORM_WITH_OBJ(t, pleft->right->base_ptr), VAEND);
+            pright->right = n;
+            THIS(stack_right).push(VA(n));
+        }
+        if (pleft->left != NULL) {
+            THIS(stack_left).push(VA(pleft->left));
+            struct RB_treeNode *n = _creat_rb_node();
+            n->color = pleft->left->color;
+            n->parent = pright;
+            n->base_ptr = allocate(memb_size);
+            if (t.f == POD)
+                memcpy(n->base_ptr, pleft->left->base_ptr, memb_size);
+            else
+                construct(t, n->base_ptr, FORM_WITH_OBJ(t, pleft->left->base_ptr), VAEND);
+            pright->left = n;
+            THIS(stack_right).push(VA(n));
+        }
+    }
+    delete(stack_left);
+    delete(stack_right);
+    return new_tree;
+}
+
+static void _dealRB_treeArgs(void *_this, FormWO_t *args, int n)
+{
+    struct RB_tree *this = offsetOf(_this, __RB_tree);
+    if (args->_.f == FUNC) {
+        this->cmp = args->mem;
+    } else if (args->_.class == __RB_tree) { //复制一个RB_tree
+        struct RB_tree *L = offsetOf(args->mem, __RB_tree);
+        assert(L->_t.f == this->_t.f && L->_t.class == this->_t.class);
+        this->cmp = L->cmp;
+        ARP_CreatePool();
+        struct RB_treeNode *n = copyTree(L->header->parent, L->_t);
+        n->parent = this->header;
+        this->header->parent = n;
+        this->header->left = _minimum(n);
+        this->header->right = _maximum(n);
+        this->nmemb = L->nmemb;
+        ARP_FreePool();
+    }
+}
+
 //public
 //Iterator
 static void *_iter_ctor(void *_this, va_list *app)
@@ -577,21 +654,20 @@ static void *_rb_tree_ctor(void *_this, va_list *app)
     t._.f -=FORM;
     this->_t = t._;
     this->nmemb = 0;
-    t = va_arg(*app, FormWO_t);
-    assert(t._.f == FUNC);
-    this->cmp = t.mem;
+    this->cmp = NULL;
     struct RB_treeNode *node= _creat_rb_node();
     node->parent = node->left = node->right = node;
     this->header = node;
-    FormWO_t args[2];
+    FormWO_t args[1];
     int i = 0;
     while ((t = va_arg(*app, FormWO_t))._.f != END)
     {
-        assert(i < 2);
+        assert(i < 1);
         args[i++] = t;
     }
-    //if (i)
-    //    _dealListArgs(_this, args, i);
+    if (i)
+        _dealRB_treeArgs(_this, args, i);
+    assert(this->cmp);
     return _this;
 }
 
