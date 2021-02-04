@@ -303,9 +303,12 @@ static void fill_allocate(struct Vector *this)
     this->total_storage_memb *= 2;
     this->total_storage_memb = this->total_storage_memb ? this->total_storage_memb : 1;
     void *new_block = allocate(this->total_storage_memb * memb_size);
-    Iterator new_it = new(_VectorIter(), VA(this->_t, SequenceIter, 0, new_block));
-    Iterator first = new(_VectorIter(), VA(this->_t, SequenceIter, 0, this->start_ptr));
-    Iterator last = new(_VectorIter(), VA(this->_t, SequenceIter, this->nmemb, this->start_ptr));
+    Form_t t = this->_t;
+    if (t.f == POD)
+        t.f = ADDR;
+    Iterator new_it = new(_VectorIter(), VA(t, SequenceIter, 0, new_block));
+    Iterator first = new(_VectorIter(), VA(t, SequenceIter, 0, this->start_ptr));
+    Iterator last = new(_VectorIter(), VA(t, SequenceIter, this->nmemb, this->start_ptr));
     copy(first, last, new_it);
     if (this->_t.f != POD) {
         for (; !THIS(first).equal(VA(last)); THIS(first).inc()) {
@@ -367,7 +370,7 @@ static void *_iter_brackets(const void *_this, FormWO_t _x)
     const Iterator it = (void*)_this;
     long long x =   toInt(_x);
     Form_t t = THIS(it).type();
-    size_t size = t.f == POD ? t.size : classSz(t.class);
+    size_t size = t.f == ADDR ? t.size : classSz(t.class);
     void *res = this->ptr + size * (x + this->cur);
     return res;
 }
@@ -444,7 +447,7 @@ static void *_iter_derefer(const void *_this)
     struct VectorIter *this = offsetOf(_this, __VectorIter);
     Iterator it = (void*)_this;
     Form_t t = THIS(it).type();
-    size_t memb_size = t.f == POD ? t.size : classSz(t.class);
+    size_t memb_size = t.f == ADDR ? t.size : classSz(t.class);
     return this->ptr + this->cur * memb_size;
 }
 
@@ -531,14 +534,20 @@ static Iterator _vector_begin(const void *_this)
 {
     struct Vector *this = offsetOf(_this, __Vector);
     void *mem = ARP_MallocARelDtor(classSz(__VectorIter), destroy);
-    return new(compose(_VectorIter(), mem), VA(this->_t, SequenceIter, 0, this->start_ptr));
+    Form_t t = this->_t;
+    if (t.f == POD)
+        t.f = ADDR;
+    return new(compose(_VectorIter(), mem), VA(t, SequenceIter, 0, this->start_ptr));
 }
 
 static Iterator _vector_end(const void *_this)
 {
     struct Vector *this = offsetOf(_this, __Vector);
     void *mem = ARP_MallocARelDtor(classSz(__VectorIter), destroy);
-    return new(compose(_VectorIter(), mem), VA(this->_t, SequenceIter, this->nmemb, this->start_ptr));
+    Form_t t = this->_t;
+    if (t.f == POD)
+        t.f = ADDR;
+    return new(compose(_VectorIter(), mem), VA(t, SequenceIter, this->nmemb, this->start_ptr));
 }
 
 static const void *_vector_front(const void *_this)

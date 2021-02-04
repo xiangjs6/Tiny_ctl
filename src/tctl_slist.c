@@ -326,14 +326,20 @@ static Iterator _slist_begin(const void *_this)
 {
     struct Slist *this = offsetOf(_this, __Slist);
     void *mem = ARP_MallocARelDtor(classSz(__SlistIter), destroy);
-    return construct(_SlistIter(), mem, VA(this->_t, ForwardIter, this->_head.nxt));
+    Form_t t = this->_t;
+    if (t.f == POD)
+        t.f = ADDR;
+    return construct(_SlistIter(), mem, VA(t, ForwardIter, this->_head.nxt));
 }
 
 static Iterator _slist_end(const void *_this)
 {
     struct Slist *this = offsetOf(_this, __Slist);
     void *mem = ARP_MallocARelDtor(classSz(__SlistIter), destroy);
-    return construct(_SlistIter(), mem, VA(this->_t, ForwardIter, NULL));
+    Form_t t = this->_t;
+    if (t.f == POD)
+        t.f = ADDR;
+    return construct(_SlistIter(), mem, VA(t, ForwardIter, NULL));
 }
 
 static void *_slist_front(const void *_this)

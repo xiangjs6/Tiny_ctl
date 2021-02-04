@@ -20,7 +20,7 @@ static void adjust_heap(const Iterator first, long long holo_index, long long le
             i++;
         if (cmp(x, FORM_WITH_OBJ(t, THIS(first).brackets(VA(i)))) >= 0)
             break;
-        if (t.f == POD)
+        if (t.f == ADDR)
             memcpy(THIS(first).brackets(VA(top_index)), THIS(first).brackets(VA(i)), t.size);
         else if (t.f == OBJ) {
             Object obj = THIS(first).brackets(VA(top_index));
@@ -28,7 +28,7 @@ static void adjust_heap(const Iterator first, long long holo_index, long long le
         }
         top_index = i;
     }
-    if (t.f == POD)
+    if (t.f == ADDR)
         memcpy(THIS(first).brackets(VA(top_index)), x.mem, t.size);
     else if (t.f == OBJ) {
         Object obj = THIS(first).brackets(VA(top_index));
@@ -42,13 +42,13 @@ void make_heap(const Iterator _first, const Iterator _last, Compare cmp)
     Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
     Iterator last = THIS(_last).ctor(NULL, VA(_last), VAEND);
     Form_t t = THIS(first).type();
-    size_t memb_size = t.f == POD ? t.size : classSz(t.class);
+    size_t memb_size = t.f == ADDR ? t.size : classSz(t.class);
     void *x = malloc(memb_size);
     if (t.f == OBJ)
         construct(t, x, VAEND);
     long long dist = distance(first, last);
     for (int i = dist / 2 - 1; i>= 0; i--) {
-        if (t.f == POD)
+        if (t.f == ADDR)
             memcpy(x, THIS(first).brackets(VA(i)), memb_size);
         else {
             Object obj = x;
@@ -68,13 +68,13 @@ void push_heap(const Iterator _first, const Iterator _last, Compare cmp)
     Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
     Iterator last = THIS(_last).ctor(NULL, VA(_last), VAEND);
     Form_t t = THIS(first).type();
-    size_t memb_size = t.f == POD ? t.size : classSz(t.class);
+    size_t memb_size = t.f == ADDR ? t.size : classSz(t.class);
     void *x = malloc(memb_size);
     if (t.f == OBJ)
         construct(t, x, VAEND);
     long long cur_index = distance(first, last) - 1;
     long long father = cur_index / 2 - (cur_index + 1) % 2;
-    if (t.f == POD)
+    if (t.f == ADDR)
         memcpy(x, THIS(first).brackets(VA(cur_index)), memb_size);
     else {
         Object obj = x;
@@ -83,7 +83,7 @@ void push_heap(const Iterator _first, const Iterator _last, Compare cmp)
     while (father >= 0 &&
            cmp(FORM_WITH_OBJ(t, x), FORM_WITH_OBJ(t, THIS(first).brackets(VA(father)))) >= 0)
     {
-        if (t.f == POD)
+        if (t.f == ADDR)
             memcpy(THIS(first).brackets(VA(cur_index)), THIS(first).brackets(VA(father)), memb_size);
         else {
             Object obj = THIS(first).brackets(VA(cur_index));
@@ -93,7 +93,7 @@ void push_heap(const Iterator _first, const Iterator _last, Compare cmp)
         father = cur_index / 2 - (cur_index + 1) % 2;
     }
     if (cur_index != distance(first, last) - 1) {
-        if (t.f == POD)
+        if (t.f == ADDR)
             memcpy(THIS(first).brackets(VA(cur_index)), x, memb_size);
         else {
             Object obj = THIS(first).brackets(VA(cur_index));
@@ -114,17 +114,17 @@ void pop_heap(const Iterator _first, const Iterator _last, Compare cmp)
     THIS(last).dec();
 
     Form_t t = THIS(first).type();
-    size_t memb_size = t.f == POD ? t.size : classSz(t.class);
+    size_t memb_size = t.f == ADDR ? t.size : classSz(t.class);
     void *x = malloc(memb_size);
     if (t.f == OBJ)
         construct(t, x, VAEND);
-    if (t.f == POD)
+    if (t.f == ADDR)
         memcpy(x, THIS(last).derefer(), memb_size);
     else {
         Object obj = x;
         THIS(obj).assign(FORM_WITH_OBJ(t, THIS(last).derefer()));
     }
-    if (t.f == POD)
+    if (t.f == ADDR)
         memcpy(THIS(last).derefer(), THIS(first).derefer(), memb_size);
     else {
         Object obj = THIS(last).derefer();

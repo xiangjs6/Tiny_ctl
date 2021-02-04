@@ -367,27 +367,17 @@ static struct RB_treeNode *_insert_aux(struct RB_tree *this, struct RB_treeNode 
     _balance_tree_insert(this, new_node);
     //赋值
     size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
-    if (memb_size > sizeof(new_node->base_ptr)) {
-        new_node->base_ptr = allocate(memb_size);
-        if (this->_t.f == POD) {
-            assert(_x._.f != OBJ);
-            if (_x._.f == ADDR)
-                memcpy(new_node->base_ptr, _x.mem, memb_size);
-            else if (_x._.f == POD)
-                memcpy(new_node->base_ptr, &_x.mem, memb_size);
-            else if (_x._.f == END)
-                memset(new_node->base_ptr, 0, memb_size);
-        } else {
-            construct(this->_t, new_node->base_ptr, _x, VAEND);
-        }
-    } else {
+    new_node->base_ptr = allocate(memb_size);
+    if (this->_t.f == POD) {
         assert(_x._.f != OBJ);
         if (_x._.f == ADDR)
-            memcpy(&new_node->base_ptr, _x.mem, memb_size);
+            memcpy(new_node->base_ptr, _x.mem, memb_size);
         else if (_x._.f == POD)
-            memcpy(&new_node->base_ptr, &_x.mem, memb_size);
+            memcpy(new_node->base_ptr, &_x.mem, memb_size);
         else if (_x._.f == END)
-            memset(&new_node->base_ptr, 0, memb_size);
+            memset(new_node->base_ptr, 0, memb_size);
+    } else {
+        construct(this->_t, new_node->base_ptr, _x, VAEND);
     }
     this->nmemb++;
     return new_node;
@@ -428,8 +418,7 @@ static void _erase_aux(struct RB_tree *this, struct RB_treeNode *node)
     }
     if (this->_t.f == OBJ)
         destroy(rep_node->base_ptr);
-    if (memb_size > sizeof(rep_node->base_ptr))
-        deallocate(rep_node->base_ptr, memb_size);
+    deallocate(rep_node->base_ptr, memb_size);
     _free_rb_node(rep_node);
     this->nmemb--;
 }
@@ -444,7 +433,17 @@ static bool _find_aux(struct RB_tree *this, FormWO_t _x, struct RB_treeNode **pa
     }
     int flag = 1;
     size_t save_is_unique = 0;
-    while (*next && ((flag = this->cmp(_x, FORM_WITH_OBJ(this->_t, (*next)->base_ptr))) ||
+
+    FormWO_t x_addr = _x;
+    if (x_addr._.f == POD) {
+        x_addr._.f = ADDR;
+        x_addr.mem = &_x.mem;
+    }
+    Form_t  t_addr;
+    t_addr = this->_t;
+    if (t_addr.f == POD)
+        t_addr.f = ADDR;
+    while (*next && ((flag = this->cmp(x_addr, FORM_WITH_OBJ(t_addr, (*next)->base_ptr))) ||
                      !*is_unique))
     {
         if (!flag)
@@ -539,13 +538,7 @@ static void _iter_assign(void *_this, FormWO_t _x)
 static void *_iter_derefer(const void *_this)
 {
     struct RB_treeIter *this = offsetOf(_this, __RB_treeIter);
-    Iterator it = (void*)_this;
-    Form_t t = THIS(it).type();
-    size_t memb_size = t.f == POD ? t.size : classSz(t.class);
-    if (memb_size > sizeof(this->node->base_ptr))
-        return this->node->base_ptr;
-    else
-        return &this->node->base_ptr;
+    return this->node->base_ptr;
 }
 
 //RB_treeClass
@@ -615,14 +608,20 @@ static Iterator _rb_tree_begin(const void *_this)
 {
     struct RB_tree *this = offsetOf(_this, __RB_tree);
     void *mem = ARP_MallocARelDtor(classSz(__RB_treeIter), destroy);
-    return new(compose(_RB_treeIter(), mem), VA(this->_t, BidirectionalIter, this->header->left));
+    Form_t t = this->_t;
+    if (t.f == POD)
+        t.f = ADDR;
+    return new(compose(_RB_treeIter(), mem), VA(t, BidirectionalIter, this->header->left));
 }
 
 static Iterator _rb_tree_end(const void *_this)
 {
     struct RB_tree *this = offsetOf(_this, __RB_tree);
     void *mem = ARP_MallocARelDtor(classSz(__RB_treeIter), destroy);
-    return new(compose(_RB_treeIter(), mem), VA(this->_t, BidirectionalIter, this->header));
+    Form_t t = this->_t;
+    if (t.f == POD)
+        t.f = ADDR;
+    return new(compose(_RB_treeIter(), mem), VA(t, BidirectionalIter, this->header));
 }
 
 static size_t _rb_tree_size(const void *_this)
@@ -658,7 +657,10 @@ static Iterator _rb_tree_insert_unique(void *_this, FormWO_t _x)
     else
         this->header->left = _minimum(this->header->left);
     void *mem = ARP_MallocARelDtor(classSz(__RB_treeIter), destroy);
-    return new(compose(_RB_treeIter(), mem), VA(this->_t, BidirectionalIter, new_node));
+    Form_t t = this->_t;
+    if (t.f == POD)
+        t.f = ADDR;
+    return new(compose(_RB_treeIter(), mem), VA(t, BidirectionalIter, new_node));
 }
 
 static Iterator _rb_tree_insert_equal(void *_this, FormWO_t _x)
@@ -680,8 +682,11 @@ static Iterator _rb_tree_insert_equal(void *_this, FormWO_t _x)
         this->header->right = _maximum(this->header->right);
     else
         this->header->left = _minimum(this->header->left);
+    Form_t t = this->_t;
+    if (t.f == POD)
+        t.f = ADDR;
     void *mem = ARP_MallocARelDtor(classSz(__RB_treeIter), destroy);
-    return new(compose(_RB_treeIter(), mem), VA(this->_t, BidirectionalIter, new_node));
+    return new(compose(_RB_treeIter(), mem), VA(t, BidirectionalIter, new_node));
 }
 
 static void _rb_tree_erase(void *_this, Iterator iter)
@@ -710,7 +715,10 @@ static Iterator _rb_tree_find(void *_this, FormWO_t _x)
             node = parent->parent;
         else
             node = !left_right ? parent->left : parent->right;
-        return new(compose(_RB_treeIter(), mem), VA(this->_t, BidirectionalIter, node));
+        Form_t t = this->_t;
+        if (t.f == POD)
+            t.f = ADDR;
+        return new(compose(_RB_treeIter(), mem), VA(t, BidirectionalIter, node));
     }
 }
 

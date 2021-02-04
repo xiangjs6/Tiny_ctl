@@ -136,6 +136,7 @@ static void *_object_ctor(void *_this, va_list *app)
     }
     assert(t._.f >= FORM);
     t._.f -= FORM;
+    assert(t._.f == OBJ || t._.f == ADDR);
     this->_t = t._;
     t  = va_arg(*app, FormWO_t);
     assert(t._.f == POD);

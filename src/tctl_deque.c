@@ -526,14 +526,20 @@ static Iterator _deque_begin(const void *_this)
 {
     struct Deque *this = offsetOf(_this, __Deque);
     void *mem = ARP_MallocARelDtor(classSz(__DequeIter), destroy);
-    return new(compose(_DequeIter(), mem), VA(this->_t, RandomAccessIter, VA_ADDR(this->start)));
+    Form_t t = this->_t;
+    if (t.f == POD)
+        t.f = ADDR;
+    return new(compose(_DequeIter(), mem), VA(t, RandomAccessIter, VA_ADDR(this->start)));
 }
 
 static Iterator _deque_end(const void *_this)
 {
     struct Deque *this = offsetOf(_this, __Deque);
     void *mem = ARP_MallocARelDtor(classSz(__DequeIter), destroy);
-    return new(compose(_DequeIter(), mem), VA(this->_t, RandomAccessIter, VA_ADDR(this->finish)));
+    Form_t t = this->_t;
+    if (t.f == POD)
+        t.f = ADDR;
+    return new(compose(_DequeIter(), mem), VA(t, RandomAccessIter, VA_ADDR(this->finish)));
 }
 
 static const void *_deque_front(const void *_this)

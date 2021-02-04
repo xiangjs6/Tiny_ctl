@@ -439,15 +439,21 @@ static void *_list_brackets(const void *_this, FormWO_t x)
 static Iterator _list_begin(const void *_this)
 {
     struct List *this = offsetOf(_this, __List);
+    Form_t t = this->_t;
+    if (t.f == POD)
+        t.f = ADDR;
     void *mem = ARP_MallocARelDtor(classSz(__ListIter), destroy);
-    return new(compose(_ListIter(), mem), VA(this->_t, BidirectionalIter, this->_end.nxt));
+    return new(compose(_ListIter(), mem), VA(t, BidirectionalIter, this->_end.nxt));
 }
 
 static Iterator _list_end(const void *_this)
 {
     struct List *this = offsetOf(_this, __List);
+    Form_t t = this->_t;
+    if (t.f == POD)
+        t.f = ADDR;
     void *mem = ARP_MallocARelDtor(classSz(__ListIter), destroy);
-    return new(compose(_ListIter(), mem), VA(this->_t, BidirectionalIter, &this->_end));
+    return new(compose(_ListIter(), mem), VA(t, BidirectionalIter, &this->_end));
 }
 
 static void *_list_front(const void *_this)
@@ -614,7 +620,7 @@ static void _list_splice(void *_this, Iterator _position, List l, va_list *app)
         assert(args[1]._.f == OBJ);
         first_node = ((struct ListIter*)offsetOf(args[0].mem, __ListIter))->node;
         last_node = ((struct ListIter*)offsetOf(args[1].mem, __ListIter))->node;
-        if (first_node != last_node)
+        if (first_node == last_node)
             return;
     }
     _transfer(pos_node, first_node, last_node);
@@ -629,10 +635,16 @@ static void _list_merge(void *_this, List l, Compare cmp)
     struct ListNode *last1 = &this->_end;
     struct ListNode *first2 = L->_end.nxt;
     struct ListNode *last2 = &L->_end;
+    Form_t t1 = this->_t;
+    if (t1.f == POD)
+        t1.f = ADDR;
+    Form_t t2 = L->_t;
+    if (t2.f == POD)
+        t2.f = ADDR;
     while (first1 != last1 && first2 != last2)
     {
-        FormWO_t v1 = FORM_WITH_OBJ(this->_t, first1->data);
-        FormWO_t v2 = FORM_WITH_OBJ(L->_t, first2->data);
+        FormWO_t v1 = FORM_WITH_OBJ(t1, first1->data);
+        FormWO_t v2 = FORM_WITH_OBJ(t2, first2->data);
         if (cmp(v1, v2) > 0) {
             struct ListNode *next = first2->nxt;
             _transfer(first1, first2, next);
