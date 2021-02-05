@@ -4,26 +4,31 @@
 
 #ifndef TINY_CTL_TCTL_SET_H
 #define TINY_CTL_TCTL_SET_H
-#include "tctl_rb_tree.h"
+#include "tctl_class.h"
+#include "tctl_iterator.h"
+#include "tctl_def.h"
 
-typedef struct {
-    rb_tree t;
-} __private_set;
+#define SET_FUNC                    \
+struct {                            \
+    CLASS_FUNC;                     \
+    Iterator (*begin)(void);        \
+    Iterator (*end)(void);          \
+    size_t (*size)(void);           \
+    bool (*empty)(void);            \
+    void (*erase)(Iterator iter);   \
+    Iterator (*insert)(FormWO_t x); \
+    size_t (*count)(FormWO_t x);    \
+    Iterator (*find)(FormWO_t x);   \
+    void (*clear)(void);            \
+    void (*swap)(Set);              \
+}
 
-typedef struct {
-    IterType (*begin)(void);
-    IterType (*end)(void);
-    size_t (*size)(void);
-    bool (*empty)(void);
-    void (*erase)(IterType iter);
-    IterType (*insert)(void *x);
-    size_t (*count)(void *x);
-    IterType (*find)(void *x);
-    void (*clear)(void);
-    byte __obj_private[sizeof(__private_set)];
-} set;
+typedef struct _Set *Set;
+struct _Set {
+    METAOBJECT_HEAD(SET_FUNC);
+};
 
-void init_set(set *p_set, size_t memb_size, Compare);
-void destory_set(set *p_set);
-set creat_set(size_t memb_size, Compare);
+void initSet(void) __attribute__((constructor));
+Form_t _Set(void);
+#define SET Set : _Set()
 #endif //TINY_CTL_TCTL_SET_H
