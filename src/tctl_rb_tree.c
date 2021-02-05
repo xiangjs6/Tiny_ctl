@@ -522,14 +522,16 @@ static void _dealRB_treeArgs(void *_this, FormWO_t *args, int n)
         struct RB_tree *L = offsetOf(args->mem, __RB_tree);
         assert(L->_t.f == this->_t.f && L->_t.class == this->_t.class);
         this->cmp = L->cmp;
-        ARP_CreatePool();
-        struct RB_treeNode *node = copyTree(L->header->parent, L->_t);
-        node->parent = this->header;
-        this->header->parent = node;
-        this->header->left = _minimum(node);
-        this->header->right = _maximum(node);
-        this->nmemb = L->nmemb;
-        ARP_FreePool();
+        if (L->header->parent != L->header) { //当被复制的树不为空
+            ARP_CreatePool();
+            struct RB_treeNode *node = copyTree(L->header->parent, L->_t);
+            node->parent = this->header;
+            this->header->parent = node;
+            this->header->left = _minimum(node);
+            this->header->right = _maximum(node);
+            this->nmemb = L->nmemb;
+            ARP_FreePool();
+        }
     }
 }
 
