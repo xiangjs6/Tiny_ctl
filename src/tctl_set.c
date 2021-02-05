@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <memory.h>
 
-#define Import CLASS, OBJECT, METACLASS, RB_TREE
+#define Import CLASS, OBJECT, METACLASS, RB_TREE, ITERATOR
 
 struct SetClass {
     Iterator (*begin)(const void *_this);
@@ -150,7 +150,36 @@ static void *_set_ctor(void *_this, va_list *app)
     _this = super_ctor(__Set, _this, app);
     struct Set *this = offsetOf(_this, __Set);
     this->c = malloc(classSz(_RB_tree().class));
-    construct_v(_RB_tree(), this->c, app);
+    FormWO_t f = va_arg(*app, FormWO_t);
+    assert(f._.f >= FORM);
+    FormWO_t t = va_arg(*app, FormWO_t);
+    assert(t._.f == OBJ || t._.f == FUNC);
+    if (t._.f == OBJ) { //复制构造
+        assert(t._.class == __Set);
+        struct Set *s = offsetOf(t.mem, __Set);
+        construct(_RB_tree(), this->c, f, VA(s->c), VAEND);
+    } else { //迭代器构造和默认构造
+        construct(_RB_tree(), this->c, f, t, VAEND);
+        t = va_arg(*app, FormWO_t);
+        if (t._.f == END)
+            return _this;
+
+        assert(t._.f == OBJ && t._.class == _Iterator().class);
+        Iterator first = t.mem;
+        first = THIS(first).ctor(NULL, VA(first), VAEND);
+        t = va_arg(*app, FormWO_t);
+        assert(t._.f == OBJ && t._.class == _Iterator().class);
+        Iterator last = t.mem;
+        last = THIS(first).ctor(NULL, VA(last), VAEND);
+        Form_t it_t = THIS(first).type();
+        while (!THIS(first).equal(VA(last)))
+        {
+            THIS(this->c).insert_unique(FORM_WITH_OBJ(it_t, THIS(first).derefer()));
+            THIS(first).inc();
+        }
+        delete(first);
+        delete(last);
+    }
     return _this;
 }
 
