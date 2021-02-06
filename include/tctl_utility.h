@@ -6,6 +6,7 @@
 #define TINY_CTL_TCTL_UTILITY_H
 #include "tctl_metaclass.h"
 
+//Pair
 #define PAIR_OBJ struct { \
     Form_t f_t;           \
     void *first;          \
@@ -19,6 +20,8 @@ struct _Pair {
 };
 void initPair(void) __attribute__((constructor));
 Form_t _Pair(void);
-Pair tmpPair(FormWO_t, FormWO_t);
+Pair tmpPair(Form_t key_t, Form_t val_t, ...);
 #define PAIR Pair : _Pair()
+
+
 #endif //TINY_CTL_TCTL_UTILITY_H
