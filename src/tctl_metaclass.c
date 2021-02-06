@@ -8,6 +8,7 @@
 #include <stdarg.h>
 #include <memory.h>
 #include <stdlib.h>
+#include <string.h>
 
 
 struct MetaObject {
@@ -177,11 +178,25 @@ const void *super(const void *_this)
 
 void *_new(FormWO_t t, ...)
 {
+    assert(t._.f != ADDR);
     if (t._.f == POD) {
+        void *m;
         if (t.mem)
-            return t.mem;
+            m = t.mem;
         else
-            return malloc(t._.size);
+            m = malloc(t._.size);
+        va_list ap;
+        va_start(ap, t);
+        FormWO_t o = va_arg(ap, FormWO_t); 
+        assert(o._.f != OBJ);
+        if (o._.f == END)
+            memset(m, 0, t._.size);
+        else if (o._.f == ADDR)
+            memcpy(m, o.mem, t._.size);
+        else if (o._.f == POD)
+            memcpy(m, &o.mem, t._.size);
+        va_end(ap);
+        return m;
     }
     const struct MetaClass *class = t._.class;
     struct MetaObject *object;
@@ -199,14 +214,14 @@ void *_new(FormWO_t t, ...)
     return object;
 }
 
-void _delete(Form_t t, void *_this)
+void _delete(FormWO_t t)
 {
-    if (t.f == POD || !_this) {
-        free(_this);
+    if (t._.f == POD || !t.mem) {
+        free(t.mem);
         return;
     }
-    const struct MetaClass *class = classOf(_this);
-    free(class->dtor(_this));
+    const struct MetaClass *class = classOf(t.mem);
+    free(class->dtor(t.mem));
 }
 
 void *construct_v(Form_t t, void *mem, va_list *app)

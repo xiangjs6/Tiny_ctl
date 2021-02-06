@@ -58,9 +58,9 @@ Form_t _FormAux(int t, ...); //用于将Form_t和FormWO_t转化成Form_t Form_t�
 
 //创建对象时应该使用VA()，创建类时不能使用VA()，应按照MetaClass创建类
 #define new(__T, ...) _new(FORM_WITH_OBJ(__T), ##__VA_ARGS__, VAEND)
-#define delete(this) _delete(_T(this), this)
+#define delete(this) _delete(VA(this))
 void *_new(FormWO_t t, ...);
-void _delete(Form_t t, void *this);
+void _delete(FormWO_t t);
 
 //只能传对象
 void *construct_v(Form_t t, void *mem, va_list *app);
