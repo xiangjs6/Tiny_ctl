@@ -10,20 +10,20 @@
 #include "tctl_metaclass.h"
 #include "tctl_class.h"
 
-#define RB_TREE_FUNC                                      \
-struct {                                                  \
-    CLASS_FUNC;                                           \
-    Iterator (*begin)(void);                              \
-    Iterator (*end)(void);                                \
-    size_t (*size)(void);                                 \
-    bool (*empty)(void);                                  \
-    Iterator (*insert_unique)(FormWO_t);                  \
-    Iterator (*insert_equal)(FormWO_t);                   \
-    void (*erase)(Iterator);                              \
-    Iterator (*find)(FormWO_t);                           \
-    size_t (*count)(FormWO_t);                            \
-    void (*clear)(void);                                  \
-    void (*swap)(RB_tree t);                              \
+#define RB_TREE_FUNC                     \
+struct {                                 \
+    CLASS_FUNC;                          \
+    Iterator (*begin)(void);             \
+    Iterator (*end)(void);               \
+    size_t (*size)(void);                \
+    bool (*empty)(void);                 \
+    Iterator (*insert_unique)(FormWO_t); \
+    Iterator (*insert_equal)(FormWO_t);  \
+    void (*erase)(Iterator);             \
+    Iterator (*find)(FormWO_t);          \
+    size_t (*count)(FormWO_t);           \
+    void (*clear)(void);                 \
+    void (*swap)(RB_tree t);             \
 }
 
 typedef struct _RB_tree *RB_tree;

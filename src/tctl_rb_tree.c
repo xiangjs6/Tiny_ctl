@@ -105,6 +105,7 @@ void initRB_tree(void)
 {
     initClass();
     initIterator();
+    initStack();
     if (!_RB_treeS) {
         _RB_treeS = (void*)&RB_treeS;
         memcpy((void*)&RB_treeS, _ClassS, sizeof(*_ClassS));
