@@ -825,11 +825,9 @@ static void _rb_tree_clear(void *_this)
             node->parent->left = NULL;
         else
             node->parent->right = NULL;
-        if (memb_size > sizeof(node->base_ptr)) {
-            if (this->_t.f == OBJ)
-                destroy(node->base_ptr);
-            deallocate(node->base_ptr, memb_size);
-        }
+        if (this->_t.f == OBJ)
+            destroy(node->base_ptr);
+        deallocate(node->base_ptr, memb_size);
         _free_rb_node(node);
         node = next;
     }
