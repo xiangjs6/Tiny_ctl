@@ -6,51 +6,33 @@
 #define TINY_CTL_TCTL_HASHTABLE_H
 #include "tctl_def.h"
 #include "tctl_iterator.h"
-#include "tctl_vector.h"
 
-struct __bucket_node {
-    struct __bucket_node *next;
-    byte data[0];
+#define HASHTABLE_FUNC                   \
+struct {                                 \
+    CLASS_FUNC;                          \
+    Iterator (*begin)(void);             \
+    Iterator (*end)(void);               \
+    size_t (*size)(void);                \
+    bool (*empty)(void);                 \
+    Iterator (*insert_unique)(FormWO_t); \
+    Iterator (*insert_equal)(FormWO_t);  \
+    void (*erase)(Iterator);             \
+    Iterator (*find)(FormWO_t);          \
+    size_t (*count)(FormWO_t);           \
+    size_t (*bucket_count)(void);        \
+    size_t (*max_bucket_count)(void);    \
+    void (*resize)(size_t);              \
+    void (*copy_from)(const Hashtable);  \
+    void (*clear)(void);                 \
+    void (*swap)(Hashtable h);           \
+}
+
+typedef struct _Hashtable *Hashtable;
+struct _Hashtable {
+    METAOBJECT_HEAD(HASHTABLE_FUNC);
 };
 
-typedef struct {
-    const size_t memb_size;
-    size_t nmemb;
-    Compare equal;
-    HashFunc hash;
-    ExtractKey get_key;
-    size_t start;
-    size_t finish;
-    //上面成员会在copy函数中复制，所以要和下面成员分开
-    vector buckets;
-} __private_hashtable;
-
-typedef struct hashtable{
-    IterType (*begin)(void);
-    IterType (*end)(void);
-    bool (*empty)(void);
-    size_t (*size)(void);
-    IterType (*insert_unique)(void*);
-    IterType (*insert_equal)(void*);
-    void (*erase)(IterType);
-    void (*clear)(void);
-    IterType (*find)(void*);
-    size_t (*count)(void*);
-    size_t (*bucket_count)(void);
-    size_t (*max_bucket_count)(void);
-    void (*resize)(size_t);
-    void (*swap)(struct hashtable*);
-    void (*copy_from)(const struct hashtable*);
-    byte __obj_private[sizeof(__private_hashtable)];
-} hashtable;
-
-typedef struct {
-    void *val;
-    struct __bucket_node *cur;
-    hashtable *ht;
-} __hashtable_iter;
-
-void init_hashtable(hashtable *p_ht, size_t memb_size, Compare equal, HashFunc hash, ExtractKey get_key);
-void destory_hashtable(hashtable *p_ht);
-hashtable creat_hashtable(size_t memb_size, Compare equal, HashFunc hash, ExtractKey get_key);
+void initHashtable(void) __attribute__((constructor));
+Form_t _Hashtable(void);
+#define HASHTABLE Hashtable : _Hashtable()
 #endif //TINY_CTL_TCTL_HASHTABLE_H
