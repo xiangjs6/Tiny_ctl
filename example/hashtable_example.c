@@ -1,55 +1,61 @@
 #include <stdio.h>
-#include "tctl_hashtable.h"
-#include "tctl_hash_fun.h"
-#include "auto_release_pool.h"
-int cmp(const int *a, const int *b)
+#include "../include/tctl_hashtable.h"
+//#include "../include/tctl_hash_fun.h"
+#include "../include/auto_release_pool.h"
+#define Import HASHTABLE
+int cmp(FormWO_t _a, FormWO_t _b)
 {
-    if (*a > *b)
-        return 1;
-    else if (*a < *b)
-        return -1;
-    return 0;
+    int *a = _a.mem;
+    int *b = _b.mem;
+    return *a - *b;
 }
 
-void *get_key(const int *x)
+FormWO_t get_key(FormWO_t x)
 {
     return x;
 }
+
+size_t hash_int(FormWO_t x)
+{
+    return *(int*)x.mem;
+}
+
 int main(void)
 {
     ARP_CreatePool();
-    hashtable ht = creat_hashtable(sizeof(int), cmp, hash_int, get_key);
+    Hashtable ht = new(T(Hashtable), VA(T(int), VA_FUNC(cmp), VA_FUNC(hash_int), VA_FUNC(get_key)));
     int x = 100;
-    THIS(&ht).insert_unique(&x);
+    THIS(ht).insert_unique(VA(x));
     x = 47;
-    THIS(&ht).insert_unique(&x);
+    THIS(ht).insert_unique(VA(x));
     x = 100;
-    THIS(&ht).insert_unique(&x);
-    THIS(&ht).insert_equal(&x);
+    THIS(ht).insert_unique(VA(x));
+    THIS(ht).insert_equal(VA(x));
     x = 1;
-    THIS(&ht).insert_equal(&x);
+    THIS(ht).insert_equal(VA(x));
     x = 101;
-    THIS(&ht).insert_equal(&x);
+    THIS(ht).insert_equal(VA(x));
     x = 3;
-    THIS(&ht).insert_equal(&x);
+    THIS(ht).insert_equal(VA(x));
     x = 101;
-    iterator(int) f_it = THIS(&ht).find(&x);
-    THIS(&ht).erase(f_it);
-    hashtable ht2 = creat_hashtable(sizeof(int), cmp, hash_int, get_key);
-    for (iterator(int) it = THIS(&ht2).begin(); !ITER(it).equal(THIS(&ht2).end()); ITER(it).inc())
-    printf("%d ", *it->val);
-    for (int i = 0; i < 1000; i++) {
-        THIS(&ht2).insert_equal(&i);
+    Iterator f_it = THIS(ht).find(VA(x));
+    THIS(ht).erase(f_it);
+    Hashtable ht2 = new(T(Hashtable), VA(T(int), VA_FUNC(cmp), VA_FUNC(hash_int), VA_FUNC(get_key)));
+    for (Iterator it = THIS(ht).begin(); !THIS(it).equal(VA(THIS(ht).end())); THIS(it).inc())
+        printf("%d ", *(int*)THIS(it).derefer());
+    putchar('\n');
+    for (int i = 0; i < 100000; i++) {
+        THIS(ht2).insert_equal(VA(i));
     }
-    THIS(&ht).swap(&ht2);
-    THIS(&ht).copy_from(&ht2);
-    for (iterator(int) it = THIS(&ht).begin(); !ITER(it).equal(THIS(&ht).end()); ITER(it).inc())
-    printf("%d ", *it->val);
+    THIS(ht).swap(ht2);
+    //THIS(ht).copy_from(ht2);
+    for (Iterator it = THIS(ht).begin(); !THIS(it).equal(VA(THIS(ht).end())); THIS(it).inc())
+        printf("%d ", *(int*)THIS(it).derefer());
     putchar('\n');
     x = 100;
-    printf("%d %d %llu\n", THIS(&ht).count(&x), THIS(&ht).bucket_count(), THIS(&ht).max_bucket_count());
-    THIS(&ht).clear();
-    destory_hashtable(&ht);
-    destory_hashtable(&ht2);
+    printf("%lu %lu %lu\n", THIS(ht).count(VA(x)), THIS(ht).bucket_count(), THIS(ht).max_bucket_count());
+    THIS(ht).clear();
+    delete(ht);
+    delete(ht2);
     ARP_FreePool();
 }
