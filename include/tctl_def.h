@@ -14,8 +14,8 @@ typedef long long offset_t;
 typedef char byte;
 
 typedef int (*Compare)(FormWO_t, FormWO_t);
-typedef size_t (*HashFunc)(const void *);
-typedef void *(*ExtractKey)(const void *);
+typedef size_t (*HashFunc)(FormWO_t);
+typedef FormWO_t (*ExtractKey)(FormWO_t); //提取出来的key，应为引用类型
 
 typedef void *(*BinaryOperation)(const void *first, const void *second, void *res);
 typedef void (*UnaryOperation)(void *self);
