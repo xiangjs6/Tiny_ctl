@@ -524,7 +524,7 @@ static void *_vector_brackets(const void *_this, FormWO_t _x)
 {
     const struct Vector *this = offsetOf(_this, __Vector);
     long long x = toInt(_x);
-    assert(x >= 0 && x < this->nmemb);
+    assert(x >= 0 && x <= this->nmemb);
     size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
     void *res = this->start_ptr + memb_size * x;
     return res;
