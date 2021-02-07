@@ -4,27 +4,32 @@
 
 #ifndef TINY_CTL_TCTL_MAP_H
 #define TINY_CTL_TCTL_MAP_H
-#include "tctl_rb_tree.h"
+#include "tctl_class.h"
+#include "tctl_iterator.h"
 #include "tctl_def.h"
+#include "tctl_utility.h"
 
-typedef struct {
-    rb_tree t;
-} __private_map;
+#define MAP_FUNC                    \
+struct {                            \
+    CLASS_FUNC;                     \
+    Iterator (*begin)(void);        \
+    Iterator (*end)(void);          \
+    size_t (*size)(void);           \
+    bool (*empty)(void);            \
+    void (*erase)(Iterator iter);   \
+    Iterator (*insert)(Pair x);     \
+    size_t (*count)(FormWO_t x);    \
+    Iterator (*find)(FormWO_t x);   \
+    void (*clear)(void);            \
+    void (*swap)(Map);              \
+}
 
-typedef struct {
-    IterType (*begin)(void);
-    IterType (*end)(void);
-    size_t (*size)(void);
-    bool (*empty)(void);
-    void (*erase)(IterType iter);
-    IterType (*insert)(void *x);
-    size_t (*count)(void *x);
-    IterType (*find)(void *x);
-    void (*clear)(void);
-    byte __obj_private[sizeof(__private_map)];
-} map;
+typedef struct _Map *Map;
+struct _Map {
+    METAOBJECT_HEAD(MAP_FUNC);
+};
 
-void init_map(map *p_map, size_t key_size, size_t val_size, Compare);
-void destory_map(map *p_map);
-map creat_map(size_t key_size, size_t val_size, Compare);
+void initMap(void) __attribute__((constructor));
+Form_t _Map(void);
+#define MAP Map : _Map()
 #endif //TINY_CTL_TCTL_MAP_H
