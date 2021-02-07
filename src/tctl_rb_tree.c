@@ -625,7 +625,7 @@ static void *_iter_derefer(const void *_this)
 static void *_rb_treeclass_ctor(void *_this, va_list *app)
 {
     _this = super_ctor(__RB_treeClass, _this, app);
-    struct ListClass *this = offsetOf(_this, __RB_treeClass);
+    struct _RB_treeClass *this = offsetOf(_this, __RB_treeClass);
     voidf selector;
     va_list ap;
     va_copy(ap, *app);
