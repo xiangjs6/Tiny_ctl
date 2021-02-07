@@ -613,14 +613,16 @@ static void _hashtable_copy_from(void *_this, const Hashtable _h)
         if (cur) {
             x.mem = cur->data;
             _insert_aux(&tmpNode, x, this->_t);
-            struct Bucket_node *copy = tmpNode->next;
-            tmpNode->next = NULL;
+            struct Bucket_node *copy = tmpNode;
+            tmpNode = copy->next;
+            copy->next = NULL;
             *(struct Bucket_node**)THIS(this->buckets).brackets(VA(i)) = copy;
             for (struct Bucket_node *next = cur->next; next; next = next->next) {
                 x.mem = next->data;
                 _insert_aux(&tmpNode, x, this->_t);
-                copy->next = tmpNode->next;
-                tmpNode->next = NULL;
+                copy->next = tmpNode;
+                tmpNode = tmpNode->next;
+                copy->next->next = NULL;
                 copy = copy->next;
             }
         }
