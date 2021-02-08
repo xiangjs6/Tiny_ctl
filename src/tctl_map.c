@@ -90,7 +90,7 @@ void initMap(void)
                            _MetaClassS->ctor, _mapclass_ctor, NULL);
     }
     if (!__Map) {
-        __Map = new(_MapClass(), "Priority_queue",
+        __Map = new(_MapClass(), "Map",
                      T(Object), sizeof(struct Map) + classSz(_Object().class),
                      _MetaClassS->ctor, _map_ctor,
                      _MetaClassS->dtor, _map_dtor,
@@ -276,6 +276,7 @@ static Iterator _begin(void)
     assert(class->begin);
     return class->begin(_this);
 }
+
 static Iterator _end(void)
 {
     void *_this = pop_this();
@@ -283,6 +284,7 @@ static Iterator _end(void)
     assert(class->end);
     return class->end(_this);
 }
+
 static size_t _size(void)
 {
     void *_this = pop_this();
@@ -290,6 +292,7 @@ static size_t _size(void)
     assert(class->size);
     return class->size(_this);
 }
+
 static bool _empty(void)
 {
     void *_this = pop_this();
@@ -297,6 +300,7 @@ static bool _empty(void)
     assert(class->empty);
     return class->empty(_this);
 }
+
 static void _erase(Iterator iter)
 {
     void *_this = pop_this();
@@ -304,6 +308,7 @@ static void _erase(Iterator iter)
     assert(class->erase);
     class->erase(_this, iter);
 }
+
 static Iterator _insert(Pair x)
 {
     void *_this = pop_this();
@@ -311,6 +316,7 @@ static Iterator _insert(Pair x)
     assert(class->insert);
     return class->insert(_this, x);
 }
+
 static size_t _count(FormWO_t x)
 {
     void *_this = pop_this();
@@ -318,6 +324,7 @@ static size_t _count(FormWO_t x)
     assert(class->count);
     return class->count(_this, x);
 }
+
 static Iterator _find(FormWO_t x)
 {
     void *_this = pop_this();
@@ -325,6 +332,7 @@ static Iterator _find(FormWO_t x)
     assert(class->find);
     return class->find(_this, x);
 }
+
 static void _clear(void)
 {
     void *_this = pop_this();
@@ -332,6 +340,7 @@ static void _clear(void)
     assert(class->clear);
     class->clear(_this);
 }
+
 static void _swap(Map _s)
 {
     void *_this = pop_this();

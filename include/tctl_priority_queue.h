@@ -17,15 +17,15 @@ struct {                          \
     void (*pop)(void);            \
     bool (*empty)(void);          \
     size_t (*size)(void);         \
-    void (*swap)(Priority_queue); \
+    void (*swap)(Priority_Queue); \
 }
 
-typedef struct _Priority_queue *Priority_queue;
-struct _Priority_queue {
+typedef struct _Priority_Queue *Priority_Queue;
+struct _Priority_Queue {
     METAOBJECT_HEAD(PRIORITY_QUEUE_FUNC);
 };
 
-void initPriority_queue(void) __attribute__((constructor));
-Form_t _Priority_queue(void);
-#define PRIORITY_QUEUE Priority_queue : _Priority_queue()
+void initPriority_Queue(void) __attribute__((constructor));
+Form_t _Priority_Queue(void);
+#define PRIORITY_QUEUE Priority_Queue : _Priority_Queue()
 #endif //TINY_CTL_TCTL_PRIORITY_QUEUE_H

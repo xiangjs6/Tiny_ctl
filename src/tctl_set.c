@@ -88,7 +88,7 @@ void initSet(void)
                            _MetaClassS->ctor, _setclass_ctor, NULL);
     }
     if (!__Set) {
-        __Set = new(_SetClass(), "Priority_queue",
+        __Set = new(_SetClass(), "Set",
                      T(Object), sizeof(struct Set) + classSz(_Object().class),
                      _MetaClassS->ctor, _set_ctor,
                      _MetaClassS->dtor, _set_dtor,
@@ -122,7 +122,7 @@ Form_t _SetClass(void)
 static void *_setclass_ctor(void *_this, va_list *app)
 {
     _this = super_ctor(__SetClass, _this, app);
-    struct VectorClass *this = offsetOf(_this, __SetClass);
+    struct SetClass *this = offsetOf(_this, __SetClass);
     voidf selector;
     va_list ap;
     va_copy(ap, *app);
@@ -261,6 +261,7 @@ static Iterator _begin(void)
     assert(class->begin);
     return class->begin(_this);
 }
+
 static Iterator _end(void)
 {
     void *_this = pop_this();
@@ -268,6 +269,7 @@ static Iterator _end(void)
     assert(class->end);
     return class->end(_this);
 }
+
 static size_t _size(void)
 {
     void *_this = pop_this();
@@ -275,6 +277,7 @@ static size_t _size(void)
     assert(class->size);
     return class->size(_this);
 }
+
 static bool _empty(void)
 {
     void *_this = pop_this();
@@ -282,6 +285,7 @@ static bool _empty(void)
     assert(class->empty);
     return class->empty(_this);
 }
+
 static void _erase(Iterator iter)
 {
     void *_this = pop_this();
@@ -289,6 +293,7 @@ static void _erase(Iterator iter)
     assert(class->erase);
     class->erase(_this, iter);
 }
+
 static Iterator _insert(FormWO_t x)
 {
     void *_this = pop_this();
@@ -296,6 +301,7 @@ static Iterator _insert(FormWO_t x)
     assert(class->insert);
     return class->insert(_this, x);
 }
+
 static size_t _count(FormWO_t x)
 {
     void *_this = pop_this();
@@ -303,6 +309,7 @@ static size_t _count(FormWO_t x)
     assert(class->count);
     return class->count(_this, x);
 }
+
 static Iterator _find(FormWO_t x)
 {
     void *_this = pop_this();
@@ -310,6 +317,7 @@ static Iterator _find(FormWO_t x)
     assert(class->find);
     return class->find(_this, x);
 }
+
 static void _clear(void)
 {
     void *_this = pop_this();
@@ -317,6 +325,7 @@ static void _clear(void)
     assert(class->clear);
     class->clear(_this);
 }
+
 static void _swap(Set _s)
 {
     void *_this = pop_this();
