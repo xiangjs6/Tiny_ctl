@@ -58,8 +58,8 @@ static void _unordered_set_erase(void *_this, Iterator iter);
 static Iterator _unordered_set_insert(void *_this, FormWO_t x);
 static size_t _unordered_set_count(void *_this, FormWO_t x);
 static Iterator _unordered_set_find(void *_this, FormWO_t x);
-size_t _unordered_set_bucket_count(void *_this);
-size_t _unordered_max_bucket_count(void *_this);
+static size_t _unordered_set_bucket_count(void *_this);
+static size_t _unordered_max_bucket_count(void *_this);
 void _unordered_set_reserve(void *_this, size_t x);
 static void _unordered_set_clear(void *_this);
 static void _unordered_set_swap(void *_this, Unordered_Set _s);
@@ -134,7 +134,7 @@ Form_t _Unordered_SetClass(void)
 }
 
 //private
-FormWO_t _get_val(FormWO_t x)
+static FormWO_t _get_val(FormWO_t x)
 {
     return x;
 }
@@ -266,13 +266,13 @@ static Iterator _unordered_set_find(void *_this, FormWO_t x)
     return THIS(this->c).find(x);
 }
 
-size_t _unordered_set_bucket_count(void *_this)
+static size_t _unordered_set_bucket_count(void *_this)
 {
     struct Unordered_Set *this = offsetOf(_this, __Unordered_Set);
     return THIS(this->c).bucket_count();
 }
 
-size_t _unordered_max_bucket_count(void *_this)
+static size_t _unordered_max_bucket_count(void *_this)
 {
     struct Unordered_Set *this = offsetOf(_this, __Unordered_Set);
     return THIS(this->c).max_bucket_count();
