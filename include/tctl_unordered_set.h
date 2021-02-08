@@ -4,33 +4,34 @@
 
 #ifndef TINY_CTL_TCTL_UNORDERED_SET_H
 #define TINY_CTL_TCTL_UNORDERED_SET_H
-
-#include "tctl_hashtable.h"
+#include "tctl_class.h"
+#include "tctl_iterator.h"
 #include "tctl_def.h"
 
-typedef struct {
-    hashtable ht;
-} __private_unordered_set;
+#define UNORDERED_SET_FUNC            \
+struct {                              \
+    CLASS_FUNC;                       \
+    Iterator (*begin)(void);          \
+    Iterator (*end)(void);            \
+    size_t (*size)(void);             \
+    bool (*empty)(void);              \
+    void (*erase)(Iterator iter);     \
+    Iterator (*insert)(FormWO_t x);   \
+    size_t (*count)(FormWO_t x);      \
+    Iterator (*find)(FormWO_t x);     \
+    size_t (*bucket_count)(void);     \
+    size_t (*max_bucket_count)(void); \
+    void (*reserve)(size_t);          \
+    void (*clear)(void);              \
+    void (*swap)(Unordered_Set);      \
+}
 
-typedef struct unordered_set{
-    IterType (*begin)(void);
-    IterType (*end)(void);
-    bool (*empty)(void);
-    size_t (*size)(void);
-    size_t (*max_size)(void);
-    IterType (*insert)(void*);
-    void (*erase)(IterType);
-    void (*clear)(void);
-    IterType (*find)(void*);
-    size_t (*count)(void*);
-    size_t (*bucket_count)(void);
-    size_t (*max_bucket_count)(void);
-    void (*reserve)(size_t);
-    void (*swap)(struct unordered_set*);
-    byte __obj_private[sizeof(__private_unordered_set)];
-} unordered_set;
+typedef struct _Unordered_Set *Unordered_Set;
+struct _Unordered_Set {
+    METAOBJECT_HEAD(UNORDERED_SET_FUNC);
+};
 
-void init_unordered_set(unordered_set *p_s, size_t memb_size, Compare equal, HashFunc hash);
-void destory_unordered_set(unordered_set *p_s);
-unordered_set creat_unordered_set(size_t memb_size, Compare equal, HashFunc hash);
+void initUnordered_Set(void) __attribute__((constructor));
+Form_t _Unordered_Set(void);
+#define UNORDERED_SET Unordered_Set : _Unordered_Set()
 #endif //TINY_CTL_TCTL_UNORDERED_SET_H
