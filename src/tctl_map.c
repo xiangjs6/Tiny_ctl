@@ -124,7 +124,7 @@ Form_t _MapClass(void)
 static void *_mapclass_ctor(void *_this, va_list *app)
 {
     _this = super_ctor(__MapClass, _this, app);
-    struct VectorClass *this = offsetOf(_this, __MapClass);
+    struct MapClass *this = offsetOf(_this, __MapClass);
     voidf selector;
     va_list ap;
     va_copy(ap, *app);
