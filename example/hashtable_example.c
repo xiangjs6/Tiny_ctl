@@ -48,14 +48,19 @@ int main(void)
         THIS(ht2).insert_equal(VA(i));
     }
     THIS(ht).swap(ht2);
-    //THIS(ht).copy_from(ht2);
+    THIS(ht).copy_from(ht2);
     for (Iterator it = THIS(ht).begin(); !THIS(it).equal(VA(THIS(ht).end())); THIS(it).inc())
         printf("%d ", *(int*)THIS(it).derefer());
     putchar('\n');
     x = 100;
     printf("%lu %lu %lu\n", THIS(ht).count(VA(x)), THIS(ht).bucket_count(), THIS(ht).max_bucket_count());
     THIS(ht).clear();
+    Hashtable ht3 = new(T(Hashtable), VA(T(int), ht2));
     delete(ht);
     delete(ht2);
+    for (Iterator it = THIS(ht3).begin(); !THIS(it).equal(VA(THIS(ht3).end())); THIS(it).inc())
+        printf("%d ", *(int*)THIS(it).derefer());
+    putchar('\n');
+    delete(ht3);
     ARP_FreePool();
 }

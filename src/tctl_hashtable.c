@@ -337,22 +337,31 @@ static void *_hashtable_ctor(void *_this, va_list *app)
 {
     _this = super_ctor(__Hashtable, _this, app);
     struct Hashtable *this = offsetOf(_this, __Hashtable);
+    //初始化成员
+    this->buckets = new(T(Vector), VA(T(struct Bucket_node*)));
+    this->nmemb = 0;
+    this->start = this->finish = 0;
     FormWO_t t = va_arg(*app, FormWO_t);
     assert(t._.f >= FORM);
     t._.f -= FORM;
     this->_t = t._;
-    t = va_arg(*app, FormWO_t); //equal函数
+    t = va_arg(*app, FormWO_t);
+    if (t._.class == __Hashtable) { //处理复制构造
+        _hashtable_copy_from(_this, t.mem);
+        return _this;
+    }
+    //equal函数
     assert(t._.f == FUNC);
     this->equal = t.mem;
+    assert(this->equal);
     t = va_arg(*app, FormWO_t); //hash函数
     assert(t._.f == FUNC);
     this->hash = t.mem;
+    assert(this->hash);
     t = va_arg(*app, FormWO_t); //get_key函数
     assert(t._.f == FUNC);
     this->get_key = t.mem;
-    this->buckets = new(T(Vector), VA(T(struct Bucket_node*)));
-    this->nmemb = 0;
-    this->start = this->finish = 0;
+    assert(this->get_key);
     return _this;
 }
 
