@@ -4,33 +4,35 @@
 
 #ifndef TINY_CTL_TCTL_UNORDERED_MAP_H
 #define TINY_CTL_TCTL_UNORDERED_MAP_H
-
-#include "tctl_hashtable.h"
+#include "tctl_class.h"
+#include "tctl_iterator.h"
 #include "tctl_def.h"
+#include "tctl_utility.h"
 
-typedef struct {
-    hashtable ht;
-} __private_unordered_map;
+#define UNORDERED_MAP_FUNC            \
+struct {                              \
+    CLASS_FUNC;                       \
+    Iterator (*begin)(void);          \
+    Iterator (*end)(void);            \
+    size_t (*size)(void);             \
+    bool (*empty)(void);              \
+    void (*erase)(Iterator iter);     \
+    Iterator (*insert)(Pair x);       \
+    size_t (*count)(FormWO_t x);      \
+    Iterator (*find)(FormWO_t x);     \
+    size_t (*bucket_count)(void);     \
+    size_t (*max_bucket_count)(void); \
+    void (*reserve)(size_t);          \
+    void (*clear)(void);              \
+    void (*swap)(Unordered_Map);      \
+}
 
-typedef struct unordered_map{
-    IterType (*begin)(void);
-    IterType (*end)(void);
-    bool (*empty)(void);
-    size_t (*size)(void);
-    size_t (*max_size)(void);
-    IterType (*insert)(void*);
-    void (*erase)(IterType);
-    void (*clear)(void);
-    IterType (*find)(void*);
-    size_t (*count)(void*);
-    size_t (*bucket_count)(void);
-    size_t (*max_bucket_count)(void);
-    void (*reserve)(size_t);
-    void (*swap)(struct unordered_map*);
-    byte __obj_private[sizeof(__private_unordered_map)];
-} unordered_map;
+typedef struct _Unordered_Map *Unordered_Map;
+struct _Unordered_Map {
+    METAOBJECT_HEAD(UNORDERED_MAP_FUNC);
+};
 
-void init_unordered_map(unordered_map *p_m, size_t key_size, size_t val_size, Compare equal, HashFunc hash);
-void destory_unordered_map(unordered_map *p_m);
-unordered_map creat_unordered_map(size_t key_size, size_t val_size, Compare equal, HashFunc hash);
+void initUnordered_Map(void) __attribute__((constructor));
+Form_t _Unordered_Map(void);
+#define UNORDERED_MAP Unordered_Map : _Unordered_Map()
 #endif //TINY_CTL_TCTL_UNORDERED_MAP_H
