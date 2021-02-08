@@ -4,26 +4,31 @@
 
 #ifndef TINY_CTL_TCTL_MULTISET_H
 #define TINY_CTL_TCTL_MULTISET_H
-#include "tctl_rb_tree.h"
+#include "tctl_class.h"
+#include "tctl_iterator.h"
+#include "tctl_def.h"
 
-typedef struct {
-    rb_tree t;
-} __private_multiset;
+#define MULTISET_FUNC               \
+struct {                            \
+    CLASS_FUNC;                     \
+    Iterator (*begin)(void);        \
+    Iterator (*end)(void);          \
+    size_t (*size)(void);           \
+    bool (*empty)(void);            \
+    void (*erase)(Iterator iter);   \
+    Iterator (*insert)(FormWO_t x); \
+    size_t (*count)(FormWO_t x);    \
+    Iterator (*find)(FormWO_t x);   \
+    void (*clear)(void);            \
+    void (*swap)(MultiSet);         \
+}
 
-typedef struct {
-    IterType (*begin)(void);
-    IterType (*end)(void);
-    size_t (*size)(void);
-    bool (*empty)(void);
-    void (*erase)(IterType iter);
-    IterType (*insert)(void *x);
-    size_t (*count)(void *x);
-    IterType (*find)(void *x);
-    void (*clear)(void);
-    byte __obj_private[sizeof(__private_multiset)];
-} multiset;
+typedef struct _MultiSet *MultiSet;
+struct _MultiSet {
+    METAOBJECT_HEAD(MULTISET_FUNC);
+};
 
-void init_multiset(multiset *p_multiset, size_t memb_size, Compare);
-void destory_multiset(multiset *p_multiset);
-multiset creat_multiset(size_t memb_size, Compare);
+void initMultiSet(void) __attribute__((constructor));
+Form_t _MultiSet(void);
+#define MULTISET MultiSet : _MultiSet()
 #endif //TINY_CTL_TCTL_MULTISET_H
