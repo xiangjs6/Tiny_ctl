@@ -240,7 +240,10 @@ static Iterator _multimap_insert(void *_this, Pair x)
 static size_t _multimap_count(void *_this, FormWO_t x)
 {
     struct MultiMap *this = offsetOf(_this, __MultiMap);
-    return THIS(this->c).count(x);
+    Pair p = new(T(Pair), VA(this->key_f, this->val_f, x));
+    size_t res = THIS(this->c).count(VA(p));
+    delete(p);
+    return res;
 }
 
 static Iterator _multimap_find(void *_this, FormWO_t x)

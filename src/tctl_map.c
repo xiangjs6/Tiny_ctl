@@ -240,7 +240,10 @@ static Iterator _map_insert(void *_this, Pair x)
 static size_t _map_count(void *_this, FormWO_t x)
 {
     struct Map *this = offsetOf(_this, __Map);
-    return THIS(this->c).count(x);
+    Pair p = new(T(Pair), VA(this->key_f, this->val_f, x));
+    size_t res = THIS(this->c).count(VA(p));
+    delete(p);
+    return res;
 }
 
 static Iterator _map_find(void *_this, FormWO_t x)
