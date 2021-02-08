@@ -4,27 +4,32 @@
 
 #ifndef TINY_CTL_TCTL_MULTIMAP_H
 #define TINY_CTL_TCTL_MULTIMAP_H
-#include "tctl_rb_tree.h"
+#include "tctl_class.h"
+#include "tctl_iterator.h"
 #include "tctl_def.h"
+#include "tctl_utility.h"
 
-typedef struct {
-    rb_tree t;
-} __private_multimap;
+#define MULTIMAP_FUNC               \
+struct {                            \
+    CLASS_FUNC;                     \
+    Iterator (*begin)(void);        \
+    Iterator (*end)(void);          \
+    size_t (*size)(void);           \
+    bool (*empty)(void);            \
+    void (*erase)(Iterator iter);   \
+    Iterator (*insert)(Pair x);     \
+    size_t (*count)(FormWO_t x);    \
+    Iterator (*find)(FormWO_t x);   \
+    void (*clear)(void);            \
+    void (*swap)(MultiMap);         \
+}
 
-typedef struct {
-    IterType (*begin)(void);
-    IterType (*end)(void);
-    size_t (*size)(void);
-    bool (*empty)(void);
-    void (*erase)(IterType iter);
-    IterType (*insert)(void *x);
-    size_t (*count)(void *x);
-    IterType (*find)(void *x);
-    void (*clear)(void);
-    byte __obj_private[sizeof(__private_multimap)];
-} multimap;
+typedef struct _MultiMap *MultiMap;
+struct _MultiMap {
+    METAOBJECT_HEAD(MULTIMAP_FUNC);
+};
 
-void init_multimap(multimap *p_multimap, size_t key_size, size_t val_size, Compare);
-void destory_multimap(multimap *p_multimap);
-multimap creat_multimap(size_t key_size, size_t val_size, Compare);
+void initMultiMap(void) __attribute__((constructor));
+Form_t _MultiMap(void);
+#define MULTIMAP MultiMap : _MultiMap()
 #endif //TINY_CTL_TCTL_MULTIMAP_H
