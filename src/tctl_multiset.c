@@ -73,11 +73,9 @@ volatile static struct MultiSetSelector MultiSetS = {
 };
 const struct MultiSetSelector *_MultiSetS = NULL;
 
-void initMultiSet(void)
+static void initMultiSet(void)
 {
-    initClass();
-    initIterator();
-    initRB_tree();
+    T(Class); //初始化_ClassS选择器
     if (!_MultiSetS) {
         _MultiSetS = (void*)&MultiSetS;
         memcpy((void*)&MultiSetS, _ClassS, sizeof(*_ClassS));
@@ -108,14 +106,16 @@ void initMultiSet(void)
 
 Form_t _MultiSet(void)
 {
-    Form_t t = {OBJ, .class = __MultiSet};
-    return t;
+    if (!__MultiSet)
+        initMultiSet();
+    return (Form_t){OBJ, .class = __MultiSet};
 }
 
 Form_t _MultiSetClass(void)
 {
-    Form_t t = {OBJ, .class = __MultiSetClass};
-    return t;
+    if (!__MultiSetClass)
+        initMultiSet();
+    return (Form_t){OBJ, .class = __MultiSetClass};
 }
 
 //MultiSetClass

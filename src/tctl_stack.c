@@ -55,10 +55,9 @@ volatile static struct StackSelector StackS = {
 };
 const struct StackSelector *_StackS = NULL;
 
-void initStack(void)
+static void initStack(void)
 {
-    initClass();
-    initIterator();
+    T(Class); //初始化_ClassS选择器
     if (!_StackS) {
         _StackS = (void*)&StackS;
         memcpy((void*)&StackS, _ClassS, sizeof(*_ClassS));
@@ -84,14 +83,16 @@ void initStack(void)
 
 Form_t _Stack(void)
 {
-    Form_t t = {OBJ, .class = __Stack};
-    return t;
+    if (!__Stack)
+        initStack();
+    return (Form_t){OBJ, .class = __Stack};
 }
 
 Form_t _StackClass(void)
 {
-    Form_t t = {OBJ, .class = __StackClass};
-    return t;
+    if (!__StackClass)
+        initStack();
+    return (Form_t){OBJ, .class = __StackClass};
 }
 
 //StackClass

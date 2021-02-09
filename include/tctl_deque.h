@@ -35,7 +35,6 @@ struct _Deque {
     METAOBJECT_HEAD(DEQUE_FUNC);
 };
 
-void initDeque(void) __attribute__((constructor));
 Form_t _Deque(void);
 #define DEQUE Deque: _Deque()
 #endif //TINY_CTL_TCTL_DEQUE_H

@@ -125,10 +125,10 @@ volatile static struct DequeSelector DequeS = {
 };
 const struct DequeSelector *_DequeS= NULL;
 
-void initDeque(void)
+static void initDeque(void)
 {
-    initClass();
-    initIterator();
+    T(Class); //初始化_ClassS选择器
+    T(Iterator); //初始化Iterator选择器
     if (!_DequeS) {
         _DequeS = (void*)&DequeS;
         memcpy((void*)&DequeS, _ClassS, sizeof(*_ClassS));
@@ -183,20 +183,23 @@ void initDeque(void)
 
 Form_t _Deque(void)
 {
-    Form_t t = {OBJ, .class = __Deque};
-    return t;
+    if (!__Deque)
+        initDeque();
+    return (Form_t){OBJ, .class = __Deque};
 }
 
 Form_t _DequeClass(void)
 {
-    Form_t t = {OBJ, .class = __DequeClass};
-    return t;
+    if (!__DequeClass)
+        initDeque();
+    return (Form_t){OBJ, .class = __DequeClass};
 }
 
 static Form_t _DequeIter(void)
 {
-    Form_t t = {OBJ, .class = __DequeIter};
-    return t;
+    if (!__DequeIter)
+        initDeque();
+    return (Form_t){OBJ, .class = __DequeIter};
 }
 //private
 static void extend_map(struct Deque *this)

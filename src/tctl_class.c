@@ -63,17 +63,6 @@ const struct ClassSelector *_ClassS = NULL;
 static const void *__Class = NULL;
 static const void *__Object = NULL;
 
-Form_t _Class(void)
-{
-    return (Form_t){OBJ, {.class = __Class}};
-}
-
-Form_t _Object(void)
-{
-    Form_t t = {OBJ , {.class = __Object}};
-    return t;
-}
-
 //selector
 static bool _equal(FormWO_t x)
 {
@@ -219,7 +208,7 @@ void *__cast_aux(void *_this, const char *c)
     return class->cast(_this, c);
 }
 
-void initClass(void)
+static void initClass(void)
 {
     if (!_ClassS) {
         _ClassS = (void*)&ClassS;
@@ -228,10 +217,25 @@ void initClass(void)
     if (!__Class) {
         __Class = new(T(MetaClass), "Class",
                       T(MetaClass), sizeof(struct Class) + classSz(_MetaClass().class),
-                     _MetaClassS->ctor, _class_ctor, NULL);
+                      _MetaClassS->ctor, _class_ctor, NULL);
     }
     if (!__Object) {
         __Object = new(T(MetaClass), "Object",
                        T(MetaObject), sizeof(struct Object) + classSz(_MetaObject().class), NULL);
     }
+}
+
+Form_t _Class(void)
+{
+    if (!__Class)
+        initClass();
+    return (Form_t){OBJ, {.class = __Class}};
+}
+
+Form_t _Object(void)
+{
+    if (!__Object)
+        initClass();
+    Form_t t = {OBJ , {.class = __Object}};
+    return t;
 }

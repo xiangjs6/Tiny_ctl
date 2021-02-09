@@ -33,6 +33,8 @@ inline double toDouble(FormWO_t t)
         case OBJ:
             val = *(double*)Cast(t.mem, double);
             break;
+        default:
+            assert(0);
     }
     return val;
 }
@@ -195,8 +197,9 @@ static void *_cast(const void *_this, const char *c)
     return NULL;
 }
 
-void initDouble(void)
+static void initDouble(void)
 {
+    T(Class); //初始化Class选择器
     if (!__Double)
         __Double = new(T(Class), "Double", T(Object), sizeof(struct Double) + classSz(_Object().class),
                      _MetaClassS->ctor, _ctor,
@@ -217,6 +220,7 @@ void initDouble(void)
 
 Form_t _Double(void)
 {
-    Form_t t = {OBJ, {.class = __Double}};
-    return t;
+    if (!__Double)
+        initDouble();
+    return (Form_t){OBJ, {.class = __Double}};
 }

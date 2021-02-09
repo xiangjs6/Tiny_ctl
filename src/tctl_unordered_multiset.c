@@ -85,11 +85,9 @@ volatile static struct Unordered_MultiSetSelector Unordered_MultiSetS = {
 };
 const struct Unordered_MultiSetSelector *_Unordered_MultiSetS = NULL;
 
-void initUnordered_MultiSet(void)
+static void initUnordered_MultiSet(void)
 {
-    initClass();
-    initIterator();
-    initHashtable();
+    T(Class); //初始化_ClassS选择器
     if (!_Unordered_MultiSetS) {
         _Unordered_MultiSetS = (void*)&Unordered_MultiSetS;
         memcpy((void*)&Unordered_MultiSetS, _ClassS, sizeof(*_ClassS));
@@ -123,14 +121,16 @@ void initUnordered_MultiSet(void)
 
 Form_t _Unordered_MultiSet(void)
 {
-    Form_t t = {OBJ, .class = __Unordered_MultiSet};
-    return t;
+    if (!__Unordered_MultiSet)
+        initUnordered_MultiSet();
+    return (Form_t){OBJ, .class = __Unordered_MultiSet};
 }
 
 Form_t _Unordered_MultiSetClass(void)
 {
-    Form_t t = {OBJ, .class = __Unordered_MultiSetClass};
-    return t;
+    if (!__Unordered_MultiSetClass)
+        initUnordered_MultiSet();
+    return (Form_t){OBJ, .class = __Unordered_MultiSetClass};
 }
 
 //private

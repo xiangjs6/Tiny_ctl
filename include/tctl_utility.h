@@ -18,7 +18,7 @@ struct _Pair {
     METAOBJECT_HEAD(METACLASS_FUNC);
     PAIR_OBJ;
 };
-void initPair(void) __attribute__((constructor));
+
 Form_t _Pair(void);
 Pair tmpPair(Form_t key_t, Form_t val_t, ...);
 #define PAIR Pair : _Pair()

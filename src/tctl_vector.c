@@ -118,10 +118,10 @@ volatile static struct VectorSelector VectorS = {
 };
 const struct VectorSelector *_VectorS = NULL;
 
-void initVector(void)
+static void initVector(void)
 {
-    initClass();
-    initIterator();
+    T(Class); //初始化_ClassS选择器
+    T(Iterator); //初始化Iterator选择器
     if (!_VectorS) {
         _VectorS = (void*)&VectorS;
         memcpy((void*)&VectorS, _ClassS, sizeof(*_ClassS));
@@ -175,20 +175,23 @@ void initVector(void)
 
 Form_t _Vector(void)
 {
-    Form_t t = {OBJ, .class = __Vector};
-    return t;
+    if (!__Vector)
+        initVector();
+    return (Form_t){OBJ, .class = __Vector};
 }
 
 Form_t _VectorClass(void)
 {
-    Form_t t = {OBJ, .class = __VectorClass};
-    return t;
+    if (!__VectorClass)
+        initVector();
+    return (Form_t){OBJ, .class = __VectorClass};
 }
 
 static Form_t _VectorIter(void)
 {
-    Form_t t = {OBJ, .class = __VectorIter};
-    return t;
+    if (!__VectorIter)
+        initVector();
+    return (Form_t){OBJ, .class = __VectorIter};
 }
 
 //private

@@ -32,7 +32,6 @@ struct _Unordered_MultiMap {
     METAOBJECT_HEAD(UNORDERED_MULTIMAP_FUNC);
 };
 
-void initUnordered_MultiMap(void) __attribute__((constructor));
 Form_t _Unordered_MultiMap(void);
 #define UNORDERED_MULTIMAP Unordered_MultiMap : _Unordered_MultiMap()
 #endif //TINY_CTL_TCTL_UNORDERED_MULTIMAP_H

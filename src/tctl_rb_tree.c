@@ -101,11 +101,10 @@ volatile static struct RB_treeSelector RB_treeS = {
 };
 const struct RB_treeSelector *_RB_treeS = NULL;
 
-void initRB_tree(void)
+static void initRB_tree(void)
 {
-    initClass();
-    initIterator();
-    initStack();
+    T(Class); //初始化_ClassS选择器
+    T(Iterator); //初始化Iterator选择器
     if (!_RB_treeS) {
         _RB_treeS = (void*)&RB_treeS;
         memcpy((void*)&RB_treeS, _ClassS, sizeof(*_ClassS));
@@ -148,20 +147,23 @@ void initRB_tree(void)
 
 Form_t _RB_tree(void)
 {
-    Form_t t = {OBJ, .class = __RB_tree};
-    return t;
+    if (!__RB_tree)
+        initRB_tree();
+    return (Form_t){OBJ, .class = __RB_tree};
 }
 
 Form_t _RB_treeClass(void)
 {
-    Form_t t = {OBJ, .class = __RB_treeClass};
-    return t;
+    if (!__RB_treeClass)
+        initRB_tree();
+    return (Form_t){OBJ, .class = __RB_treeClass};
 }
 
 static Form_t _RB_treeIter(void)
 {
-    Form_t t = {OBJ, .class = __RB_treeIter};
-    return t;
+    if (!__RB_treeIter)
+        initRB_tree();
+    return (Form_t){OBJ, .class = __RB_treeIter};
 }
 
 //private

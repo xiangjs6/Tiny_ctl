@@ -86,11 +86,9 @@ volatile static struct Unordered_MultiMapSelector Unordered_MultiMapS = {
 };
 const struct Unordered_MultiMapSelector *_Unordered_MultiMapS = NULL;
 
-void initUnordered_MultiMap(void)
+static void initUnordered_MultiMap(void)
 {
-    initClass();
-    initIterator();
-    initHashtable();
+    T(Class); //初始化_ClassS选择器
     if (!_Unordered_MultiMapS) {
         _Unordered_MultiMapS = (void*)&Unordered_MultiMapS;
         memcpy((void*)&Unordered_MultiMapS, _ClassS, sizeof(*_ClassS));
@@ -124,14 +122,16 @@ void initUnordered_MultiMap(void)
 
 Form_t _Unordered_MultiMap(void)
 {
-    Form_t t = {OBJ, .class = __Unordered_MultiMap};
-    return t;
+    if (!__Unordered_MultiMap)
+        initUnordered_MultiMap();
+    return (Form_t){OBJ, .class = __Unordered_MultiMap};
 }
 
 Form_t _Unordered_MultiMapClass(void)
 {
-    Form_t t = {OBJ, .class = __Unordered_MultiMapClass};
-    return t;
+    if (!__Unordered_MultiMapClass)
+        initUnordered_MultiMap();
+    return (Form_t){OBJ, .class = __Unordered_MultiMapClass};
 }
 
 //private

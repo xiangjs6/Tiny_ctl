@@ -39,7 +39,6 @@ struct _List {
     METAOBJECT_HEAD(LIST_FUNC);
 };
 
-void initList(void) __attribute__((constructor));
 Form_t _List(void);
 #define LIST List : _List()
 #endif //TINY_CTL_TCTL_LIST_H

@@ -25,7 +25,6 @@ struct _Priority_Queue {
     METAOBJECT_HEAD(PRIORITY_QUEUE_FUNC);
 };
 
-void initPriority_Queue(void) __attribute__((constructor));
 Form_t _Priority_Queue(void);
 #define PRIORITY_QUEUE Priority_Queue : _Priority_Queue()
 #endif //TINY_CTL_TCTL_PRIORITY_QUEUE_H

@@ -28,7 +28,6 @@ struct _Set {
     METAOBJECT_HEAD(SET_FUNC);
 };
 
-void initSet(void) __attribute__((constructor));
 Form_t _Set(void);
 #define SET Set : _Set()
 #endif //TINY_CTL_TCTL_SET_H

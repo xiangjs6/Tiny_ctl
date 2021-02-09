@@ -136,10 +136,10 @@ volatile static struct ListSelector ListS = {
 };
 const struct ListSelector *_ListS = NULL;
 
-void initList(void)
+static void initList(void)
 {
-    initClass();
-    initIterator();
+    T(Class); //初始化_ClassS选择器
+    T(Iterator); //初始化Iterator选择器
     if (!_ListS) {
         _ListS = (void*)&ListS;
         memcpy((void*)&ListS, _ClassS, sizeof(*_ClassS));
@@ -192,20 +192,23 @@ void initList(void)
 
 Form_t _List(void)
 {
-    Form_t t = {OBJ, .class = __List};
-    return t;
+    if (!__List)
+        initList();
+    return (Form_t){OBJ, .class = __List};
 }
 
 Form_t _ListClass(void)
 {
-    Form_t t = {OBJ, .class = __ListClass};
-    return t;
+    if (!__ListClass)
+        initList();
+    return (Form_t){OBJ, .class = __ListClass};
 }
 
 static Form_t _ListIter(void)
 {
-    Form_t t = {OBJ, .class = __ListIter};
-    return t;
+    if (!__ListIter)
+        initList();
+    return (Form_t){OBJ, .class = __ListIter};
 }
 //private
 static struct ListNode *_insert_aux(struct List *this, struct ListNode *node, FormWO_t _x)

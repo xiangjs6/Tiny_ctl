@@ -119,11 +119,10 @@ volatile static struct HashtableSelector HashtableS = {
 };
 const struct HashtableSelector *_HashtableS = NULL;
 
-void initHashtable(void)
+static void initHashtable(void)
 {
-    initClass();
-    initIterator();
-    initVector();
+    T(Class); //初始化_ClassS选择器
+    T(Iterator); //初始化Iterator选择器
     if (!_HashtableS) {
         _HashtableS = (void*)&HashtableS;
         memcpy((void*)&HashtableS, _ClassS, sizeof(*_ClassS));
@@ -169,18 +168,24 @@ void initHashtable(void)
 
 Form_t _Hashtable(void)
 {
+    if (!__Hashtable)
+        initHashtable();
     Form_t t = {OBJ, .class = __Hashtable};
     return t;
 }
 
 Form_t _HashtableClass(void)
 {
+    if (!__HashtableClass)
+        initHashtable();
     Form_t t = {OBJ, .class = __HashtableClass};
     return t;
 }
 
 static Form_t _HashtableIter(void)
 {
+    if (!__HashtableIter)
+        initHashtable();
     Form_t t = {OBJ, .class = __HashtableIter};
     return t;
 }

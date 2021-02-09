@@ -75,11 +75,9 @@ volatile static struct MapSelector MapS = {
 };
 const struct MapSelector *_MapS = NULL;
 
-void initMap(void)
+static void initMap(void)
 {
-    initClass();
-    initIterator();
-    initRB_tree();
+    T(Class); //初始化_ClassS选择器
     if (!_MapS) {
         _MapS = (void*)&MapS;
         memcpy((void*)&MapS, _ClassS, sizeof(*_ClassS));
@@ -110,14 +108,16 @@ void initMap(void)
 
 Form_t _Map(void)
 {
-    Form_t t = {OBJ, .class = __Map};
-    return t;
+    if (!__Map)
+        initMap();
+    return (Form_t){OBJ, .class = __Map};
 }
 
 Form_t _MapClass(void)
 {
-    Form_t t = {OBJ, .class = __MapClass};
-    return t;
+    if (!__MapClass)
+        initMap();
+    return (Form_t){OBJ, .class = __MapClass};
 }
 
 //MapClass

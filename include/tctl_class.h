@@ -35,8 +35,6 @@ typedef struct {
     METAOBJECT_HEAD(CLASS_FUNC);
 } *Object;
 
-void initClass(void) __attribute__((constructor));
-
 #define Cast(obj, __T) __cast_aux(obj, #__T)
 void *__cast_aux(void *_this, const char *c);
 

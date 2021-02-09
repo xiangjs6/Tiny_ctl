@@ -75,11 +75,9 @@ volatile static struct MultiMapSelector MultiMapS = {
 };
 const struct MultiMapSelector *_MultiMapS = NULL;
 
-void initMultiMap(void)
+static void initMultiMap(void)
 {
-    initClass();
-    initIterator();
-    initRB_tree();
+    T(Class); //初始化_ClassS选择器
     if (!_MultiMapS) {
         _MultiMapS = (void*)&MultiMapS;
         memcpy((void*)&MultiMapS, _ClassS, sizeof(*_ClassS));
@@ -110,14 +108,16 @@ void initMultiMap(void)
 
 Form_t _MultiMap(void)
 {
-    Form_t t = {OBJ, .class = __MultiMap};
-    return t;
+    if (!__MultiMap)
+        initMultiMap();
+    return (Form_t){OBJ, .class = __MultiMap};
 }
 
 Form_t _MultiMapClass(void)
 {
-    Form_t t = {OBJ, .class = __MultiMapClass};
-    return t;
+    if (!__MultiMapClass)
+        initMultiMap();
+    return (Form_t){OBJ, .class = __MultiMapClass};
 }
 
 //MultiMapClass

@@ -6,7 +6,6 @@
 #include "../include/tctl_portable.h"
 #include "include/_tctl_metaclass.h"
 #include <stdarg.h>
-#include <memory.h>
 #include <stdlib.h>
 #include <string.h>
 

@@ -60,10 +60,9 @@ volatile static struct QueueSelector QueueS = {
 };
 const struct QueueSelector *_QueueS = NULL;
 
-void initQueue(void)
+static void initQueue(void)
 {
-    initClass();
-    initIterator();
+    T(Class); //初始化_ClassS选择器
     if (!_QueueS) {
         _QueueS = (void*)&QueueS;
         memcpy((void*)&QueueS, _ClassS, sizeof(*_ClassS));
@@ -90,14 +89,16 @@ void initQueue(void)
 
 Form_t _Queue(void)
 {
-    Form_t t = {OBJ, .class = __Queue};
-    return t;
+    if (!__Queue)
+        initQueue();
+    return (Form_t){OBJ, .class = __Queue};
 }
 
 Form_t _QueueClass(void)
 {
-    Form_t t = {OBJ, .class = __QueueClass};
-    return t;
+    if (!__QueueClass)
+        initQueue();
+    return (Form_t){OBJ, .class = __QueueClass};
 }
 
 //QueueClass

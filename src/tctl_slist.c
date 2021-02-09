@@ -100,10 +100,10 @@ volatile static struct SlistSelector SlistS = {
 };
 const struct SlistSelector *_SlistS = NULL;
 
-void initSlist(void)
+static void initSlist(void)
 {
-    initClass();
-    initIterator();
+    T(Class); //初始化_ClassS选择器
+    T(Iterator); //初始化Iterator选择器
     if (!_SlistS) {
         _SlistS = (void*)&SlistS;
         memcpy((void*)&SlistS, _ClassS, sizeof(*_ClassS));
@@ -146,20 +146,23 @@ void initSlist(void)
 
 Form_t _Slist(void)
 {
-    Form_t t = {OBJ, .class = __Slist};
-    return t;
+    if (!__Slist)
+        initSlist();
+    return (Form_t){OBJ, .class = __Slist};
 }
 
 Form_t _SlistClass(void)
 {
-    Form_t t = {OBJ, .class = __SlistClass};
-    return t;
+    if (!__SlistClass)
+        initSlist();
+    return (Form_t){OBJ, .class = __SlistClass};
 }
 
 static Form_t _SlistIter(void)
 {
-    Form_t t = {OBJ, .class = __SlistIter};
-    return t;
+    if (!__SlistIter)
+        initSlist();
+    return (Form_t){OBJ, .class = __SlistIter};
 }
 
 //private

@@ -32,7 +32,6 @@ struct _Hashtable {
     METAOBJECT_HEAD(HASHTABLE_FUNC);
 };
 
-void initHashtable(void) __attribute__((constructor));
 Form_t _Hashtable(void);
 #define HASHTABLE Hashtable : _Hashtable()
 #endif //TINY_CTL_TCTL_HASHTABLE_H

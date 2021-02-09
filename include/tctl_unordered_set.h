@@ -31,7 +31,6 @@ struct _Unordered_Set {
     METAOBJECT_HEAD(UNORDERED_SET_FUNC);
 };
 
-void initUnordered_Set(void) __attribute__((constructor));
 Form_t _Unordered_Set(void);
 #define UNORDERED_SET Unordered_Set : _Unordered_Set()
 #endif //TINY_CTL_TCTL_UNORDERED_SET_H

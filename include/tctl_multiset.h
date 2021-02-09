@@ -28,7 +28,6 @@ struct _MultiSet {
     METAOBJECT_HEAD(MULTISET_FUNC);
 };
 
-void initMultiSet(void) __attribute__((constructor));
 Form_t _MultiSet(void);
 #define MULTISET MultiSet : _MultiSet()
 #endif //TINY_CTL_TCTL_MULTISET_H

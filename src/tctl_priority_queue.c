@@ -58,11 +58,9 @@ volatile static struct Priority_QueueSelector Priority_QueueS = {
 };
 const struct Priority_QueueSelector *_Priority_QueueS = NULL;
 
-void initPriority_Queue(void)
+static void initPriority_Queue(void)
 {
-    initClass();
-    initIterator();
-    initVector();
+    T(Class); //初始化_ClassS选择器
     if (!_Priority_QueueS) {
         _Priority_QueueS = (void*)&Priority_QueueS;
         memcpy((void*)&Priority_QueueS, _ClassS, sizeof(*_ClassS));
@@ -89,14 +87,16 @@ void initPriority_Queue(void)
 
 Form_t _Priority_Queue(void)
 {
-    Form_t t = {OBJ, .class = __Priority_Queue};
-    return t;
+    if (!__Priority_Queue)
+        initPriority_Queue();
+    return (Form_t){OBJ, .class = __Priority_Queue};
 }
 
 Form_t _Priority_QueueClass(void)
 {
-    Form_t t = {OBJ, .class = __Priority_QueueClass};
-    return t;
+    if (!__Priority_QueueClass)
+        initPriority_Queue();
+    return (Form_t){OBJ, .class = __Priority_QueueClass};
 }
 
 //Priority_QueueClass

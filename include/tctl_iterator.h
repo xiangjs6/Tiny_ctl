@@ -31,8 +31,6 @@ typedef struct _Iterator{
     ITERATOR_OBJ;
 } *Iterator;
 
-void initIterator(void) __attribute__((constructor));
-
 Form_t _IteratorClass(void);
 Form_t _Iterator(void);
 

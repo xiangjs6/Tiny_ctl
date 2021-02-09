@@ -47,6 +47,8 @@ inline long long toInt(FormWO_t t)
         case OBJ:
             val = *(long long *) Cast(t.mem, long long);
             break;
+        default:
+            assert(0);
     }
     return val;
 }
@@ -110,6 +112,8 @@ static void _self_sub(void *_this, FormWO_t x)
         case OBJ:
             val = *(long long*)Cast(x.mem, long long);
             break;
+        default:
+            assert(0);
     }
     this->val -= val;
 }
@@ -228,8 +232,9 @@ static void *_cast(const void *_this, const char *c)
     return NULL;
 }
 
-void initInt(void)
+static void initInt(void)
 {
+    T(Class); //初始化Class选择器
     if (!__Int)
         __Int = new(T(Class), "Int", T(Object), sizeof(struct Int) + classSz(_Object().class),
                    _MetaClassS->ctor, _ctor,
@@ -251,5 +256,7 @@ void initInt(void)
 
 Form_t _Int(void)
 {
+    if (!__Int)
+        initInt();
     return (Form_t){OBJ, {.class = __Int}};
 }

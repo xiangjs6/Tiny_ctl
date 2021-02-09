@@ -29,7 +29,6 @@ struct _MultiMap {
     METAOBJECT_HEAD(MULTIMAP_FUNC);
 };
 
-void initMultiMap(void) __attribute__((constructor));
 Form_t _MultiMap(void);
 #define MULTIMAP MultiMap : _MultiMap()
 #endif //TINY_CTL_TCTL_MULTIMAP_H

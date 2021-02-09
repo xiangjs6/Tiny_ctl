@@ -29,7 +29,6 @@ struct _Map {
     METAOBJECT_HEAD(MAP_FUNC);
 };
 
-void initMap(void) __attribute__((constructor));
 Form_t _Map(void);
 #define MAP Map : _Map()
 #endif //TINY_CTL_TCTL_MAP_H

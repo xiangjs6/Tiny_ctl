@@ -31,7 +31,6 @@ struct _Unordered_MultiSet {
     METAOBJECT_HEAD(UNORDERED_MULTISET_FUNC);
 };
 
-void initUnordered_MultiSet(void) __attribute__((constructor));
 Form_t _Unordered_MultiSet(void);
 #define UNORDERED_MULTISET Unordered_MultiSet : _Unordered_MultiSet()
 #endif //TINY_CTL_TCTL_UNORDERED_MULTISET_H

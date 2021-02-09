@@ -24,7 +24,6 @@ struct _Stack {
     METAOBJECT_HEAD(STACK_FUNC);
 };
 
-void initStack(void) __attribute__((constructor));
 Form_t _Stack(void);
 #define STACK Stack : _Stack()
 #endif //TINY_CTL_TCTL_STACK_H

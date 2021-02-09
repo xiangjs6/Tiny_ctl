@@ -74,7 +74,7 @@ static void *_pair_dtor(void *_this)
     return _this;
 }
 
-void initPair(void)
+static void initPair(void)
 {
     if (!__Pair) {
         __Pair = new(T(MetaClass), "Pair", T(MetaObject), sizeof(struct Pair) + classSz(_MetaObject().class),
@@ -85,6 +85,8 @@ void initPair(void)
 
 Form_t _Pair(void)
 {
+    if (!__Pair)
+        initPair();
     return (Form_t){OBJ, .class = __Pair};
 }
 

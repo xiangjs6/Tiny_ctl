@@ -31,7 +31,6 @@ struct _RB_tree {
     METAOBJECT_HEAD(RB_TREE_FUNC);
 };
 
-void initRB_tree(void) __attribute__((constructor));
 Form_t _RB_tree(void);
 #define RB_TREE RB_tree: _RB_tree()
 #endif //TINY_CTL_TCTL_RB_TREE_H

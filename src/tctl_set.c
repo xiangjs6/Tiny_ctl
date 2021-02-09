@@ -73,11 +73,9 @@ volatile static struct SetSelector SetS = {
 };
 const struct SetSelector *_SetS = NULL;
 
-void initSet(void)
+static void initSet(void)
 {
-    initClass();
-    initIterator();
-    initRB_tree();
+    T(Class); //初始化_ClassS选择器
     if (!_SetS) {
         _SetS = (void*)&SetS;
         memcpy((void*)&SetS, _ClassS, sizeof(*_ClassS));
@@ -108,14 +106,16 @@ void initSet(void)
 
 Form_t _Set(void)
 {
-    Form_t t = {OBJ, .class = __Set};
-    return t;
+    if (!__Set)
+        initSet();
+    return (Form_t){OBJ, .class = __Set};
 }
 
 Form_t _SetClass(void)
 {
-    Form_t t = {OBJ, .class = __SetClass};
-    return t;
+    if (!__SetClass)
+        initSet();
+    return (Form_t){OBJ, .class = __SetClass};
 }
 
 //SetClass

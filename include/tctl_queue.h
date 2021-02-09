@@ -25,7 +25,6 @@ struct _Queue {
     METAOBJECT_HEAD(QUEUE_FUNC);
 };
 
-void initQueue(void) __attribute__((constructor));
 Form_t _Queue(void);
 #define QUEUE Queue : _Queue()
 #endif //TINY_CTL_TCTL_QUEUE_H

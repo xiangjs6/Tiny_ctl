@@ -46,6 +46,8 @@ inline unsigned long long toUInt(FormWO_t t)
         case OBJ:
             val = *(unsigned long long *) Cast(t.mem, unsigned long long);
             break;
+        default:
+            assert(0);
     }
     return val;
 }
@@ -216,8 +218,9 @@ static void *_cast(const void *_this, const char *c)
     return NULL;
 }
 
-void initUInt(void)
+static void initUInt(void)
 {
+    T(Class); //初始化Class选择器
     if (!__UInt)
         __UInt = new(T(Class), "UInt", T(Object), sizeof(struct UInt) + classSz(_Object().class),
                     _MetaClassS->ctor, _ctor,
@@ -239,5 +242,7 @@ void initUInt(void)
 
 Form_t _UInt(void)
 {
+    if (!__UInt)
+        initUInt();
     return (Form_t){OBJ, {.class = __UInt}};
 }

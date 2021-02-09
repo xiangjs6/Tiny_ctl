@@ -22,7 +22,6 @@ typedef struct {
     UINT_OBJ;
 } *UInt;
 
-void initUInt(void) __attribute__((constructor));
 unsigned long long toUInt(FormWO_t t);
 Form_t _UInt(void);
 #define UINT UInt : _UInt()

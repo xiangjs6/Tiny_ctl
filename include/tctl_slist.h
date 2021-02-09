@@ -32,7 +32,6 @@ struct _Slist {
     METAOBJECT_HEAD(SLIST_FUNC);
 };
 
-void initSlist(void) __attribute__((constructor));
 Form_t _Slist(void);
 #define SLIST Slist : _Slist()
 #endif //TINY_CTL_TCTL_SLIST_H

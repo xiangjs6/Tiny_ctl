@@ -32,7 +32,6 @@ struct _Unordered_Map {
     METAOBJECT_HEAD(UNORDERED_MAP_FUNC);
 };
 
-void initUnordered_Map(void) __attribute__((constructor));
 Form_t _Unordered_Map(void);
 #define UNORDERED_MAP Unordered_Map : _Unordered_Map()
 #endif //TINY_CTL_TCTL_UNORDERED_MAP_H

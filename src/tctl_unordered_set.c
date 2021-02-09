@@ -85,11 +85,9 @@ volatile static struct Unordered_SetSelector Unordered_SetS = {
 };
 const struct Unordered_SetSelector *_Unordered_SetS = NULL;
 
-void initUnordered_Set(void)
+static void initUnordered_Set(void)
 {
-    initClass();
-    initIterator();
-    initHashtable();
+    T(Class); //初始化_ClassS选择器
     if (!_Unordered_SetS) {
         _Unordered_SetS = (void*)&Unordered_SetS;
         memcpy((void*)&Unordered_SetS, _ClassS, sizeof(*_ClassS));
@@ -123,14 +121,16 @@ void initUnordered_Set(void)
 
 Form_t _Unordered_Set(void)
 {
-    Form_t t = {OBJ, .class = __Unordered_Set};
-    return t;
+    if (!__Unordered_Set)
+        initUnordered_Set();
+    return (Form_t){OBJ, .class = __Unordered_Set};
 }
 
 Form_t _Unordered_SetClass(void)
 {
-    Form_t t = {OBJ, .class = __Unordered_SetClass};
-    return t;
+    if (!__Unordered_SetClass)
+        initUnordered_Set();
+    return (Form_t){OBJ, .class = __Unordered_SetClass};
 }
 
 //private

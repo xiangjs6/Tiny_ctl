@@ -46,6 +46,8 @@ inline char toChar(FormWO_t t)
         case OBJ:
             val = *(char*)Cast(t.mem, char);
             break;
+        default:
+            assert(0);
     }
     return val;
 }
@@ -216,8 +218,9 @@ static void *_cast(const void *_this, const char *c)
     return NULL;
 }
 
-void initChar(void)
+static void initChar(void)
 {
+    T(Class); //初始化Class选择器
     if (!__Char)
         __Char = new(T(Class), "Char", T(Object), sizeof(struct Char) + classSz(_Object().class),
                     _MetaClassS->ctor, _ctor,
@@ -239,5 +242,7 @@ void initChar(void)
 
 Form_t _Char(void)
 {
+    if (!__Char)
+        initChar();
     return (Form_t){OBJ, {.class = __Char}};
 }

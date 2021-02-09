@@ -35,7 +35,6 @@ struct _Vector {
     METAOBJECT_HEAD(VECTOR_FUNC);
 };
 
-void initVector(void) __attribute__((constructor));
 Form_t _Vector(void);
 #define VECTOR Vector : _Vector()
 #endif //TINY_CTL_TCTL_VECTOR_H

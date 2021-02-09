@@ -86,11 +86,9 @@ volatile static struct Unordered_MapSelector Unordered_MapS = {
 };
 const struct Unordered_MapSelector *_Unordered_MapS = NULL;
 
-void initUnordered_Map(void)
+static void initUnordered_Map(void)
 {
-    initClass();
-    initIterator();
-    initHashtable();
+    T(Class); //初始化_ClassS选择器
     if (!_Unordered_MapS) {
         _Unordered_MapS = (void*)&Unordered_MapS;
         memcpy((void*)&Unordered_MapS, _ClassS, sizeof(*_ClassS));
@@ -124,14 +122,16 @@ void initUnordered_Map(void)
 
 Form_t _Unordered_Map(void)
 {
-    Form_t t = {OBJ, .class = __Unordered_Map};
-    return t;
+    if (!__Unordered_Map)
+        initUnordered_Map();
+    return (Form_t){OBJ, .class = __Unordered_Map};
 }
 
 Form_t _Unordered_MapClass(void)
 {
-    Form_t t = {OBJ, .class = __Unordered_MapClass};
-    return t;
+    if (!__Unordered_MapClass)
+        initUnordered_Map();
+    return (Form_t){OBJ, .class = __Unordered_MapClass};
 }
 
 //private

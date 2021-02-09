@@ -42,9 +42,9 @@ const struct IteratorSelector *_IteratorS = NULL;
 static struct IteratorClass *__IteratorClass = NULL;
 static struct Iterator *__Iterator = NULL;
 
-void initIterator(void)
+static void initIterator(void)
 {
-    initClass();
+    T(Class); //初始化Class选择器
     if (!_IteratorS) {
         memcpy((void*)&IteratorS, _ClassS, sizeof(struct ClassSelector));
         _IteratorS = (void*)&IteratorS;
@@ -66,11 +66,15 @@ void initIterator(void)
 
 Form_t _IteratorClass(void)
 {
+    if (!__IteratorClass)
+        initIterator();
     return (Form_t){OBJ, {.class = __IteratorClass}};
 }
 
 Form_t _Iterator(void)
 {
+    if (!__Iterator)
+        initIterator();
     return (Form_t){OBJ, {.class = __Iterator}};
 }
 
