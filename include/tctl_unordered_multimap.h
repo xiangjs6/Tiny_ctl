@@ -4,33 +4,35 @@
 
 #ifndef TINY_CTL_TCTL_UNORDERED_MULTIMAP_H
 #define TINY_CTL_TCTL_UNORDERED_MULTIMAP_H
-
-#include "tctl_hashtable.h"
+#include "tctl_class.h"
+#include "tctl_iterator.h"
 #include "tctl_def.h"
+#include "tctl_utility.h"
 
-typedef struct {
-    hashtable ht;
-} __private_unordered_multimap;
+#define UNORDERED_MULTIMAP_FUNC       \
+struct {                              \
+    CLASS_FUNC;                       \
+    Iterator (*begin)(void);          \
+    Iterator (*end)(void);            \
+    size_t (*size)(void);             \
+    bool (*empty)(void);              \
+    void (*erase)(Iterator iter);     \
+    Iterator (*insert)(Pair x);       \
+    size_t (*count)(FormWO_t x);      \
+    Iterator (*find)(FormWO_t x);     \
+    size_t (*bucket_count)(void);     \
+    size_t (*max_bucket_count)(void); \
+    void (*reserve)(size_t);          \
+    void (*clear)(void);              \
+    void (*swap)(Unordered_MultiMap); \
+}
 
-typedef struct unordered_multimap{
-    IterType (*begin)(void);
-    IterType (*end)(void);
-    bool (*empty)(void);
-    size_t (*size)(void);
-    size_t (*max_size)(void);
-    IterType (*insert)(void*);
-    void (*erase)(IterType);
-    void (*clear)(void);
-    IterType (*find)(void*);
-    size_t (*count)(void*);
-    size_t (*bucket_count)(void);
-    size_t (*max_bucket_count)(void);
-    void (*reserve)(size_t);
-    void (*swap)(struct unordered_multimap*);
-    byte __obj_private[sizeof(__private_unordered_multimap)];
-} unordered_multimap;
+typedef struct _Unordered_MultiMap *Unordered_MultiMap;
+struct _Unordered_MultiMap {
+    METAOBJECT_HEAD(UNORDERED_MULTIMAP_FUNC);
+};
 
-void init_unordered_multimap(unordered_multimap *p_m, size_t key_size, size_t val_size, Compare equal, HashFunc hash);
-void destory_unordered_multimap(unordered_multimap *p_m);
-unordered_multimap creat_unordered_multimap(size_t key_size, size_t val_size, Compare equal, HashFunc hash);
+void initUnordered_MultiMap(void) __attribute__((constructor));
+Form_t _Unordered_MultiMap(void);
+#define UNORDERED_MULTIMAP Unordered_MultiMap : _Unordered_MultiMap()
 #endif //TINY_CTL_TCTL_UNORDERED_MULTIMAP_H
