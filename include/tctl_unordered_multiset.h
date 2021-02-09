@@ -4,33 +4,34 @@
 
 #ifndef TINY_CTL_TCTL_UNORDERED_MULTISET_H
 #define TINY_CTL_TCTL_UNORDERED_MULTISET_H
-
-#include "tctl_hashtable.h"
+#include "tctl_class.h"
+#include "tctl_iterator.h"
 #include "tctl_def.h"
 
-typedef struct {
-    hashtable ht;
-} __private_unordered_multiset;
+#define UNORDERED_MULTISET_FUNC       \
+struct {                              \
+    CLASS_FUNC;                       \
+    Iterator (*begin)(void);          \
+    Iterator (*end)(void);            \
+    size_t (*size)(void);             \
+    bool (*empty)(void);              \
+    void (*erase)(Iterator iter);     \
+    Iterator (*insert)(FormWO_t x);   \
+    size_t (*count)(FormWO_t x);      \
+    Iterator (*find)(FormWO_t x);     \
+    size_t (*bucket_count)(void);     \
+    size_t (*max_bucket_count)(void); \
+    void (*reserve)(size_t);          \
+    void (*clear)(void);              \
+    void (*swap)(Unordered_MultiSet); \
+}
 
-typedef struct unordered_multiset{
-    IterType (*begin)(void);
-    IterType (*end)(void);
-    bool (*empty)(void);
-    size_t (*size)(void);
-    size_t (*max_size)(void);
-    IterType (*insert)(void*);
-    void (*erase)(IterType);
-    void (*clear)(void);
-    IterType (*find)(void*);
-    size_t (*count)(void*);
-    size_t (*bucket_count)(void);
-    size_t (*max_bucket_count)(void);
-    void (*reserve)(size_t);
-    void (*swap)(struct unordered_multiset*);
-    byte __obj_private[sizeof(__private_unordered_multiset)];
-} unordered_multiset;
+typedef struct _Unordered_MultiSet *Unordered_MultiSet;
+struct _Unordered_MultiSet {
+    METAOBJECT_HEAD(UNORDERED_MULTISET_FUNC);
+};
 
-void init_unordered_multiset(unordered_multiset *p_s, size_t memb_size, Compare equal, HashFunc hash);
-void destory_unordered_multiset(unordered_multiset *p_s);
-unordered_multiset creat_unordered_multiset(size_t memb_size, Compare equal, HashFunc hash);
+void initUnordered_MultiSet(void) __attribute__((constructor));
+Form_t _Unordered_MultiSet(void);
+#define UNORDERED_MULTISET Unordered_MultiSet : _Unordered_MultiSet()
 #endif //TINY_CTL_TCTL_UNORDERED_MULTISET_H
