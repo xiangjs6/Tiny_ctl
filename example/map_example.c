@@ -1,59 +1,69 @@
 #include <stdio.h>
-#include "tctl_iterator.h"
-#include "tctl_map.h"
-#include "tctl_allocator.h"
-#include "auto_release_pool.h"
+#include "../include/tctl_iterator.h"
+#include "../include/tctl_map.h"
+#include "../include/tctl_allocator.h"
+#include "../include/auto_release_pool.h"
 #include <string.h>
+
+#define Import MAP
 
 int scmp(const char**a, const char**b)
 {
     int res = strcmp(*a, *b);
     return res;
 }
+int pcmp(FormWO_t _a, FormWO_t _b)
+{
+    Pair a = _a.mem;
+    Pair b = _b.mem;
+    return strcmp(a->first, b->first);
+}
 //map测试
 int main(void)
 {
     ARP_CreatePool();
-    map simap = creat_map(sizeof(char*), sizeof(long long), scmp);
-    pair(char*, long long) p;
-    p.first = allocate(10);
-    strcpy(p.first, "jjhou");
-    p.second = 1;
-    THIS(&simap).insert(&p);
-    p.first = allocate(10);
-    strcpy(p.first, "jerry");
-    p.second = 2;
-    THIS(&simap).insert(&p);
-    p.first = allocate(10);
-    strcpy(p.first, "jason");
-    p.second = 3;
-    THIS(&simap).insert(&p);
-    p.first = allocate(10);
-    strcpy(p.first, "jimmy");
-    p.second = 4;
-    THIS(&simap).insert(&p);
-    p.first = allocate(10);
-    strcpy(p.first, "david");
-    p.second = 5;
-    THIS(&simap).insert(&p);
-    for (iterator(pair(char*, long long)) it = THIS(&simap).begin(); !ITER(it).equal(THIS(&simap).end()); ITER(it).inc())
-        printf("key:%s val:%lld\n", it->val->first, it->val->second);
+    Map simap = new(T(Map), VA(ARRAY_T(char, 10), T(int), VA_FUNC(pcmp)));
+    Pair p = tmpPair(ARRAY_T(char, 10), T(int), VA(VA_ADDR("jjhou"), 1), VAEND);//new(T(Pair), VA(ARRAY_T(char, 10), T(int), VA_ADDR("jjhou"), 1));
+    THIS(simap).insert(p);
+
+    strcpy(p->first, "jerry");
+    *(int*)p->second = 2;
+    THIS(simap).insert(p);
+
+    strcpy(p->first, "jason");
+    *(int*)p->second = 3;
+    THIS(simap).insert(p);
+
+    strcpy(p->first, "jimmy");
+    *(int*)p->second = 4;
+    THIS(simap).insert(p);
+
+    strcpy(p->first, "david");
+    *(int*)p->second = 5;
+    THIS(simap).insert(p);
+    for (Iterator it = THIS(simap).begin(); !THIS(it).equal(VA(THIS(simap).end())); THIS(it).inc()) {
+        Pair pp = THIS(it).derefer();
+        printf("key:%s val:%d\n", (char*)pp->first, *(int*)pp->second);
+    }
     char key[10] = {"jjhou"};
-    char *p_key = key;
-    iterator(pair(char*, long long)) f_it = THIS(&simap).find(&p_key);
-    printf("%lld\n", f_it->val->second);
-    iterator(pair(char*, long long)) ite1 = INIT_ITERATOR;
+    Iterator f_it = THIS(simap).find(VA(VA_ADDR(key)));
+    //delete(p);
+    p = THIS(f_it).derefer();
+    printf("%d\n", *(int*)p->second);
+    Iterator ite1;
     strcpy(key, "mchen");
-    ITER(ite1).copy(THIS(&simap).find(&p_key));
-    if (ITER(ite1).equal(THIS(&simap).end()))
+    ite1 = THIS(simap).find(VA(VA_ADDR(key)));
+    if (THIS(ite1).equal(VA(THIS(simap).end())))
         printf("mchen not found\n");
     strcpy(key, "jerry");
-    ITER(ite1).copy(THIS(&simap).find(&p_key));
-    if (!ITER(ite1).equal(THIS(&simap).end()))
+    ite1 = THIS(simap).find(VA(VA_ADDR(key)));
+    if (!THIS(ite1).equal(VA(THIS(simap).end())))
         printf("jerry found\n");
-    ite1->val->second = 9;
-    iterator(pair(char*, long long)) ite2 = THIS(&simap).find(&p_key);
-    printf("%lld f_it:%lld\n", ite2->val->second, f_it->val->second);
+    p = THIS(ite1).derefer();
+    *(int*)p->second = 9;
+    Iterator ite2 = THIS(simap).find(VA(VA_ADDR(key)));
+    Pair pp = THIS(ite2).derefer();
+    printf("%s %d f_it:%d count:%ld\n", (char*)p->first, *(int*)p->second, *(int*)pp->second, THIS(simap).count(VA(VA_ADDR(key))));
     ARP_FreePool();
     return 0;
 }
