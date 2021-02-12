@@ -353,6 +353,7 @@ static void *_iter_ctor(void *_this, va_list *app)
     }
     return _this;
 }
+
 static bool _iter_equal(const void *_this, FormWO_t _x)
 {
     const struct VectorIter *this = offsetOf(_this, __VectorIter);
