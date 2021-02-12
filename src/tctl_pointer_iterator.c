@@ -110,7 +110,7 @@ static void *_iter_brackets(const void *_this, FormWO_t _x)
     const Iterator it = (void*)_this;
     long long x =   toInt(_x);
     Form_t t = THIS(it).type();
-    size_t size = t.f == ADDR ? t.size : classSz(t.class);
+    size_t size = t.f == ADDR ? t.size : sizeof(MetaObject);
     void *res = this->ptr + size * (x + this->cur);
     return res;
 }
@@ -187,7 +187,7 @@ static void *_iter_derefer(const void *_this)
     struct OriPointIter *this = offsetOf(_this, __OriPointIter);
     Iterator it = (void*)_this;
     Form_t t = THIS(it).type();
-    size_t memb_size = t.f == ADDR ? t.size : classSz(t.class);
+    size_t memb_size = t.f == ADDR ? t.size : sizeof(MetaObject);
     return this->ptr + this->cur * memb_size;
 }
 
