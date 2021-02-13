@@ -229,7 +229,6 @@ static long long dist_aux(const struct DequeIter *it1, const struct DequeIter *i
 
 static void _dealDequeArgs(void *_this, FormWO_t *args, int n)
 {
-    struct Deque *this = offsetOf(_this, __Deque);
     if (args->_.class == __Deque) { //复制一个Deque
         struct Deque *d = offsetOf(args->mem, __Deque);
         size_t d_memb_size = d->_t.f == POD ? d->_t.size : classSz(d->_t.class);
@@ -780,7 +779,6 @@ static void _deque_clear(void *_this)
 
 static void _deque_resize(void *_this, size_t new_size)
 {
-    struct Deque *this = offsetOf(_this, __Deque);
     size_t n = _deque_size(_this);
     while (n > new_size)
         _deque_pop_back(_this), n--;

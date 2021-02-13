@@ -142,16 +142,16 @@ static void *MetaClass_ctor(void *_this, va_list *app)
     while ((selector = va_arg(ap, voidf)))
     {
         voidf method = va_arg(ap, voidf);
-        if (selector == (voidf) MetaClassS.ctor)
-            *(voidf *) &this->ctor = method;
-        else if (selector == (voidf) MetaClassS.dtor)
-            *(voidf *) &this->dtor = method;
-        else if (selector == (voidf) MetaClassS.differ)
-            *(voidf *) &this->differ = method;
-        else if (selector == (voidf) MetaClassS.puto)
-            *(voidf *) &this->puto = method;
+        if (selector == (voidf)MetaClassS.ctor)
+            *(void**)&this->ctor = method;
+        else if (selector == (voidf)MetaClassS.dtor)
+            *(void**)&this->dtor = method;
+        else if (selector == (voidf)MetaClassS.differ)
+            *(void**)&this->differ = method;
+        else if (selector == (voidf)MetaClassS.puto)
+            *(void**)&this->puto = method;
         else if (selector == Selector)
-            *(void **) &this->_.s = method;
+            *(void**)&this->_.s = method;
     }
     va_end(ap);
     return _this;

@@ -266,7 +266,6 @@ static void _transfer(struct ListNode *pos, struct ListNode *first, struct ListN
 
 static void _dealListArgs(void *_this, FormWO_t *args, int n)
 {
-    struct List *this = offsetOf(_this, __List);
     if (args->_.class == __List) { //复制一个List
         struct List *L = offsetOf(args->mem, __List);
         struct ListNode *node = L->_end.nxt;
@@ -421,7 +420,6 @@ static void *_list_ctor(void *_this, va_list *app)
 static void *_list_dtor(void *_this)
 {
     _this = super_dtor(__List, _this);
-    struct List *this = offsetOf(_this, __List);
     _list_clear(_this);
     return _this;
 }

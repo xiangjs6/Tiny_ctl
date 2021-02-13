@@ -113,11 +113,11 @@ static void *_class_ctor(void *_this, va_list *app)
     {
         voidf method = va_arg(ap, voidf);
         if (selector == (voidf)IteratorS.derefer)
-            *(voidf *) &this->derefer = method;
+            *(void**)&this->derefer = method;
         else if (selector == (voidf)IteratorS.type)
-            *(voidf *) &this->type = method;
+            *(void**)&this->type = method;
         else if (selector == (voidf)IteratorS.dist)
-            *(voidf *) &this->dist = method;
+            *(void**)&this->dist = method;
     }
     va_end(ap);
     return _this;

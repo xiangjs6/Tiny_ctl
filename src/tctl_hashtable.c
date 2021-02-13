@@ -617,7 +617,6 @@ static void _hashtable_copy_from(void *_this, const Hashtable _h)
     size_t n = THIS(h->buckets).size();
     this->buckets = new(T(Vector), VA(T(struct Bucket_node*), n, NULL));
     memcpy(this, h, offsetof(struct Hashtable, buckets)); //将成员参数复制过来
-    size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
     FormWO_t x = FORM_WITH_OBJ(this->_t);
     if (x._.f == POD)
         x._.f = ADDR;

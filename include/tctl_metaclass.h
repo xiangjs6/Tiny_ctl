@@ -31,7 +31,7 @@ Form_t _FormAux(int t, ...); //用于将Form_t和FormWO_t转化成Form_t Form_t�
 //VA的结尾描述变量
 #define VAEND (FormWO_t){{END}}
 //获取变量的地址，并生成__ARG_ADDR_t变量
-#define VA_ADDR(arg) (FORM_WITH_OBJ((Form_t){ADDR, sizeof(arg)}, &(arg)))
+#define VA_ADDR(arg) (FORM_WITH_OBJ((Form_t){ADDR, {sizeof(arg)}}, &(arg)))
 //遇到需要传入函数指针时，VA_FUNC()创造FormWO_t
 #define VA_FUNC(fun) (FORM_WITH_OBJ((Form_t){FUNC, sizeof(&fun)}, fun))
 //为每个变量生成对应的FormWO_t变量
