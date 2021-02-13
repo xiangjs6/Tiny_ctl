@@ -11,7 +11,7 @@
 #define Import ITERATOR, CLASS, INT
 struct OriPointIter {
     size_t cur;
-    void *ptr;
+    char *ptr;
 };
 
 //Iterator函数
@@ -110,9 +110,10 @@ static void *_iter_brackets(const void *_this, FormWO_t _x)
     const Iterator it = (void*)_this;
     long long x =   toInt(_x);
     Form_t t = THIS(it).type();
-    size_t size = t.f == ADDR ? t.size : sizeof(MetaObject);
-    void *res = this->ptr + size * (x + this->cur);
-    return res;
+    if (t.f == ADDR)
+        return this->ptr + t.size * (x + this->cur);
+    else
+        return *(MetaObject*)(this->ptr + sizeof(MetaObject) * (x + this->cur));
 }
 
 static void _iter_inc(void *_this)
@@ -188,7 +189,10 @@ static void *_iter_derefer(const void *_this)
     Iterator it = (void*)_this;
     Form_t t = THIS(it).type();
     size_t memb_size = t.f == ADDR ? t.size : sizeof(MetaObject);
-    return this->ptr + this->cur * memb_size;
+    if (t.f == ADDR)
+        return this->ptr + t.size * this->cur;
+    else
+        return *(MetaObject*)(this->ptr + sizeof(MetaObject) * this->cur);
 }
 
 static long long _iter_dist(const void *_this, Iterator _it)
