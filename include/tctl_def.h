@@ -17,7 +17,8 @@ typedef int (*Compare)(FormWO_t, FormWO_t);
 typedef size_t (*HashFunc)(FormWO_t);
 typedef FormWO_t (*ExtractKey)(FormWO_t); //提取出来的key，应为引用类型
 
-typedef void *(*BinaryOperation)(const void *first, const void *second, void *res);
-typedef void (*UnaryOperation)(void *self);
+typedef FormWO_t (*BinaryOperation)(FormWO_t first, FormWO_t second);
+typedef void (*AssignOperation)(FormWO_t left, FormWO_t right);
+typedef void (*UnaryOperation)(FormWO_t self);
 
 #endif //TINY_CTL_TCTL_DEF_H
