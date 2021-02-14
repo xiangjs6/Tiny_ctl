@@ -203,10 +203,20 @@ static const int _num_primes = sizeof(_prime_list) / sizeof(*_prime_list);
 
 static unsigned long _next_prime(unsigned long n)
 {
-    for (int i = 0; i < _num_primes; i++)
-        if (_prime_list[i] >= n)
-            return _prime_list[i];
-    return _prime_list[_num_primes - 1];
+    size_t len = _num_primes, half;
+    const unsigned long *middle;
+    const unsigned long *first = _prime_list, *last = &_prime_list[_num_primes];
+    while (len > 0)
+    {
+        half = len >> 1;
+        middle = first + half;
+        if (*middle < n) {
+            first = middle + 1;
+            len = len - half - 1;
+        } else
+            len = half;
+    }
+    return *first;
 }
 
 static struct Bucket_node *_new_node(size_t size)
