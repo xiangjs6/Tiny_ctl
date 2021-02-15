@@ -22,7 +22,7 @@ SHARE   := -shared -o
 
 
 #source file
-SOURCE  := $(wildcard *.c)
+SOURCE  := $(wildcard *.c ./basic/*.c)
 OBJS    := $(patsubst %.c,%.o,$(SOURCE))
 
 .PHONY : everything objs clean veryclean rebuild
