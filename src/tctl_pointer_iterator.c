@@ -66,6 +66,7 @@ static void *_iter_ctor(void *_this, va_list *app)
 {
     _this = super_ctor(__OriPointIter, _this, app);
     struct OriPointIter *this = offsetOf(_this, __OriPointIter);
+    this->cur = 0;
     FormWO_t t = va_arg(*app, FormWO_t);
     switch (t._.f) {
         case POD:
@@ -85,8 +86,10 @@ static void *_iter_ctor(void *_this, va_list *app)
             this->ptr = NULL;
     }
     t = va_arg(*app, FormWO_t);
-    this->cur = toUInt(t);
-    while (va_arg(*app, FormWO_t)._.f != END);
+    if (t._.f != END) {
+        this->cur = toUInt(t);
+        while (va_arg(*app, FormWO_t)._.f != END);
+    }
     return _this;
 }
 
