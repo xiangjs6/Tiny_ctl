@@ -7,20 +7,10 @@
 
 #include "tctl_iterator.h"
 #include "tctl_def.h"
-typedef struct {
-    UnaryOperation inc;
-    UnaryOperation dec;
-    BinaryOperation add;
-    BinaryOperation sub;
-    BinaryOperation mul;
-    BinaryOperation div;
-    BinaryOperation mod;
-    void (*assign)(void *first, const void *second);
-    int (*cmp)(const void *first, const void *second);
-} NumOperations;
-void *accumulate(const IterType first, const IterType last, void *init, BinaryOperation binary_op);
-IterType adjacent_difference(const IterType first, const IterType last, const IterType result, BinaryOperation binary_op);
-void *inner_product(const IterType first1, const IterType last1, const IterType first2, void *init, BinaryOperation binary_op1, BinaryOperation binary_op2);
-IterType partial_sum(const IterType first, const IterType last, const IterType result, BinaryOperation binary_op);
-void iota(const IterType first, const IterType last, void *x, const NumOperations *ops);
+#include "tctl_metaclass.h"
+FormWO_t accumulate(const Iterator first, const Iterator last, FormWO_t init, ...);
+Iterator adjacent_difference(const Iterator first, const Iterator last, const Iterator result, ...);
+FormWO_t inner_product(const Iterator _first1, const Iterator _last1, const Iterator _first2, FormWO_t init, ...);
+Iterator partial_sum(const Iterator _first, const Iterator _last, const Iterator _result, ...);
+void iota(const Iterator _first, const Iterator _last, FormWO_t x, ...);
 #endif //TINY_CTL_TCTL_NUMERIC_H
