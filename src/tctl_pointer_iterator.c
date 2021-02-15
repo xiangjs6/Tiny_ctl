@@ -191,7 +191,6 @@ static void *_iter_derefer(const void *_this)
     struct OriPointIter *this = offsetOf(_this, __OriPointIter);
     Iterator it = (void*)_this;
     Form_t t = THIS(it).type();
-    size_t memb_size = t.f == ADDR ? t.size : sizeof(MetaObject);
     if (t.f == ADDR)
         return this->ptr + t.size * this->cur;
     else

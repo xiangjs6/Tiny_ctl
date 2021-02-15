@@ -251,7 +251,6 @@ static void *_dealIterVaryArg(FormWO_t t, char *type)
 
 static void _dealVectorArgs(void *_this, FormWO_t *args, int n)
 {
-    struct Vector *this = offsetOf(_this, __Vector);
     if (args->_.class == _Vector().class) { //复制一个Vector
         struct Vector *v = offsetOf(args->mem, __Vector);
         size_t v_memb_size = v->_t.f == POD ? v->_t.size : classSz(v->_t.class);
@@ -628,7 +627,6 @@ static Iterator _vector_erase(void *_this, Iterator _iter)
         _vector_pop_back(_this);
         return _iter;
     }
-    size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
     Iterator target_it = new(_VectorIter(), VA(this->_t, SequenceIter, iter->cur, iter->ptr));
     Iterator first = new(_VectorIter(), VA(this->_t, SequenceIter, iter->cur + 1, this->start_ptr));
     Iterator last = new(_VectorIter(), VA(this->_t, SequenceIter, this->nmemb, this->start_ptr));

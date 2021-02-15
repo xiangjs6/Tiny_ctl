@@ -168,7 +168,6 @@ static Form_t _SlistIter(void)
 //private
 static void _dealSlistArgs(void *_this, FormWO_t *args, int n)
 {
-    struct Slist *this = offsetOf(_this, __Slist);
     if (args->_.class == __Slist) { //复制一个List
         struct Slist *L = offsetOf(args->mem, __Slist);
         struct SlistNode *node = L->_head.nxt;
@@ -320,7 +319,6 @@ static void *_slist_ctor(void *_this, va_list *app)
 static void *_slist_dtor(void *_this)
 {
     _this = super_dtor(__Slist, _this);
-    struct Slist *this = offsetOf(_this, __Slist);
     _slist_clear(_this);
     return _this;
 }
@@ -422,7 +420,6 @@ static Iterator _slist_insert_after(void *_this, Iterator iter, FormWO_t _x)
     struct Slist *this = offsetOf(_this, __Slist);
     assert(classOf(iter) == __SlistIter);
     struct SlistIter *it = offsetOf(iter, __SlistIter);
-    struct SlistNode *node = it->node->nxt;
     size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
     struct SlistNode *new_node = allocate(sizeof(struct SlistNode) + memb_size);
     if (this->_t.f == POD) {

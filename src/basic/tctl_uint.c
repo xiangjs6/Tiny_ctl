@@ -16,7 +16,7 @@ static const void *__UInt = NULL;
 
 inline unsigned long long toUInt(FormWO_t t)
 {
-    unsigned long long val;
+    unsigned long long val = 0;
     unsigned char c;
     unsigned short s;
     unsigned int i;

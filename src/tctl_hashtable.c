@@ -205,7 +205,7 @@ static unsigned long _next_prime(unsigned long n)
 {
     size_t len = _num_primes, half;
     const unsigned long *middle;
-    const unsigned long *first = _prime_list, *last = &_prime_list[_num_primes];
+    const unsigned long *first = _prime_list;
     while (len > 0)
     {
         half = len >> 1;
