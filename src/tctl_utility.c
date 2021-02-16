@@ -90,10 +90,10 @@ Form_t _Pair(void)
     return (Form_t){OBJ, .class = __Pair};
 }
 
-Pair tmpPair(Form_t key_t, Form_t val_t, ...)
+Pair tmpPair(Form_t first_t, Form_t second_t, ...)
 {
     va_list ap;
-    va_start(ap, val_t);
+    va_start(ap, second_t);
     FormWO_t args[2] = {VAEND, VAEND};
     FormWO_t t;
     int n = 0;
@@ -103,5 +103,5 @@ Pair tmpPair(Form_t key_t, Form_t val_t, ...)
         args[n++] = t;
     }
     void *mem = ARP_MallocARelDtor(classSz(__Pair), destroy);
-    return construct(_Pair(), mem, VA(key_t, val_t), args[0], args[1], VAEND);
+    return construct(_Pair(), mem, VA(first_t, second_t), args[0], args[1], VAEND);
 }

@@ -20,7 +20,7 @@ struct _Pair {
 };
 
 Form_t _Pair(void);
-Pair tmpPair(Form_t key_t, Form_t val_t, ...);
+Pair tmpPair(Form_t first_t, Form_t second_t, ...);
 #define PAIR Pair : _Pair()
 
 
