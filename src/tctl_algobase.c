@@ -4,9 +4,13 @@
 
 #include "../include/tctl_algobase.h"
 #include "../include/auto_release_pool.h"
+#include "../include/tctl_class.h"
+#include "../include/tctl_utility.h"
 #include <assert.h>
+#include <stdarg.h>
+#include <stdarg.h>
 #include <string.h>
-#define Import ITERATOR
+#define Import ITERATOR, OBJECT, PAIR
 //copy
 inline static Iterator copy_3S(Iterator first, Iterator last, Iterator result) //迭代器都为SequenceIter
 {
@@ -279,5 +283,242 @@ Iterator copy_backward(Iterator first, Iterator last, Iterator result)
             } while (!THIS(src_it).equal(VA(first)));
         }
         return out;
+    }
+}
+
+inline static int CompareOpt(FormWO_t a, FormWO_t b, FormWO_t op)
+{
+    if (op._.f != FUNC) {
+        if (a._.f == OBJ) {
+            Object obj = a.mem;
+            return THIS(obj).cmp(b);
+        } else {
+            if (op._.f == ADDR)
+                return memcmp(a.mem, b.mem, a._.size);
+            else
+                return memcmp(&a.mem, &b.mem, a._.size);
+        }
+    } else {
+        Compare cmp = op.mem;
+        return cmp(a, b);
+    }
+}
+
+static inline void AssignOpt(FormWO_t left, FormWO_t right, FormWO_t op)
+{
+    if (op._.f != FUNC) {
+        if (left._.f == OBJ) {
+            Object obj = left.mem;
+            THIS(obj).assign(right);
+        } else {
+            if (op._.f == ADDR)
+                memcpy(left.mem, right.mem, left._.size);
+            else
+                memcpy(&left.mem, &right.mem, left._.size);
+        }
+    } else {
+        AssignOperation func = op.mem;
+        func(left, right);
+    }
+}
+
+//equal
+bool equal(Iterator _first1, Iterator _last1, Iterator _first2, .../*Compare*/)
+{
+    Iterator first1 = THIS(_first1).ctor(NULL, VA(_first1), VAEND);
+    Iterator first2 = THIS(_first2).ctor(NULL, VA(_first2), VAEND);
+    va_list ap;
+    va_start(ap, _first2);
+    FormWO_t op = va_arg(ap, FormWO_t);
+    va_end(ap);
+    Form_t f1 = THIS(first1).type();
+    Form_t f2 = THIS(first2).type();
+    for (; !THIS(first1).equal(VA(_last1)); THIS(first1).inc(), THIS(first2).inc())
+        if (!CompareOpt(FORM_WITH_OBJ(f1, THIS(first1).derefer()), 
+                        FORM_WITH_OBJ(f2, THIS(first2).derefer()), op)) {
+            delete(first1);
+            delete(first2);
+            return false;
+        }
+    delete(first1);
+    delete(first2);
+    return true;
+}
+
+//fill
+void fill(Iterator _first, Iterator _last, FormWO_t x, .../*Assign*/)
+{
+    va_list ap;
+    va_start(ap, x);
+    FormWO_t op = va_arg(ap, FormWO_t);
+    va_end(ap);
+    Form_t f = THIS(_first).type();
+    Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    for (; !THIS(first).equal(VA(_last)); THIS(first).inc())
+        AssignOpt(FORM_WITH_OBJ(f, THIS(first).derefer()), x, op);
+}
+
+//fill_n
+void fill_n(Iterator _first, size_t n, FormWO_t x, .../*Assign*/)
+{
+    va_list ap;
+    va_start(ap, x);
+    FormWO_t op = va_arg(ap, FormWO_t);
+    va_end(ap);
+    Form_t f = THIS(_first).type();
+    Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    for (; n--; THIS(first).inc())
+        AssignOpt(FORM_WITH_OBJ(f, THIS(first).derefer()), x, op);
+}
+
+//iter_swap
+void iter_swap(Iterator a, Iterator b, .../*Swap*/)
+{
+    Form_t f = THIS(a).type();
+    assert(f.f == THIS(b).type().f && f.class == THIS(b).type().class);
+    va_list ap;
+    va_start(ap, b);
+    FormWO_t op = va_arg(ap, FormWO_t);
+    va_end(ap);
+
+    if (op._.f != FUNC) {
+        if (f.f == OBJ) {
+            Object obj_a = THIS(a).derefer();
+            Object obj_b = THIS(b).derefer();
+            char mem[sizeOf(obj_a)];
+            Object tmp = construct(f, mem, VAEND);
+            THIS(tmp).assign(FORM_WITH_OBJ(f, obj_a));
+            THIS(obj_a).assign(FORM_WITH_OBJ(f, obj_b));
+            THIS(obj_b).assign(FORM_WITH_OBJ(f, tmp));
+            destroy(tmp);
+        } else {
+            char mem[f.size];
+            void *p_a = THIS(a).derefer();
+            void *p_b = THIS(b).derefer();
+            memcpy(mem, p_a, f.size);
+            memcpy(p_a, p_b, f.size);
+            memcpy(p_b, mem, f.size);
+        }
+    } else {
+        SwapFunc func = op.mem;
+        func(FORM_WITH_OBJ(f, THIS(a).derefer()),
+             FORM_WITH_OBJ(f, THIS(b).derefer));
+    }
+}
+
+//lexicographical_compare
+bool lexicographical_compare(Iterator _first1, Iterator _last1, Iterator _first2, Iterator _last2, .../*Compare*/)
+{
+    Iterator first1 = THIS(_first1).ctor(NULL, VA(_first1), VAEND);
+    Iterator first2 = THIS(_first2).ctor(NULL, VA(_first2), VAEND);
+
+    va_list ap;
+    va_start(ap, _last2);
+    FormWO_t op = va_arg(ap, FormWO_t);
+    va_end(ap);
+
+    Form_t f1 = THIS(first1).type();
+    Form_t f2 = THIS(first2).type();
+    for (; !THIS(first1).equal(VA(first2)) &&
+           !THIS(first2).equal(VA(_last2));
+           THIS(first1).inc(), THIS(first2).inc()) {
+        int res = CompareOpt(FORM_WITH_OBJ(f1, THIS(first1).derefer()),
+                             FORM_WITH_OBJ(f2, THIS(first2).derefer()), op);
+        if (res < 0)
+            return true;
+        else if (res > 0)
+            return false;
+    }
+    return THIS(first1).equal(VA(_last1)) && !THIS(first2).equal(VA(_last2));
+}
+
+//max
+FormWO_t max(FormWO_t a, FormWO_t b, .../*Compare*/)
+{
+    va_list ap;
+    va_start(ap, b);
+    FormWO_t op = va_arg(ap, FormWO_t);
+    va_end(ap);
+
+    int res = CompareOpt(a, b, op);
+    if (res > 0)
+        return a;
+    else
+        return b;
+}
+
+//min
+FormWO_t min(FormWO_t a, FormWO_t b, .../*Compare*/)
+{
+    va_list ap;
+    va_start(ap, b);
+    FormWO_t op = va_arg(ap, FormWO_t);
+    va_end(ap);
+
+    int res = CompareOpt(a, b, op);
+    if (res < 0)
+        return a;
+    else
+        return b;
+}
+
+//mismatch
+Pair mismatch(Iterator _first1, Iterator _last1, Iterator _first2, .../*Compare*/)
+{
+    Iterator first1 = THIS(_first1).ctor(NULL, VA(_first1), VAEND);
+    Iterator first2 = THIS(_first2).ctor(NULL, VA(_first2), VAEND);
+    Form_t f1 = THIS(first1).type();
+    Form_t f2 = THIS(first2).type();
+
+    va_list ap;
+    va_start(ap, _first2);
+    FormWO_t op = va_arg(ap, FormWO_t);
+    va_end(ap);
+
+    for (; !THIS(first1).equal(VA(_last1)); THIS(first1).inc()) {
+        int res = CompareOpt(FORM_WITH_OBJ(f1, THIS(first1).derefer()),
+                             FORM_WITH_OBJ(f2, THIS(first2).derefer()), op);
+        if (res)
+            break;
+    }
+    
+    Pair pair = tmpPair(f1, f2, VA(first1, first2));
+    delete(first1);
+    delete(first2);
+    return pair;
+}
+
+//swap
+void swap(FormWO_t a, FormWO_t b, .../*Swap*/)
+{
+    assert(a._.f == ADDR || a._.f == OBJ);
+    assert(b._.f == ADDR || b._.f == OBJ);
+    assert(a._.class == b._.class);
+    va_list ap;
+    va_start(ap, b);
+    FormWO_t op = va_arg(ap, FormWO_t);
+    va_end(ap);
+
+    if (op._.f != FUNC) {
+        if (a._.f == OBJ) {
+            Object obj_a = a.mem;
+            Object obj_b = b.mem;
+            char mem[sizeOf(obj_a)];
+            Object tmp = construct(a._, mem, VAEND);
+            THIS(tmp).assign(FORM_WITH_OBJ(a._, obj_a));
+            THIS(obj_a).assign(FORM_WITH_OBJ(a._, obj_b));
+            THIS(obj_b).assign(FORM_WITH_OBJ(a._, tmp));
+            destroy(tmp);
+        } else {
+            char mem[a._.size];
+            void *p_a = a.mem;
+            void *p_b = b.mem;
+            memcpy(mem, p_a, a._.size);
+            memcpy(p_a, p_b, a._.size);
+            memcpy(p_b, mem, a._.size);
+        }
+    } else {
+        SwapFunc func = op.mem;
+        func(a, b);
     }
 }
