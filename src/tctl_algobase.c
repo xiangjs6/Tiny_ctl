@@ -475,14 +475,14 @@ Pair mismatch(Iterator _first1, Iterator _last1, Iterator _first2, .../*Compare*
     FormWO_t op = va_arg(ap, FormWO_t);
     va_end(ap);
 
-    for (; !THIS(first1).equal(VA(_last1)); THIS(first1).inc()) {
+    for (; !THIS(first1).equal(VA(_last1)); THIS(first1).inc(), THIS(first2).inc()) {
         int res = CompareOpt(FORM_WITH_OBJ(f1, THIS(first1).derefer()),
                              FORM_WITH_OBJ(f2, THIS(first2).derefer()), op);
         if (res)
             break;
     }
     
-    Pair pair = tmpPair(f1, f2, VA(first1, first2));
+    Pair pair = tmpPair((Form_t){OBJ, {.class = classOf(first1)}}, (Form_t){OBJ, {.class = classOf(first2)}}, VA(first1, first2), VAEND);
     delete(first1);
     delete(first2);
     return pair;

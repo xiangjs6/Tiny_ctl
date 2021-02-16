@@ -288,7 +288,7 @@ static void _dealVectorArgs(void *_this, FormWO_t *args, int n)
             if (t.f == POD) {
                 char (*p)[t.size] = obj;
                 _vector_push_back(_this, VA(VA_ADDR(*p)));
-            } else if (t.f == OBJ) {
+            } else if (t.f == OBJ || t.f == ADDR) {
                 _vector_push_back(_this, FORM_WITH_OBJ(t, obj));
             }
             THIS(first).inc();

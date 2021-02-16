@@ -92,6 +92,8 @@ Form_t _Pair(void)
 
 Pair tmpPair(Form_t first_t, Form_t second_t, ...)
 {
+    if (!__Pair)
+        initPair();
     va_list ap;
     va_start(ap, second_t);
     FormWO_t args[2] = {VAEND, VAEND};
