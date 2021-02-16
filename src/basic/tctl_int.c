@@ -17,7 +17,7 @@ static const void *__Int = NULL;
 
 inline long long toInt(FormWO_t t)
 {
-    long long val;
+    long long val = 0;
     char c;
     short s;
     int i;

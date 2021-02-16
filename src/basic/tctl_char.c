@@ -16,7 +16,7 @@ static const void *__Char = NULL;
 
 inline char toChar(FormWO_t t)
 {
-    char val;
+    char val = 0;
     short s;
     int i;
     long long l;

@@ -16,7 +16,7 @@ static const void *__Double = NULL;
 
 inline double toDouble(FormWO_t t)
 {
-    double val;
+    double val = 0;
     float f;
     switch (t._.f) {
         case POD:
