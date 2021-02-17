@@ -356,6 +356,7 @@ void fill(Iterator _first, Iterator _last, FormWO_t x, .../*Assign*/)
     Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
     for (; !THIS(first).equal(VA(_last)); THIS(first).inc())
         AssignOpt(FORM_WITH_OBJ(f, THIS(first).derefer()), x, op);
+    delete(first);
 }
 
 //fill_n
@@ -369,6 +370,7 @@ void fill_n(Iterator _first, size_t n, FormWO_t x, .../*Assign*/)
     Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
     for (; n--; THIS(first).inc())
         AssignOpt(FORM_WITH_OBJ(f, THIS(first).derefer()), x, op);
+    delete(first);
 }
 
 //iter_swap
@@ -429,7 +431,10 @@ bool lexicographical_compare(Iterator _first1, Iterator _last1, Iterator _first2
         else if (res > 0)
             return false;
     }
-    return THIS(first1).equal(VA(_last1)) && !THIS(first2).equal(VA(_last2));
+    bool res = THIS(first1).equal(VA(_last1)) && !THIS(first2).equal(VA(_last2));
+    delete(first1);
+    delete(first2);
+    return res;
 }
 
 //max
