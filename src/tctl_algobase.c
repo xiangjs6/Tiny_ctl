@@ -334,8 +334,8 @@ bool equal(Iterator _first1, Iterator _last1, Iterator _first2, .../*Compare*/)
     Form_t f1 = THIS(first1).type();
     Form_t f2 = THIS(first2).type();
     for (; !THIS(first1).equal(VA(_last1)); THIS(first1).inc(), THIS(first2).inc())
-        if (!CompareOpt(FORM_WITH_OBJ(f1, THIS(first1).derefer()), 
-                        FORM_WITH_OBJ(f2, THIS(first2).derefer()), op)) {
+        if (CompareOpt(FORM_WITH_OBJ(f1, THIS(first1).derefer()),
+                       FORM_WITH_OBJ(f2, THIS(first2).derefer()), op)) {
             delete(first1);
             delete(first2);
             return false;
@@ -419,7 +419,7 @@ bool lexicographical_compare(Iterator _first1, Iterator _last1, Iterator _first2
 
     Form_t f1 = THIS(first1).type();
     Form_t f2 = THIS(first2).type();
-    for (; !THIS(first1).equal(VA(first2)) &&
+    for (; !THIS(first1).equal(VA(_last1)) &&
            !THIS(first2).equal(VA(_last2));
            THIS(first1).inc(), THIS(first2).inc()) {
         int res = CompareOpt(FORM_WITH_OBJ(f1, THIS(first1).derefer()),
