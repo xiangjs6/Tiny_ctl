@@ -154,8 +154,7 @@ static void *_multiset_ctor(void *_this, va_list *app)
     assert(f._.f >= FORM);
     FormWO_t t = va_arg(*app, FormWO_t);
     assert(t._.f == OBJ || t._.f == FUNC);
-    if (t._.f == OBJ) { //复制构造
-        assert(t._.class == __MultiSet);
+    if (t._.f == OBJ && t._.class == __MultiSet) { //复制构造
         struct MultiSet *s = offsetOf(t.mem, __MultiSet);
         construct(_RB_tree(), this->c, f, VA(s->c), VAEND);
     } else { //迭代器构造和默认构造
@@ -174,7 +173,7 @@ static void *_multiset_ctor(void *_this, va_list *app)
         Form_t it_t = THIS(first).type();
         while (!THIS(first).equal(VA(last)))
         {
-            THIS(this->c).insert_unique(FORM_WITH_OBJ(it_t, THIS(first).derefer()));
+            THIS(this->c).insert_equal(FORM_WITH_OBJ(it_t, THIS(first).derefer()));
             THIS(first).inc();
         }
         delete(first);
