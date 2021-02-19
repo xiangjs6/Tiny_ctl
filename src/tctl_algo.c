@@ -232,3 +232,28 @@ Iterator set_symmetric_difference(Iterator _first1, Iterator _last1,
     delete(result);
     return out;
 }
+
+//adjacent_find
+Iterator adjacent_find(Iterator _first, Iterator _last, .../*Compare*/)
+{
+    void *mem = ARP_MallocARelDtor(sizeOf(_first), destroy);
+    Iterator first = THIS(_first).ctor(mem, VA(_first), VAEND);
+    if (THIS(first).equal(VA(_last)))
+        return first;
+
+    va_list ap;
+    va_start(ap, _last);
+    FormWO_t op = va_arg(ap, FormWO_t);
+    va_end(ap);
+
+    Iterator next = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    Form_t f = THIS(next).type();
+    for (THIS(next).inc(); !THIS(next).equal(VA(_last)); THIS(first).inc(), THIS(next).inc()) {
+        int res = CompareOpt(FORM_WITH_OBJ(f, THIS(next).derefer()),
+                             FORM_WITH_OBJ(f, THIS(first).derefer()), op);
+        if (!res)
+            break;
+    }
+    delete(next);
+    return first;
+}
