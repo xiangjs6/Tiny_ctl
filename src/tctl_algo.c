@@ -5,6 +5,7 @@
 #include "../include/tctl_algo.h"
 #include "../include/tctl_algobase.h"
 #include "../include/auto_release_pool.h"
+#include <stddef.h>
 #include <memory.h>
 #include <stdarg.h>
 
@@ -277,3 +278,45 @@ size_t count(Iterator _first, Iterator _last, FormWO_t val, .../*Compare*/)
     delete(first);
     return n;
 }
+
+size_t count_if(Iterator _first, Iterator _last, Predicate pred)
+{
+    Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    Form_t f = THIS(first).type();
+    size_t n = 0;
+    for (; !THIS(first).equal(VA(_last)); THIS(first).inc()) {
+        if (pred(FORM_WITH_OBJ(f, THIS(first).derefer())))
+            n++;
+    }
+    delete(first);
+    return n;
+}
+
+//find
+Iterator find(Iterator _first, Iterator _last, FormWO_t val, ...)
+{
+    va_list ap;
+    va_start(ap, val);
+    FormWO_t op = va_arg(ap, FormWO_t);
+    va_end(ap);
+
+    void *mem = ARP_MallocARelDtor(sizeOf(_first), destroy);
+    Iterator first = THIS(_first).ctor(mem, VA(_first), VAEND);
+    Form_t f = THIS(first).type();
+    while (!THIS(first).equal(VA(_last)) &&
+           !CompareOpt(val, FORM_WITH_OBJ(f, THIS(first).derefer()), op))
+        THIS(first).inc();
+    return first;
+}
+
+Iterator find_if(Iterator _first, Iterator _last, Predicate pred)
+{
+    void *mem = ARP_MallocARelDtor(sizeOf(_first), destroy);
+    Iterator first = THIS(_first).ctor(mem, VA(_first), VAEND);
+    Form_t f = THIS(first).type();
+    while (!THIS(first).equal(VA(_last)) &&
+           !pred(FORM_WITH_OBJ(f, THIS(first).derefer())))
+        THIS(first).inc();
+    return first;
+}
+
