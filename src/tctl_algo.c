@@ -320,3 +320,39 @@ Iterator find_if(Iterator _first, Iterator _last, Predicate pred)
     return first;
 }
 
+//find_end
+static Iterator _find_end(Iterator first1, Iterator last1,
+                          Iterator first2, Iterator last2,
+                          FormWO_t op)
+{
+    if (THIS(first1).equal(VA(last1))) {
+        void *mem = ARP_MallocARelDtor(sizeOf(last1), destroy);
+        return THIS(last1).ctor(mem, VA(last1), VAEND);
+    }
+    Iterator result = last1; //result是引用
+    while (true)
+    {
+        Iterator new_result = search(first1, last1, first2, last2, op);
+        if (THIS(new_result).equal(VA(last1)))
+            return result;
+        result = new_result;
+        THIS(first1).assign(VA(new_result)); //first1是赋值
+        THIS(first1).inc();
+    }
+}
+
+Iterator find_end(Iterator _first1, Iterator _last1,
+                  Iterator _first2, Iterator _last2, ...)
+{
+    va_list ap;
+    va_start(ap, _last2);
+    FormWO_t op = va_arg(ap, FormWO_t);
+    va_end(ap);
+
+    Iterator first1 = THIS(_first1).ctor(NULL, VA(_first1), VAEND);
+    Iterator first2 = THIS(_first2).ctor(NULL, VA(_first2), VAEND);
+    Iterator result = _find_end(first1, _last1, first2, _last2, op);
+    delete(first1);
+    delete(first2);
+    return result;
+}
