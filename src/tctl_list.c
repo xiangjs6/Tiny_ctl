@@ -107,8 +107,10 @@ static void _iter_inc(void *_this);
 static bool _iter_equal(const void *_this, FormWO_t _x);
 static void *_iter_ctor(void *_this, va_list *app);
 static void *_iter_derefer(const void *_this);
+static Iterator _iter_reserve_iterator(void *_this);
 //init
 static const void *__ListIter = NULL;
+static const void *__RListIter = NULL;
 static const void *__List = NULL;
 static const void *__ListClass = NULL;
 volatile static struct ListSelector ListS = {
@@ -153,6 +155,19 @@ static void initList(void)
                          _ClassS->dec, _iter_dec,
                          _ClassS->assign, _iter_assign,
                          _IteratorS->derefer, _iter_derefer,
+                         _IteratorS->reserve_iterator, _iter_reserve_iterator,
+                         Selector, _IteratorS, NULL);
+    }
+    if (!__RListIter) {
+        __RListIter = new(_IteratorClass(), "RListIter",
+                         T(Iterator), sizeof(struct ListIter) + classSz(_Iterator().class),
+                         _MetaClassS->ctor, _iter_ctor,
+                         _ClassS->equal, _iter_equal,
+                         _ClassS->inc, _iter_dec,
+                         _ClassS->dec, _iter_inc,
+                         _ClassS->assign, _iter_assign,
+                         _IteratorS->derefer, _iter_derefer,
+                         _IteratorS->reserve_iterator, _iter_reserve_iterator,
                          Selector, _IteratorS, NULL);
     }
     if (!__ListClass) {
@@ -210,6 +225,14 @@ static Form_t _ListIter(void)
         initList();
     return (Form_t){OBJ, .class = __ListIter};
 }
+
+static Form_t _RListIter(void)
+{
+    if (!__RListIter)
+        initList();
+    return (Form_t){OBJ, .class = __RListIter};
+}
+
 //private
 static struct ListNode *_insert_aux(struct List *this, struct ListNode *node, FormWO_t _x)
 {
@@ -303,9 +326,8 @@ static void _dealListArgs(void *_this, FormWO_t *args, int n)
         while (!THIS(first).equal(VA(last)))
         {
             void *obj = THIS(first).derefer();
-            if (t.f == POD) {
-                char (*p)[t.size] = obj;
-                _list_push_back(_this, VA(VA_ADDR(*p)));
+            if (t.f == ADDR) {
+                _list_push_back(_this, FORM_WITH_OBJ(t, obj));
             } else if (t.f == OBJ) {
                 _list_push_back(_this, FORM_WITH_OBJ(t, obj));
             }
@@ -324,8 +346,12 @@ static void *_iter_ctor(void *_this, va_list *app)
     FormWO_t t = va_arg(*app, FormWO_t);
     if (t._.f == OBJ) {
         if (t._.class == _Iterator().class) {
-            assert(classOf(t.mem) == __ListIter);
-            struct ListIter *it = offsetOf(t.mem, __ListIter);
+            assert(classOf(t.mem) == __ListIter || classOf(t.mem) == __RListIter);
+            struct ListIter *it;
+            if (classOf(t.mem) == __ListIter)
+                it = offsetOf(t.mem, __ListIter);
+            else
+                it = offsetOf(t.mem, __RListIter);
             *this = *it;
         }
     } else if (t._.f == POD) {
@@ -360,6 +386,18 @@ static void _iter_assign(void *_this, FormWO_t _x)
     struct ListIter *this = offsetOf(_this, __ListIter);
     struct ListIter *x = offsetOf(_x.mem, __ListIter);
     this->node = x->node;
+}
+
+static Iterator _iter_reserve_iterator(void *_this)
+{
+    Iterator it = (void*)_this;
+    if (classOf(_this) == __ListIter) {
+        void *mem = ARP_MallocARelDtor(classSz(__RListIter), destroy);
+        return construct(_RListIter(), mem, VA(it), VAEND);
+    } else {
+        void *mem = ARP_MallocARelDtor(classSz(__ListIter), destroy);
+        return construct(_ListIter(), mem, VA(it), VAEND);
+    }
 }
 
 static void *_iter_derefer(const void *_this)

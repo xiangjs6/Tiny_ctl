@@ -95,8 +95,10 @@ static bool _iter_equal(const void *_this, FormWO_t _x);
 static void *_iter_ctor(void *_this, va_list *app);
 static void *_iter_derefer(const void *_this);
 static long long _iter_dist(const void *_this, Iterator _it);
+static Iterator _iter_reserve_iterator(const void *_this);
 //init
 static const void *__VectorIter = NULL;
+static const void *__RVectorIter = NULL;
 static const void *__Vector = NULL;
 static const void *__VectorClass = NULL;
 volatile static struct VectorSelector VectorS = {
@@ -142,6 +144,26 @@ static void initVector(void)
                            _ClassS->sub, _iter_sub,
                            _IteratorS->derefer, _iter_derefer,
                            _IteratorS->dist, _iter_dist,
+                           _IteratorS->reserve_iterator, _iter_reserve_iterator,
+                           Selector, _IteratorS, NULL);
+    }
+    if (!__RVectorIter) {
+        __RVectorIter = new(_IteratorClass(), "RVectorIter",
+                           T(Iterator), sizeof(struct VectorIter) + classSz(_Iterator().class),
+                           _MetaClassS->ctor, _iter_ctor,
+                           _ClassS->equal, _iter_equal,
+                           _ClassS->cmp, _iter_cmp,
+                           _ClassS->brackets, _iter_brackets,
+                           _ClassS->inc, _iter_dec,
+                           _ClassS->dec, _iter_inc,
+                           _ClassS->self_add, _iter_self_sub,
+                           _ClassS->self_sub, _iter_self_add,
+                           _ClassS->assign, _iter_assign,
+                           _ClassS->add, _iter_sub,
+                           _ClassS->sub, _iter_add,
+                           _IteratorS->derefer, _iter_derefer,
+                           _IteratorS->dist, _iter_dist,
+                           _IteratorS->reserve_iterator, _iter_reserve_iterator,
                            Selector, _IteratorS, NULL);
     }
     if (!__VectorClass) {
@@ -192,6 +214,13 @@ static Form_t _VectorIter(void)
     if (!__VectorIter)
         initVector();
     return (Form_t){OBJ, .class = __VectorIter};
+}
+
+static Form_t _RVectorIter(void)
+{
+    if (!__RVectorIter)
+        initVector();
+    return (Form_t){OBJ, .class = __RVectorIter};
 }
 
 //private
@@ -285,9 +314,8 @@ static void _dealVectorArgs(void *_this, FormWO_t *args, int n)
         while (!THIS(first).equal(VA(last)))
         {
             void *obj = THIS(first).derefer();
-            if (t.f == POD) {
-                char (*p)[t.size] = obj;
-                _vector_push_back(_this, VA(VA_ADDR(*p)));
+            if (t.f == ADDR) {
+                _vector_push_back(_this, FORM_WITH_OBJ(t, obj));
             } else if (t.f == OBJ || t.f == ADDR) {
                 _vector_push_back(_this, FORM_WITH_OBJ(t, obj));
             }
@@ -340,8 +368,12 @@ static void *_iter_ctor(void *_this, va_list *app)
         char c = *s_p++;
         void *res = _dealIterVaryArg(t, &c);
         if (c == 'I') {
-            assert(classOf(res) == __VectorIter);
-            struct VectorIter *it = offsetOf(res, __VectorIter);
+            assert(classOf(res) == __VectorIter || classOf(res) == __RVectorIter);
+            struct VectorIter *it;
+            if (classOf(res) == __VectorIter)
+                it = offsetOf(res, __VectorIter);
+            else
+                it = offsetOf(res, __RVectorIter);
             *this = *it;
             break;
         } else if (c == 'S') {
@@ -460,6 +492,18 @@ static long long _iter_dist(const void *_this, Iterator _it)
     assert(classOf(_it) == __VectorIter);
     struct VectorIter *it = offsetOf(_it, __VectorIter);
     return it->cur - this->cur;
+}
+
+static Iterator _iter_reserve_iterator(const void *_this)
+{
+    Iterator it = (void*)_this;
+    if (classOf(_this) == __VectorIter) {
+        void *mem = ARP_MallocARelDtor(classSz(__RVectorIter), destroy);
+        return construct(_RVectorIter(), mem, VA(it), VAEND);
+    } else {
+        void *mem = ARP_MallocARelDtor(classSz(__VectorIter), destroy);
+        return construct(_VectorIter(), mem, VA(it), VAEND);
+    }
 }
 
 //VectorClass
