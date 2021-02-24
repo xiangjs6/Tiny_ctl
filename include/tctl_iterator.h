@@ -6,12 +6,13 @@
 #define TINY_CTL_TCTL_ITERATOR_H
 #include "tctl_metaclass.h"
 #include "tctl_class.h"
-#define ITERATOR_FUNC                        \
-struct {                                     \
-    CLASS_FUNC;                              \
-    void *(*derefer)(void);                  \
-    Form_t (*type)(void);                    \
-    long long (*dist)(struct _Iterator *it); \
+#define ITERATOR_FUNC                   \
+struct {                                \
+    CLASS_FUNC;                         \
+    void *(*derefer)(void);             \
+    Form_t (*type)(void);               \
+    long long (*dist)(Iterator it);     \
+    Iterator (*reserve_iterator)(void); \
 }
 
 enum IterRank {
@@ -26,10 +27,11 @@ struct {                      \
     const enum IterRank rank; \
 }
 
-typedef struct _Iterator{
+typedef struct _Iterator *Iterator;
+struct _Iterator{
     METAOBJECT_HEAD(ITERATOR_FUNC);
     ITERATOR_OBJ;
-} *Iterator;
+};
 
 Form_t _IteratorClass(void);
 Form_t _Iterator(void);
