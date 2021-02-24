@@ -20,6 +20,14 @@ int main(void)
     for (; !THIS(start).equal(VA(oriPointIter(obj_array, 10))); THIS(start).inc())
         printf("%lld ", ((Int)THIS(start).derefer())->val);
     putchar('\n');
+
+    Iterator r_it = THIS(start).reserve_iterator();
+    do
+    {
+        THIS(r_it).inc();
+        printf("%lld ", ((Int)THIS(r_it).derefer())->val);
+    } while(!THIS(r_it).equal(VA(oriPointIter(obj_array))));
+    putchar('\n');
     ARP_FreePool();
     return 0;
 }

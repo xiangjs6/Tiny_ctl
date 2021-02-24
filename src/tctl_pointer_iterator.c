@@ -28,8 +28,10 @@ static bool _iter_equal(const void *_this, FormWO_t _x);
 static void *_iter_ctor(void *_this, va_list *app);
 static void *_iter_derefer(const void *_this);
 static long long _iter_dist(const void *_this, Iterator _it);
+static Iterator _iter_reserve_iterator(const void *_this);
 //OriPointIter对象
 static const void *__OriPointIter = NULL;
+static const void *__ROriPointIter = NULL;
 //init
 static void initOriPointIter(void)
 {
@@ -51,6 +53,26 @@ static void initOriPointIter(void)
                            _ClassS->sub, _iter_sub,
                            _IteratorS->derefer, _iter_derefer,
                            _IteratorS->dist, _iter_dist,
+                           _IteratorS->reserve_iterator, _iter_reserve_iterator,
+                           Selector, _IteratorS, NULL);
+    }
+    if (!__ROriPointIter) {
+        __ROriPointIter = new(_IteratorClass(), "ROriPointIter",
+                           T(Iterator), sizeof(struct OriPointIter) + classSz(_Iterator().class),
+                           _MetaClassS->ctor, _iter_ctor,
+                           _ClassS->equal, _iter_equal,
+                           _ClassS->cmp, _iter_cmp,
+                           _ClassS->brackets, _iter_brackets,
+                           _ClassS->inc, _iter_dec,
+                           _ClassS->dec, _iter_inc,
+                           _ClassS->self_add, _iter_self_sub,
+                           _ClassS->self_sub, _iter_self_add,
+                           _ClassS->assign, _iter_assign,
+                           _ClassS->add, _iter_sub,
+                           _ClassS->sub, _iter_add,
+                           _IteratorS->derefer, _iter_derefer,
+                           _IteratorS->dist, _iter_dist,
+                           _IteratorS->reserve_iterator, _iter_reserve_iterator,
                            Selector, _IteratorS, NULL);
     }
 }
@@ -61,6 +83,14 @@ static Form_t _OriPointIter(void)
         initOriPointIter();
     return (Form_t){OBJ, .class = __OriPointIter};
 }
+
+static Form_t _ROriPointIter(void)
+{
+    if (!__ROriPointIter)
+        initOriPointIter();
+    return (Form_t){OBJ, .class = __ROriPointIter};
+}
+
 //Iterator
 static void *_iter_ctor(void *_this, va_list *app)
 {
@@ -78,8 +108,12 @@ static void *_iter_ctor(void *_this, va_list *app)
             break;
         case OBJ:
             assert(t._.class == T(Iterator).class);
-            assert(classOf(t.mem) == __OriPointIter);
-            struct OriPointIter *p = offsetOf(t.mem, __OriPointIter);
+            assert(classOf(t.mem) == __OriPointIter || classOf(t.mem) == __ROriPointIter);
+            struct OriPointIter *p;
+            if (classOf(t.mem) == __OriPointIter)
+                p = offsetOf(t.mem, __OriPointIter);
+            else
+                p = offsetOf(t.mem, __ROriPointIter);
             *this = *p;
             break;
         default:
@@ -203,6 +237,18 @@ static long long _iter_dist(const void *_this, Iterator _it)
     assert(classOf(_it) == __OriPointIter);
     struct OriPointIter *it = offsetOf(_it, __OriPointIter);
     return it->cur - this->cur;
+}
+
+static Iterator _iter_reserve_iterator(const void *_this)
+{
+    Iterator it = (void*)_this;
+    if (classOf(_this) == __OriPointIter) {
+        void *mem = ARP_MallocARelDtor(classSz(__OriPointIter), destroy);
+        return construct(_ROriPointIter(), mem, VA(it), VAEND);
+    } else {
+        void *mem = ARP_MallocARelDtor(classSz(__ROriPointIter), destroy);
+        return construct(_OriPointIter(), mem, VA(it), VAEND);
+    }
 }
 
 //对外接口
