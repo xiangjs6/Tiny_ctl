@@ -101,8 +101,10 @@ static bool _iter_equal(const void *_this, FormWO_t _x);
 static void *_iter_ctor(void *_this, va_list *app);
 static void *_iter_derefer(const void *_this);
 static long long _iter_dist(const void *_this, Iterator _it);
+static Iterator _iter_reserve_iterator(const void *_this);
 //init
 static const void *__DequeIter = NULL;
+static const void *__RDequeIter = NULL;
 static const void *__Deque = NULL;
 static const void *__DequeClass = NULL;
 volatile static struct DequeSelector DequeS = {
@@ -149,6 +151,26 @@ static void initDeque(void)
                            _ClassS->sub, _iter_sub,
                            _IteratorS->derefer, _iter_derefer,
                            _IteratorS->dist, _iter_dist,
+                           _IteratorS->reserve_iterator, _iter_reserve_iterator,
+                           Selector, _IteratorS, NULL);
+    }
+    if (!__RDequeIter) {
+        __RDequeIter = new(_IteratorClass(), "RDequeIter",
+                           T(Iterator), sizeof(struct DequeIter) + classSz(_Iterator().class),
+                           _MetaClassS->ctor, _iter_ctor,
+                           _ClassS->equal, _iter_equal,
+                           _ClassS->cmp, _iter_cmp,
+                           _ClassS->brackets, _iter_brackets,
+                           _ClassS->inc, _iter_dec,
+                           _ClassS->dec, _iter_inc,
+                           _ClassS->self_add, _iter_self_sub,
+                           _ClassS->self_sub, _iter_self_add,
+                           _ClassS->assign, _iter_assign,
+                           _ClassS->add, _iter_sub,
+                           _ClassS->sub, _iter_add,
+                           _IteratorS->derefer, _iter_derefer,
+                           _IteratorS->dist, _iter_dist,
+                           _IteratorS->reserve_iterator, _iter_reserve_iterator,
                            Selector, _IteratorS, NULL);
     }
     if (!__DequeClass) {
@@ -201,6 +223,14 @@ static Form_t _DequeIter(void)
         initDeque();
     return (Form_t){OBJ, .class = __DequeIter};
 }
+
+static Form_t _RDequeIter(void)
+{
+    if (!__RDequeIter)
+        initDeque();
+    return (Form_t){OBJ, .class = __RDequeIter};
+}
+
 //private
 static void extend_map(struct Deque *this)
 {
@@ -270,9 +300,8 @@ static void _dealDequeArgs(void *_this, FormWO_t *args, int n)
         while (!THIS(first).equal(VA(last)))
         {
             void *obj = THIS(first).derefer();
-            if (t.f == POD) {
-                char (*p)[t.size] = obj;;
-                _deque_push_back(_this, VA(VA_ADDR(*p)));
+            if (t.f == ADDR) {
+                _deque_push_back(_this, FORM_WITH_OBJ(t, obj));
             } else if (t.f == OBJ) {
                 _deque_push_back(_this, FORM_WITH_OBJ(t, obj));
             }
@@ -452,6 +481,18 @@ static long long _iter_dist(const void *_this, Iterator _it)
     size_t buf_size = ((char*)this->last - (char*)this->first) / memb_size;
     struct DequeIter *it = offsetOf(_it, __DequeIter);
     return dist_aux(this, it, memb_size, buf_size);
+}
+
+static Iterator _iter_reserve_iterator(const void *_this)
+{
+    Iterator it = (void*)_this;
+    if (classOf(_this) == __RDequeIter) {
+        void *mem = ARP_MallocARelDtor(classSz(__RDequeIter), destroy);
+        return construct(_DequeIter(), mem, VA(it), VAEND);
+    } else {
+        void *mem = ARP_MallocARelDtor(classSz(__DequeIter), destroy);
+        return construct(_RDequeIter(), mem, VA(it), VAEND);
+    }
 }
 
 //DequeClass
