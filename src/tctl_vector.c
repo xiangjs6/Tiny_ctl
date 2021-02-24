@@ -498,10 +498,10 @@ static Iterator _iter_reserve_iterator(const void *_this)
 {
     Iterator it = (void*)_this;
     if (classOf(_this) == __VectorIter) {
-        void *mem = ARP_MallocARelDtor(classSz(__RVectorIter), destroy);
+        void *mem = ARP_MallocARelDtor(classSz(__VectorIter), destroy);
         return construct(_RVectorIter(), mem, VA(it), VAEND);
     } else {
-        void *mem = ARP_MallocARelDtor(classSz(__VectorIter), destroy);
+        void *mem = ARP_MallocARelDtor(classSz(__RVectorIter), destroy);
         return construct(_VectorIter(), mem, VA(it), VAEND);
     }
 }

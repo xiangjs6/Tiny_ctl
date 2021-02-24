@@ -392,10 +392,10 @@ static Iterator _iter_reserve_iterator(void *_this)
 {
     Iterator it = (void*)_this;
     if (classOf(_this) == __ListIter) {
-        void *mem = ARP_MallocARelDtor(classSz(__RListIter), destroy);
+        void *mem = ARP_MallocARelDtor(classSz(__ListIter), destroy);
         return construct(_RListIter(), mem, VA(it), VAEND);
     } else {
-        void *mem = ARP_MallocARelDtor(classSz(__ListIter), destroy);
+        void *mem = ARP_MallocARelDtor(classSz(__RListIter), destroy);
         return construct(_ListIter(), mem, VA(it), VAEND);
     }
 }
