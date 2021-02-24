@@ -81,8 +81,10 @@ static void _iter_dec(void *_this);
 static bool _iter_equal(const void *_this, FormWO_t _x);
 static void *_iter_ctor(void *_this, va_list *app);
 static void *_iter_derefer(const void *_this);
+static Iterator _iter_reserve_iterator(void *_this);
 //init
 static const void *__RB_treeIter = NULL;
+static const void *__RRB_treeIter = NULL;
 static const void *__RB_tree = NULL;
 static const void *__RB_treeClass = NULL;
 volatile static struct RB_treeSelector RB_treeS = {
@@ -118,6 +120,19 @@ static void initRB_tree(void)
                          _ClassS->dec, _iter_dec,
                          _ClassS->assign, _iter_assign,
                          _IteratorS->derefer, _iter_derefer,
+                         _IteratorS->reserve_iterator, _iter_reserve_iterator,
+                         Selector, _IteratorS, NULL);
+    }
+    if (!__RRB_treeIter) {
+        __RRB_treeIter = new(_IteratorClass(), "RRB_treeIter",
+                         T(Iterator), sizeof(struct RB_treeIter) + classSz(_Iterator().class),
+                         _MetaClassS->ctor, _iter_ctor,
+                         _ClassS->equal, _iter_equal,
+                         _ClassS->inc, _iter_dec,
+                         _ClassS->dec, _iter_inc,
+                         _ClassS->assign, _iter_assign,
+                         _IteratorS->derefer, _iter_derefer,
+                         _IteratorS->reserve_iterator, _iter_reserve_iterator,
                          Selector, _IteratorS, NULL);
     }
     if (!__RB_treeClass) {
@@ -164,6 +179,13 @@ static Form_t _RB_treeIter(void)
     if (!__RB_treeIter)
         initRB_tree();
     return (Form_t){OBJ, .class = __RB_treeIter};
+}
+
+static Form_t _RRB_treeIter(void)
+{
+    if (!__RRB_treeIter)
+        initRB_tree();
+    return (Form_t){OBJ, .class = __RRB_treeIter};
 }
 
 //private
@@ -547,8 +569,12 @@ static void *_iter_ctor(void *_this, va_list *app)
     FormWO_t t = va_arg(*app, FormWO_t);
     if (t._.f == OBJ) {
         if (t._.class == _Iterator().class) {
-            assert(classOf(t.mem) == __RB_treeIter);
-            struct RB_treeIter *it = offsetOf(t.mem, __RB_treeIter);
+            assert(classOf(t.mem) == __RB_treeIter || classOf(t.mem) == __RRB_treeIter);
+            struct RB_treeIter *it;
+            if (classOf(t.mem) == __RB_treeIter)
+                it = offsetOf(t.mem, __RB_treeIter);
+            else
+                it = offsetOf(t.mem, __RRB_treeIter);
             *this = *it;
         }
     } else if (t._.f == POD) {
@@ -621,6 +647,18 @@ static void *_iter_derefer(const void *_this)
 {
     struct RB_treeIter *this = offsetOf(_this, __RB_treeIter);
     return this->node->base_ptr;
+}
+
+static Iterator _iter_reserve_iterator(void *_this)
+{
+    Iterator it = (void*)_this;
+    if (classOf(_this) == __RB_treeIter) {
+        void *mem = ARP_MallocARelDtor(classSz(__RB_treeIter), destroy);
+        return construct(_RRB_treeIter(), mem, VA(it), VAEND);
+    } else {
+        void *mem = ARP_MallocARelDtor(classSz(__RRB_treeIter), destroy);
+        return construct(_RB_treeIter(), mem, VA(it), VAEND);
+    }
 }
 
 //RB_treeClass
