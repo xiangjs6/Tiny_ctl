@@ -30,6 +30,24 @@ inline static int CompareOpt(FormWO_t a, FormWO_t b, FormWO_t op)
     }
 }
 
+inline static bool EqualOpt(FormWO_t a, FormWO_t b, FormWO_t op)
+{
+    if (op._.f != FUNC) {
+        if (a._.f == OBJ) {
+            Object obj = a.mem;
+            return THIS(obj).equal(b);
+        } else {
+            if (op._.f == ADDR)
+                return memcmp(a.mem, b.mem, a._.size);
+            else
+                return memcmp(&a.mem, &b.mem, a._.size);
+        }
+    } else {
+        Equal eq = op.mem;
+        return eq(a, b);
+    }
+}
+
 static inline void AssignOpt(FormWO_t left, FormWO_t right, FormWO_t op)
 {
     if (op._.f != FUNC) {
@@ -363,4 +381,40 @@ Iterator find_end(Iterator _first1, Iterator _last1,
     delete(first1);
     delete(first2);
     return result;
+}
+
+Iterator find_first_of(Iterator _first1, Iterator _last1,
+                       Iterator _first2, Iterator _last2, ...)
+{
+    va_list ap;
+    va_start(ap, _last2);
+    FormWO_t op = va_arg(ap, FormWO_t);
+    va_end(ap);
+
+    void *mem = ARP_MallocARelDtor(sizeOf(_first1), destroy);
+    Iterator first1 = THIS(_first1).ctor(mem, VA(_first1), VAEND);
+    Form_t f1 = THIS(_first1).type();
+    Form_t f2 = THIS(_first2).type();
+    for (; !THIS(first1).equal(VA(_last1)); THIS(first1).inc()) {
+        Iterator iter = THIS(_first2).ctor(NULL, VA(_first2), VAEND);
+        for (; !THIS(iter).equal(VA(_last2)); THIS(iter).inc())
+            if (EqualOpt(FORM_WITH_OBJ(f1, THIS(first1).derefer()),
+                         FORM_WITH_OBJ(f2, THIS(iter).derefer()),
+                         op)) {
+                delete(iter);
+                break;
+            }
+        delete(iter);
+    }
+    return first1;
+}
+
+UnaryFunc for_each(Iterator _first, Iterator _last, UnaryFunc f)
+{
+    Iterator iter = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    Form_t t = THIS(_first).type();
+    for (; !THIS(iter).equal(VA(_last)); THIS(iter).inc())
+        f(FORM_WITH_OBJ(t, THIS(iter).derefer()));
+    delete(iter);
+    return f;
 }
