@@ -330,14 +330,22 @@ static Iterator _find_end(Iterator first1, Iterator last1,
         return THIS(last1).ctor(mem, VA(last1), VAEND);
     }
     Iterator result = last1; //result是引用
-    while (true)
-    {
-        Iterator new_result = search(first1, last1, first2, last2, op);
-        if (THIS(new_result).equal(VA(last1)))
-            return result;
-        result = new_result;
-        THIS(first1).assign(VA(new_result)); //first1是赋值
-        THIS(first1).inc();
+    if (last1->rank < BidirectionalIter && last2->rank < BidirectionalIter) {
+        while (true)
+        {
+            Iterator new_result = search(first1, last1, first2, last2, op);
+            if (THIS(new_result).equal(VA(last1)))
+                return result;
+            result = new_result;
+            THIS(first1).assign(VA(new_result)); //first1是赋值
+            THIS(first1).inc();
+        }
+    } else {
+        Iterator r_last1 = THIS(last1).reserve_iterator();
+        Iterator r_last2 = THIS(last2).reserve_iterator();
+        Iterator r_result = search(r_last1, first1, r_last2, first2, op);
+        result = THIS(r_result).reserve_iterator();
+        return result;
     }
 }
 

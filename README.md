@@ -1,7 +1,6 @@
 ﻿# Tiny_ctl
 ## 记录问题：
 1. power算法待解决
-2. find_end函数的逆向查找
 ## 编译使用
 ```shell
 cd src
