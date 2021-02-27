@@ -418,3 +418,177 @@ UnaryFunc for_each(Iterator _first, Iterator _last, UnaryFunc f)
     delete(iter);
     return f;
 }
+
+void generate(Iterator _first, Iterator _last, Generator gen, ...)
+{
+    va_list ap;
+    va_start(ap, gen);
+    FormWO_t op = va_arg(ap, FormWO_t);
+    va_end(ap);
+
+    Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    Form_t f = THIS(first).type();
+    for (; !THIS(first).equal(VA(_last)); THIS(first).inc())
+        AssignOpt(FORM_WITH_OBJ(f, THIS(first).derefer()), gen(), op);
+    delete(first);
+}
+
+Iterator generate_n(Iterator _first, size_t n, Generator gen, ...)
+{
+    va_list ap;
+    va_start(ap, gen);
+    FormWO_t op = va_arg(ap, FormWO_t);
+    va_end(ap);
+
+    void *mem = ARP_MallocARelDtor(sizeOf(_first), destroy);
+    Iterator first = THIS(_first).ctor(mem, VA(_first), VAEND);
+    Form_t f = THIS(first).type();
+    for (; n--; THIS(first).inc())
+        AssignOpt(FORM_WITH_OBJ(f, THIS(first).derefer()), gen(), op);
+    return first;
+}
+
+bool includes(Iterator _first1, Iterator _last1,
+              Iterator _first2, Iterator _last2, ...)
+{
+    va_list ap;
+    va_start(ap, _last2);
+    FormWO_t op = va_arg(ap, FormWO_t);
+    va_end(ap);
+
+    Iterator first1 = THIS(_first1).ctor(NULL, VA(_first1), VAEND);
+    Iterator first2 = THIS(_first2).ctor(NULL, VA(_first2), VAEND);
+    Form_t f1 = THIS(first1).type();
+    Form_t f2 = THIS(first2).type();
+
+    while (!THIS(first1).equal(VA(_last1)) && !THIS(first2).equal(VA(_last2)))
+    {
+        int res = CompareOpt(FORM_WITH_OBJ(f1, THIS(first1).derefer()),
+                             FORM_WITH_OBJ(f2, THIS(first2).derefer()), op);
+        if (res > 0) {
+            delete(first1);
+            delete(first2);
+            return false;
+        } else if (res < 0)
+            THIS(first1).inc();
+        else {
+            THIS(first1).inc();
+            THIS(first2).inc();
+        }
+    }
+    delete(first1);
+    delete(first2);
+    return true;
+}
+
+Iterator max_element(Iterator _first, Iterator _last, ...)
+{
+    va_list ap;
+    va_start(ap, _last);
+    FormWO_t op = va_arg(ap, FormWO_t);
+    va_end(ap);
+
+    void *mem = ARP_MallocARelDtor(sizeOf(_first), destroy);
+    Iterator result = THIS(_first).ctor(mem, VA(_first), VAEND);
+    if (THIS(_first).equal(VA(_last))) return result;
+    Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    Form_t f = THIS(_first).type();
+    for (THIS(first).inc(); !THIS(first).equal(VA(_last)); THIS(first).inc())
+        if (CompareOpt(FORM_WITH_OBJ(f, THIS(result).derefer()),
+                       FORM_WITH_OBJ(f, THIS(first).derefer()), op) < 0)
+            THIS(result).assign(VA(first));
+    delete(first);
+    return result;
+}
+
+Iterator merge(Iterator _first1, Iterator _last1,
+               Iterator _first2, Iterator _last2,
+               Iterator _result, ...)
+{
+    enum {Assign, Compare};
+    FormWO_t op[2] = {VAEND, VAEND};
+    va_list ap;
+    va_start(ap, _result);
+    for (int i = 0; i < ARR_LEN(op); i++)
+        op[i] = va_arg(ap, FormWO_t);
+    va_end(ap);
+
+    Iterator first1 = THIS(_first1).ctor(NULL, VA(_first1), VAEND);
+    Iterator first2 = THIS(_first2).ctor(NULL, VA(_first2), VAEND);
+    Iterator result = THIS(_result).ctor(NULL, VA(_result), VAEND);
+    Form_t f1 = THIS(_first1).type();
+    Form_t f2 = THIS(_first2).type();
+    Form_t f3 = THIS(_result).type();
+    while (!THIS(first1).equal(VA(_last1)) && !THIS(first2).equal(VA(_last2)))
+    {
+        if (CompareOpt(FORM_WITH_OBJ(f1, THIS(first1).derefer()),
+                       FORM_WITH_OBJ(f2, THIS(first2).derefer()), op[Compare]) < 0) {
+            AssignOpt(FORM_WITH_OBJ(f3, THIS(result).derefer()),
+                      FORM_WITH_OBJ(f1, THIS(first1).derefer()), op[Assign]);
+            THIS(first1).inc();
+        } else {
+            AssignOpt(FORM_WITH_OBJ(f3, THIS(result).derefer()),
+                      FORM_WITH_OBJ(f2, THIS(first2).derefer()), op[Assign]);
+            THIS(first2).inc();
+        }
+        THIS(result).inc();
+    }
+    Iterator tmp = result;
+    result = copy(first2, _last2, (delete(result), copy(first1, _last1, result)));
+    delete(tmp);
+    delete(first1);
+    delete(first2);
+    return result;
+}
+
+Iterator min_element(Iterator _first, Iterator _last, ...)
+{
+    va_list ap;
+    va_start(ap, _last);
+    FormWO_t op = va_arg(ap, FormWO_t);
+    va_end(ap);
+
+    void *mem = ARP_MallocARelDtor(sizeOf(_first), destroy);
+    Iterator result = THIS(_first).ctor(mem, VA(_first), VAEND);
+    if (THIS(_first).equal(VA(_last))) return result;
+    Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    Form_t f = THIS(_first).type();
+    for (THIS(first).inc(); !THIS(first).equal(VA(_last)); THIS(first).inc())
+        if (CompareOpt(FORM_WITH_OBJ(f, THIS(result).derefer()),
+                       FORM_WITH_OBJ(f, THIS(first).derefer()), op) > 0)
+            THIS(result).assign(VA(first));
+    delete(first);
+    return result;
+}
+
+Iterator partition(Iterator _first, Iterator _last, Predicate pred)
+{
+    assert(_first->rank >= BidirectionalIter && _last->rank >= BidirectionalIter);
+    void *mem = ARP_MallocARelDtor(sizeOf(_first), destroy);
+    Iterator first = THIS(_first).ctor(mem, VA(_first), VAEND);
+    Iterator last = THIS(_last).ctor(NULL, VA(_last), VAEND);
+    Form_t f = THIS(_first).type();
+    
+    while (true)
+    {
+        while (true)
+            if (THIS(first).equal(VA(last))) {
+                delete(last);
+                return first;
+            } else if (pred(FORM_WITH_OBJ(f, THIS(first).derefer())))
+                THIS(first).inc();
+            else
+                break;
+        THIS(last).dec();
+        while (true)
+            if (THIS(first).equal(VA(last))) {
+                delete(last);
+                return first;
+            } else if (!pred(FORM_WITH_OBJ(f, THIS(last).derefer())))
+                THIS(last).dec();
+            else
+                break;
+        iter_swap(first, last);
+        THIS(first).inc();
+    }
+}
