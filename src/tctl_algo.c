@@ -270,9 +270,8 @@ Iterator adjacent_find(Iterator _first, Iterator _last, .../*Equal*/)
     Iterator next = THIS(_first).ctor(NULL, VA(_first), VAEND);
     Form_t f = THIS(next).type();
     for (THIS(next).inc(); !THIS(next).equal(VA(_last)); THIS(first).inc(), THIS(next).inc()) {
-        int res = EqualOpt(FORM_WITH_OBJ(f, THIS(next).derefer()),
-                           FORM_WITH_OBJ(f, THIS(first).derefer()), op);
-        if (!res)
+        if (EqualOpt(FORM_WITH_OBJ(f, THIS(next).derefer()),
+                     FORM_WITH_OBJ(f, THIS(first).derefer()), op))
             break;
     }
     delete(next);
@@ -324,7 +323,7 @@ Iterator find(Iterator _first, Iterator _last, FormWO_t val, ...)
     Iterator first = THIS(_first).ctor(mem, VA(_first), VAEND);
     Form_t f = THIS(first).type();
     while (!THIS(first).equal(VA(_last)) &&
-           EqualOpt(val, FORM_WITH_OBJ(f, THIS(first).derefer()), op))
+           !EqualOpt(val, FORM_WITH_OBJ(f, THIS(first).derefer()), op))
         THIS(first).inc();
     return first;
 }
