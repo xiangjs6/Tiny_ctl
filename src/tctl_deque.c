@@ -102,7 +102,7 @@ static void *_iter_ctor(void *_this, va_list *app);
 static void *_iter_derefer(const void *_this);
 static long long _iter_dist(const void *_this, Iterator _it);
 static long long _riter_dist(const void *_this, Iterator _it);
-static Iterator _iter_reserve_iterator(const void *_this);
+static Iterator _iter_reverse_iterator(const void *_this);
 //init
 static const void *__DequeIter = NULL;
 static const void *__RDequeIter = NULL;
@@ -152,7 +152,7 @@ static void initDeque(void)
                            _ClassS->sub, _iter_sub,
                            _IteratorS->derefer, _iter_derefer,
                            _IteratorS->dist, _iter_dist,
-                           _IteratorS->reserve_iterator, _iter_reserve_iterator,
+                           _IteratorS->reverse_iterator, _iter_reverse_iterator,
                            Selector, _IteratorS, NULL);
     }
     if (!__RDequeIter) {
@@ -171,7 +171,7 @@ static void initDeque(void)
                            _ClassS->sub, _iter_add,
                            _IteratorS->derefer, _iter_derefer,
                            _IteratorS->dist, _riter_dist,
-                           _IteratorS->reserve_iterator, _iter_reserve_iterator,
+                           _IteratorS->reverse_iterator, _iter_reverse_iterator,
                            Selector, _IteratorS, NULL);
     }
     if (!__DequeClass) {
@@ -487,7 +487,7 @@ static long long _iter_dist(const void *_this, Iterator _it)
 static long long _riter_dist(const void *_this, Iterator _it)
 {
     struct DequeIter *this = offsetOf(_this, __DequeIter);
-    assert(classOf(_it) == __DequeIter);
+    assert(classOf(_it) == __RDequeIter);
     Form_t t = THIS((Iterator)_this).type();
     size_t memb_size = t.f == OBJ ? classSz(t.class) : t.size;
     size_t buf_size = ((char*)this->last - (char*)this->first) / memb_size;
@@ -495,7 +495,7 @@ static long long _riter_dist(const void *_this, Iterator _it)
     return dist_aux(it, this, memb_size, buf_size);
 }
 
-static Iterator _iter_reserve_iterator(const void *_this)
+static Iterator _iter_reverse_iterator(const void *_this)
 {
     Iterator it = (void*)_this;
     if (classOf(_this) == __RDequeIter) {

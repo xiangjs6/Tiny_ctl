@@ -96,7 +96,7 @@ static void *_iter_ctor(void *_this, va_list *app);
 static void *_iter_derefer(const void *_this);
 static long long _iter_dist(const void *_this, Iterator _it);
 static long long _riter_dist(const void *_this, Iterator _it);
-static Iterator _iter_reserve_iterator(const void *_this);
+static Iterator _iter_reverse_iterator(const void *_this);
 //init
 static const void *__VectorIter = NULL;
 static const void *__RVectorIter = NULL;
@@ -145,7 +145,7 @@ static void initVector(void)
                            _ClassS->sub, _iter_sub,
                            _IteratorS->derefer, _iter_derefer,
                            _IteratorS->dist, _iter_dist,
-                           _IteratorS->reserve_iterator, _iter_reserve_iterator,
+                           _IteratorS->reverse_iterator, _iter_reverse_iterator,
                            Selector, _IteratorS, NULL);
     }
     if (!__RVectorIter) {
@@ -164,7 +164,7 @@ static void initVector(void)
                            _ClassS->sub, _iter_add,
                            _IteratorS->derefer, _iter_derefer,
                            _IteratorS->dist, _riter_dist,
-                           _IteratorS->reserve_iterator, _iter_reserve_iterator,
+                           _IteratorS->reverse_iterator, _iter_reverse_iterator,
                            Selector, _IteratorS, NULL);
     }
     if (!__VectorClass) {
@@ -498,12 +498,12 @@ static long long _iter_dist(const void *_this, Iterator _it)
 static long long _riter_dist(const void *_this, Iterator _it)
 {
     struct VectorIter *this = offsetOf(_this, __VectorIter);
-    assert(classOf(_it) == __VectorIter);
+    assert(classOf(_it) == __RVectorIter);
     struct VectorIter *it = offsetOf(_it, __VectorIter);
     return this->cur - it->cur;
 }
 
-static Iterator _iter_reserve_iterator(const void *_this)
+static Iterator _iter_reverse_iterator(const void *_this)
 {
     Iterator it = (void*)_this;
     if (classOf(_this) == __VectorIter) {

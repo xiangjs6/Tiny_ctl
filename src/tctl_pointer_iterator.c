@@ -28,7 +28,8 @@ static bool _iter_equal(const void *_this, FormWO_t _x);
 static void *_iter_ctor(void *_this, va_list *app);
 static void *_iter_derefer(const void *_this);
 static long long _iter_dist(const void *_this, Iterator _it);
-static Iterator _iter_reserve_iterator(const void *_this);
+static long long _riter_dist(const void *_this, Iterator _it);
+static Iterator _iter_reverse_iterator(const void *_this);
 //OriPointIter对象
 static const void *__OriPointIter = NULL;
 static const void *__ROriPointIter = NULL;
@@ -53,7 +54,7 @@ static void initOriPointIter(void)
                            _ClassS->sub, _iter_sub,
                            _IteratorS->derefer, _iter_derefer,
                            _IteratorS->dist, _iter_dist,
-                           _IteratorS->reserve_iterator, _iter_reserve_iterator,
+                           _IteratorS->reverse_iterator, _iter_reverse_iterator,
                            Selector, _IteratorS, NULL);
     }
     if (!__ROriPointIter) {
@@ -71,8 +72,8 @@ static void initOriPointIter(void)
                            _ClassS->add, _iter_sub,
                            _ClassS->sub, _iter_add,
                            _IteratorS->derefer, _iter_derefer,
-                           _IteratorS->dist, _iter_dist,
-                           _IteratorS->reserve_iterator, _iter_reserve_iterator,
+                           _IteratorS->dist, _riter_dist,
+                           _IteratorS->reverse_iterator, _iter_reverse_iterator,
                            Selector, _IteratorS, NULL);
     }
 }
@@ -239,7 +240,15 @@ static long long _iter_dist(const void *_this, Iterator _it)
     return it->cur - this->cur;
 }
 
-static Iterator _iter_reserve_iterator(const void *_this)
+static long long _riter_dist(const void *_this, Iterator _it)
+{
+    struct OriPointIter *this = offsetOf(_this, __OriPointIter);
+    assert(classOf(_it) == __OriPointIter);
+    struct OriPointIter *it = offsetOf(_it, __OriPointIter);
+    return this->cur - it->cur;
+}
+
+static Iterator _iter_reverse_iterator(const void *_this)
 {
     Iterator it = (void*)_this;
     if (classOf(_this) == __OriPointIter) {

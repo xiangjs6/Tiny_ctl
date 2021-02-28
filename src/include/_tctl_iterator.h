@@ -12,7 +12,7 @@ struct IteratorSelector {
     void *(*derefer)(void);
     Form_t (*type)(void);
     long long (*dist)(Iterator it);
-    Iterator (*reserve_iterator)(void);
+    Iterator (*reverse_iterator)(void);
 };
 
 extern const struct IteratorSelector *_IteratorS;

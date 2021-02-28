@@ -107,7 +107,7 @@ static void _iter_inc(void *_this);
 static bool _iter_equal(const void *_this, FormWO_t _x);
 static void *_iter_ctor(void *_this, va_list *app);
 static void *_iter_derefer(const void *_this);
-static Iterator _iter_reserve_iterator(void *_this);
+static Iterator _iter_reverse_iterator(void *_this);
 //init
 static const void *__ListIter = NULL;
 static const void *__RListIter = NULL;
@@ -155,7 +155,7 @@ static void initList(void)
                          _ClassS->dec, _iter_dec,
                          _ClassS->assign, _iter_assign,
                          _IteratorS->derefer, _iter_derefer,
-                         _IteratorS->reserve_iterator, _iter_reserve_iterator,
+                         _IteratorS->reverse_iterator, _iter_reverse_iterator,
                          Selector, _IteratorS, NULL);
     }
     if (!__RListIter) {
@@ -167,7 +167,7 @@ static void initList(void)
                          _ClassS->dec, _iter_inc,
                          _ClassS->assign, _iter_assign,
                          _IteratorS->derefer, _iter_derefer,
-                         _IteratorS->reserve_iterator, _iter_reserve_iterator,
+                         _IteratorS->reverse_iterator, _iter_reverse_iterator,
                          Selector, _IteratorS, NULL);
     }
     if (!__ListClass) {
@@ -388,7 +388,7 @@ static void _iter_assign(void *_this, FormWO_t _x)
     this->node = x->node;
 }
 
-static Iterator _iter_reserve_iterator(void *_this)
+static Iterator _iter_reverse_iterator(void *_this)
 {
     Iterator it = (void*)_this;
     if (classOf(_this) == __ListIter) {
