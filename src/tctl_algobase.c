@@ -374,7 +374,7 @@ void fill_n(Iterator _first, size_t n, FormWO_t x, .../*Assign*/)
 }
 
 //iter_swap
-void iter_swap(Iterator a, Iterator b, .../*Swap*/)
+void iter_swap(Iterator a, Iterator b, .../*Assign*/)
 {
     Form_t f = THIS(a).type();
     assert(f.f == THIS(b).type().f && f.class == THIS(b).type().class);
@@ -383,28 +383,22 @@ void iter_swap(Iterator a, Iterator b, .../*Swap*/)
     FormWO_t op = va_arg(ap, FormWO_t);
     va_end(ap);
 
-    if (op._.f != FUNC) {
-        if (f.f == OBJ) {
-            Object obj_a = THIS(a).derefer();
-            Object obj_b = THIS(b).derefer();
-            char mem[sizeOf(obj_a)];
-            Object tmp = construct(f, mem, VAEND);
-            THIS(tmp).assign(FORM_WITH_OBJ(f, obj_a));
-            THIS(obj_a).assign(FORM_WITH_OBJ(f, obj_b));
-            THIS(obj_b).assign(FORM_WITH_OBJ(f, tmp));
-            destroy(tmp);
-        } else {
-            char mem[f.size];
-            void *p_a = THIS(a).derefer();
-            void *p_b = THIS(b).derefer();
-            memcpy(mem, p_a, f.size);
-            memcpy(p_a, p_b, f.size);
-            memcpy(p_b, mem, f.size);
-        }
+    if (f.f == OBJ) {
+        Object obj_a = THIS(a).derefer();
+        Object obj_b = THIS(b).derefer();
+        char mem[sizeOf(obj_a)];
+        Object tmp = construct(f, mem, VAEND);
+        AssignOpt(FORM_WITH_OBJ(f, tmp), FORM_WITH_OBJ(f, obj_a), op);
+        AssignOpt(FORM_WITH_OBJ(f, obj_a), FORM_WITH_OBJ(f, obj_b), op);
+        AssignOpt(FORM_WITH_OBJ(f, obj_b), FORM_WITH_OBJ(f, tmp), op);
+        destroy(tmp);
     } else {
-        SwapFunc func = op.mem;
-        func(FORM_WITH_OBJ(f, THIS(a).derefer()),
-             FORM_WITH_OBJ(f, THIS(b).derefer));
+        char mem[f.size];
+        void *p_a = THIS(a).derefer();
+        void *p_b = THIS(b).derefer();
+        AssignOpt(FORM_WITH_OBJ(f, mem), FORM_WITH_OBJ(f, p_a), op);
+        AssignOpt(FORM_WITH_OBJ(f, p_a), FORM_WITH_OBJ(f, p_b), op);
+        AssignOpt(FORM_WITH_OBJ(f, p_b), FORM_WITH_OBJ(f, mem), op);
     }
 }
 
@@ -494,36 +488,32 @@ Pair mismatch(Iterator _first1, Iterator _last1, Iterator _first2, .../*Compare*
 }
 
 //swap
-void swap(FormWO_t a, FormWO_t b, .../*Swap*/)
+void swap(FormWO_t a, FormWO_t b, .../*Assign*/)
 {
     assert(a._.f == ADDR || a._.f == OBJ);
     assert(b._.f == ADDR || b._.f == OBJ);
     assert(a._.class == b._.class);
+    Form_t f = a._;
     va_list ap;
     va_start(ap, b);
     FormWO_t op = va_arg(ap, FormWO_t);
     va_end(ap);
 
-    if (op._.f != FUNC) {
-        if (a._.f == OBJ) {
-            Object obj_a = a.mem;
-            Object obj_b = b.mem;
-            char mem[sizeOf(obj_a)];
-            Object tmp = construct(a._, mem, VAEND);
-            THIS(tmp).assign(FORM_WITH_OBJ(a._, obj_a));
-            THIS(obj_a).assign(FORM_WITH_OBJ(a._, obj_b));
-            THIS(obj_b).assign(FORM_WITH_OBJ(a._, tmp));
-            destroy(tmp);
-        } else {
-            char mem[a._.size];
-            void *p_a = a.mem;
-            void *p_b = b.mem;
-            memcpy(mem, p_a, a._.size);
-            memcpy(p_a, p_b, a._.size);
-            memcpy(p_b, mem, a._.size);
-        }
+    if (a._.f == OBJ) {
+        Object obj_a = a.mem;
+        Object obj_b = b.mem;
+        char mem[sizeOf(obj_a)];
+        Object tmp = construct(a._, mem, VAEND);
+        AssignOpt(FORM_WITH_OBJ(f, tmp), FORM_WITH_OBJ(f, obj_a), op);
+        AssignOpt(FORM_WITH_OBJ(f, obj_a), FORM_WITH_OBJ(f, obj_b), op);
+        AssignOpt(FORM_WITH_OBJ(f, obj_b), FORM_WITH_OBJ(f, tmp), op);
+        destroy(tmp);
     } else {
-        SwapFunc func = op.mem;
-        func(a, b);
+        char mem[a._.size];
+        void *p_a = a.mem;
+        void *p_b = b.mem;
+        AssignOpt(FORM_WITH_OBJ(f, mem), FORM_WITH_OBJ(f, p_a), op);
+        AssignOpt(FORM_WITH_OBJ(f, p_a), FORM_WITH_OBJ(f, p_b), op);
+        AssignOpt(FORM_WITH_OBJ(f, p_b), FORM_WITH_OBJ(f, mem), op);
     }
 }

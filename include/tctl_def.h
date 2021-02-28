@@ -15,7 +15,6 @@ typedef char byte;
 
 typedef int (*Compare)(FormWO_t, FormWO_t);
 typedef bool (*Equal)(FormWO_t, FormWO_t);
-typedef void (*SwapFunc)(FormWO_t, FormWO_t);
 typedef bool (*Predicate)(FormWO_t);
 typedef FormWO_t (*Generator)(void);
 typedef void (*UnaryFunc)(FormWO_t);
