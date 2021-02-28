@@ -40,4 +40,5 @@ Form_t _Iterator(void);
 #define ITERATOR Iterator : _Iterator()
 
 long long distance(Iterator, Iterator);
+void advance(Iterator it, long long n);
 #endif //TINY_CTL_TCTL_ITERATOR_H

@@ -190,3 +190,19 @@ long long distance(Iterator _a, Iterator _b)
     return dis;
 }
 
+void advance(Iterator it, long long n)
+{
+    if (n > 0) {
+        if (it->rank >= RandomAccessIter)
+            THIS(it).self_add(VA(n));
+        else
+            while (n--)
+                THIS(it).inc();
+    } else {
+        if (it->rank >= RandomAccessIter)
+            THIS(it).self_sub(VA(-n));
+        else
+            while (n++)
+                THIS(it).dec();
+    }
+}
