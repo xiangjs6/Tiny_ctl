@@ -762,7 +762,7 @@ Iterator replace_copy_if(Iterator _first, Iterator _last, Iterator _result, Pred
     va_end(ap);
 
     void *mem = ARP_MallocARelDtor(sizeOf(_result), destroy);
-    Iterator result = THIS(_result).ctor(NULL, VA(_result), VAEND);
+    Iterator result = THIS(_result).ctor(mem, VA(_result), VAEND);
     Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
     Form_t f1 = THIS(_first).type();
     Form_t f2 = THIS(_result).type();
@@ -778,7 +778,7 @@ Iterator replace_copy_if(Iterator _first, Iterator _last, Iterator _result, Pred
 
 static void __reverse(Iterator _first, Iterator _last, FormWO_t op)
 {
-    assert(_first >= BidirectionalIter && _last->rank >= BidirectionalIter);
+    assert(_first->rank >= BidirectionalIter && _last->rank >= BidirectionalIter);
     Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
     Iterator last = THIS(_last).ctor(NULL, VA(_last), VAEND);
     if (first->rank >= RandomAccessIter && last->rank >= RandomAccessIter) {
@@ -821,7 +821,7 @@ Iterator reserve_copy(Iterator _first, Iterator _last, Iterator _result, ...)
     va_end(ap);
 
     void *mem = ARP_MallocARelDtor(sizeOf(_result), destroy);
-    Iterator result = THIS(_result).ctor(NULL, VA(_result), VAEND);
+    Iterator result = THIS(_result).ctor(mem, VA(_result), VAEND);
     Iterator last = THIS(_last).ctor(NULL, VA(_last), VAEND);
     Form_t f1 = THIS(last).type();
     Form_t f2 = THIS(result).type();
