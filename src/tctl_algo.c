@@ -360,10 +360,23 @@ static Iterator _find_end(Iterator first1, Iterator last1,
             THIS(first1).inc();
         }
     } else {
-        Iterator r_last1 = THIS(last1).reserve_iterator();
-        Iterator r_last2 = THIS(last2).reserve_iterator();
-        Iterator r_result = search(r_last1, first1, r_last2, first2, op);
-        result = THIS(r_result).reserve_iterator();
+        THIS(first1).dec();
+        THIS(last1).dec();
+        THIS(first2).dec();
+        THIS(last2).dec();
+        Iterator r_first1 = THIS(last1).reverse_iterator();
+        Iterator r_last1 = THIS(first1).reverse_iterator();
+        Iterator r_first2 = THIS(last2).reverse_iterator();
+        Iterator r_last2 = THIS(first2).reverse_iterator();
+        Iterator r_result = search(r_first1, r_last1, r_first2, r_last2, op);
+        if (THIS(r_result).equal(VA(r_last1))) {
+            void *mem = ARP_MallocARelDtor(sizeOf(last1), destroy);
+            result = THIS(last1).ctor(mem, VA(last1), VAEND);
+            THIS(result).inc();
+        } else {
+            result = THIS(r_result).reverse_iterator();
+            advance(result, -distance(first2, last2) + 1); //这一段还有问题，看完逆向迭代器再改
+        }
         return result;
     }
 }
@@ -803,7 +816,7 @@ static void __reverse(Iterator _first, Iterator _last, FormWO_t op)
     delete(last);
 }
 
-void reserve(Iterator _first, Iterator _last, ...)
+void reverse(Iterator _first, Iterator _last, ...)
 {
     va_list ap;
     va_start(ap, _last);
@@ -812,7 +825,7 @@ void reserve(Iterator _first, Iterator _last, ...)
     __reverse(_first, _last, op);
 }
 
-Iterator reserve_copy(Iterator _first, Iterator _last, Iterator _result, ...)
+Iterator reverse_copy(Iterator _first, Iterator _last, Iterator _result, ...)
 {
     va_list ap;
     va_start(ap, _result);
@@ -891,9 +904,9 @@ static void __rorate(Iterator _first, Iterator _middle, Iterator _last, FormWO_t
                 THIS(i).assign(VA(middle));
         }
     } else if (first->rank == BidirectionalIter) {
-        reserve(first, middle, op);
-        reserve(middle, _last, op);
-        reserve(first, _last, op);
+        reverse(first, middle, op);
+        reverse(middle, _last, op);
+        reverse(first, _last, op);
     } else {
         size_t n = __gcd(distance(first, _last), distance(first, middle));
         while (n--)

@@ -46,6 +46,7 @@ int main(void)
 
     Vector iv2 = new(T(Vector), VA(T(Int), oriPointIter(ia, 6), oriPointIter(ia, 8)));
     out_it = find_end(THIS(iv).begin(), THIS(iv).end(), THIS(iv2).begin(), THIS(iv2).end(), VAEND);
+    THIS(out_it).self_add(VA(3));
     printf("%lld\n", ((Int)THIS(out_it).derefer())->val);
     ARP_FreePool();
 }
