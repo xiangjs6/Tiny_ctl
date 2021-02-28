@@ -27,7 +27,7 @@ Iterator find_first_of(Iterator _first1, Iterator _last1,
                        Iterator _first2, Iterator _last2, .../*Equal*/);
 UnaryFunc for_each(Iterator _first, Iterator _last, UnaryFunc f);
 void generate(Iterator _first, Iterator _last, Generator gen, .../*Assign*/);
-Iterator generate_n(Iterator _first, size_t n, Generator gen, .../*Assign*/)
+Iterator generate_n(Iterator _first, size_t n, Generator gen, .../*Assign*/);
 bool includes(Iterator _first1, Iterator _last1,
               Iterator _first2, Iterator _last2, .../*Compare*/);
 Iterator max_element(Iterator _first, Iterator _last, .../*Compare*/);
@@ -36,6 +36,12 @@ Iterator merge(Iterator _first1, Iterator _last1,
                Iterator _result, .../*Assign, Compare*/);
 Iterator min_element(Iterator _first, Iterator _last, .../*Compare*/);
 Iterator partition(Iterator _first, Iterator _last, Predicate pred);
+Iterator remove_element(Iterator _first, Iterator _last, FormWO_t val, .../*Assign, Compare*/);
+Iterator remove_copy(Iterator _first, Iterator _last,
+                     Iterator _result, FormWO_t val, .../*Assign, Compare*/);
+Iterator remove_if(Iterator _first, Iterator _last, Predicate pred, .../*Assign*/);
+Iterator remove_copy_if(Iterator _first, Iterator _last,
+                        Iterator _result, Predicate pred, .../*Assign*/);
 Iterator search(Iterator _first1, Iterator _last1,
                 Iterator _first2, Iterator _last2, .../*Compare*/);
 #endif //TINY_CTL_TCTL_ALGO_H
