@@ -77,6 +77,10 @@ void reserve(Iterator _first, Iterator _last, .../*Swapfunc*/);
 
 Iterator reserve_copy(Iterator _first, Iterator _last, Iterator _result, .../*Assign*/);
 
+void rotate(Iterator _first, Iterator _middle, Iterator _last, .../*Assign*/);
+
+Iterator rotate_copy(Iterator _first, Iterator _middle, Iterator _last, Iterator _result);
+
 Iterator search(Iterator _first1, Iterator _last1,
                 Iterator _first2, Iterator _last2, .../*Compare*/);
 #endif //TINY_CTL_TCTL_ALGO_H

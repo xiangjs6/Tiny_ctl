@@ -4,6 +4,7 @@
 
 #include "../include/tctl_algo.h"
 #include "../include/tctl_algobase.h"
+#include "../include/tctl_metaclass.h"
 #include "../include/auto_release_pool.h"
 #include <stddef.h>
 #include <memory.h>
@@ -832,4 +833,90 @@ Iterator reserve_copy(Iterator _first, Iterator _last, Iterator _result, ...)
     }
     delete(last);
     return result;
+}
+
+static size_t __gcd(size_t m, size_t n)
+{
+    while (n != 0)
+    {
+        size_t t = m % n;
+        m = n;
+        n = t;
+    }
+    return m;
+}
+
+static void __rorate_cycle(Iterator _first, Iterator _last, Iterator initial, size_t shift, FormWO_t op)
+{
+    Form_t f = THIS(_first).type();
+    char mem[f.f == OBJ ? classSz(f.class) : f.size];
+    FormWO_t val;
+    if (f.f == OBJ)
+        val = FORM_WITH_OBJ(f, construct(f, mem, VAEND));
+    else
+        val = FORM_WITH_OBJ(f, mem);
+    AssignOpt(val, FORM_WITH_OBJ(f, THIS(initial).derefer()), op);
+    Iterator ptr1 = THIS(initial).ctor(NULL, VA(initial), VAEND);
+    Iterator ptr2 = THIS(ptr1).add(VA(shift));
+    while (!THIS(ptr2).equal(VA(initial)))
+    {
+        AssignOpt(FORM_WITH_OBJ(f, THIS(ptr1).derefer()),
+                  FORM_WITH_OBJ(f, THIS(ptr2).derefer()), op);
+        THIS(ptr1).assign(VA(ptr2));
+        if (distance(ptr2, _last) > shift)
+            THIS(ptr2).self_add(VA(shift));
+        else
+            ptr2 = THIS(_first).add(VA(shift - distance(ptr2, _last)));
+    }
+    AssignOpt(FORM_WITH_OBJ(f, THIS(ptr1).derefer()), val, op);
+    if (f.f == OBJ)
+        destroy(val.mem);
+}
+
+static void __rorate(Iterator _first, Iterator _middle, Iterator _last, FormWO_t op)
+{
+    Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    Iterator middle = THIS(_middle).ctor(NULL, VA(_middle), VAEND);
+    Iterator i = THIS(_middle).ctor(NULL, VA(_middle), VAEND);
+    if (first->rank == ForwardIter) {
+        while (true)
+        {
+            iter_swap(first, i, op);
+            THIS(first).inc();
+            THIS(i).inc();
+            if (THIS(first).equal(VA(middle))) {
+                if (THIS(i).equal(VA(_last))) return;
+                THIS(middle).assign(VA(i));
+            } else if (THIS(i).equal(VA(_last)))
+                THIS(i).assign(VA(middle));
+        }
+    } else if (first->rank == BidirectionalIter) {
+        reserve(first, middle, op);
+        reserve(middle, _last, op);
+        reserve(first, _last, op);
+    } else {
+        size_t n = __gcd(distance(first, _last), distance(first, middle));
+        while (n--)
+            __rorate_cycle(first, _last, THIS(first).add(VA(n)), distance(first, middle), op);
+    }
+    delete(first);
+    delete(i);
+    delete(middle);
+}
+
+void rotate(Iterator _first, Iterator _middle, Iterator _last, ...)
+{
+    if (THIS(_first).equal(VA(_middle)) || THIS(_middle).equal(VA(_last))) return;
+
+    va_list ap;
+    va_start(ap, _last);
+    FormWO_t op = va_arg(ap, FormWO_t);
+    va_end(ap);
+
+    __rorate(_first, _middle, _last, op);
+}
+
+Iterator rotate_copy(Iterator _first, Iterator _middle, Iterator _last, Iterator _result)
+{
+    return copy(_first, _middle, copy(_middle, _last, _result));
 }
