@@ -7,6 +7,7 @@
 #include "tctl_def.h"
 #include "tctl_iterator.h"
 #include "tctl_metaclass.h"
+//Set Operation
 Iterator set_union(Iterator _first1, Iterator _last1,
                    Iterator _first2, Iterator _last2, Iterator _result, ...);
 
@@ -19,18 +20,19 @@ Iterator set_difference(Iterator _first1, Iterator _last1,
 Iterator set_symmetric_difference(Iterator _first1, Iterator _last1,
                         Iterator _first2, Iterator _last2, Iterator _result, ...);
 
-Iterator adjacent_find(Iterator _first, Iterator _last, .../*Compare*/);
+//Data Processing 
+Iterator adjacent_find(Iterator _first, Iterator _last, .../*Equal*/);
 
 size_t count(Iterator _first, Iterator _last, FormWO_t val, .../*Compare*/);
 
 size_t count_if(Iterator _first, Iterator _last, Predicate pred);
 
-Iterator find(Iterator _first, Iterator _last, FormWO_t val, .../*Compare*/);
+Iterator find(Iterator _first, Iterator _last, FormWO_t val, .../*Equal*/);
 
 Iterator find_if(Iterator _first, Iterator _last, Predicate pred);
 
 Iterator find_end(Iterator _first1, Iterator _last1,
-                  Iterator _first2, Iterator _last2, .../*Compare*/);
+                  Iterator _first2, Iterator _last2, .../*Equal*/);
 
 Iterator find_first_of(Iterator _first1, Iterator _last1,
                        Iterator _first2, Iterator _last2, .../*Equal*/);
@@ -82,5 +84,11 @@ void rotate(Iterator _first, Iterator _middle, Iterator _last, .../*Assign*/);
 Iterator rotate_copy(Iterator _first, Iterator _middle, Iterator _last, Iterator _result);
 
 Iterator search(Iterator _first1, Iterator _last1,
-                Iterator _first2, Iterator _last2, .../*Compare*/);
+                Iterator _first2, Iterator _last2, .../*Equal*/);
+
+Iterator search_n(Iterator _first, Iterator _last, long long count, FormWO_t val, .../*Eqial*/);
+
+Iterator unique(Iterator _first, Iterator _last, .../*Assign, Equal*/);
+
+Iterator unique_copy(Iterator _first, Iterator _last, Iterator _result, .../*Assign, Equal*/);
 #endif //TINY_CTL_TCTL_ALGO_H

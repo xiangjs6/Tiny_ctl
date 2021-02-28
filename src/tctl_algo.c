@@ -67,7 +67,7 @@ static inline void AssignOpt(FormWO_t left, FormWO_t right, FormWO_t op)
     }
 }
 
-//set
+//Set Operation
 Iterator set_union(Iterator _first1, Iterator _last1,
                    Iterator _first2, Iterator _last2, Iterator _result, ...)
 {
@@ -253,8 +253,9 @@ Iterator set_symmetric_difference(Iterator _first1, Iterator _last1,
     return out;
 }
 
+//Data Processing 
 //adjacent_find
-Iterator adjacent_find(Iterator _first, Iterator _last, .../*Compare*/)
+Iterator adjacent_find(Iterator _first, Iterator _last, .../*Equal*/)
 {
     void *mem = ARP_MallocARelDtor(sizeOf(_first), destroy);
     Iterator first = THIS(_first).ctor(mem, VA(_first), VAEND);
@@ -269,8 +270,8 @@ Iterator adjacent_find(Iterator _first, Iterator _last, .../*Compare*/)
     Iterator next = THIS(_first).ctor(NULL, VA(_first), VAEND);
     Form_t f = THIS(next).type();
     for (THIS(next).inc(); !THIS(next).equal(VA(_last)); THIS(first).inc(), THIS(next).inc()) {
-        int res = CompareOpt(FORM_WITH_OBJ(f, THIS(next).derefer()),
-                             FORM_WITH_OBJ(f, THIS(first).derefer()), op);
+        int res = EqualOpt(FORM_WITH_OBJ(f, THIS(next).derefer()),
+                           FORM_WITH_OBJ(f, THIS(first).derefer()), op);
         if (!res)
             break;
     }
@@ -323,7 +324,7 @@ Iterator find(Iterator _first, Iterator _last, FormWO_t val, ...)
     Iterator first = THIS(_first).ctor(mem, VA(_first), VAEND);
     Form_t f = THIS(first).type();
     while (!THIS(first).equal(VA(_last)) &&
-           !CompareOpt(val, FORM_WITH_OBJ(f, THIS(first).derefer()), op))
+           EqualOpt(val, FORM_WITH_OBJ(f, THIS(first).derefer()), op))
         THIS(first).inc();
     return first;
 }
@@ -919,4 +920,173 @@ void rotate(Iterator _first, Iterator _middle, Iterator _last, ...)
 Iterator rotate_copy(Iterator _first, Iterator _middle, Iterator _last, Iterator _result)
 {
     return copy(_first, _middle, copy(_middle, _last, _result));
+}
+
+static Iterator __search(Iterator _first1, Iterator _last1,
+                  Iterator _first2, Iterator _last2, FormWO_t op)
+{
+    size_t d1 = distance(_first1, _last1);
+    size_t d2 = distance(_first2, _last2);
+    void *mem1 = ARP_MallocARelDtor(sizeOf(_last1), destroy);
+    void *mem2 = ARP_MallocARelDtor(sizeOf(_first1), destroy);
+    Iterator last1 = THIS(_last1).ctor(mem1, VA(_last1), VAEND);
+    Iterator first1 = THIS(_first1).ctor(mem2, VA(_first1), VAEND);
+    if (d1 < d2) return last1;
+
+    Iterator current1 = THIS(_first1).ctor(NULL, VA(_first1), VAEND);
+    Iterator current2 = THIS(_first2).ctor(NULL, VA(_first2), VAEND);
+    Form_t f = THIS(_first1).type();
+
+    while (!THIS(current2).equal(VA(_last2)))
+        if (!CompareOpt(FORM_WITH_OBJ(f, THIS(current1).derefer()),
+                       FORM_WITH_OBJ(f, THIS(current2).derefer()), op)) {
+            THIS(current1).inc();
+            THIS(current2).inc();
+        } else {
+            if (d1 == d2)
+                return last1;
+            else {
+                THIS(first1).inc();
+                THIS(current1).assign(VA(first1));
+                THIS(current2).assign(VA(_first2));
+                --d1;
+            }
+        }
+    return first1;
+}
+
+Iterator search(Iterator _first1, Iterator _last1,
+                Iterator _first2, Iterator _last2, ...)
+{
+    va_list ap;
+    va_start(ap, _last2);
+    FormWO_t op = va_arg(ap, FormWO_t);
+    va_end(ap);
+
+    return __search(_first1, _last1, _first2, _last2, op);
+}
+
+Iterator search_n(Iterator _first, Iterator _last, long long count, FormWO_t val, ...)
+{
+    va_list ap;
+    va_start(ap, val);
+    FormWO_t op = va_arg(ap, FormWO_t);
+    va_end(ap);
+
+    void *mem =ARP_MallocARelDtor(sizeOf(_first), destroy);
+    Iterator first = THIS(_first).ctor(mem, VA(_first), VAEND);
+    Iterator i = THIS(first).ctor(NULL, VA(first), VAEND);
+    Form_t f = THIS(i).type();
+    if (count <= 0)
+        return first;
+    else {
+        first = find(first, _last, val, op);
+        while (!THIS(first).equal(VA(_last)))
+        {
+            long long n = count - 1;
+            THIS(i).assign(VA(first));
+            THIS(i).inc();
+            while (!THIS(i).equal(VA(_last)) && n != 0 && EqualOpt(FORM_WITH_OBJ(f, THIS(i).derefer()),
+                                                                   val, op))
+            {
+                THIS(i).inc();
+                --n;
+            }
+            if (!n)
+                break;
+            else
+                first = find(i, _last, val, op);
+        }
+        delete(i);
+        return first;
+    }
+}
+
+Iterator swap_ranges(Iterator _first1, Iterator _last1, Iterator _first2, ...)
+{
+    va_list ap;
+    va_start(ap, _first2);
+    FormWO_t op = va_arg(ap, FormWO_t);
+    va_end(ap);
+
+    Iterator first1 = THIS(_first1).ctor(NULL, VA(_first1), VAEND);
+    void *mem =ARP_MallocARelDtor(sizeOf(_first2), destroy);
+    Iterator first2 = THIS(_first2).ctor(mem, VA(_first2), VAEND);
+    for (; !THIS(first1).equal(VA(_last1)); THIS(first1).inc(), THIS(first2).inc())
+        iter_swap(first1, first2, op);
+    delete(first1);
+    return first2;
+}
+
+Iterator transform(Iterator _first, Iterator _last, Iterator _result, UnaryOperation unary_op, ...)
+{
+    va_list ap;
+    va_start(ap, unary_op);
+    FormWO_t op = va_arg(ap, FormWO_t);
+    va_end(ap);
+
+    Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    void *mem =ARP_MallocARelDtor(sizeOf(_first), destroy);
+    Iterator result = THIS(_result).ctor(mem, VA(_result), VAEND);
+    Form_t f1 = THIS(_first).type();
+    Form_t f2 = THIS(result).type();
+    for (; !THIS(first).equal(VA(_last)); THIS(first).inc())
+        AssignOpt(FORM_WITH_OBJ(f2, THIS(result).derefer()),
+                  unary_op(FORM_WITH_OBJ(f1, THIS(first).derefer())), op);
+    delete(first);
+    return result;
+}
+
+Iterator unique(Iterator _first, Iterator _last, ...)
+{
+    enum {Assign, Equal};
+    FormWO_t op[2] = {VAEND, VAEND};
+    va_list ap;
+    va_start(ap, _last);
+    for (int i = 0; i < ARR_LEN(op); i++)
+        op[i] = va_arg(ap, FormWO_t);
+    va_end(ap);
+
+    Iterator first = adjacent_find(_first, _last, op[Equal]);
+    return unique_copy(first, _last, first, op[Assign], op[Equal]);
+}
+
+static Iterator __unique_copy(Iterator _first, Iterator _last, Iterator _result, FormWO_t assign, FormWO_t equal)
+{
+    Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    void *mem = ARP_MallocARelDtor(sizeOf(_result), destroy);
+    Iterator result = THIS(_result).ctor(mem, VA(_result), VAEND);
+
+    Form_t f1 = THIS(_first).type();
+    Form_t f2 = THIS(_result).type();
+    FormWO_t val = FORM_WITH_OBJ(f1, THIS(first).derefer());
+    AssignOpt(FORM_WITH_OBJ(f2, THIS(result).derefer()), val, assign);
+    for (THIS(first).inc(); !THIS(first).equal(VA(_last)); THIS(first).inc()) {
+        val = FORM_WITH_OBJ(f1, THIS(first).derefer());
+        if (!EqualOpt(FORM_WITH_OBJ(f2, THIS(result).derefer()), val, equal)) {
+            THIS(result).inc();
+            AssignOpt(FORM_WITH_OBJ(f2, THIS(result).derefer()), val, assign);
+        }
+    }
+    THIS(result).inc();
+    delete(first);
+    return result;
+}
+
+Iterator unique_copy(Iterator _first, Iterator _last, Iterator _result, ...)
+{
+    if (THIS(_first).equal(VA(_last))) {
+        void *mem = ARP_MallocARelDtor(sizeOf(_result), destroy);
+        return THIS(_result).ctor(mem, VA(_result), VAEND);
+    }
+
+    enum {Assign, Equal};
+    FormWO_t op[2] = {VAEND, VAEND};
+    va_list ap;
+    va_start(ap, _result);
+    for (int i = 0; i < ARR_LEN(op); i++)
+        op[i] = va_arg(ap, FormWO_t);
+    va_end(ap);
+
+    return __unique_copy(_first, _last, _result, op[Assign], op[Equal]);
 }
