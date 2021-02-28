@@ -561,8 +561,13 @@ Iterator min_element(Iterator _first, Iterator _last, ...)
     return result;
 }
 
-Iterator partition(Iterator _first, Iterator _last, Predicate pred)
+Iterator partition(Iterator _first, Iterator _last, Predicate pred, ...)
 {
+    va_list ap;
+    va_start(ap, pred);
+    FormWO_t op = va_arg(ap, FormWO_t);
+    va_end(ap);
+
     assert(_first->rank >= BidirectionalIter && _last->rank >= BidirectionalIter);
     void *mem = ARP_MallocARelDtor(sizeOf(_first), destroy);
     Iterator first = THIS(_first).ctor(mem, VA(_first), VAEND);
@@ -588,7 +593,7 @@ Iterator partition(Iterator _first, Iterator _last, Predicate pred)
                 THIS(last).dec();
             else
                 break;
-        iter_swap(first, last);
+        iter_swap(first, last, op);
         THIS(first).inc();
     }
 }
@@ -766,5 +771,65 @@ Iterator replace_copy_if(Iterator _first, Iterator _last, Iterator _result, Pred
                       new_val, op);
     }
     delete(first);
+    return result;
+}
+
+static void __reverse(Iterator _first, Iterator _last, FormWO_t op)
+{
+    assert(_first >= BidirectionalIter && _last->rank >= BidirectionalIter);
+    Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    Iterator last = THIS(_last).ctor(NULL, VA(_last), VAEND);
+    if (first->rank >= RandomAccessIter && last->rank >= RandomAccessIter) {
+        while (THIS(first).cmp(VA(last)) < 0)
+        {
+            THIS(last).dec();
+            iter_swap(first, last, op);
+            THIS(first).inc();
+        }
+    } else {
+        while (true)
+        {
+            if (THIS(first).equal(VA(last)))
+                return;
+            THIS(last).dec();
+            if (THIS(first).equal(VA(last)))
+                return;
+            iter_swap(first, last, op);
+            THIS(first).inc();
+        }
+    }
+    delete(first);
+    delete(last);
+}
+
+void reserve(Iterator _first, Iterator _last, ...)
+{
+    va_list ap;
+    va_start(ap, _last);
+    FormWO_t op = va_arg(ap, FormWO_t);
+    va_end(ap);
+    __reverse(_first, _last, op);
+}
+
+Iterator reserve_copy(Iterator _first, Iterator _last, Iterator _result, ...)
+{
+    va_list ap;
+    va_start(ap, _result);
+    FormWO_t op = va_arg(ap, FormWO_t);
+    va_end(ap);
+
+    void *mem = ARP_MallocARelDtor(sizeOf(_result), destroy);
+    Iterator result = THIS(_result).ctor(NULL, VA(_result), VAEND);
+    Iterator last = THIS(_last).ctor(NULL, VA(_last), VAEND);
+    Form_t f1 = THIS(last).type();
+    Form_t f2 = THIS(result).type();
+    while (!THIS(_first).equal(VA(last)))
+    {
+        THIS(last).dec();
+        AssignOpt(FORM_WITH_OBJ(f2, THIS(result).derefer()),
+                  FORM_WITH_OBJ(f1, THIS(last).derefer()), op);
+        THIS(result).inc();
+    }
+    delete(last);
     return result;
 }

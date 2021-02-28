@@ -52,7 +52,7 @@ Iterator merge(Iterator _first1, Iterator _last1,
 
 Iterator min_element(Iterator _first, Iterator _last, .../*Compare*/);
 
-Iterator partition(Iterator _first, Iterator _last, Predicate pred);
+Iterator partition(Iterator _first, Iterator _last, Predicate pred, .../*Swapfunc*/);
 
 Iterator remove_element(Iterator _first, Iterator _last, FormWO_t val, .../*Assign, Compare*/);
 
@@ -72,6 +72,10 @@ Iterator replace_copy(Iterator _first, Iterator _last,
 void replace_if(Iterator _first, Iterator _last, Predicate pred, FormWO_t new_val, .../*Assign*/);
 
 Iterator replace_copy_if(Iterator _first, Iterator _last, Iterator _result, Predicate pred, FormWO_t new_val, .../*Assign*/);
+
+void reserve(Iterator _first, Iterator _last, .../*Swapfunc*/);
+
+Iterator reserve_copy(Iterator _first, Iterator _last, Iterator _result, .../*Assign*/);
 
 Iterator search(Iterator _first1, Iterator _last1,
                 Iterator _first2, Iterator _last2, .../*Compare*/);
