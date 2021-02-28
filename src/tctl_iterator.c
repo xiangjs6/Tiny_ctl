@@ -15,7 +15,7 @@ struct IteratorClass {
     void *(*derefer)(const void *_this);
     Form_t (*type)(const void *_this);
     long long (*dist)(const void *_this, Iterator it);
-    Iterator (*reserve_iterator)(void *_this);
+    Iterator (*reverse_iterator)(void *_this);
 };
 
 struct Iterator {
@@ -31,14 +31,14 @@ static Form_t _object_type(const void *_this);
 static void *_derefer(void);
 static Form_t _type(void);
 static long long _dist(Iterator it);
-static Iterator _reserve_iterator(void);
+static Iterator _reverse_iterator(void);
 //init
 volatile static struct IteratorSelector IteratorS = {
         {},
         _derefer,
         _type,
         _dist,
-        _reserve_iterator
+        _reverse_iterator
 };
 const struct IteratorSelector *_IteratorS = NULL;
 
@@ -105,12 +105,12 @@ static long long _dist(Iterator it)
     return class->dist(_this, it);
 }
 
-static Iterator _reserve_iterator(void)
+static Iterator _reverse_iterator(void)
 {
     void *_this = pop_this();
     const struct IteratorClass *class = offsetOf(classOf(_this), __IteratorClass);
-    assert(class->reserve_iterator);
-    return class->reserve_iterator(_this);
+    assert(class->reverse_iterator);
+    return class->reverse_iterator(_this);
 }
 
 static void *_class_ctor(void *_this, va_list *app)
@@ -129,8 +129,8 @@ static void *_class_ctor(void *_this, va_list *app)
             *(void**)&this->type = method;
         else if (selector == (voidf)IteratorS.dist)
             *(void**)&this->dist = method;
-        else if (selector == (voidf)IteratorS.reserve_iterator)
-            *(void**)&this->reserve_iterator = method;
+        else if (selector == (voidf)IteratorS.reverse_iterator)
+            *(void**)&this->reverse_iterator = method;
     }
     va_end(ap);
     return _this;
