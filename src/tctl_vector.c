@@ -95,6 +95,7 @@ static bool _iter_equal(const void *_this, FormWO_t _x);
 static void *_iter_ctor(void *_this, va_list *app);
 static void *_iter_derefer(const void *_this);
 static long long _iter_dist(const void *_this, Iterator _it);
+static long long _riter_dist(const void *_this, Iterator _it);
 static Iterator _iter_reserve_iterator(const void *_this);
 //init
 static const void *__VectorIter = NULL;
@@ -162,7 +163,7 @@ static void initVector(void)
                            _ClassS->add, _iter_sub,
                            _ClassS->sub, _iter_add,
                            _IteratorS->derefer, _iter_derefer,
-                           _IteratorS->dist, _iter_dist,
+                           _IteratorS->dist, _riter_dist,
                            _IteratorS->reserve_iterator, _iter_reserve_iterator,
                            Selector, _IteratorS, NULL);
     }
@@ -492,6 +493,14 @@ static long long _iter_dist(const void *_this, Iterator _it)
     assert(classOf(_it) == __VectorIter);
     struct VectorIter *it = offsetOf(_it, __VectorIter);
     return it->cur - this->cur;
+}
+
+static long long _riter_dist(const void *_this, Iterator _it)
+{
+    struct VectorIter *this = offsetOf(_this, __VectorIter);
+    assert(classOf(_it) == __VectorIter);
+    struct VectorIter *it = offsetOf(_it, __VectorIter);
+    return this->cur - it->cur;
 }
 
 static Iterator _iter_reserve_iterator(const void *_this)
