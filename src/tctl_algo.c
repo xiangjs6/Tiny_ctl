@@ -682,3 +682,89 @@ Iterator remove_copy_if(Iterator _first, Iterator _last,
     delete(first);
     return result;
 }
+
+void replace(Iterator _first, Iterator _last, FormWO_t old_val, FormWO_t new_val, ...)
+{
+    enum {Assign, Compare};
+    FormWO_t op[2] = {VAEND, VAEND};
+    va_list ap;
+    va_start(ap, new_val);
+    for (int i = 0; i < ARR_LEN(op); i++)
+        op[i] = va_arg(ap, FormWO_t);
+    va_end(ap);
+
+    Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    Form_t f = THIS(_first).type();
+    for (; !THIS(first).equal(VA(_last)); THIS(first).inc()) {
+        FormWO_t v = FORM_WITH_OBJ(f, THIS(first).derefer());
+        if (!CompareOpt(v, old_val, op[Compare]))
+            AssignOpt(v, new_val, op[Assign]);
+    }
+    delete(first);
+}
+
+Iterator replace_copy(Iterator _first, Iterator _last,
+                      Iterator _result, FormWO_t old_val,
+                      FormWO_t new_val, ...)
+{
+    enum {Assign, Compare};
+    FormWO_t op[2] = {VAEND, VAEND};
+    va_list ap;
+    va_start(ap, new_val);
+    for (int i = 0; i < ARR_LEN(op); i++)
+        op[i] = va_arg(ap, FormWO_t);
+    va_end(ap);
+
+    void *mem = ARP_MallocARelDtor(sizeOf(_result), destroy);
+    Iterator result = THIS(_result).ctor(mem, VA(_result), VAEND);
+    Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    Form_t f1 = THIS(_first).type();
+    Form_t f2 = THIS(_result).type();
+    for (; !THIS(first).equal(VA(_last)); THIS(first).inc(), THIS(result).inc()) {
+        FormWO_t v = FORM_WITH_OBJ(f1, THIS(first).derefer());
+        if (!CompareOpt(v, old_val, op[Compare]))
+            AssignOpt(FORM_WITH_OBJ(f2, THIS(result).derefer()),
+                      new_val, op[Assign]);
+    }
+    delete(first);
+    return result;
+}
+
+void replace_if(Iterator _first, Iterator _last, Predicate pred, FormWO_t new_val, ...)
+{
+    va_list ap;
+    va_start(ap, new_val);
+    FormWO_t op = va_arg(ap, FormWO_t);
+    va_end(ap);
+
+    Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    Form_t f = THIS(_first).type();
+    for (; !THIS(first).equal(VA(_last)); THIS(first).inc()) {
+        FormWO_t v = FORM_WITH_OBJ(f, THIS(first).derefer());
+        if (!pred(v))
+            AssignOpt(v, new_val, op);
+    }
+    delete(first);
+}
+
+Iterator replace_copy_if(Iterator _first, Iterator _last, Iterator _result, Predicate pred, FormWO_t new_val, ...)
+{
+    va_list ap;
+    va_start(ap, new_val);
+    FormWO_t op = va_arg(ap, FormWO_t);
+    va_end(ap);
+
+    void *mem = ARP_MallocARelDtor(sizeOf(_result), destroy);
+    Iterator result = THIS(_result).ctor(NULL, VA(_result), VAEND);
+    Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    Form_t f1 = THIS(_first).type();
+    Form_t f2 = THIS(_result).type();
+    for (; !THIS(first).equal(VA(_last)); THIS(first).inc(), THIS(result).inc()) {
+        FormWO_t v = FORM_WITH_OBJ(f1, THIS(first).derefer());
+        if (!pred(v))
+            AssignOpt(FORM_WITH_OBJ(f2, THIS(result).derefer()),
+                      new_val, op);
+    }
+    delete(first);
+    return result;
+}
