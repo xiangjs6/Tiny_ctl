@@ -45,7 +45,7 @@ const struct MetaClassSelector *_MetaClassS = &MetaClassS;
 const void *Selector = &MetaClassS;
 static const struct MetaClass _object[] = {
         {{&MetaClassS, _object + 1},
-                "Object", _object, sizeof(struct MetaObject),
+                "MetaObject", _object, sizeof(struct MetaObject),
                 Object_ctor, Object_dtor, Object_differ, Object_puto
         },
         {{&MetaClassS, _object + 1},
