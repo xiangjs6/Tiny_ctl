@@ -54,7 +54,7 @@ Iterator merge(Iterator _first1, Iterator _last1,
 
 Iterator min_element(Iterator _first, Iterator _last, .../*Compare*/);
 
-Iterator partition(Iterator _first, Iterator _last, Predicate pred, .../*Swapfunc*/);
+Iterator partition(Iterator _first, Iterator _last, Predicate pred, .../*Assign*/);
 
 Iterator remove_element(Iterator _first, Iterator _last, FormWO_t val, .../*Assign, Equal*/);
 
@@ -87,6 +87,10 @@ Iterator search(Iterator _first1, Iterator _last1,
                 Iterator _first2, Iterator _last2, .../*Equal*/);
 
 Iterator search_n(Iterator _first, Iterator _last, long long count, FormWO_t val, .../*Eqial*/);
+
+Iterator swap_ranges(Iterator _first1, Iterator _last1, Iterator _first2, .../*Assign*/);
+
+Iterator transform(Iterator _first, Iterator _last, Iterator _result, UnaryOperation unary_op, .../*Assign*/);
 
 Iterator unique(Iterator _first, Iterator _last, .../*Assign, Equal*/);
 

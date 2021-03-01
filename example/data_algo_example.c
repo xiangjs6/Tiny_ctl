@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include "../include/tctl_algo.h"
 #include "../include/tctl_pointer_iterator.h"
@@ -38,10 +39,22 @@ bool greater2(FormWO_t v)
     return i->val > 2;
 }
 
+FormWO_t minus2(FormWO_t v)
+{
+    Int i = v.mem;
+    return VA(i->val - 2);
+}
+
 void display(FormWO_t v)
 {
     Int i = v.mem;
     printf("%lld ", i->val);
+}
+
+bool even(FormWO_t v)
+{
+    Int i = v.mem;
+    return i->val % 2 ? false : true;
 }
 
 FormWO_t even_by_two(void)
@@ -57,7 +70,6 @@ int main(void)
     Vector iv = new(T(Vector), VA(T(Int), oriPointIter(ia), oriPointIter(ia, sizeof(ia) / sizeof(int))));
 
     Int val = new(T(Int), VA(6));
-    FormWO_t res;
     Iterator out_it;
     //adjacent_find
     out_it = adjacent_find(THIS(iv).begin(), THIS(iv).end(), VAEND);
@@ -157,6 +169,51 @@ int main(void)
 
     out_it = search_n(THIS(iv).begin(), THIS(iv).end(), 2, VA(8), VAEND);
     printf("%lld\n", ((Int)THIS(out_it).derefer())->val);
+
+    //swap_ranges
+    swap_ranges(THIS(iv4).begin(), THIS(iv4).end(), THIS(iv).begin(), VAEND);
+    for_each(THIS(iv).begin(), THIS(iv).end(), display);
+    putchar('\n');
+    for_each(THIS(iv4).begin(), THIS(iv4).end(), display);
+    putchar('\n');
+
+    //transform
+    transform(THIS(iv).begin(), THIS(iv).end(), THIS(iv).begin(), minus2, VAEND);
+    for_each(THIS(iv).begin(), THIS(iv).end(), display);
+    putchar('\n');
+
+    /***********************/
+    Vector iv5 = new(T(Vector), VA(T(Int), oriPointIter(ia), oriPointIter(ia, sizeof(ia) / sizeof(int))));
+    Vector iv6 = new(T(Vector), VA(T(Int), oriPointIter(ia, 4), oriPointIter(ia, 8)));
+    Vector iv7 = new(T(Vector), VA(T(Int), 15));
+    //max min
+    out_it = max_element(THIS(iv5).begin(), THIS(iv5).end(), VAEND);
+    printf("%lld\n", ((Int)THIS(out_it).derefer())->val);
+    out_it = min_element(THIS(iv5).begin(), THIS(iv5).end(), VAEND);
+    printf("%lld\n", ((Int)THIS(out_it).derefer())->val);
+
+    //includes
+    bool r_b = includes(THIS(iv5).begin(), THIS(iv5).end(), THIS(iv6).begin(), THIS(iv6).end(), VAEND);
+    printf("%s\n", r_b ? "true" : "false");
+
+    //merge
+    merge(THIS(iv5).begin(), THIS(iv5).end(), THIS(iv6).begin(), THIS(iv6).end(), THIS(iv7).begin(), VAEND);
+    for_each(THIS(iv7).begin(), THIS(iv7).end(), display);
+    putchar('\n');
+
+    //partition
+    partition(THIS(iv7).begin(), THIS(iv7).end(), even, VAEND);
+    for_each(THIS(iv7).begin(), THIS(iv7).end(), display);
+    putchar('\n');
+
+    //unique
+    unique(THIS(iv5).begin(), THIS(iv5).end(), VAEND, VAEND);
+    for_each(THIS(iv5).begin(), THIS(iv5).end(), display);
+    putchar('\n');
+
+    unique_copy(THIS(iv5).begin(), THIS(iv5).end(), THIS(iv7).begin(), VAEND, VAEND);
+    for_each(THIS(iv7).begin(), THIS(iv7).end(), display);
+    putchar('\n');
 
     ARP_FreePool();
 }

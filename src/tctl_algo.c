@@ -559,7 +559,7 @@ Iterator merge(Iterator _first1, Iterator _last1,
         THIS(result).inc();
     }
     Iterator tmp = result;
-    result = copy(first2, _last2, (delete(result), copy(first1, _last1, result)));
+    result = copy(first2, _last2, copy(first1, _last1, result));
     delete(tmp);
     delete(first1);
     delete(first2);
@@ -1059,7 +1059,7 @@ Iterator transform(Iterator _first, Iterator _last, Iterator _result, UnaryOpera
     Iterator result = THIS(_result).ctor(mem, VA(_result), VAEND);
     Form_t f1 = THIS(_first).type();
     Form_t f2 = THIS(result).type();
-    for (; !THIS(first).equal(VA(_last)); THIS(first).inc())
+    for (; !THIS(first).equal(VA(_last)); THIS(first).inc(), THIS(result).inc())
         AssignOpt(FORM_WITH_OBJ(f2, THIS(result).derefer()),
                   unary_op(FORM_WITH_OBJ(f1, THIS(first).derefer())), op);
     delete(first);
