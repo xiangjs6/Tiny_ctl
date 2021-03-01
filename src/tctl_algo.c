@@ -4,9 +4,11 @@
 
 #include "../include/tctl_algo.h"
 #include "../include/tctl_algobase.h"
+#include "../include/tctl_heap.h"
 #include "../include/tctl_metaclass.h"
 #include "../include/auto_release_pool.h"
 #include <stddef.h>
+#include <stdlib.h>
 #include <memory.h>
 #include <stdarg.h>
 
@@ -76,6 +78,30 @@ static inline void AssignOpt(FormWO_t left, FormWO_t right, FormWO_t op)
         AssignOperation func = op.mem;
         func(left, right);
     }
+}
+
+static int __rand_s(unsigned int *seed) //glibc的线程安全随机数产生函数
+{
+    unsigned int next = *seed;
+    int result;
+
+    next *= 1103515245;
+    next += 12345;
+    result = (unsigned int) (next / 65536) % 2048;
+
+    next *= 1103515245;
+    next += 12345;
+    result <<= 10;
+    result ^= (unsigned int) (next / 65536) % 1024;
+
+    next *= 1103515245;
+    next += 12345;
+    result <<= 10;
+    result ^= (unsigned int) (next / 65536) % 1024;
+
+    *seed = next;
+
+    return result;
 }
 
 //Set Operation
@@ -1117,4 +1143,279 @@ Iterator unique_copy(Iterator _first, Iterator _last, Iterator _result, ...)
     va_end(ap);
 
     return __unique_copy(_first, _last, _result, op[Assign], op[Equal]);
+}
+
+static Iterator __lower_bound(Iterator _first, Iterator _last, FormWO_t val, FormWO_t op)
+{
+    long long len = distance(_first, _last);
+    long long half;
+    Iterator middle = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    void *mem = ARP_MallocARelDtor(sizeOf(_first), destroy);
+    Iterator first = THIS(_first).ctor(mem, VA(_first), VAEND);
+
+    Form_t f = THIS(first).type();
+    while (len > 0)
+    {
+        half = len >> 1;
+        THIS(middle).assign(VA(first));
+        advance(middle, half);
+        FormWO_t v = FORM_WITH_OBJ(f, THIS(middle).derefer());
+        if (CompareOpt(v, val, op) < 0) {
+            THIS(first).assign(VA(middle));
+            THIS(first).inc();
+            len = len - half - 1;
+        } else
+            len = half;
+    }
+    delete(middle);
+    return first;
+}
+
+Iterator lower_bound(Iterator _first, Iterator _last, FormWO_t val, ...)
+{
+    va_list ap;
+    va_start(ap, val);
+    FormWO_t op = va_arg(ap, FormWO_t);
+    va_end(ap);
+    return __lower_bound(_first, _last, val, op);
+}
+
+static Iterator __upper_bound(Iterator _first, Iterator _last, FormWO_t val, FormWO_t op)
+{
+    size_t len = distance(_first, _last);
+    size_t half;
+    Iterator middle = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    void *mem = ARP_MallocARelDtor(sizeOf(_first), destroy);
+    Iterator first = THIS(_first).ctor(mem, VA(_first), VAEND);
+
+    Form_t f = THIS(first).type();
+    while (len > 0)
+    {
+        half = len >> 1;
+        THIS(middle).assign(VA(first));
+        advance(middle, half);
+        FormWO_t v = FORM_WITH_OBJ(f, THIS(middle).derefer());
+        if (CompareOpt(v, val, op) < 0)
+            len = half;
+        else {
+            THIS(first).assign(VA(middle));
+            THIS(first).inc();
+            len = len - half - 1;
+        }
+    }
+    delete(middle);
+    return first;
+}
+
+Iterator upper_bound(Iterator _first, Iterator _last, FormWO_t val, ...)
+{
+    va_list ap;
+    va_start(ap, val);
+    FormWO_t op = va_arg(ap, FormWO_t);
+    va_end(ap);
+    return __upper_bound(_first, _last, val, op);
+}
+
+bool binary_search(Iterator _first, Iterator _last, FormWO_t val, ...)
+{
+    va_list ap;
+    va_start(ap, val);
+    FormWO_t op = va_arg(ap, FormWO_t);
+    va_end(ap);
+    Iterator i = lower_bound(_first, _last, val, op);
+    return THIS(i).equal(VA(_last)) && !CompareOpt(val,
+                                                   FORM_WITH_OBJ(THIS(i).type(),THIS(i).derefer()),
+                                                   op);
+}
+
+bool next_permutation(Iterator _first, Iterator _last, ...)
+{
+    enum {Assign, Compare};
+    FormWO_t op[2] = {VAEND, VAEND};
+    va_list ap;
+    va_start(ap, _last);
+    for (int i = 0; i < ARR_LEN(op); i++)
+        op[i] = va_arg(ap, FormWO_t);
+    va_end(ap);
+
+    assert(_first->rank >= BidirectionalIter && _last->rank >= BidirectionalIter);
+    if (!THIS(_first).equal(VA(_last))) return false;
+    Iterator i = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    THIS(i).inc();
+    if (THIS(i).equal(VA(_last))) {
+        delete(i);
+        return false;
+    }
+    THIS(i).assign(VA(_last));
+    THIS(i).dec();
+    Iterator ii = THIS(i).ctor(NULL, VA(i), VAEND);
+    Iterator j = THIS(i).ctor(NULL, VA(i), VAEND);
+
+    Form_t f = THIS(_first).type();
+    for (;;) {
+        THIS(ii).assign(VA(i));
+        THIS(i).dec();
+        FormWO_t i_v = FORM_WITH_OBJ(f, THIS(i).derefer());
+        FormWO_t ii_v = FORM_WITH_OBJ(f, THIS(ii).derefer());
+        if (CompareOpt(i_v, ii_v, op[Compare]) < 0) {
+            THIS(j).assign(VA(_last));
+            THIS(j).dec();
+            FormWO_t j_v = FORM_WITH_OBJ(f, THIS(j).derefer());
+            while (CompareOpt(i_v, j_v, op[Compare]) < 0)
+            {
+                THIS(j).dec();
+                j_v = FORM_WITH_OBJ(f, THIS(j).derefer());
+            }
+            iter_swap(i, j, op[Assign]);
+            reverse(ii, _last, op[Assign]);
+            delete(i);
+            delete(ii);
+            delete(j);
+            return true;
+        }
+        if (THIS(i).equal(VA(_first))) {
+            reverse(_first, _last, op[Assign]);
+            delete(i);
+            delete(ii);
+            delete(j);
+            return false;
+        }
+    }
+}
+
+bool prev_permutation(Iterator _first, Iterator _last, ...)
+{
+    enum {Assign, Compare};
+    FormWO_t op[2] = {VAEND, VAEND};
+    va_list ap;
+    va_start(ap, _last);
+    for (int i = 0; i < ARR_LEN(op); i++)
+        op[i] = va_arg(ap, FormWO_t);
+    va_end(ap);
+
+    assert(_first->rank >= BidirectionalIter && _last->rank >= BidirectionalIter);
+    if (!THIS(_first).equal(VA(_last))) return false;
+    Iterator i = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    THIS(i).inc();
+    if (THIS(i).equal(VA(_last))) {
+        delete(i);
+        return false;
+    }
+    THIS(i).assign(VA(_last));
+    THIS(i).dec();
+    Iterator ii = THIS(i).ctor(NULL, VA(i), VAEND);
+    Iterator j = THIS(i).ctor(NULL, VA(i), VAEND);
+
+    Form_t f = THIS(_first).type();
+    for (;;) {
+        THIS(ii).assign(VA(i));
+        THIS(i).dec();
+        FormWO_t i_v = FORM_WITH_OBJ(f, THIS(i).derefer());
+        FormWO_t ii_v = FORM_WITH_OBJ(f, THIS(ii).derefer());
+        if (CompareOpt(i_v, ii_v, op[Compare]) > 0) {
+            THIS(j).assign(VA(_last));
+            THIS(j).dec();
+            FormWO_t j_v = FORM_WITH_OBJ(f, THIS(j).derefer());
+            while (CompareOpt(i_v, j_v, op[Compare]) > 0)
+            {
+                THIS(j).dec();
+                j_v = FORM_WITH_OBJ(f, THIS(j).derefer());
+            }
+            iter_swap(i, j, op[Assign]);
+            reverse(ii, _last, op[Assign]);
+            delete(i);
+            delete(ii);
+            delete(j);
+            return true;
+        }
+        if (THIS(i).equal(VA(_first))) {
+            reverse(_first, _last, op[Assign]);
+            delete(i);
+            delete(ii);
+            delete(j);
+            return false;
+        }
+    }
+}
+
+void random_shuffle(Iterator _first, Iterator _last, unsigned int *seed, ...)
+{
+    va_list ap;
+    va_start(ap, seed);
+    FormWO_t op = va_arg(ap, FormWO_t);
+    va_end(ap);
+
+    assert(_first->rank >= RandomAccessIter && _last->rank >= RandomAccessIter);
+    if (THIS(_first).equal(VA(_last))) return;
+    if (!seed) {
+        for (Iterator i = THIS(_first).add(VA(1)); !THIS(i).equal(VA(_last)); THIS(i).inc()) {
+            size_t n = distance(_first, i) + 1;
+            iter_swap(i, THIS(_first).add(VA(rand() % n)), op);
+        }
+    } else {
+        for (Iterator i = THIS(_first).add(VA(1)); !THIS(i).equal(VA(_last)); THIS(i).inc()) {
+            size_t n = distance(_first, i) + 1;
+            iter_swap(i, THIS(_first).add(VA(__rand_s(seed) % n)), op);
+        }
+    }
+}
+
+void partial_sort(Iterator _first, Iterator _middle, Iterator _last, Compare cmp)
+{
+    make_heap(_first, _middle, cmp);
+    Iterator i = THIS(_middle).ctor(NULL, VA(_middle), VAEND);
+    Iterator pre_middle = THIS(_middle).ctor(NULL, VA(_middle), VAEND);
+    THIS(pre_middle).dec();
+    Form_t f = THIS(i).type();
+    for (; !THIS(i).equal(VA(_last)); THIS(i).inc()) {
+        FormWO_t i_v = FORM_WITH_OBJ(f, THIS(i).derefer());
+        FormWO_t first_v = FORM_WITH_OBJ(f, THIS(_first).derefer());
+        if (cmp(i_v, first_v) < 0) {
+            iter_swap(_first, i);
+            iter_swap(_first, pre_middle);
+            pop_heap(_first, _middle, cmp);
+        }
+    }
+    delete(pre_middle);
+    delete(i);
+    sort_heap(_first, _middle, cmp);
+}
+
+void partial_sort_copy(Iterator _first, Iterator _last,
+                       Iterator _res_first, Iterator _res_last, Compare cmp, ...)
+{
+    va_list ap;
+    va_start(ap, cmp);
+    FormWO_t op = va_arg(ap, FormWO_t);
+    va_end(ap);
+
+    Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    Iterator res_real_last = THIS(_res_first).ctor(NULL, VA(_res_first), VAEND);
+    Form_t f1 = THIS(first).type();
+    Form_t f2 = THIS(res_real_last).type();
+    while (!THIS(first).equal(VA(_last)) && !THIS(res_real_last).equal(VA(_res_first)))
+    {
+        AssignOpt(FORM_WITH_OBJ(f2, THIS(res_real_last).derefer()),
+                  FORM_WITH_OBJ(f1, THIS(first).derefer()), op);
+        THIS(res_real_last).inc();
+        THIS(first).inc();
+    }
+
+    make_heap(_res_first, res_real_last, cmp);
+    Iterator res_real_last_pre = THIS(res_real_last).ctor(NULL, VA(res_real_last), VAEND);
+    THIS(res_real_last_pre).dec();
+
+    for (; !THIS(first).equal(VA(_last)); THIS(first).inc()) {
+        FormWO_t first_v = FORM_WITH_OBJ(f1, THIS(first).derefer());
+        FormWO_t res_v = FORM_WITH_OBJ(f2, THIS(_res_first).derefer());
+        if (cmp(first_v, res_v) < 0) {
+            AssignOpt(res_v, first_v, op);
+            iter_swap(_res_first, res_real_last_pre);
+            pop_heap(_res_first, res_real_last_pre, cmp);
+        }
+    }
+    sort_heap(_res_first, res_real_last, cmp);
+    delete(first);
+    delete(res_real_last);
+    delete(res_real_last_pre);
 }

@@ -95,4 +95,21 @@ Iterator transform(Iterator _first, Iterator _last, Iterator _result, UnaryOpera
 Iterator unique(Iterator _first, Iterator _last, .../*Assign, Equal*/);
 
 Iterator unique_copy(Iterator _first, Iterator _last, Iterator _result, .../*Assign, Equal*/);
+
+Iterator lower_bound(Iterator _first, Iterator _last, FormWO_t val, .../*Compare*/);
+
+Iterator upper_bound(Iterator _first, Iterator _last, FormWO_t val, .../*Compare*/);
+
+bool binary_search(Iterator _first, Iterator _last, FormWO_t val, .../*Compare*/);
+
+bool next_permutation(Iterator _first, Iterator _last, .../*Assign, Compare*/);
+
+bool prev_permutation(Iterator _first, Iterator _last, .../*Assign, Compare*/);
+
+void random_shuffle(Iterator _first, Iterator _last, unsigned int *seed, .../*Assign*/);
+
+void partial_sort(Iterator _first, Iterator _middle, Iterator _last, Compare cmp);
+
+void partial_sort_copy(Iterator _first, Iterator _last,
+                       Iterator _res_first, Iterator _res_last, Compare cmp, .../*Assign*/);
 #endif //TINY_CTL_TCTL_ALGO_H
