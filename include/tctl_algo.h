@@ -23,7 +23,7 @@ Iterator set_symmetric_difference(Iterator _first1, Iterator _last1,
 //Data Processing 
 Iterator adjacent_find(Iterator _first, Iterator _last, .../*Equal*/);
 
-size_t count(Iterator _first, Iterator _last, FormWO_t val, .../*Compare*/);
+size_t count(Iterator _first, Iterator _last, FormWO_t val, .../*Equal*/);
 
 size_t count_if(Iterator _first, Iterator _last, Predicate pred);
 

@@ -290,7 +290,7 @@ Iterator adjacent_find(Iterator _first, Iterator _last, .../*Equal*/)
 }
 
 //count
-size_t count(Iterator _first, Iterator _last, FormWO_t val, .../*Compare*/)
+size_t count(Iterator _first, Iterator _last, FormWO_t val, .../*Equal*/)
 {
     va_list ap;
     va_start(ap, val);
@@ -301,8 +301,7 @@ size_t count(Iterator _first, Iterator _last, FormWO_t val, .../*Compare*/)
     Form_t f = THIS(first).type();
     size_t n = 0;
     for (; !THIS(first).equal(VA(_last)); THIS(first).inc()) {
-        int res = CompareOpt(val, FORM_WITH_OBJ(f, THIS(first).derefer()), op);
-        if (!res)
+        if (EqualOpt(val, FORM_WITH_OBJ(f, THIS(first).derefer()), op))
             n++;
     }
     delete(first);
