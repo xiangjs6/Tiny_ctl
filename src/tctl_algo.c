@@ -416,7 +416,7 @@ Iterator find_first_of(Iterator _first1, Iterator _last1,
                          FORM_WITH_OBJ(f2, THIS(iter).derefer()),
                          op)) {
                 delete(iter);
-                break;
+                return first1;
             }
         delete(iter);
     }
@@ -614,7 +614,7 @@ Iterator partition(Iterator _first, Iterator _last, Predicate pred, ...)
 
 Iterator remove_element(Iterator _first, Iterator _last, FormWO_t val, ...)
 {
-    enum {Assign, Compare};
+    enum {Assign, Equal};
     FormWO_t op[2] = {VAEND, VAEND};
     va_list ap;
     va_start(ap, val);
@@ -622,12 +622,12 @@ Iterator remove_element(Iterator _first, Iterator _last, FormWO_t val, ...)
         op[i] = va_arg(ap, FormWO_t);
     va_end(ap);
 
-    Iterator first = find(_first, _last, val, op[Compare]);
+    Iterator first = find(_first, _last, val, op[Equal]);
     if (THIS(first).equal(VA(_last)))
         return first;
     Iterator next = THIS(first).ctor(NULL, VA(first), VAEND);
     THIS(next).inc();
-    first = remove_copy(next, _last, first, val, op[Assign], op[Compare]);
+    first = remove_copy(next, _last, first, val, op[Assign], op[Equal]);
     delete(next);
     return first;
 }
@@ -635,7 +635,7 @@ Iterator remove_element(Iterator _first, Iterator _last, FormWO_t val, ...)
 Iterator remove_copy(Iterator _first, Iterator _last,
                      Iterator _result, FormWO_t val, ...)
 {
-    enum {Assign, Compare};
+    enum {Assign, Equal};
     FormWO_t op[2] = {VAEND, VAEND};
     va_list ap;
     va_start(ap, val);
@@ -650,7 +650,7 @@ Iterator remove_copy(Iterator _first, Iterator _last,
     Form_t f2 = THIS(result).type();
     for (; !THIS(first).equal(VA(_last)); THIS(first).inc()) {
         FormWO_t v = FORM_WITH_OBJ(f1, THIS(first).derefer());
-        if (!CompareOpt(v, val, op[Compare])) {
+        if (!EqualOpt(v, val, op[Equal])) {
             AssignOpt(FORM_WITH_OBJ(f2, THIS(result).derefer()),
                       v, op[Assign]);
             THIS(result).inc();
