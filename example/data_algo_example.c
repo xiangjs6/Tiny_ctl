@@ -20,6 +20,18 @@ bool less6(FormWO_t v)
     return i->val < 6;
 }
 
+bool less5(FormWO_t v)
+{
+    Int i = v.mem;
+    return i->val < 5;
+}
+
+bool equal8(FormWO_t v)
+{
+    Int i = v.mem;
+    return i->val == 8;
+}
+
 bool greater2(FormWO_t v)
 {
     Int i = v.mem;
@@ -101,6 +113,50 @@ int main(void)
     remove_copy_if(THIS(iv).begin(), THIS(iv).end(), THIS(iv3).begin(), less7);
     for_each(THIS(iv3).begin(), THIS(iv3).end(), display);
     putchar('\n');
+
+    //replace
+    replace(THIS(iv).begin(), THIS(iv).end(), VA(6), VA(3), VAEND, VAEND);
+    for_each(THIS(iv).begin(), THIS(iv).end(), display);
+    putchar('\n');
+
+    replace_copy(THIS(iv).begin(), THIS(iv).end(), THIS(iv3).begin(), VA(3, 5), VAEND, VAEND);
+    for_each(THIS(iv3).begin(), THIS(iv3).end(), display);
+    putchar('\n');
+
+    replace_if(THIS(iv).begin(), THIS(iv).end(), less5, VA(2), VAEND);
+    for_each(THIS(iv).begin(), THIS(iv).end(), display);
+    putchar('\n');
+
+    replace_copy_if(THIS(iv).begin(), THIS(iv).end(), THIS(iv3).begin(), equal8, VA(9), VAEND);
+    for_each(THIS(iv3).begin(), THIS(iv3).end(), display);
+    putchar('\n');
+
+    //reverse
+    reverse(THIS(iv).begin(), THIS(iv).end(), VAEND);
+    for_each(THIS(iv).begin(), THIS(iv).end(), display);
+    putchar('\n');
+
+    reverse_copy(THIS(iv).begin(), THIS(iv).end(), THIS(iv3).begin(), VAEND);
+    for_each(THIS(iv3).begin(), THIS(iv3).end(), display);
+    putchar('\n');
+
+    //rotate
+    rotate(THIS(iv).begin(), THIS(THIS(iv).begin()).add(VA(4)), THIS(iv).end());
+    for_each(THIS(iv).begin(), THIS(iv).end(), display);
+    putchar('\n');
+
+    rotate_copy(THIS(iv).begin(), THIS(THIS(iv).begin()).add(VA(5)), THIS(iv).end(), THIS(iv3).begin());
+    for_each(THIS(iv3).begin(), THIS(iv3).end(), display);
+    putchar('\n');
+
+    //search
+    int ia2[3] = {2, 8};
+    Vector iv4 = new(T(Vector), VA(T(Int), oriPointIter(ia2), oriPointIter(ia2, 2)));
+    out_it = search(THIS(iv).begin(), THIS(iv).end(), THIS(iv4).begin(), THIS(iv4).end(), VAEND);
+    printf("%lld\n", ((Int)THIS(out_it).derefer())->val);
+
+    out_it = search_n(THIS(iv).begin(), THIS(iv).end(), 2, VA(8), VAEND);
+    printf("%lld\n", ((Int)THIS(out_it).derefer())->val);
 
     ARP_FreePool();
 }

@@ -12,9 +12,18 @@
 
 #define Import ITERATOR
 #define ARR_LEN(a) (sizeof(a) / sizeof(*a))
+#define SWAP_FormWO(a, b) \
+do                        \
+{                         \
+    FormWO_t tmp##a = a;  \
+    a = b;                \
+    b = tmp##a;           \
+} while(0)
 
 inline static int CompareOpt(FormWO_t a, FormWO_t b, FormWO_t op)
 {
+    if (a._.f != OBJ)
+        SWAP_FormWO(a, b);
     if (op._.f != FUNC) {
         if (a._.f == OBJ) {
             Object obj = a.mem;
@@ -33,6 +42,8 @@ inline static int CompareOpt(FormWO_t a, FormWO_t b, FormWO_t op)
 
 inline static bool EqualOpt(FormWO_t a, FormWO_t b, FormWO_t op)
 {
+    if (a._.f != OBJ)
+        SWAP_FormWO(a, b);
     if (op._.f != FUNC) {
         if (a._.f == OBJ) {
             Object obj = a.mem;
@@ -704,7 +715,7 @@ Iterator remove_copy_if(Iterator _first, Iterator _last,
 
 void replace(Iterator _first, Iterator _last, FormWO_t old_val, FormWO_t new_val, ...)
 {
-    enum {Assign, Compare};
+    enum {Assign, Equal};
     FormWO_t op[2] = {VAEND, VAEND};
     va_list ap;
     va_start(ap, new_val);
@@ -716,7 +727,7 @@ void replace(Iterator _first, Iterator _last, FormWO_t old_val, FormWO_t new_val
     Form_t f = THIS(_first).type();
     for (; !THIS(first).equal(VA(_last)); THIS(first).inc()) {
         FormWO_t v = FORM_WITH_OBJ(f, THIS(first).derefer());
-        if (!CompareOpt(v, old_val, op[Compare]))
+        if (EqualOpt(v, old_val, op[Equal]))
             AssignOpt(v, new_val, op[Assign]);
     }
     delete(first);
@@ -726,7 +737,7 @@ Iterator replace_copy(Iterator _first, Iterator _last,
                       Iterator _result, FormWO_t old_val,
                       FormWO_t new_val, ...)
 {
-    enum {Assign, Compare};
+    enum {Assign, Equal};
     FormWO_t op[2] = {VAEND, VAEND};
     va_list ap;
     va_start(ap, new_val);
@@ -741,9 +752,12 @@ Iterator replace_copy(Iterator _first, Iterator _last,
     Form_t f2 = THIS(_result).type();
     for (; !THIS(first).equal(VA(_last)); THIS(first).inc(), THIS(result).inc()) {
         FormWO_t v = FORM_WITH_OBJ(f1, THIS(first).derefer());
-        if (!CompareOpt(v, old_val, op[Compare]))
+        if (EqualOpt(v, old_val, op[Equal]))
             AssignOpt(FORM_WITH_OBJ(f2, THIS(result).derefer()),
                       new_val, op[Assign]);
+        else
+            AssignOpt(FORM_WITH_OBJ(f2, THIS(result).derefer()),
+                      v, op[Assign]);
     }
     delete(first);
     return result;
@@ -760,7 +774,7 @@ void replace_if(Iterator _first, Iterator _last, Predicate pred, FormWO_t new_va
     Form_t f = THIS(_first).type();
     for (; !THIS(first).equal(VA(_last)); THIS(first).inc()) {
         FormWO_t v = FORM_WITH_OBJ(f, THIS(first).derefer());
-        if (!pred(v))
+        if (pred(v))
             AssignOpt(v, new_val, op);
     }
     delete(first);
@@ -780,9 +794,12 @@ Iterator replace_copy_if(Iterator _first, Iterator _last, Iterator _result, Pred
     Form_t f2 = THIS(_result).type();
     for (; !THIS(first).equal(VA(_last)); THIS(first).inc(), THIS(result).inc()) {
         FormWO_t v = FORM_WITH_OBJ(f1, THIS(first).derefer());
-        if (!pred(v))
+        if (pred(v))
             AssignOpt(FORM_WITH_OBJ(f2, THIS(result).derefer()),
                       new_val, op);
+        else
+            AssignOpt(FORM_WITH_OBJ(f2, THIS(result).derefer()),
+                      v, op);
     }
     delete(first);
     return result;
@@ -950,8 +967,8 @@ static Iterator __search(Iterator _first1, Iterator _last1,
     Form_t f = THIS(_first1).type();
 
     while (!THIS(current2).equal(VA(_last2)))
-        if (!CompareOpt(FORM_WITH_OBJ(f, THIS(current1).derefer()),
-                       FORM_WITH_OBJ(f, THIS(current2).derefer()), op)) {
+        if (EqualOpt(FORM_WITH_OBJ(f, THIS(current1).derefer()),
+                      FORM_WITH_OBJ(f, THIS(current2).derefer()), op)) {
             THIS(current1).inc();
             THIS(current2).inc();
         } else {

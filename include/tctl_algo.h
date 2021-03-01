@@ -56,28 +56,28 @@ Iterator min_element(Iterator _first, Iterator _last, .../*Compare*/);
 
 Iterator partition(Iterator _first, Iterator _last, Predicate pred, .../*Swapfunc*/);
 
-Iterator remove_element(Iterator _first, Iterator _last, FormWO_t val, .../*Assign, Compare*/);
+Iterator remove_element(Iterator _first, Iterator _last, FormWO_t val, .../*Assign, Equal*/);
 
 Iterator remove_copy(Iterator _first, Iterator _last,
-                     Iterator _result, FormWO_t val, .../*Assign, Compare*/);
+                     Iterator _result, FormWO_t val, .../*Assign, Equal*/);
 Iterator remove_if(Iterator _first, Iterator _last, Predicate pred, .../*Assign*/);
 
 Iterator remove_copy_if(Iterator _first, Iterator _last,
                         Iterator _result, Predicate pred, .../*Assign*/);
 
-void replace(Iterator _first, Iterator _last, FormWO_t old_val, FormWO_t new_val, .../*Assign, Compare*/);
+void replace(Iterator _first, Iterator _last, FormWO_t old_val, FormWO_t new_val, .../*Assign, Equal*/);
 
 Iterator replace_copy(Iterator _first, Iterator _last,
                       Iterator _result, FormWO_t old_val,
-                      FormWO_t new_val, .../*Assign, Compare*/);
+                      FormWO_t new_val, .../*Assign, Equal*/);
 
 void replace_if(Iterator _first, Iterator _last, Predicate pred, FormWO_t new_val, .../*Assign*/);
 
 Iterator replace_copy_if(Iterator _first, Iterator _last, Iterator _result, Predicate pred, FormWO_t new_val, .../*Assign*/);
 
-void reserve(Iterator _first, Iterator _last, .../*Swapfunc*/);
+void reverse(Iterator _first, Iterator _last, .../*Assign*/);
 
-Iterator reserve_copy(Iterator _first, Iterator _last, Iterator _result, .../*Assign*/);
+Iterator reverse_copy(Iterator _first, Iterator _last, Iterator _result, .../*Assign*/);
 
 void rotate(Iterator _first, Iterator _middle, Iterator _last, .../*Assign*/);
 
