@@ -1537,7 +1537,7 @@ static void __final_insertion_sort(Iterator _first, Iterator _last, FormWO_t op)
         __insertion_sort(_first, _last, op);
 }
 
-inline void sort(Iterator _first, Iterator _last, ...)
+void sort(Iterator _first, Iterator _last, ...)
 {
     va_list ap;
     va_start(ap, _last);
