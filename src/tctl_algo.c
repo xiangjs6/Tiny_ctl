@@ -1362,21 +1362,19 @@ void random_shuffle(Iterator _first, Iterator _last, unsigned int *seed, ...)
 
 void partial_sort(Iterator _first, Iterator _middle, Iterator _last, Compare cmp)
 {
+    assert(_first->rank >= RandomAccessIter && _middle->rank >= RandomAccessIter && _last->rank >= RandomAccessIter);
     make_heap(_first, _middle, cmp);
     Iterator i = THIS(_middle).ctor(NULL, VA(_middle), VAEND);
-    Iterator pre_middle = THIS(_middle).ctor(NULL, VA(_middle), VAEND);
-    THIS(pre_middle).dec();
     Form_t f = THIS(i).type();
     for (; !THIS(i).equal(VA(_last)); THIS(i).inc()) {
         FormWO_t i_v = FORM_WITH_OBJ(f, THIS(i).derefer());
         FormWO_t first_v = FORM_WITH_OBJ(f, THIS(_first).derefer());
         if (cmp(i_v, first_v) < 0) {
             iter_swap(_first, i);
-            iter_swap(_first, pre_middle);
             pop_heap(_first, _middle, cmp);
+            push_heap(_first, _middle, cmp);
         }
     }
-    delete(pre_middle);
     delete(i);
     sort_heap(_first, _middle, cmp);
 }
@@ -1384,6 +1382,7 @@ void partial_sort(Iterator _first, Iterator _middle, Iterator _last, Compare cmp
 void partial_sort_copy(Iterator _first, Iterator _last,
                        Iterator _res_first, Iterator _res_last, Compare cmp, ...)
 {
+    assert(_res_first->rank >= RandomAccessIter && _res_last->rank >= RandomAccessIter);
     va_list ap;
     va_start(ap, cmp);
     FormWO_t op = va_arg(ap, FormWO_t);
@@ -1402,20 +1401,152 @@ void partial_sort_copy(Iterator _first, Iterator _last,
     }
 
     make_heap(_res_first, res_real_last, cmp);
-    Iterator res_real_last_pre = THIS(res_real_last).ctor(NULL, VA(res_real_last), VAEND);
-    THIS(res_real_last_pre).dec();
 
     for (; !THIS(first).equal(VA(_last)); THIS(first).inc()) {
         FormWO_t first_v = FORM_WITH_OBJ(f1, THIS(first).derefer());
         FormWO_t res_v = FORM_WITH_OBJ(f2, THIS(_res_first).derefer());
         if (cmp(first_v, res_v) < 0) {
             AssignOpt(res_v, first_v, op);
-            iter_swap(_res_first, res_real_last_pre);
-            pop_heap(_res_first, res_real_last_pre, cmp);
+            pop_heap(_res_first, res_real_last, cmp);
+            push_heap(_res_first, res_real_last, cmp);
         }
     }
     sort_heap(_res_first, res_real_last, cmp);
     delete(first);
     delete(res_real_last);
-    delete(res_real_last_pre);
+}
+
+//sort
+const int __sort_threshold = 16;
+
+static void __unguarded_linear_insert(Iterator _last, FormWO_t val, FormWO_t op)
+{
+    Iterator last = THIS(_last).sub(VA(0)); //copy出一个迭代器
+    Iterator next = THIS(_last).sub(VA(1));
+
+    Form_t f = val._;
+    FormWO_t v_n = FORM_WITH_OBJ(f, THIS(next).derefer());
+    while (CompareOpt(val, v_n, op) < 0)
+    {
+        AssignOpt(FORM_WITH_OBJ(f, THIS(last).derefer()), v_n, VAEND);
+        THIS(last).dec();
+        THIS(next).dec();
+        v_n.mem = THIS(next).derefer();
+    }
+    AssignOpt(FORM_WITH_OBJ(f, THIS(last).derefer()), val, VAEND);
+}
+
+static void __linear_insert(Iterator _first, Iterator _last, FormWO_t op)
+{
+    Form_t f = THIS(_first).type();
+    char mem[f.f == OBJ ? classSz(f.class) : f.size];
+    FormWO_t val = FORM_WITH_OBJ(f, mem);
+    if (f.f == OBJ)
+        val.mem = construct(f, mem, VAEND);
+    AssignOpt(val, FORM_WITH_OBJ(f, THIS(_last).derefer()), VAEND);
+    if (CompareOpt(FORM_WITH_OBJ(f, THIS(_first).derefer()), val, op) > 0) {
+        copy_backward(_first, _last, THIS(_last).add(VA(1)));
+        AssignOpt(FORM_WITH_OBJ(f, THIS(_first).derefer()), val, VAEND);
+    } else
+        __unguarded_linear_insert(_last, val, op);
+}
+
+static void __insertion_sort(Iterator _first, Iterator _last, FormWO_t op)
+{
+    if (THIS(_first).equal(VA(_last))) return;
+    for (Iterator i = THIS(_first).add(VA(1)); !THIS(i).equal(VA(_last)); THIS(i).inc())
+        __linear_insert(_first, i, op);
+}
+
+static inline FormWO_t __median(FormWO_t a, FormWO_t b, FormWO_t c, FormWO_t op)
+{
+    if (CompareOpt(a, b, op) < 0)
+        if (CompareOpt(b, c, op) < 0)
+            return b;
+        else if (CompareOpt(a, c, op) < 0)
+            return c;
+        else
+            return a;
+    else if (CompareOpt(a, c, op) < 0)
+        return a;
+    else if (CompareOpt(b, c, op) < 0)
+        return c;
+    else
+        return b;
+}
+
+static Iterator __unguarded_partition(Iterator _first, Iterator _last, FormWO_t pivot, FormWO_t op)
+{
+    Iterator first = THIS(_first).add(VA(0));
+    Iterator last = THIS(_last).add(VA(0));
+    Form_t f = pivot._;
+    while (true)
+    {
+        while (CompareOpt(FORM_WITH_OBJ(f, THIS(first).derefer()), pivot, op) < 0) THIS(first).inc();
+        THIS(last).dec();
+        while (CompareOpt(FORM_WITH_OBJ(f, THIS(last).derefer()), pivot, op) < 0) THIS(last).dec();
+        if (THIS(first).cmp(VA(last)) >= 0) return first;
+        iter_swap(first, last);
+        THIS(first).inc();
+    }
+}
+
+static inline size_t __lg(size_t n)
+{
+    size_t k;
+    for (k = 0; n > 1; n >>= 1) ++k;
+    return k;
+}
+
+static void __introsort_loop(Iterator _first, Iterator _last, size_t depth_limit, FormWO_t op)
+{
+    long long dis = distance(_first, _last);
+    Form_t f = THIS(_first).type();
+    while (dis > __sort_threshold)
+    {
+        if (depth_limit == 0) {
+            partial_sort(_first, _last, _last, op.mem); //这个cmp有点混乱
+            return;
+        }
+        --depth_limit;
+        Iterator m = THIS(_first).add(VA(dis / 2));
+        FormWO_t pivot = __median(FORM_WITH_OBJ(f, THIS(_first).derefer()),
+                                  FORM_WITH_OBJ(f, THIS(m).derefer()),
+                                  FORM_WITH_OBJ(f, THIS(_last).derefer()), op);
+        Iterator cut = __unguarded_partition(_first, _last, pivot, op);
+        __introsort_loop(cut, _last, depth_limit, op);
+        _last = cut; //直接得到引用就行
+    }
+}
+
+static void __unguarded_insertion_sort(Iterator _first, Iterator _last, FormWO_t op)
+{
+    Form_t f = THIS(_first).type();
+    for (Iterator i = THIS(_first).add(VA(0)); !THIS(i).equal(VA(_last)); THIS(i).inc())
+        __unguarded_linear_insert(i, FORM_WITH_OBJ(f, THIS(i).derefer()), op);
+}
+
+static void __final_insertion_sort(Iterator _first, Iterator _last, FormWO_t op)
+{
+    long long dis = distance(_first, _last);
+    if (dis > __sort_threshold) {
+        Iterator m = THIS(_first).add(VA(__sort_threshold));
+        __insertion_sort(_first, m, op);
+        __unguarded_insertion_sort(m, _last, op);
+    } else
+        __insertion_sort(_first, _last, op);
+}
+
+inline void sort(Iterator _first, Iterator _last, ...)
+{
+    va_list ap;
+    va_start(ap, _last);
+    FormWO_t op = va_arg(ap, FormWO_t);
+    va_end(ap);
+
+    if (!THIS(_first).equal(VA(_last))) {
+        size_t n = distance(_first, _last);
+        __introsort_loop(_first, _last, __lg(n) * 2, op);
+        __final_insertion_sort(_first, _last, op);
+    }
 }
