@@ -114,4 +114,6 @@ void partial_sort_copy(Iterator _first, Iterator _last,
                        Iterator _res_first, Iterator _res_last, Compare cmp, .../*Assign*/);
 
 inline void sort(Iterator _first, Iterator _last, .../*Compare*/);
+
+Pair equal_range(Iterator _first, Iterator _last, FormWO_t val, .../*Compare*/);
 #endif //TINY_CTL_TCTL_ALGO_H

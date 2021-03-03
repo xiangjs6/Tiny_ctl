@@ -6,6 +6,7 @@
 #include "../include/tctl_algobase.h"
 #include "../include/tctl_heap.h"
 #include "../include/tctl_metaclass.h"
+#include "../include/tctl_utility.h"
 #include "../include/auto_release_pool.h"
 #include <stddef.h>
 #include <stdlib.h>
@@ -901,7 +902,7 @@ static size_t __gcd(size_t m, size_t n)
     return m;
 }
 
-static void __rorate_cycle(Iterator _first, Iterator _last, Iterator initial, size_t shift, FormWO_t op)
+static void __rotate_cycle(Iterator _first, Iterator _last, Iterator initial, size_t shift, FormWO_t op)
 {
     Form_t f = THIS(_first).type();
     char mem[f.f == OBJ ? classSz(f.class) : f.size];
@@ -928,7 +929,7 @@ static void __rorate_cycle(Iterator _first, Iterator _last, Iterator initial, si
         destroy(val.mem);
 }
 
-static void __rorate(Iterator _first, Iterator _middle, Iterator _last, FormWO_t op)
+static void __rotate(Iterator _first, Iterator _middle, Iterator _last, FormWO_t op)
 {
     Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
     Iterator middle = THIS(_middle).ctor(NULL, VA(_middle), VAEND);
@@ -952,7 +953,7 @@ static void __rorate(Iterator _first, Iterator _middle, Iterator _last, FormWO_t
     } else {
         size_t n = __gcd(distance(first, _last), distance(first, middle));
         while (n--)
-            __rorate_cycle(first, _last, THIS(first).add(VA(n)), distance(first, middle), op);
+            __rotate_cycle(first, _last, THIS(first).add(VA(n)), distance(first, middle), op);
     }
     delete(first);
     delete(i);
@@ -968,7 +969,7 @@ void rotate(Iterator _first, Iterator _middle, Iterator _last, ...)
     FormWO_t op = va_arg(ap, FormWO_t);
     va_end(ap);
 
-    __rorate(_first, _middle, _last, op);
+    __rotate(_first, _middle, _last, op);
 }
 
 Iterator rotate_copy(Iterator _first, Iterator _middle, Iterator _last, Iterator _result)
@@ -1549,4 +1550,51 @@ void sort(Iterator _first, Iterator _last, ...)
         __introsort_loop(_first, _last, __lg(n) * 2, op);
         __final_insertion_sort(_first, _last, op);
     }
+}
+
+//equal_range
+Pair equal_range(Iterator _first, Iterator _last, FormWO_t val, ...)
+{
+    va_list ap;
+    va_start(ap, val);
+    FormWO_t op = va_arg(ap, FormWO_t);
+    va_end(ap);
+
+    long long len = distance(_first, _last);
+    size_t half;
+    Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    Iterator middle = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    Iterator left, right;
+    Form_t f = THIS(_first).type();
+    while (len > 0)
+    {
+        half = len >> 1;
+        THIS(middle).assign(VA(first));
+        advance(middle, half);
+        int res = CompareOpt(FORM_WITH_OBJ(f, THIS(middle).derefer()), val, op);
+        if (res < 0) {
+            THIS(first).assign(VA(middle));
+            THIS(first).inc();
+            len = len - half - 1;
+        } else if (res > 0)
+            len = half;
+        else {
+            left = lower_bound(first, middle, val, op);
+            advance(first, len);
+            THIS(middle).inc();
+            right = upper_bound(middle, first, val, op);
+            delete(first);
+            delete(middle);
+            return tmpPair(T(Iterator), T(Iterator), left, right);
+        }
+    }
+    Pair p = tmpPair(T(Iterator), T(Iterator), first, first);
+    delete(first);
+    delete(middle);
+    return p;
+}
+
+//inplace_merge
+static void __merge_adaptive(Iterator _first, Iterator _middle, Iterator _last, size_t len1, size_t len2, void *buff, size_t buff_size)
+{
 }
