@@ -1595,6 +1595,93 @@ Pair equal_range(Iterator _first, Iterator _last, FormWO_t val, ...)
 }
 
 //inplace_merge
-static void __merge_adaptive(Iterator _first, Iterator _middle, Iterator _last, size_t len1, size_t len2, void *buff, size_t buff_size)
+static Iterator __merge_backward(Iterator _first1, Iterator _last1, Iterator _first2, Iterator _last2, Iterator _result, FormWO_t op)
 {
+    if (THIS(_first1).equal(VA(_last1)))
+        return copy_backward(_first2, _last2, _result);
+    if (THIS(_first2).equal(VA(_last2)))
+        return copy_backward(_first1, _last1, _result);
+    Iterator last1 = THIS(_last1).ctor(NULL, VA(_last1), VAEND);
+    Iterator last2 = THIS(_last2).ctor(NULL, VA(_last2), VAEND);
+    Iterator result = THIS(_result).ctor(NULL, VA(_result), VAEND);
+    THIS(last1).dec();
+    THIS(last2).dec();
+    Form_t f1 = THIS(_first1).type();
+    Form_t f2 = THIS(_first2).type();
+    Form_t f3 = THIS(_result).type();
+    while (true)
+    {
+        FormWO_t v1 = FORM_WITH_OBJ(f1, THIS(last1).derefer());
+        FormWO_t v2 = FORM_WITH_OBJ(f1, THIS(last2).derefer());
+        int res = CompareOpt(v1, v2, op);
+        if (res > 0) {
+            AssignOpt(FORM_WITH_OBJ(f3, THIS(result).derefer()), v1, VAEND);
+            THIS(result).dec();
+            if (THIS(_first1).equal(VA(last1))) {
+                THIS(last2).inc();
+                Iterator tmp = copy_backward(_first2, last2, result);
+                delete(last1);
+                delete(last2);
+                delete(result);
+                return tmp;
+            }
+            THIS(last1).dec();
+        } else {
+            AssignOpt(FORM_WITH_OBJ(f3, THIS(result).derefer()), v2, VAEND);
+            THIS(result).dec();
+            if (THIS(_first2).equal(VA(last2))) {
+                THIS(last1).inc();
+                Iterator tmp = copy_backward(_first1, last1, result);
+                delete(last1);
+                delete(last2);
+                delete(result);
+                return tmp;
+            }
+            THIS(last2).dec();
+        }
+    }
+}
+
+static void *get_temporary_buffer(size_t *len)
+{
+    while (*len > 0)
+    {
+        void *tmp = malloc(*len);
+        if (tmp)
+            return tmp;
+        *len >>= 1;
+    }
+    return NULL;
+}
+
+static Iterator __rotate_adaptive(Iterator _first, Iterator _middle, Iterator _last, size_t len1, size_t len2, Iterator _buff, size_t buff_size)
+{
+    Iterator buff_end;
+    if (len1 > len2 && len2 <= buff_size)
+    {
+        buff_end = copy(_middle, _last, _buff);
+        copy_backward(_first, _middle, _last);
+        return copy_backward(_buff, buff_end, _last);
+    } else if (len1 <= buff_size) {
+        buff_end = copy(_first, _middle, _buff);
+        copy(_middle, _last, _first);
+        return copy_backward(_buff, buff_end, _last);
+    } else {
+        rotate(_first, _middle, _last);
+        void *mem = ARP_MallocARelDtor(sizeOf(_first), destroy);
+        Iterator first = THIS(_first).ctor(mem, VA(_first), VAEND);
+        advance(first, len2);
+        return first;
+    }
+}
+
+static void __merge_adaptive(Iterator _first, Iterator _middle, Iterator _last, size_t len1, size_t len2, Iterator _buff, size_t buff_size, FormWO_t op)
+{
+    if (len1 <= len2 && len1 <= buff_size) {
+        Iterator end_buff = copy(_first, _middle, _buff);
+        merge(_buff, end_buff, _middle, _last, _first, op);
+    } else if (len2 <= buff_size) {
+        Iterator end_buff = copy(_middle, _last, _buff);
+        __merge_backward(_first, _middle, _buff, end_buff, _last, op);
+    }
 }
