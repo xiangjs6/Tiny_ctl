@@ -1511,9 +1511,10 @@ static void __introsort_loop(Iterator _first, Iterator _last, size_t depth_limit
         }
         --depth_limit;
         Iterator m = THIS(_first).add(VA(dis / 2));
+        Iterator last = THIS(_last).sub(VA(1));
         FormWO_t pivot = __median(FORM_WITH_OBJ(f, THIS(_first).derefer()),
                                   FORM_WITH_OBJ(f, THIS(m).derefer()),
-                                  FORM_WITH_OBJ(f, THIS(_last).derefer()), op);
+                                  FORM_WITH_OBJ(f, THIS(last).derefer()), op);
         Iterator cut = __unguarded_partition(_first, _last, pivot, op);
         __introsort_loop(cut, _last, depth_limit, op);
         _last = cut; //直接得到引用就行
@@ -1762,5 +1763,48 @@ void inplace_merge(Iterator _first, Iterator _middle, Iterator _last, ...)
     else {
         __merge_adaptive(_first, _middle, _last, len1, len2, oriPointIter(buff), buff_size, op);
         free(buff);
+    }
+}
+
+void nth_element(Iterator _first, Iterator _nth, Iterator _last, ...)
+{
+    assert(_first->rank >= RandomAccessIter && _nth->rank >= RandomAccessIter && _last->rank >= RandomAccessIter);
+    va_list ap;
+    va_start(ap, _last);
+    FormWO_t op = va_arg(ap, FormWO_t);
+    va_end(ap);
+
+    size_t dis = distance(_first, _last);
+    if (dis > 3) {
+        Form_t f = THIS(_first).type();
+        Iterator m = THIS(_first).add(VA(dis / 2));
+        Iterator last = THIS(_last).sub(VA(1));
+        FormWO_t pivot = __median(FORM_WITH_OBJ(f, THIS(_first).derefer()),
+                                  FORM_WITH_OBJ(f, THIS(m).derefer()),
+                                  FORM_WITH_OBJ(f, THIS(last).derefer()), op);
+        Iterator cut = __unguarded_partition(_first, _last, pivot, op);
+        if (CompareOpt(VA(cut, _nth), VAEND) <= 0)
+            _first = cut;
+        else
+            _last = cut;
+    }
+    __insertion_sort(_first, _last, op);
+}
+
+void mergesort(Iterator _first, Iterator _last, ...)
+{
+    assert(_first->rank >= BidirectionalIter && _last->rank >= BidirectionalIter);
+    va_list ap;
+    va_start(ap, _last);
+    FormWO_t op = va_arg(ap, FormWO_t);
+    va_end(ap);
+    size_t n = distance(_first, _last);
+    if (n <= 1)
+        return;
+    else {
+        Iterator mid = THIS(_first).add(VA(n / 2));
+        mergesort(_first, mid, op);
+        mergesort(mid, _last, op);
+        inplace_merge(_first, mid, _last, op);
     }
 }

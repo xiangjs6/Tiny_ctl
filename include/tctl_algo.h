@@ -119,4 +119,8 @@ inline void sort(Iterator _first, Iterator _last, .../*Compare*/);
 Pair equal_range(Iterator _first, Iterator _last, FormWO_t val, .../*Compare*/);
 
 void inplace_merge(Iterator _first, Iterator _middle, Iterator _last, .../*Compare*/);
+
+void nth_element(Iterator _first, Iterator _nth, Iterator _last, .../*Compare*/);
+
+void mergesort(Iterator _first, Iterator _last, .../*Compare*/);
 #endif //TINY_CTL_TCTL_ALGO_H
