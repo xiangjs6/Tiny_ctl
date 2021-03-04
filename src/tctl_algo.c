@@ -1613,7 +1613,7 @@ static Iterator __merge_backward(Iterator _first1, Iterator _last1, Iterator _fi
     while (true)
     {
         FormWO_t v1 = FORM_WITH_OBJ(f1, THIS(last1).derefer());
-        FormWO_t v2 = FORM_WITH_OBJ(f1, THIS(last2).derefer());
+        FormWO_t v2 = FORM_WITH_OBJ(f2, THIS(last2).derefer());
         int res = CompareOpt(v1, v2, op);
         if (res > 0) {
             AssignOpt(FORM_WITH_OBJ(f3, THIS(result).derefer()), v1, VAEND);

@@ -122,7 +122,7 @@ int main(void)
     for_each(THIS(iv).begin(), THIS(iv).end(), display);
     putchar('\n');
 
-    remove_copy_if(THIS(iv).begin(), THIS(iv).end(), THIS(iv3).begin(), less7);
+    remove_copy_if(THIS(iv).begin(), THIS(iv).end(), THIS(iv3).begin(), less7, VAEND, VAEND);
     for_each(THIS(iv3).begin(), THIS(iv3).end(), display);
     putchar('\n');
 
@@ -197,7 +197,7 @@ int main(void)
     printf("%s\n", r_b ? "true" : "false");
 
     //merge
-    merge(THIS(iv5).begin(), THIS(iv5).end(), THIS(iv6).begin(), THIS(iv6).end(), THIS(iv7).begin(), VAEND);
+    merge(THIS(iv5).begin(), THIS(iv5).end(), THIS(iv6).begin(), THIS(iv6).end(), THIS(iv7).begin(), VAEND, VAEND);
     for_each(THIS(iv7).begin(), THIS(iv7).end(), display);
     putchar('\n');
 

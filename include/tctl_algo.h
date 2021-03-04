@@ -114,7 +114,7 @@ void partial_sort(Iterator _first, Iterator _middle, Iterator _last, Compare cmp
 void partial_sort_copy(Iterator _first, Iterator _last,
                        Iterator _res_first, Iterator _res_last, Compare cmp, .../*Assign*/);
 
-inline void sort(Iterator _first, Iterator _last, .../*Compare*/);
+void sort(Iterator _first, Iterator _last, .../*Compare*/);
 
 Pair equal_range(Iterator _first, Iterator _last, FormWO_t val, .../*Compare*/);
 

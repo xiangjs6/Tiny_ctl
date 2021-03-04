@@ -21,7 +21,7 @@ int main(void)
         printf("%lld ", ((Int)THIS(start).derefer())->val);
     putchar('\n');
 
-    Iterator r_it = THIS(start).reserve_iterator();
+    Iterator r_it = THIS(start).reverse_iterator();
     do
     {
         THIS(r_it).inc();
