@@ -5,6 +5,7 @@
 #ifndef TINY_CTL_TCTL_ALGO_H
 #define TINY_CTL_TCTL_ALGO_H
 #include "tctl_def.h"
+#include "../include/tctl_utility.h"
 #include "tctl_iterator.h"
 #include "tctl_metaclass.h"
 //Set Operation
@@ -116,4 +117,6 @@ void partial_sort_copy(Iterator _first, Iterator _last,
 inline void sort(Iterator _first, Iterator _last, .../*Compare*/);
 
 Pair equal_range(Iterator _first, Iterator _last, FormWO_t val, .../*Compare*/);
+
+void inplace_merge(Iterator _first, Iterator _middle, Iterator _last, .../*Compare*/);
 #endif //TINY_CTL_TCTL_ALGO_H

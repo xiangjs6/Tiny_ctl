@@ -6,8 +6,8 @@
 #include "../include/tctl_algobase.h"
 #include "../include/tctl_heap.h"
 #include "../include/tctl_metaclass.h"
-#include "../include/tctl_utility.h"
 #include "../include/auto_release_pool.h"
+#include "../include/tctl_pointer_iterator.h"
 #include <stddef.h>
 #include <stdlib.h>
 #include <memory.h>
@@ -1683,5 +1683,84 @@ static void __merge_adaptive(Iterator _first, Iterator _middle, Iterator _last, 
     } else if (len2 <= buff_size) {
         Iterator end_buff = copy(_middle, _last, _buff);
         __merge_backward(_first, _middle, _buff, end_buff, _last, op);
+    } else {
+        Iterator first_cut = THIS(_first).ctor(NULL, VA(_first), VAEND);
+        Iterator second_cut = THIS(_middle).ctor(NULL, VA(_middle), VAEND);
+        size_t len11 = 0, len22 = 0;
+        if (len1 > len2) {
+            len11 = len1 / 2;
+            advance(first_cut, len11);
+            Form_t f = THIS(first_cut).type();
+            second_cut = lower_bound(_middle, _last, FORM_WITH_OBJ(f, THIS(first_cut).derefer()), op);
+            len22 = distance(_middle, second_cut);
+        } else {
+            len22 = len2 / 2;
+            advance(second_cut, len22);
+            Form_t f = THIS(second_cut).type();
+            first_cut = upper_bound(_first, _middle, FORM_WITH_OBJ(f, THIS(second_cut).derefer()), op);
+            len11 = distance(_first, first_cut);
+        }
+        Iterator new_middle = __rotate_adaptive(first_cut, _middle, second_cut, len1 - len11, len22, _buff, buff_size);
+        __merge_adaptive(_first, first_cut, new_middle, len11, len22, _buff, buff_size, op);
+        __merge_adaptive(new_middle, second_cut, _last, len1 - len11, len2 - len22, _buff, buff_size, op);
+        delete(first_cut);
+        delete(second_cut);
+    }
+}
+
+static void __merge_without_buff(Iterator _first, Iterator _middle, Iterator _last, size_t len1, size_t len2, FormWO_t op)
+{
+    if (len1 == 0 || len2 == 0)
+        return;
+    Form_t f = THIS(_first).type();
+    if (len1 + len2 == 2) {
+        if (CompareOpt(FORM_WITH_OBJ(f, THIS(_first).derefer()),
+                       FORM_WITH_OBJ(f, THIS(_middle).derefer()), op) < 0)
+            iter_swap(_first, _middle, VAEND);
+        return;
+    }
+    Iterator first_cut = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    Iterator second_cut = THIS(_middle).ctor(NULL, VA(_middle), VAEND);
+    size_t len11 = 0, len22 = 0;
+    if (len1 > len2) {
+        len11 = len1 / 2;
+        advance(first_cut, len11);
+        second_cut = lower_bound(_middle, _last, FORM_WITH_OBJ(f, THIS(first_cut).derefer()), op);
+        len22 = distance(_middle, second_cut);
+    } else {
+        len22 = len2 / 2;
+        advance(second_cut, len22);
+        first_cut = upper_bound(_first, _middle, FORM_WITH_OBJ(f, THIS(second_cut).derefer()), op);
+        len11 = distance(_first, first_cut);
+    }
+    rotate(first_cut, _middle, second_cut);
+    Iterator new_middle = THIS(first_cut).ctor(NULL, VA(first_cut), VAEND);
+    advance(new_middle, len22);
+    __merge_without_buff(_first, first_cut, new_middle, len11, len22, op);
+    __merge_without_buff(new_middle, second_cut, _last, len1 - len11, len2 - len22, op);
+    delete(new_middle);
+    delete(first_cut);
+    delete(second_cut);
+}
+
+void inplace_merge(Iterator _first, Iterator _middle, Iterator _last, ...)
+{
+    assert(_first->rank >= BidirectionalIter && _middle->rank >= BidirectionalIter && _last->rank >= BidirectionalIter);
+    va_list ap;
+    va_start(ap, _last);
+    FormWO_t op = va_arg(ap, FormWO_t);
+    va_end(ap);
+
+    Form_t f = THIS(_first).type();
+    size_t size = f.f == OBJ ? classSz(f.class) : f.size;
+    size_t len1 = distance(_first, _middle);
+    size_t len2 = distance(_middle, _last);
+    size_t buff_size = (len1 > len2 ? len2 : len1) * size;
+    char (*buff)[size] = get_temporary_buffer(&buff_size);
+    if (buff)
+        __merge_without_buff(_first, _middle, _last, len1, len2, op);
+    else {
+        __merge_adaptive(_first, _middle, _last, len1, len2, oriPointIter(buff), buff_size, op);
+        free(buff);
     }
 }
