@@ -198,7 +198,7 @@ void advance(Iterator it, long long n)
         else
             while (n--)
                 THIS(it).inc();
-    } else {
+    } else if (n < 0) {
         if (it->rank >= RandomAccessIter)
             THIS(it).self_sub(VA(-n));
         else

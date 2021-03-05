@@ -25,8 +25,8 @@ do                        \
 
 inline static int CompareOpt(FormWO_t a, FormWO_t b, FormWO_t op)
 {
-    if (a._.f != OBJ)
-        SWAP_FormWO(a, b);
+    if (a._.f != OBJ && b._.f == OBJ)
+        return -CompareOpt(b, a, op);
     if (op._.f != FUNC) {
         if (a._.f == OBJ) {
             Object obj = a.mem;
@@ -45,7 +45,7 @@ inline static int CompareOpt(FormWO_t a, FormWO_t b, FormWO_t op)
 
 inline static bool EqualOpt(FormWO_t a, FormWO_t b, FormWO_t op)
 {
-    if (a._.f != OBJ)
+    if (a._.f != OBJ && b._.f == OBJ)
         SWAP_FormWO(a, b);
     if (op._.f != FUNC) {
         if (a._.f == OBJ) {
@@ -1165,7 +1165,7 @@ static Iterator __lower_bound(Iterator _first, Iterator _last, FormWO_t val, For
             THIS(first).assign(VA(middle));
             THIS(first).inc();
             len = len - half - 1;
-        } else
+        } else 
             len = half;
     }
     delete(middle);
@@ -1196,7 +1196,7 @@ static Iterator __upper_bound(Iterator _first, Iterator _last, FormWO_t val, For
         THIS(middle).assign(VA(first));
         advance(middle, half);
         FormWO_t v = FORM_WITH_OBJ(f, THIS(middle).derefer());
-        if (CompareOpt(v, val, op) < 0)
+        if (CompareOpt(val, v, op) < 0)
             len = half;
         else {
             THIS(first).assign(VA(middle));
