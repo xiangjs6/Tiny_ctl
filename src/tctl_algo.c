@@ -5,7 +5,6 @@
 #include "../include/tctl_algo.h"
 #include "../include/tctl_algobase.h"
 #include "../include/tctl_heap.h"
-#include "../include/tctl_metaclass.h"
 #include "../include/auto_release_pool.h"
 #include "../include/tctl_pointer_iterator.h"
 #include <stddef.h>
@@ -1224,7 +1223,7 @@ bool binary_search(Iterator _first, Iterator _last, FormWO_t val, ...)
     FormWO_t op = va_arg(ap, FormWO_t);
     va_end(ap);
     Iterator i = lower_bound(_first, _last, val, op);
-    return THIS(i).equal(VA(_last)) && !CompareOpt(val,
+    return !THIS(i).equal(VA(_last)) && !CompareOpt(val,
                                                    FORM_WITH_OBJ(THIS(i).type(),THIS(i).derefer()),
                                                    op);
 }
@@ -1240,7 +1239,7 @@ bool next_permutation(Iterator _first, Iterator _last, ...)
     va_end(ap);
 
     assert(_first->rank >= BidirectionalIter && _last->rank >= BidirectionalIter);
-    if (!THIS(_first).equal(VA(_last))) return false;
+    if (THIS(_first).equal(VA(_last))) return false;
     Iterator i = THIS(_first).ctor(NULL, VA(_first), VAEND);
     THIS(i).inc();
     if (THIS(i).equal(VA(_last))) {
@@ -1262,7 +1261,7 @@ bool next_permutation(Iterator _first, Iterator _last, ...)
             THIS(j).assign(VA(_last));
             THIS(j).dec();
             FormWO_t j_v = FORM_WITH_OBJ(f, THIS(j).derefer());
-            while (CompareOpt(i_v, j_v, op[Compare]) < 0)
+            while (CompareOpt(i_v, j_v, op[Compare]) >= 0)
             {
                 THIS(j).dec();
                 j_v = FORM_WITH_OBJ(f, THIS(j).derefer());
@@ -1295,7 +1294,7 @@ bool prev_permutation(Iterator _first, Iterator _last, ...)
     va_end(ap);
 
     assert(_first->rank >= BidirectionalIter && _last->rank >= BidirectionalIter);
-    if (!THIS(_first).equal(VA(_last))) return false;
+    if (THIS(_first).equal(VA(_last))) return false;
     Iterator i = THIS(_first).ctor(NULL, VA(_first), VAEND);
     THIS(i).inc();
     if (THIS(i).equal(VA(_last))) {
@@ -1317,7 +1316,7 @@ bool prev_permutation(Iterator _first, Iterator _last, ...)
             THIS(j).assign(VA(_last));
             THIS(j).dec();
             FormWO_t j_v = FORM_WITH_OBJ(f, THIS(j).derefer());
-            while (CompareOpt(i_v, j_v, op[Compare]) > 0)
+            while (CompareOpt(i_v, j_v, op[Compare]) <= 0)
             {
                 THIS(j).dec();
                 j_v = FORM_WITH_OBJ(f, THIS(j).derefer());
@@ -1485,7 +1484,7 @@ static Iterator __unguarded_partition(Iterator _first, Iterator _last, FormWO_t 
     {
         while (CompareOpt(FORM_WITH_OBJ(f, THIS(first).derefer()), pivot, op) < 0) THIS(first).inc();
         THIS(last).dec();
-        while (CompareOpt(FORM_WITH_OBJ(f, THIS(last).derefer()), pivot, op) < 0) THIS(last).dec();
+        while (CompareOpt(FORM_WITH_OBJ(f, THIS(last).derefer()), pivot, op) > 0) THIS(last).dec();
         if (THIS(first).cmp(VA(last)) >= 0) return first;
         iter_swap(first, last);
         THIS(first).inc();
@@ -1554,6 +1553,7 @@ void sort(Iterator _first, Iterator _last, ...)
 }
 
 //equal_range
+#include "../include/tctl_int.h"
 Pair equal_range(Iterator _first, Iterator _last, FormWO_t val, ...)
 {
     va_list ap;
@@ -1586,10 +1586,12 @@ Pair equal_range(Iterator _first, Iterator _last, FormWO_t val, ...)
             right = upper_bound(middle, first, val, op);
             delete(first);
             delete(middle);
-            return tmpPair(T(Iterator), T(Iterator), left, right);
+            Form_t real_form = {OBJ, .class = classOf(first)};
+            return tmpPair(real_form, real_form, VA(left, right), VAEND);
         }
     }
-    Pair p = tmpPair(T(Iterator), T(Iterator), first, first);
+    Form_t real_form = {OBJ, .class = classOf(first)};
+    Pair p = tmpPair(real_form, real_form, VA(first, first), VAEND);
     delete(first);
     delete(middle);
     return p;
@@ -1774,8 +1776,8 @@ void nth_element(Iterator _first, Iterator _nth, Iterator _last, ...)
     FormWO_t op = va_arg(ap, FormWO_t);
     va_end(ap);
 
-    size_t dis = distance(_first, _last);
-    if (dis > 3) {
+    size_t dis;
+    while ((dis = distance(_first, _last)) > 3) {
         Form_t f = THIS(_first).type();
         Iterator m = THIS(_first).add(VA(dis / 2));
         Iterator last = THIS(_last).sub(VA(1));
