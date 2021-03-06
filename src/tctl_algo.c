@@ -1553,7 +1553,6 @@ void sort(Iterator _first, Iterator _last, ...)
 }
 
 //equal_range
-#include "../include/tctl_int.h"
 Pair equal_range(Iterator _first, Iterator _last, FormWO_t val, ...)
 {
     va_list ap;
@@ -1682,7 +1681,7 @@ static void __merge_adaptive(Iterator _first, Iterator _middle, Iterator _last, 
 {
     if (len1 <= len2 && len1 <= buff_size) {
         Iterator end_buff = copy(_first, _middle, _buff);
-        merge(_buff, end_buff, _middle, _last, _first, op);
+        merge(_buff, end_buff, _middle, _last, _first, VAEND, op);
     } else if (len2 <= buff_size) {
         Iterator end_buff = copy(_middle, _last, _buff);
         __merge_backward(_first, _middle, _buff, end_buff, _last, op);
@@ -1718,7 +1717,7 @@ static void __merge_without_buff(Iterator _first, Iterator _middle, Iterator _la
     Form_t f = THIS(_first).type();
     if (len1 + len2 == 2) {
         if (CompareOpt(FORM_WITH_OBJ(f, THIS(_first).derefer()),
-                       FORM_WITH_OBJ(f, THIS(_middle).derefer()), op) < 0)
+                       FORM_WITH_OBJ(f, THIS(_middle).derefer()), op) > 0)
             iter_swap(_first, _middle, VAEND);
         return;
     }
@@ -1742,8 +1741,8 @@ static void __merge_without_buff(Iterator _first, Iterator _middle, Iterator _la
     __merge_without_buff(_first, first_cut, new_middle, len11, len22, op);
     __merge_without_buff(new_middle, second_cut, _last, len1 - len11, len2 - len22, op);
     delete(new_middle);
-    delete(first_cut);
-    delete(second_cut);
+    //delete(first_cut); first_cut和second_cut被地址被替换，内存泄露了
+    //delete(second_cut);
 }
 
 void inplace_merge(Iterator _first, Iterator _middle, Iterator _last, ...)
@@ -1759,11 +1758,12 @@ void inplace_merge(Iterator _first, Iterator _middle, Iterator _last, ...)
     size_t len1 = distance(_first, _middle);
     size_t len2 = distance(_middle, _last);
     size_t buff_size = (len1 > len2 ? len2 : len1) * size;
-    char (*buff)[size] = get_temporary_buffer(&buff_size);
-    if (buff)
+    void *buff = get_temporary_buffer(&buff_size);
+    buff_size /= size;
+    if (!buff)
         __merge_without_buff(_first, _middle, _last, len1, len2, op);
     else {
-        __merge_adaptive(_first, _middle, _last, len1, len2, oriPointIter(buff), buff_size, op);
+        __merge_adaptive(_first, _middle, _last, len1, len2, _oriPointIter_aux(f, buff, 0), buff_size, op);
         free(buff);
     }
 }

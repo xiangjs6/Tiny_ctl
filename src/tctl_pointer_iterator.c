@@ -229,7 +229,7 @@ static void *_iter_derefer(const void *_this)
     if (t.f == ADDR)
         return this->ptr + t.size * this->cur;
     else
-        return *(MetaObject*)(this->ptr + sizeof(MetaObject) * this->cur);
+        return this->ptr + classSz(t.class) * this->cur;
 }
 
 static long long _iter_dist(const void *_this, Iterator _it)

@@ -13,11 +13,13 @@ int main(void)
     for (; !THIS(start).equal(VA(oriPointIter(array, sizeof(array) / sizeof(int)))); THIS(start).inc())
         printf("%d ", *(int*)THIS(start).derefer());
     putchar('\n');
-    Int obj_array[10];
-    for (int i = 0; i < 10; i++)
-        obj_array[i] = new(T(Int), VA(i));
-    start = oriPointIter(obj_array);
-    for (; !THIS(start).equal(VA(oriPointIter(obj_array, 10))); THIS(start).inc())
+    char mem[classSz(T(Int).class) * 10];
+    for (int i = 0; i < 10; i++) {
+        construct(T(Int), mem + i * classSz(T(Int).class), VA(i), VAEND);
+    }
+    Int obj = (void*)mem;
+    start = oriPointIter(obj);
+    for (; !THIS(start).equal(VA(oriPointIter(obj, 10))); THIS(start).inc())
         printf("%lld ", ((Int)THIS(start).derefer())->val);
     putchar('\n');
 
@@ -26,8 +28,12 @@ int main(void)
     {
         THIS(r_it).inc();
         printf("%lld ", ((Int)THIS(r_it).derefer())->val);
-    } while(!THIS(r_it).equal(VA(oriPointIter(obj_array))));
+    } while(!THIS(r_it).equal(VA(oriPointIter(obj))));
     putchar('\n');
+    for (int i = 0; i < 10; i++) {
+        Int I = (void*)(mem + i * classSz(T(Int).class));
+        destroy(I);
+    }
     ARP_FreePool();
     return 0;
 }

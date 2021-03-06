@@ -26,6 +26,13 @@ int greater(FormWO_t _a, FormWO_t _b)
     return b->val - a->val;
 }
 
+int lesser(FormWO_t _a, FormWO_t _b)
+{
+    Int a = _a.mem;
+    Int b = _b.mem;
+    return a->val - b->val;
+}
+
 void lookIterator(Iterator it)
 {
     printf("%lld\n", ((Int)THIS(it).derefer())->val);
@@ -102,6 +109,25 @@ int main(void)
     for_each(THIS(iv).begin(), THIS(iv).end(), display);
     putchar('\n');
 
+    int ia2[] = {69, 23, 80, 42, 17, 15, 26, 51, 19, 12, 45, 72};
+    Vector iv2 = new(T(Vector), VA(T(Int), oriPointIter(ia2), oriPointIter(ia2, sizeof(ia2) / sizeof(int))));
+    partial_sort(THIS(iv2).begin(), THIS(THIS(iv2).begin()).add(VA(7)), THIS(iv2).end(), greater);
+    for_each(THIS(iv2).begin(), THIS(iv2).end(), display);
+    putchar('\n');
+
+    int ia3[] = {1, 3, 5, 7, 2, 4, 6, 8, 10};
+    Vector iv3 = new(T(Vector), VA(T(Int), oriPointIter(ia3), oriPointIter(ia3, sizeof(ia3) / sizeof(int))));
+    inplace_merge(THIS(iv3).begin(), THIS(THIS(iv3).begin()).add(VA(4)), THIS(iv3).end(), VAEND);
+    for_each(THIS(iv3).begin(), THIS(iv3).end(), display);
+    putchar('\n');
+
+    mergesort(THIS(iv2).begin(), THIS(iv2).end(), VAEND);
+    for_each(THIS(iv2).begin(), THIS(iv2).end(), display);
+    putchar('\n');
+
+    delete(iv);
+    delete(iv2);
+    delete(iv3);
     ARP_FreePool();
     return 0;
 }
