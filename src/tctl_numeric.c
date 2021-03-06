@@ -4,6 +4,7 @@
 
 #include "../include/tctl_numeric.h"
 #include "../include/auto_release_pool.h"
+#include <memory.h>
 #include <assert.h>
 #include <stdarg.h>
 #define Import ITERATOR
@@ -44,15 +45,24 @@ static inline FormWO_t MulOpt(FormWO_t first, FormWO_t second, FormWO_t op)
     }
 }
 
-static inline void AssignOpt(FormWO_t left, FormWO_t right, FormWO_t op)
+static inline void AssignOpt(FormWO_t left, FormWO_t right)
 {
-    if (op._.f != FUNC) {
-        assert(left._.f == OBJ);
+    if (left._.f == OBJ) {
         Object obj = left.mem;
         THIS(obj).assign(right);
     } else {
-        AssignOperation func = op.mem;
-        func(left, right);
+        assert(right._.f != OBJ);
+        assert(left._.size == right._.size);
+        assert(!(left._.f == POD && left._.size > sizeof(left.mem)));
+        assert(!(right._.f == POD && right._.size > sizeof(right.mem)));
+        if (left._.f == ADDR && right._.f == ADDR)
+            memcpy(left.mem, right.mem, left._.size);
+        else if (left._.f == ADDR && right._.f == POD)
+            memcpy(left.mem, &right.mem, left._.size);
+        else if (left._.f == POD && right._.f == POD)
+            memcpy(&left.mem, &right.mem, left._.size);
+        else
+            memcpy(&left.mem, right.mem, left._.size);
     }
 }
 
@@ -84,26 +94,21 @@ Iterator adjacent_difference(const Iterator _first, const Iterator _last, const 
     Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
     Iterator last = THIS(_last).ctor(NULL, VA(_last), VAEND);
 
-    FormWO_t assign, op;
+    FormWO_t op;
     va_list ap;
     va_start(ap, _result);
-    assign = va_arg(ap, FormWO_t);
-    if (assign._.f == END)
-        op = VAEND;
-    else
-        op = va_arg(ap, FormWO_t);
+    op = va_arg(ap, FormWO_t);
     va_end(ap);
 
     Form_t f1 = THIS(_result).type();
     Form_t f2 = THIS(_first).type();
     AssignOpt(FORM_WITH_OBJ(f1, THIS(res).derefer()),
-              FORM_WITH_OBJ(f2, THIS(first).derefer()), assign);
+              FORM_WITH_OBJ(f2, THIS(first).derefer()));
     FormWO_t pre_val = FORM_WITH_OBJ(f2, THIS(first).derefer()); //相当于指向first的内容
     for(THIS(first).inc(), THIS(res).inc(); !THIS(first).equal(VA(last)); THIS(first).inc(), THIS(res).inc()) {
         FormWO_t tmp = SubOpt(FORM_WITH_OBJ(f2, THIS(first).derefer()),
                pre_val, op);
-        AssignOpt(FORM_WITH_OBJ(f1, THIS(res).derefer()),
-                  tmp, assign);
+        AssignOpt(FORM_WITH_OBJ(f1, THIS(res).derefer()), tmp);
         pre_val = FORM_WITH_OBJ(f2, THIS(first).derefer());
     }
     delete(first);
@@ -150,26 +155,22 @@ Iterator partial_sum(const Iterator _first, const Iterator _last, const Iterator
     Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
     Iterator last = THIS(_last).ctor(NULL, VA(_last), VAEND);
 
-    enum {Assign, Op};
-    FormWO_t vargs[2] = {VAEND, VAEND};
+    FormWO_t op;
     va_list ap;
     va_start(ap, _result);
-    for (int i = 0; i < 2; i++)
-        if ((vargs[i] = va_arg(ap, FormWO_t))._.f == END)
-            break;
+    op = va_arg(ap, FormWO_t);
     va_end(ap);
 
     Form_t f1 = THIS(_first).type();
     Form_t f2 = THIS(_result).type();
 
     AssignOpt(FORM_WITH_OBJ(f2, THIS(res).derefer()),
-              FORM_WITH_OBJ(f1, THIS(first).derefer()), vargs[Assign]);
+              FORM_WITH_OBJ(f1, THIS(first).derefer()));
     FormWO_t pre_val = FORM_WITH_OBJ(f1, THIS(first).derefer());
     for(THIS(first).inc(), THIS(res).inc(); !THIS(first).equal(VA(last)); THIS(first).inc(), THIS(res).inc()) {
         FormWO_t tmp = AddOpt(FORM_WITH_OBJ(f2, THIS(first).derefer()),
-                              pre_val, vargs[Op]);
-        AssignOpt(FORM_WITH_OBJ(f1, THIS(res).derefer()),
-                  tmp, vargs[Assign]);
+                              pre_val, op);
+        AssignOpt(FORM_WITH_OBJ(f1, THIS(res).derefer()), tmp);
         pre_val = FORM_WITH_OBJ(f2, THIS(first).derefer());
     }
     delete(first);
@@ -182,20 +183,17 @@ void iota(const Iterator _first, const Iterator _last, FormWO_t x, ...)
     Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
     Iterator last = THIS(_last).ctor(NULL, VA(_last), VAEND);
 
-    enum {Assign, Op};
-    FormWO_t vargs[2] = {VAEND, VAEND};
+    FormWO_t op;
     va_list ap;
     va_start(ap, x);
-    for (int i = 0; i < 2; i++)
-        if ((vargs[i] = va_arg(ap, FormWO_t))._.f == END)
-            break;
+    op = va_arg(ap, FormWO_t);
     va_end(ap);
 
     Form_t f = THIS(first).type();
     while (!THIS(first).equal(VA(last)))
     {
-        AssignOpt(FORM_WITH_OBJ(f, THIS(first).derefer()), x, vargs[Assign]);
-        AddOpt(x, VA(1), vargs[Op]);
+        AssignOpt(FORM_WITH_OBJ(f, THIS(first).derefer()), x);
+        AddOpt(x, VA(1), op);
     }
     delete(first);
     delete(last);

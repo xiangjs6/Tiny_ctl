@@ -8,7 +8,6 @@
 #include "../include/tctl_utility.h"
 #include <assert.h>
 #include <stdarg.h>
-#include <stdarg.h>
 #include <string.h>
 #define Import ITERATOR, OBJECT, PAIR
 #define ALLOC(size) ARP_MallocARelDtor(size, destroy)
@@ -283,13 +282,23 @@ Iterator copy_backward(Iterator first, Iterator last, Iterator result)
 
 inline static int CompareOpt(FormWO_t a, FormWO_t b, FormWO_t op)
 {
+    if (a._.f != OBJ && b._.f == OBJ)
+        return -CompareOpt(b, a, op);
     if (op._.f != FUNC) {
         if (a._.f == OBJ) {
             Object obj = a.mem;
             return THIS(obj).cmp(b);
         } else {
-            if (op._.f == ADDR)
+            assert(b._.f != OBJ);
+            assert(a._.size == b._.size);
+            assert(!(a._.f == POD && a._.size > sizeof(a.mem)));
+            assert(!(b._.f == POD && b._.size > sizeof(b.mem)));
+            if (a._.f == ADDR && b._.f == ADDR)
                 return memcmp(a.mem, b.mem, a._.size);
+            else if (a._.f == ADDR && b._.f == POD)
+                return memcmp(a.mem, &b.mem, a._.size);
+            else if (a._.f == POD && b._.f == ADDR)
+                return memcmp(&a.mem, b.mem, a._.size);
             else
                 return memcmp(&a.mem, &b.mem, a._.size);
         }
@@ -299,21 +308,24 @@ inline static int CompareOpt(FormWO_t a, FormWO_t b, FormWO_t op)
     }
 }
 
-static inline void AssignOpt(FormWO_t left, FormWO_t right, FormWO_t op)
+static inline void AssignOpt(FormWO_t left, FormWO_t right)
 {
-    if (op._.f != FUNC) {
-        if (left._.f == OBJ) {
-            Object obj = left.mem;
-            THIS(obj).assign(right);
-        } else {
-            if (op._.f == ADDR)
-                memcpy(left.mem, right.mem, left._.size);
-            else
-                memcpy(&left.mem, &right.mem, left._.size);
-        }
+    if (left._.f == OBJ) {
+        Object obj = left.mem;
+        THIS(obj).assign(right);
     } else {
-        AssignOperation func = op.mem;
-        func(left, right);
+        assert(right._.f != OBJ);
+        assert(left._.size == right._.size);
+        assert(!(left._.f == POD && left._.size > sizeof(left.mem)));
+        assert(!(right._.f == POD && right._.size > sizeof(right.mem)));
+        if (left._.f == ADDR && right._.f == ADDR)
+            memcpy(left.mem, right.mem, left._.size);
+        else if (left._.f == ADDR && right._.f == POD)
+            memcpy(left.mem, &right.mem, left._.size);
+        else if (left._.f == POD && right._.f == POD)
+            memcpy(&left.mem, &right.mem, left._.size);
+        else
+            memcpy(&left.mem, right.mem, left._.size);
     }
 }
 
@@ -340,61 +352,49 @@ bool equal(Iterator _first1, Iterator _last1, Iterator _first2, .../*Compare*/)
 }
 
 //fill
-void fill(Iterator _first, Iterator _last, FormWO_t x, .../*Assign*/)
+void fill(Iterator _first, Iterator _last, FormWO_t x)
 {
     ARP_CreatePool();
-    va_list ap;
-    va_start(ap, x);
-    FormWO_t op = va_arg(ap, FormWO_t);
-    va_end(ap);
     Form_t f = THIS(_first).type();
     Iterator first = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
     for (; !THIS(first).equal(VA(_last)); THIS(first).inc())
-        AssignOpt(FORM_WITH_OBJ(f, THIS(first).derefer()), x, op);
+        AssignOpt(FORM_WITH_OBJ(f, THIS(first).derefer()), x);
     ARP_FreePool();
 }
 
 //fill_n
-void fill_n(Iterator _first, size_t n, FormWO_t x, .../*Assign*/)
+void fill_n(Iterator _first, size_t n, FormWO_t x)
 {
     ARP_CreatePool();
-    va_list ap;
-    va_start(ap, x);
-    FormWO_t op = va_arg(ap, FormWO_t);
-    va_end(ap);
     Form_t f = THIS(_first).type();
     Iterator first = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
     for (; n--; THIS(first).inc())
-        AssignOpt(FORM_WITH_OBJ(f, THIS(first).derefer()), x, op);
+        AssignOpt(FORM_WITH_OBJ(f, THIS(first).derefer()), x);
     ARP_FreePool();
 }
 
 //iter_swap
-void iter_swap(Iterator a, Iterator b, .../*Assign*/)
+void iter_swap(Iterator a, Iterator b)
 {
     Form_t f = THIS(a).type();
     assert(f.f == THIS(b).type().f && f.class == THIS(b).type().class);
-    va_list ap;
-    va_start(ap, b);
-    FormWO_t op = va_arg(ap, FormWO_t);
-    va_end(ap);
 
     if (f.f == OBJ) {
         Object obj_a = THIS(a).derefer();
         Object obj_b = THIS(b).derefer();
         char mem[sizeOf(obj_a)];
         Object tmp = construct(f, mem, VAEND);
-        AssignOpt(FORM_WITH_OBJ(f, tmp), FORM_WITH_OBJ(f, obj_a), op);
-        AssignOpt(FORM_WITH_OBJ(f, obj_a), FORM_WITH_OBJ(f, obj_b), op);
-        AssignOpt(FORM_WITH_OBJ(f, obj_b), FORM_WITH_OBJ(f, tmp), op);
+        AssignOpt(FORM_WITH_OBJ(f, tmp), FORM_WITH_OBJ(f, obj_a));
+        AssignOpt(FORM_WITH_OBJ(f, obj_a), FORM_WITH_OBJ(f, obj_b));
+        AssignOpt(FORM_WITH_OBJ(f, obj_b), FORM_WITH_OBJ(f, tmp));
         destroy(tmp);
     } else {
         char mem[f.size];
         void *p_a = THIS(a).derefer();
         void *p_b = THIS(b).derefer();
-        AssignOpt(FORM_WITH_OBJ(f, mem), FORM_WITH_OBJ(f, p_a), op);
-        AssignOpt(FORM_WITH_OBJ(f, p_a), FORM_WITH_OBJ(f, p_b), op);
-        AssignOpt(FORM_WITH_OBJ(f, p_b), FORM_WITH_OBJ(f, mem), op);
+        AssignOpt(FORM_WITH_OBJ(f, mem), FORM_WITH_OBJ(f, p_a));
+        AssignOpt(FORM_WITH_OBJ(f, p_a), FORM_WITH_OBJ(f, p_b));
+        AssignOpt(FORM_WITH_OBJ(f, p_b), FORM_WITH_OBJ(f, mem));
     }
 }
 
@@ -485,32 +485,28 @@ Pair mismatch(Iterator _first1, Iterator _last1, Iterator _first2, .../*Compare*
 }
 
 //swap
-void swap(FormWO_t a, FormWO_t b, .../*Assign*/)
+void swap(FormWO_t a, FormWO_t b)
 {
     assert(a._.f == ADDR || a._.f == OBJ);
     assert(b._.f == ADDR || b._.f == OBJ);
     assert(a._.class == b._.class);
     Form_t f = a._;
-    va_list ap;
-    va_start(ap, b);
-    FormWO_t op = va_arg(ap, FormWO_t);
-    va_end(ap);
 
     if (a._.f == OBJ) {
         Object obj_a = a.mem;
         Object obj_b = b.mem;
         char mem[sizeOf(obj_a)];
         Object tmp = construct(a._, mem, VAEND);
-        AssignOpt(FORM_WITH_OBJ(f, tmp), FORM_WITH_OBJ(f, obj_a), op);
-        AssignOpt(FORM_WITH_OBJ(f, obj_a), FORM_WITH_OBJ(f, obj_b), op);
-        AssignOpt(FORM_WITH_OBJ(f, obj_b), FORM_WITH_OBJ(f, tmp), op);
+        AssignOpt(FORM_WITH_OBJ(f, tmp), FORM_WITH_OBJ(f, obj_a));
+        AssignOpt(FORM_WITH_OBJ(f, obj_a), FORM_WITH_OBJ(f, obj_b));
+        AssignOpt(FORM_WITH_OBJ(f, obj_b), FORM_WITH_OBJ(f, tmp));
         destroy(tmp);
     } else {
         char mem[a._.size];
         void *p_a = a.mem;
         void *p_b = b.mem;
-        AssignOpt(FORM_WITH_OBJ(f, mem), FORM_WITH_OBJ(f, p_a), op);
-        AssignOpt(FORM_WITH_OBJ(f, p_a), FORM_WITH_OBJ(f, p_b), op);
-        AssignOpt(FORM_WITH_OBJ(f, p_b), FORM_WITH_OBJ(f, mem), op);
+        AssignOpt(FORM_WITH_OBJ(f, mem), FORM_WITH_OBJ(f, p_a));
+        AssignOpt(FORM_WITH_OBJ(f, p_a), FORM_WITH_OBJ(f, p_b));
+        AssignOpt(FORM_WITH_OBJ(f, p_b), FORM_WITH_OBJ(f, mem));
     }
 }

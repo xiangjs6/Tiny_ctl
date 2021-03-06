@@ -38,7 +38,7 @@ int main(void)
     Iterator last2 = THIS(S2).end();
 
     printf("Union of S1 and S2: ");
-    set_union(first1, last1, first2, last2, THIS(v).begin(), VAEND, VAEND);
+    set_union(first1, last1, first2, last2, THIS(v).begin(), VAEND);
     for (Iterator it = THIS(v).begin(); !THIS(it).equal(VA(THIS(v).end())); THIS(it).inc()) //Union of S1 and S2: 1 1 2 3 5 7 8 9 11 13 0 0 0
         printf("%lld ", ((Int)THIS(it).derefer())->val);
     putchar('\n');
@@ -46,7 +46,7 @@ int main(void)
     delete(v);
     v = new(T(Vector), VA(T(Int), 13));
     printf("Intersection of S1 and S2: ");
-    set_intersection(first1, last1, first2, last2, THIS(v).begin(), VAEND, VAEND);
+    set_intersection(first1, last1, first2, last2, THIS(v).begin(), VAEND);
     for (Iterator it = THIS(v).begin(); !THIS(it).equal(VA(THIS(v).end())); THIS(it).inc()) //Intersection of S1 and S2: 1 3 5 0 0 0 0 0 0 0 0 0 0
         printf("%lld ", ((Int)THIS(it).derefer())->val);
     putchar('\n');
@@ -54,7 +54,7 @@ int main(void)
     delete(v);
     v = new(T(Vector), VA(T(Int), 13));
     printf("Difference of S1 and S2 (S1-S2): ");
-    set_difference(first1, last1, first2, last2, THIS(v).begin(), VAEND, VAEND);
+    set_difference(first1, last1, first2, last2, THIS(v).begin(), VAEND);
     for (Iterator it = THIS(v).begin(); !THIS(it).equal(VA(THIS(v).end())); THIS(it).inc()) //Difference of S1 and S2 (S1-S2): 7 9 11 0 0 0 0 0 0 0 0 0 0
         printf("%lld ", ((Int)THIS(it).derefer())->val);
     putchar('\n');
@@ -63,7 +63,7 @@ int main(void)
     v = new(T(Vector), VA(T(Int), 13));
     v = new(T(Vector), VA(T(Int), 13));
     printf("Symmetric difference of S1 and S2: ");
-    set_symmetric_difference(first1, last1, first2, last2, THIS(v).begin(), VAEND, VAEND);
+    set_symmetric_difference(first1, last1, first2, last2, THIS(v).begin(), VAEND);
     for (Iterator it = THIS(v).begin(); !THIS(it).equal(VA(THIS(v).end())); THIS(it).inc()) //Symmetric difference of S1 and S2: 1 2 7 8 9 11 13 0 0 0 0 0 0
         printf("%lld ", ((Int)THIS(it).derefer())->val);
     putchar('\n');
@@ -71,7 +71,7 @@ int main(void)
     delete(v);
     v = new(T(Vector), VA(T(Int), 13));
     printf("Difference of S1 and S2 (S2-S1): ");
-    set_difference(first2, last2, first1, last1, THIS(v).begin(), VAEND, VAEND);
+    set_difference(first2, last2, first1, last1, THIS(v).begin(), VAEND);
     for (Iterator it = THIS(v).begin(); !THIS(it).equal(VA(THIS(v).end())); THIS(it).inc()) //Difference of S1 and S2 (S2-S1): 1 2 8 13 0 0 0 0 0 0 0 0 0
         printf("%lld ", ((Int)THIS(it).derefer())->val);
     putchar('\n');

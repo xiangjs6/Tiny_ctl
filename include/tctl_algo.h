@@ -10,16 +10,16 @@
 #include "tctl_metaclass.h"
 //Set Operation
 Iterator set_union(Iterator _first1, Iterator _last1,
-                   Iterator _first2, Iterator _last2, Iterator _result, ...);
+                   Iterator _first2, Iterator _last2, Iterator _result, .../*Compare*/);
 
 Iterator set_intersection(Iterator _first1, Iterator _last1,
-                   Iterator _first2, Iterator _last2, Iterator _result, ...);
+                   Iterator _first2, Iterator _last2, Iterator _result, .../*Compare*/);
 
 Iterator set_difference(Iterator _first1, Iterator _last1,
-                        Iterator _first2, Iterator _last2, Iterator _result, ...);
+                        Iterator _first2, Iterator _last2, Iterator _result, .../*Compare*/);
 
 Iterator set_symmetric_difference(Iterator _first1, Iterator _last1,
-                        Iterator _first2, Iterator _last2, Iterator _result, ...);
+                        Iterator _first2, Iterator _last2, Iterator _result, .../*Compare*/);
 
 //Data Processing 
 Iterator adjacent_find(Iterator _first, Iterator _last, .../*Equal*/);
@@ -40,9 +40,9 @@ Iterator find_first_of(Iterator _first1, Iterator _last1,
 
 UnaryFunc for_each(Iterator _first, Iterator _last, UnaryFunc f);
 
-void generate(Iterator _first, Iterator _last, Generator gen, .../*Assign*/);
+void generate(Iterator _first, Iterator _last, Generator gen);
 
-Iterator generate_n(Iterator _first, size_t n, Generator gen, .../*Assign*/);
+Iterator generate_n(Iterator _first, size_t n, Generator gen);
 
 bool includes(Iterator _first1, Iterator _last1,
               Iterator _first2, Iterator _last2, .../*Compare*/);
@@ -51,51 +51,51 @@ Iterator max_element(Iterator _first, Iterator _last, .../*Compare*/);
 
 Iterator merge(Iterator _first1, Iterator _last1,
                Iterator _first2, Iterator _last2,
-               Iterator _result, .../*Assign, Compare*/);
+               Iterator _result, .../*Compare*/);
 
 Iterator min_element(Iterator _first, Iterator _last, .../*Compare*/);
 
-Iterator partition(Iterator _first, Iterator _last, Predicate pred, .../*Assign*/);
+Iterator partition(Iterator _first, Iterator _last, Predicate pred);
 
-Iterator remove_element(Iterator _first, Iterator _last, FormWO_t val, .../*Assign, Equal*/);
+Iterator remove_element(Iterator _first, Iterator _last, FormWO_t val, .../*Equal*/);
 
 Iterator remove_copy(Iterator _first, Iterator _last,
-                     Iterator _result, FormWO_t val, .../*Assign, Equal*/);
-Iterator remove_if(Iterator _first, Iterator _last, Predicate pred, .../*Assign*/);
+                     Iterator _result, FormWO_t val, .../*Equal*/);
+Iterator remove_if(Iterator _first, Iterator _last, Predicate pred);
 
 Iterator remove_copy_if(Iterator _first, Iterator _last,
-                        Iterator _result, Predicate pred, .../*Assign*/);
+                        Iterator _result, Predicate pred);
 
-void replace(Iterator _first, Iterator _last, FormWO_t old_val, FormWO_t new_val, .../*Assign, Equal*/);
+void replace(Iterator _first, Iterator _last, FormWO_t old_val, FormWO_t new_val, .../*Equal*/);
 
 Iterator replace_copy(Iterator _first, Iterator _last,
                       Iterator _result, FormWO_t old_val,
-                      FormWO_t new_val, .../*Assign, Equal*/);
+                      FormWO_t new_val, .../*Equal*/);
 
-void replace_if(Iterator _first, Iterator _last, Predicate pred, FormWO_t new_val, .../*Assign*/);
+void replace_if(Iterator _first, Iterator _last, Predicate pred, FormWO_t new_val);
 
-Iterator replace_copy_if(Iterator _first, Iterator _last, Iterator _result, Predicate pred, FormWO_t new_val, .../*Assign*/);
+Iterator replace_copy_if(Iterator _first, Iterator _last, Iterator _result, Predicate pred, FormWO_t new_val);
 
-void reverse(Iterator _first, Iterator _last, .../*Assign*/);
+void reverse(Iterator _first, Iterator _last);
 
-Iterator reverse_copy(Iterator _first, Iterator _last, Iterator _result, .../*Assign*/);
+Iterator reverse_copy(Iterator _first, Iterator _last, Iterator _result);
 
-void rotate(Iterator _first, Iterator _middle, Iterator _last, .../*Assign*/);
+void rotate(Iterator _first, Iterator _middle, Iterator _last);
 
 Iterator rotate_copy(Iterator _first, Iterator _middle, Iterator _last, Iterator _result);
 
 Iterator search(Iterator _first1, Iterator _last1,
                 Iterator _first2, Iterator _last2, .../*Equal*/);
 
-Iterator search_n(Iterator _first, Iterator _last, long long count, FormWO_t val, .../*Eqial*/);
+Iterator search_n(Iterator _first, Iterator _last, long long count, FormWO_t val, .../*Equal*/);
 
-Iterator swap_ranges(Iterator _first1, Iterator _last1, Iterator _first2, .../*Assign*/);
+Iterator swap_ranges(Iterator _first1, Iterator _last1, Iterator _first2);
 
-Iterator transform(Iterator _first, Iterator _last, Iterator _result, UnaryOperation unary_op, .../*Assign*/);
+Iterator transform(Iterator _first, Iterator _last, Iterator _result, UnaryOperation unary_op);
 
-Iterator unique(Iterator _first, Iterator _last, .../*Assign, Equal*/);
+Iterator unique(Iterator _first, Iterator _last, .../*Equal*/);
 
-Iterator unique_copy(Iterator _first, Iterator _last, Iterator _result, .../*Assign, Equal*/);
+Iterator unique_copy(Iterator _first, Iterator _last, Iterator _result, .../*Equal*/);
 
 Iterator lower_bound(Iterator _first, Iterator _last, FormWO_t val, .../*Compare*/);
 
@@ -103,16 +103,16 @@ Iterator upper_bound(Iterator _first, Iterator _last, FormWO_t val, .../*Compare
 
 bool binary_search(Iterator _first, Iterator _last, FormWO_t val, .../*Compare*/);
 
-bool next_permutation(Iterator _first, Iterator _last, .../*Assign, Compare*/);
+bool next_permutation(Iterator _first, Iterator _last, .../*Compare*/);
 
-bool prev_permutation(Iterator _first, Iterator _last, .../*Assign, Compare*/);
+bool prev_permutation(Iterator _first, Iterator _last, .../*Compare*/);
 
-void random_shuffle(Iterator _first, Iterator _last, unsigned int *seed, .../*Assign*/);
+void random_shuffle(Iterator _first, Iterator _last, unsigned int *seed);
 
 void partial_sort(Iterator _first, Iterator _middle, Iterator _last, Compare cmp);
 
 void partial_sort_copy(Iterator _first, Iterator _last,
-                       Iterator _res_first, Iterator _res_last, Compare cmp, .../*Assign*/);
+                       Iterator _res_first, Iterator _res_last, Compare cmp);
 
 void sort(Iterator _first, Iterator _last, .../*Compare*/);
 

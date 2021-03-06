@@ -56,15 +56,15 @@ int main(void)
     printf("%s\n", binary_search(THIS(iv).begin(), THIS(iv).end(), VA(33),  VAEND) ? "true" : "false");
     printf("%s\n", binary_search(THIS(iv).begin(), THIS(iv).end(), VA(34),  VAEND) ? "true" : "false");
 
-    next_permutation(THIS(iv).begin(), THIS(iv).end(), VAEND, VAEND);
+    next_permutation(THIS(iv).begin(), THIS(iv).end(), VAEND);
     for_each(THIS(iv).begin(), THIS(iv).end(), display);
     putchar('\n');
 
-    prev_permutation(THIS(iv).begin(), THIS(iv).end(), VAEND, VAEND);
+    prev_permutation(THIS(iv).begin(), THIS(iv).end(), VAEND);
     for_each(THIS(iv).begin(), THIS(iv).end(), display);
     putchar('\n');
 
-    random_shuffle(THIS(iv).begin(), THIS(iv).end(), NULL, VAEND);
+    random_shuffle(THIS(iv).begin(), THIS(iv).end(), NULL);
     for_each(THIS(iv).begin(), THIS(iv).end(), display);
     putchar('\n');
 
@@ -93,7 +93,7 @@ int main(void)
     lookIterator(pairIte->first);
     lookIterator(pairIte->second);
 
-    random_shuffle(THIS(iv).begin(), THIS(iv).end(), NULL, VAEND);
+    random_shuffle(THIS(iv).begin(), THIS(iv).end(), NULL);
     for_each(THIS(iv).begin(), THIS(iv).end(), display);
     putchar('\n');
 
@@ -105,7 +105,7 @@ int main(void)
     for_each(THIS(iv).begin(), THIS(iv).end(), display);
     putchar('\n');
 
-    partition(THIS(iv).begin(), THIS(iv).end(), even, VAEND);
+    partition(THIS(iv).begin(), THIS(iv).end(), even);
     for_each(THIS(iv).begin(), THIS(iv).end(), display);
     putchar('\n');
 

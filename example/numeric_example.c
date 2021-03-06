@@ -49,12 +49,12 @@ int main(void)
     FormWO_t r = accumulate(THIS(v).begin(), THIS(v).end(), VA(res), VA_FUNC(binary_add));
     printf("accumulate:%d\n", *(int*)&r.mem);
     int array[10] = {1, 2, 5, 7, 10, 15, 25, 30, 31, 40};
-    adjacent_difference(oriPointIter(array), oriPointIter(array, 10), THIS(v).begin(), VA_FUNC(assign), VA_FUNC(binary_sub));
+    adjacent_difference(oriPointIter(array), oriPointIter(array, 10), THIS(v).begin(), VA_FUNC(binary_sub));
     printf("adjacent_difference:");
     for (Iterator it = THIS(v).begin(); !THIS(it).equal(VA(THIS(v).end())); THIS(it).inc())
         printf("%d ", *(int*)THIS(it).derefer());
     putchar('\n');
-    partial_sum(THIS(v).begin(), THIS(v).end(), THIS(v).begin(), VA_FUNC(assign), VA_FUNC(binary_add));
+    partial_sum(THIS(v).begin(), THIS(v).end(), THIS(v).begin(), VA_FUNC(binary_add));
     printf("partial_sum:");
     for (Iterator it = THIS(v).begin(); !THIS(it).equal(VA(THIS(v).end())); THIS(it).inc())
         printf("%d ", *(int*)THIS(it).derefer());

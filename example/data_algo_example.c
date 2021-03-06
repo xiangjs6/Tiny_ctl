@@ -100,21 +100,21 @@ int main(void)
     putchar('\n');
 
     //generate
-    generate(THIS(iv2).begin(), THIS(iv2).end(), even_by_two, VAEND);
+    generate(THIS(iv2).begin(), THIS(iv2).end(), even_by_two);
     for_each(THIS(iv2).begin(), THIS(iv2).end(), display);
     putchar('\n');
 
-    generate_n(THIS(iv).begin(), 3, even_by_two, VAEND);
+    generate_n(THIS(iv).begin(), 3, even_by_two);
     for_each(THIS(iv).begin(), THIS(iv).end(), display);
     putchar('\n');
 
     //remove
-    remove_element(THIS(iv).begin(), THIS(iv).end(), VA(6), VAEND, VAEND);
+    remove_element(THIS(iv).begin(), THIS(iv).end(), VA(6), VAEND);
     for_each(THIS(iv).begin(), THIS(iv).end(), display);
     putchar('\n');
 
     Vector iv3 = new(T(Vector), VA(T(Int), 12));
-    remove_copy(THIS(iv).begin(), THIS(iv).end(), THIS(iv3).begin(), VA(6), VAEND, VAEND);
+    remove_copy(THIS(iv).begin(), THIS(iv).end(), THIS(iv3).begin(), VA(6), VAEND);
     for_each(THIS(iv3).begin(), THIS(iv3).end(), display);
     putchar('\n');
 
@@ -122,33 +122,33 @@ int main(void)
     for_each(THIS(iv).begin(), THIS(iv).end(), display);
     putchar('\n');
 
-    remove_copy_if(THIS(iv).begin(), THIS(iv).end(), THIS(iv3).begin(), less7, VAEND, VAEND);
+    remove_copy_if(THIS(iv).begin(), THIS(iv).end(), THIS(iv3).begin(), less7);
     for_each(THIS(iv3).begin(), THIS(iv3).end(), display);
     putchar('\n');
 
     //replace
-    replace(THIS(iv).begin(), THIS(iv).end(), VA(6), VA(3), VAEND, VAEND);
+    replace(THIS(iv).begin(), THIS(iv).end(), VA(6), VA(3), VAEND);
     for_each(THIS(iv).begin(), THIS(iv).end(), display);
     putchar('\n');
 
-    replace_copy(THIS(iv).begin(), THIS(iv).end(), THIS(iv3).begin(), VA(3, 5), VAEND, VAEND);
+    replace_copy(THIS(iv).begin(), THIS(iv).end(), THIS(iv3).begin(), VA(3, 5), VAEND);
     for_each(THIS(iv3).begin(), THIS(iv3).end(), display);
     putchar('\n');
 
-    replace_if(THIS(iv).begin(), THIS(iv).end(), less5, VA(2), VAEND);
+    replace_if(THIS(iv).begin(), THIS(iv).end(), less5, VA(2));
     for_each(THIS(iv).begin(), THIS(iv).end(), display);
     putchar('\n');
 
-    replace_copy_if(THIS(iv).begin(), THIS(iv).end(), THIS(iv3).begin(), equal8, VA(9), VAEND);
+    replace_copy_if(THIS(iv).begin(), THIS(iv).end(), THIS(iv3).begin(), equal8, VA(9));
     for_each(THIS(iv3).begin(), THIS(iv3).end(), display);
     putchar('\n');
 
     //reverse
-    reverse(THIS(iv).begin(), THIS(iv).end(), VAEND);
+    reverse(THIS(iv).begin(), THIS(iv).end());
     for_each(THIS(iv).begin(), THIS(iv).end(), display);
     putchar('\n');
 
-    reverse_copy(THIS(iv).begin(), THIS(iv).end(), THIS(iv3).begin(), VAEND);
+    reverse_copy(THIS(iv).begin(), THIS(iv).end(), THIS(iv3).begin());
     for_each(THIS(iv3).begin(), THIS(iv3).end(), display);
     putchar('\n');
 
@@ -171,14 +171,14 @@ int main(void)
     printf("%lld\n", ((Int)THIS(out_it).derefer())->val);
 
     //swap_ranges
-    swap_ranges(THIS(iv4).begin(), THIS(iv4).end(), THIS(iv).begin(), VAEND);
+    swap_ranges(THIS(iv4).begin(), THIS(iv4).end(), THIS(iv).begin());
     for_each(THIS(iv).begin(), THIS(iv).end(), display);
     putchar('\n');
     for_each(THIS(iv4).begin(), THIS(iv4).end(), display);
     putchar('\n');
 
     //transform
-    transform(THIS(iv).begin(), THIS(iv).end(), THIS(iv).begin(), minus2, VAEND);
+    transform(THIS(iv).begin(), THIS(iv).end(), THIS(iv).begin(), minus2);
     for_each(THIS(iv).begin(), THIS(iv).end(), display);
     putchar('\n');
 
@@ -202,16 +202,16 @@ int main(void)
     putchar('\n');
 
     //partition
-    partition(THIS(iv7).begin(), THIS(iv7).end(), even, VAEND);
+    partition(THIS(iv7).begin(), THIS(iv7).end(), even);
     for_each(THIS(iv7).begin(), THIS(iv7).end(), display);
     putchar('\n');
 
     //unique
-    unique(THIS(iv5).begin(), THIS(iv5).end(), VAEND, VAEND);
+    unique(THIS(iv5).begin(), THIS(iv5).end(), VAEND);
     for_each(THIS(iv5).begin(), THIS(iv5).end(), display);
     putchar('\n');
 
-    unique_copy(THIS(iv5).begin(), THIS(iv5).end(), THIS(iv7).begin(), VAEND, VAEND);
+    unique_copy(THIS(iv5).begin(), THIS(iv5).end(), THIS(iv7).begin(), VAEND);
     for_each(THIS(iv7).begin(), THIS(iv7).end(), display);
     putchar('\n');
 

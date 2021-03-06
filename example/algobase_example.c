@@ -45,13 +45,13 @@ int main(void)
     printf("%s\n", equal(THIS(iv1).begin(), THIS(iv1).end(), oriPointIter(ia, 3), VA_FUNC(less)) ? "true" : "false");
 
     //fill
-    fill(THIS(iv1).begin(), THIS(iv1).end(), VA(9), VAEND);
+    fill(THIS(iv1).begin(), THIS(iv1).end(), VA(9));
     for (Iterator i = THIS(iv1).begin(); !THIS(i).equal(VA(THIS(iv1).end())); THIS(i).inc()) //9 9 9 9 9
         printf("%lld ", ((Int)THIS(i).derefer())->val);
     putchar('\n');
 
     //fill_n
-    fill_n(THIS(iv1).begin(), 3, VA(7), VAEND);
+    fill_n(THIS(iv1).begin(), 3, VA(7));
     for (Iterator i = THIS(iv1).begin(); !THIS(i).equal(VA(THIS(iv1).end())); THIS(i).inc()) //7 7 7 9 9
         printf("%lld ", ((Int)THIS(i).derefer())->val);
     putchar('\n');
@@ -59,7 +59,7 @@ int main(void)
     //iter_swap
     Iterator ite1 = THIS(iv1).begin();
     Iterator ite2 = THIS(ite1).add(VA(3));
-    iter_swap(ite1, ite2, VAEND);
+    iter_swap(ite1, ite2);
     printf("ite1:%lld ite2:%lld\n", ((Int)THIS(ite1).derefer())->val, ((Int)THIS(ite2).derefer())->val); //ite1:9 ite2:7
     for (Iterator i = THIS(iv1).begin(); !THIS(i).equal(VA(THIS(iv1).end())); THIS(i).inc()) //9 7 7 7 9
         printf("%lld ", ((Int)THIS(i).derefer())->val);
@@ -74,7 +74,7 @@ int main(void)
 
     //swap
     ite2 = THIS(iv2).begin();
-    swap(FORM_WITH_OBJ(t, THIS(ite1).derefer()), FORM_WITH_OBJ(t, THIS(ite2).derefer()), VAEND);
+    swap(FORM_WITH_OBJ(t, THIS(ite1).derefer()), FORM_WITH_OBJ(t, THIS(ite2).derefer()));
     printf("ite1:%lld ite2:%lld\n", ((Int)THIS(ite1).derefer())->val, ((Int)THIS(ite2).derefer())->val); //ite1:0 ite2:9
     for (Iterator i = THIS(iv1).begin(); !THIS(i).equal(VA(THIS(iv1).end())); THIS(i).inc()) //0 7 7 7 9
         printf("%lld ", ((Int)THIS(i).derefer())->val);
