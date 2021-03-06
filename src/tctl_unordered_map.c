@@ -137,7 +137,9 @@ Form_t _Unordered_MapClass(void)
 //private
 static FormWO_t _get_val(FormWO_t x)
 {
-    return x;
+    assert(x._.f == OBJ && x._.class == T(Pair).class);
+    Pair p = x.mem;
+    return FORM_WITH_OBJ(p->f_t, p->first);
 }
 
 //public

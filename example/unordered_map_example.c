@@ -1,6 +1,6 @@
 ﻿#include "../include/tctl_unordered_map.h"
-//#include "tctl_hash_fun.h"
 #include "../include/auto_release_pool.h"
+#include "../include/tctl_common.h"
 #include <stdio.h>
 #include <string.h>
 #define Import UNORDERED_MAP, PAIR
@@ -10,15 +10,7 @@ int scmp(FormWO_t _x, FormWO_t _y)
     int res = strcmp(a->first, b->first);
     return res;
 }
-size_t hash_str(FormWO_t x)
-{
-    Pair p = x.mem;
-    char *str = *(char**)p->first;
-    size_t res = 0;
-    for (int i = 0; str[i]; i++)
-        res = 5 * res + str[i];
-    return res;
-}
+
 void lookup(Unordered_Map m, char *w)
 {
     Iterator it = THIS(m).find(VA(w));

@@ -5,6 +5,7 @@
 #ifndef TINY_CTL_TCTL_COMMON_H
 #define TINY_CTL_TCTL_COMMON_H
 #include <stddef.h>
+#include "tctl_metaclass.h"
 
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
@@ -13,4 +14,7 @@
 #define container_of(ptr, type, member) ((type *) ((char *)(ptr) - offsetof(type, member)))
 #define autofree(func) __attribute__((cleanup(func)))
 #define compose(...) __VA_ARGS__
+
+size_t hash_numeric(FormWO_t x);
+size_t hash_str(FormWO_t x);
 #endif //TINY_CTL_TCTL_COMMON_H

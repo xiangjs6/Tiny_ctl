@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "../include/tctl_hashtable.h"
-//#include "../include/tctl_hash_fun.h"
 #include "../include/auto_release_pool.h"
+#include "../include/tctl_common.h"
 #define Import HASHTABLE
 int cmp(FormWO_t _a, FormWO_t _b)
 {
@@ -15,15 +15,10 @@ FormWO_t get_key(FormWO_t x)
     return x;
 }
 
-size_t hash_int(FormWO_t x)
-{
-    return *(int*)x.mem;
-}
-
 int main(void)
 {
     ARP_CreatePool();
-    Hashtable ht = new(T(Hashtable), VA(T(int), VA_FUNC(cmp), VA_FUNC(hash_int), VA_FUNC(get_key)));
+    Hashtable ht = new(T(Hashtable), VA(T(int), VA_FUNC(cmp), VA_FUNC(hash_numeric), VA_FUNC(get_key)));
     int x = 100;
     THIS(ht).insert_unique(VA(x));
     x = 47;
@@ -40,7 +35,7 @@ int main(void)
     x = 101;
     Iterator f_it = THIS(ht).find(VA(x));
     THIS(ht).erase(f_it);
-    Hashtable ht2 = new(T(Hashtable), VA(T(int), VA_FUNC(cmp), VA_FUNC(hash_int), VA_FUNC(get_key)));
+    Hashtable ht2 = new(T(Hashtable), VA(T(int), VA_FUNC(cmp), VA_FUNC(hash_numeric), VA_FUNC(get_key)));
     for (Iterator it = THIS(ht).begin(); !THIS(it).equal(VA(THIS(ht).end())); THIS(it).inc())
         printf("%d ", *(int*)THIS(it).derefer());
     putchar('\n');
