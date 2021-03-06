@@ -14,6 +14,7 @@
 
 #define Import ITERATOR
 #define ARR_LEN(a) (sizeof(a) / sizeof(*a))
+#define ALLOC(size) ARP_MallocARelDtor(size, destroy)
 #define SWAP_FormWO(a, b) \
 do                        \
 {                         \
@@ -108,6 +109,7 @@ static int __rand_s(unsigned int *seed) //glibc的线程安全随机数产生函
 Iterator set_union(Iterator _first1, Iterator _last1,
                    Iterator _first2, Iterator _last2, Iterator _result, ...)
 {
+    ARP_CreatePool();
     enum {Assign, Compare};
     FormWO_t op[2] = {VAEND, VAEND};
     va_list ap;
@@ -116,9 +118,9 @@ Iterator set_union(Iterator _first1, Iterator _last1,
         op[i] = va_arg(ap, FormWO_t);
     va_end(ap);
 
-    Iterator first1 = THIS(_first1).ctor(NULL, VA(_first1), VAEND);
-    Iterator first2 = THIS(_first2).ctor(NULL, VA(_first2), VAEND);
-    Iterator result = THIS(_result).ctor(NULL, VA(_result), VAEND);
+    Iterator first1 = THIS(_first1).ctor(ALLOC(sizeOf(_first1)), VA(_first1), VAEND);
+    Iterator first2 = THIS(_first2).ctor(ALLOC(sizeOf(_first2)), VA(_first2), VAEND);
+    Iterator result = THIS(_result).ctor(ALLOC(sizeOf(_result)), VA(_result), VAEND);
     Form_t f1 = THIS(first1).type();
     Form_t f2 = THIS(first2).type();
     Form_t f3 = THIS(result).type();
@@ -147,15 +149,13 @@ Iterator set_union(Iterator _first1, Iterator _last1,
     }
     Iterator out = copy(first1, _last1, result);
     out = copy(first2, _last2, out);
-    delete(first1);
-    delete(first2);
-    delete(result);
-    return out;
+    return ARP_Return(out);
 }
 
 Iterator set_intersection(Iterator _first1, Iterator _last1,
                    Iterator _first2, Iterator _last2, Iterator _result, ...)
 {
+    ARP_CreatePool();
     enum {Assign, Compare};
     FormWO_t op[2] = {VAEND, VAEND};
     va_list ap;
@@ -164,10 +164,9 @@ Iterator set_intersection(Iterator _first1, Iterator _last1,
         op[i] = va_arg(ap, FormWO_t);
     va_end(ap);
 
-    void *mem = ARP_MallocARelDtor(sizeOf(_result), destroy);
-    Iterator result = THIS(_result).ctor(mem, VA(_result), VAEND);
-    Iterator first1 = THIS(_first1).ctor(NULL, VA(_first1), VAEND);
-    Iterator first2 = THIS(_first2).ctor(NULL, VA(_first2), VAEND);
+    Iterator result = THIS(_result).ctor(ALLOC(sizeOf(_result)), VA(_result), VAEND);
+    Iterator first1 = THIS(_first1).ctor(ALLOC(sizeOf(_first1)), VA(_first1), VAEND);
+    Iterator first2 = THIS(_first2).ctor(ALLOC(sizeOf(_first2)), VA(_first2), VAEND);
     Form_t f1 = THIS(first1).type();
     Form_t f2 = THIS(first2).type();
     Form_t f3 = THIS(result).type();
@@ -192,14 +191,13 @@ Iterator set_intersection(Iterator _first1, Iterator _last1,
             b = FORM_WITH_OBJ(f2, THIS(first2).derefer());
         }
     }
-    delete(first1);
-    delete(first2);
-    return result;
+    return ARP_Return(result);
 }
 
 Iterator set_difference(Iterator _first1, Iterator _last1,
                         Iterator _first2, Iterator _last2, Iterator _result, ...)
 {
+    ARP_CreatePool();
     enum {Assign, Compare};
     FormWO_t op[2] = {VAEND, VAEND};
     va_list ap;
@@ -208,9 +206,9 @@ Iterator set_difference(Iterator _first1, Iterator _last1,
         op[i] = va_arg(ap, FormWO_t);
     va_end(ap);
 
-    Iterator result = THIS(_result).ctor(NULL, VA(_result), VAEND);
-    Iterator first1 = THIS(_first1).ctor(NULL, VA(_first1), VAEND);
-    Iterator first2 = THIS(_first2).ctor(NULL, VA(_first2), VAEND);
+    Iterator result = THIS(_result).ctor(ALLOC(sizeOf(_result)), VA(_result), VAEND);
+    Iterator first1 = THIS(_first1).ctor(ALLOC(sizeOf(_first1)), VA(_first1), VAEND);
+    Iterator first2 = THIS(_first2).ctor(ALLOC(sizeOf(_first2)), VA(_first2), VAEND);
     Form_t f1 = THIS(first1).type();
     Form_t f2 = THIS(first2).type();
     Form_t f3 = THIS(result).type();
@@ -236,15 +234,13 @@ Iterator set_difference(Iterator _first1, Iterator _last1,
         }
     }
     Iterator out = copy(first1, _last1, result);
-    delete(first1);
-    delete(first2);
-    delete(result);
-    return out;
+    return ARP_Return(out);
 }
 
 Iterator set_symmetric_difference(Iterator _first1, Iterator _last1,
                         Iterator _first2, Iterator _last2, Iterator _result, ...)
 {
+    ARP_CreatePool();
     enum {Assign, Compare};
     FormWO_t op[2] = {VAEND, VAEND};
     va_list ap;
@@ -253,9 +249,9 @@ Iterator set_symmetric_difference(Iterator _first1, Iterator _last1,
         op[i] = va_arg(ap, FormWO_t);
     va_end(ap);
 
-    Iterator result = THIS(_result).ctor(NULL, VA(_result), VAEND);
-    Iterator first1 = THIS(_first1).ctor(NULL, VA(_first1), VAEND);
-    Iterator first2 = THIS(_first2).ctor(NULL, VA(_first2), VAEND);
+    Iterator result = THIS(_result).ctor(ALLOC(sizeOf(_result)), VA(_result), VAEND);
+    Iterator first1 = THIS(_first1).ctor(ALLOC(sizeOf(_first1)), VA(_first1), VAEND);
+    Iterator first2 = THIS(_first2).ctor(ALLOC(sizeOf(_first2)), VA(_first2), VAEND);
     Form_t f1 = THIS(first1).type();
     Form_t f2 = THIS(first2).type();
     Form_t f3 = THIS(result).type();
@@ -284,18 +280,15 @@ Iterator set_symmetric_difference(Iterator _first1, Iterator _last1,
     }
     Iterator out = copy(first1, _last1, result);
     out = copy(first2, _last2, out);
-    delete(first1);
-    delete(first2);
-    delete(result);
-    return out;
+    return ARP_Return(out);
 }
 
 //Data Processing 
 //adjacent_find
 Iterator adjacent_find(Iterator _first, Iterator _last, .../*Equal*/)
 {
-    void *mem = ARP_MallocARelDtor(sizeOf(_first), destroy);
-    Iterator first = THIS(_first).ctor(mem, VA(_first), VAEND);
+    ARP_CreatePool();
+    Iterator first = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
     if (THIS(first).equal(VA(_last)))
         return first;
 
@@ -304,75 +297,76 @@ Iterator adjacent_find(Iterator _first, Iterator _last, .../*Equal*/)
     FormWO_t op = va_arg(ap, FormWO_t);
     va_end(ap);
 
-    Iterator next = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    Iterator next = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
     Form_t f = THIS(next).type();
     for (THIS(next).inc(); !THIS(next).equal(VA(_last)); THIS(first).inc(), THIS(next).inc()) {
         if (EqualOpt(FORM_WITH_OBJ(f, THIS(next).derefer()),
                      FORM_WITH_OBJ(f, THIS(first).derefer()), op))
             break;
     }
-    delete(next);
-    return first;
+    return ARP_Return(first);
 }
 
 //count
 size_t count(Iterator _first, Iterator _last, FormWO_t val, .../*Equal*/)
 {
+    ARP_CreatePool();
     va_list ap;
     va_start(ap, val);
     FormWO_t op = va_arg(ap, FormWO_t);
     va_end(ap);
 
-    Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    Iterator first = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
     Form_t f = THIS(first).type();
     size_t n = 0;
     for (; !THIS(first).equal(VA(_last)); THIS(first).inc()) {
         if (EqualOpt(val, FORM_WITH_OBJ(f, THIS(first).derefer()), op))
             n++;
     }
-    delete(first);
+    ARP_FreePool();
     return n;
 }
 
 size_t count_if(Iterator _first, Iterator _last, Predicate pred)
 {
-    Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    ARP_CreatePool();
+    Iterator first = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
     Form_t f = THIS(first).type();
     size_t n = 0;
     for (; !THIS(first).equal(VA(_last)); THIS(first).inc()) {
         if (pred(FORM_WITH_OBJ(f, THIS(first).derefer())))
             n++;
     }
-    delete(first);
+    ARP_FreePool();
     return n;
 }
 
 //find
 Iterator find(Iterator _first, Iterator _last, FormWO_t val, ...)
 {
+    ARP_CreatePool();
     va_list ap;
     va_start(ap, val);
     FormWO_t op = va_arg(ap, FormWO_t);
     va_end(ap);
 
-    void *mem = ARP_MallocARelDtor(sizeOf(_first), destroy);
-    Iterator first = THIS(_first).ctor(mem, VA(_first), VAEND);
+    Iterator first = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
     Form_t f = THIS(first).type();
     while (!THIS(first).equal(VA(_last)) &&
            !EqualOpt(val, FORM_WITH_OBJ(f, THIS(first).derefer()), op))
         THIS(first).inc();
-    return first;
+    return ARP_Return(first);
 }
 
 Iterator find_if(Iterator _first, Iterator _last, Predicate pred)
 {
-    void *mem = ARP_MallocARelDtor(sizeOf(_first), destroy);
-    Iterator first = THIS(_first).ctor(mem, VA(_first), VAEND);
+    ARP_CreatePool();
+    Iterator first = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
     Form_t f = THIS(first).type();
     while (!THIS(first).equal(VA(_last)) &&
            !pred(FORM_WITH_OBJ(f, THIS(first).derefer())))
         THIS(first).inc();
-    return first;
+    return ARP_Return(first);
 }
 
 //find_end
@@ -380,10 +374,8 @@ static Iterator _find_end(Iterator first1, Iterator last1,
                           Iterator first2, Iterator last2,
                           FormWO_t op)
 {
-    if (THIS(first1).equal(VA(last1))) {
-        void *mem = ARP_MallocARelDtor(sizeOf(last1), destroy);
-        return THIS(last1).ctor(mem, VA(last1), VAEND);
-    }
+    if (THIS(first1).equal(VA(last1)))
+        return THIS(last1).ctor(ALLOC(sizeOf(last1)), VA(last1), VAEND);
     Iterator result = last1; //result是引用
     if (last1->rank < BidirectionalIter && last2->rank < BidirectionalIter) {
         while (true)
@@ -406,8 +398,7 @@ static Iterator _find_end(Iterator first1, Iterator last1,
         Iterator r_last2 = THIS(first2).reverse_iterator();
         Iterator r_result = search(r_first1, r_last1, r_first2, r_last2, op);
         if (THIS(r_result).equal(VA(r_last1))) {
-            void *mem = ARP_MallocARelDtor(sizeOf(last1), destroy);
-            result = THIS(last1).ctor(mem, VA(last1), VAEND);
+            result = THIS(last1).ctor(ALLOC(sizeOf(last1)), VA(last1), VAEND);
             THIS(result).inc();
         } else {
             result = THIS(r_result).reverse_iterator();
@@ -420,94 +411,94 @@ static Iterator _find_end(Iterator first1, Iterator last1,
 Iterator find_end(Iterator _first1, Iterator _last1,
                   Iterator _first2, Iterator _last2, ...)
 {
+    ARP_CreatePool();
     va_list ap;
     va_start(ap, _last2);
     FormWO_t op = va_arg(ap, FormWO_t);
     va_end(ap);
 
-    Iterator first1 = THIS(_first1).ctor(NULL, VA(_first1), VAEND);
-    Iterator first2 = THIS(_first2).ctor(NULL, VA(_first2), VAEND);
+    Iterator first1 = THIS(_first1).ctor(ALLOC(sizeOf(_first1)), VA(_first1), VAEND);
+    Iterator first2 = THIS(_first2).ctor(ALLOC(sizeOf(_first2)), VA(_first2), VAEND);
     Iterator result = _find_end(first1, _last1, first2, _last2, op);
-    delete(first1);
-    delete(first2);
-    return result;
+    return ARP_Return(result);
 }
 
 Iterator find_first_of(Iterator _first1, Iterator _last1,
                        Iterator _first2, Iterator _last2, ...)
 {
+    ARP_CreatePool();
     va_list ap;
     va_start(ap, _last2);
     FormWO_t op = va_arg(ap, FormWO_t);
     va_end(ap);
 
-    void *mem = ARP_MallocARelDtor(sizeOf(_first1), destroy);
-    Iterator first1 = THIS(_first1).ctor(mem, VA(_first1), VAEND);
+    Iterator first1 = THIS(_first1).ctor(ALLOC(sizeOf(_first1)), VA(_first1), VAEND);
     Form_t f1 = THIS(_first1).type();
     Form_t f2 = THIS(_first2).type();
     for (; !THIS(first1).equal(VA(_last1)); THIS(first1).inc()) {
-        Iterator iter = THIS(_first2).ctor(NULL, VA(_first2), VAEND);
+        Iterator iter = THIS(_first2).ctor(ALLOC(sizeOf(_first2)), VA(_first2), VAEND);
         for (; !THIS(iter).equal(VA(_last2)); THIS(iter).inc())
             if (EqualOpt(FORM_WITH_OBJ(f1, THIS(first1).derefer()),
                          FORM_WITH_OBJ(f2, THIS(iter).derefer()),
                          op)) {
-                delete(iter);
-                return first1;
+                return ARP_Return(first1);
             }
-        delete(iter);
     }
-    return first1;
+    return ARP_Return(first1);
 }
 
 UnaryFunc for_each(Iterator _first, Iterator _last, UnaryFunc f)
 {
-    Iterator iter = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    ARP_CreatePool();
+    Iterator iter = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
     Form_t t = THIS(_first).type();
     for (; !THIS(iter).equal(VA(_last)); THIS(iter).inc())
         f(FORM_WITH_OBJ(t, THIS(iter).derefer()));
-    delete(iter);
+    ARP_FreePool();
     return f;
 }
 
 void generate(Iterator _first, Iterator _last, Generator gen, ...)
 {
+    ARP_CreatePool();
     va_list ap;
     va_start(ap, gen);
     FormWO_t op = va_arg(ap, FormWO_t);
     va_end(ap);
 
-    Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    Iterator first = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
     Form_t f = THIS(first).type();
     for (; !THIS(first).equal(VA(_last)); THIS(first).inc())
         AssignOpt(FORM_WITH_OBJ(f, THIS(first).derefer()), gen(), op);
-    delete(first);
+    ARP_FreePool();
 }
 
 Iterator generate_n(Iterator _first, size_t n, Generator gen, ...)
 {
+    ARP_CreatePool();
     va_list ap;
     va_start(ap, gen);
     FormWO_t op = va_arg(ap, FormWO_t);
     va_end(ap);
 
-    void *mem = ARP_MallocARelDtor(sizeOf(_first), destroy);
-    Iterator first = THIS(_first).ctor(mem, VA(_first), VAEND);
+    Iterator first = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
     Form_t f = THIS(first).type();
     for (; n--; THIS(first).inc())
         AssignOpt(FORM_WITH_OBJ(f, THIS(first).derefer()), gen(), op);
-    return first;
+    return ARP_Return(first);
 }
 
 bool includes(Iterator _first1, Iterator _last1,
               Iterator _first2, Iterator _last2, ...)
 {
+    ARP_CreatePool();
     va_list ap;
     va_start(ap, _last2);
     FormWO_t op = va_arg(ap, FormWO_t);
     va_end(ap);
 
-    Iterator first1 = THIS(_first1).ctor(NULL, VA(_first1), VAEND);
-    Iterator first2 = THIS(_first2).ctor(NULL, VA(_first2), VAEND);
+    Iterator first1 = THIS(_first1).ctor(ALLOC(sizeOf(_first1)), VA(_first1), VAEND);
+    Iterator first2 = THIS(_first2).ctor(ALLOC(sizeOf(_first2)), VA(_first2), VAEND);
     Form_t f1 = THIS(first1).type();
     Form_t f2 = THIS(first2).type();
 
@@ -516,8 +507,7 @@ bool includes(Iterator _first1, Iterator _last1,
         int res = CompareOpt(FORM_WITH_OBJ(f1, THIS(first1).derefer()),
                              FORM_WITH_OBJ(f2, THIS(first2).derefer()), op);
         if (res > 0) {
-            delete(first1);
-            delete(first2);
+            ARP_FreePool();
             return false;
         } else if (res < 0)
             THIS(first1).inc();
@@ -526,29 +516,27 @@ bool includes(Iterator _first1, Iterator _last1,
             THIS(first2).inc();
         }
     }
-    delete(first1);
-    delete(first2);
+    ARP_FreePool();
     return true;
 }
 
 Iterator max_element(Iterator _first, Iterator _last, ...)
 {
+    ARP_CreatePool();
     va_list ap;
     va_start(ap, _last);
     FormWO_t op = va_arg(ap, FormWO_t);
     va_end(ap);
 
-    void *mem = ARP_MallocARelDtor(sizeOf(_first), destroy);
-    Iterator result = THIS(_first).ctor(mem, VA(_first), VAEND);
-    if (THIS(_first).equal(VA(_last))) return result;
-    Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    Iterator result = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
+    if (THIS(_first).equal(VA(_last))) return ARP_Return(result);
+    Iterator first = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
     Form_t f = THIS(_first).type();
     for (THIS(first).inc(); !THIS(first).equal(VA(_last)); THIS(first).inc())
         if (CompareOpt(FORM_WITH_OBJ(f, THIS(result).derefer()),
                        FORM_WITH_OBJ(f, THIS(first).derefer()), op) < 0)
             THIS(result).assign(VA(first));
-    delete(first);
-    return result;
+    return ARP_Return(result);
 }
 
 Iterator merge(Iterator _first1, Iterator _last1,
@@ -556,6 +544,7 @@ Iterator merge(Iterator _first1, Iterator _last1,
                Iterator _result, ...)
 {
     enum {Assign, Compare};
+    ARP_CreatePool();
     FormWO_t op[2] = {VAEND, VAEND};
     va_list ap;
     va_start(ap, _result);
@@ -563,9 +552,9 @@ Iterator merge(Iterator _first1, Iterator _last1,
         op[i] = va_arg(ap, FormWO_t);
     va_end(ap);
 
-    Iterator first1 = THIS(_first1).ctor(NULL, VA(_first1), VAEND);
-    Iterator first2 = THIS(_first2).ctor(NULL, VA(_first2), VAEND);
-    Iterator result = THIS(_result).ctor(NULL, VA(_result), VAEND);
+    Iterator first1 = THIS(_first1).ctor(ALLOC(sizeOf(_first1)), VA(_first1), VAEND);
+    Iterator first2 = THIS(_first2).ctor(ALLOC(sizeOf(_first2)), VA(_first2), VAEND);
+    Iterator result = THIS(_result).ctor(ALLOC(sizeOf(_result)), VA(_result), VAEND);
     Form_t f1 = THIS(_first1).type();
     Form_t f2 = THIS(_first2).type();
     Form_t f3 = THIS(_result).type();
@@ -583,53 +572,47 @@ Iterator merge(Iterator _first1, Iterator _last1,
         }
         THIS(result).inc();
     }
-    Iterator tmp = result;
     result = copy(first2, _last2, copy(first1, _last1, result));
-    delete(tmp);
-    delete(first1);
-    delete(first2);
-    return result;
+    return ARP_Return(result);
 }
 
 Iterator min_element(Iterator _first, Iterator _last, ...)
 {
+    ARP_CreatePool();
     va_list ap;
     va_start(ap, _last);
     FormWO_t op = va_arg(ap, FormWO_t);
     va_end(ap);
 
-    void *mem = ARP_MallocARelDtor(sizeOf(_first), destroy);
-    Iterator result = THIS(_first).ctor(mem, VA(_first), VAEND);
-    if (THIS(_first).equal(VA(_last))) return result;
-    Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    Iterator result = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
+    if (THIS(_first).equal(VA(_last))) return ARP_Return(result);
+    Iterator first = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
     Form_t f = THIS(_first).type();
     for (THIS(first).inc(); !THIS(first).equal(VA(_last)); THIS(first).inc())
         if (CompareOpt(FORM_WITH_OBJ(f, THIS(result).derefer()),
                        FORM_WITH_OBJ(f, THIS(first).derefer()), op) > 0)
             THIS(result).assign(VA(first));
-    delete(first);
-    return result;
+    return ARP_Return(result);
 }
 
 Iterator partition(Iterator _first, Iterator _last, Predicate pred, ...)
 {
+    ARP_CreatePool();
     va_list ap;
     va_start(ap, pred);
     FormWO_t op = va_arg(ap, FormWO_t);
     va_end(ap);
 
     assert(_first->rank >= BidirectionalIter && _last->rank >= BidirectionalIter);
-    void *mem = ARP_MallocARelDtor(sizeOf(_first), destroy);
-    Iterator first = THIS(_first).ctor(mem, VA(_first), VAEND);
-    Iterator last = THIS(_last).ctor(NULL, VA(_last), VAEND);
+    Iterator first = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
+    Iterator last = THIS(_last).ctor(ALLOC(sizeOf(_last)), VA(_last), VAEND);
     Form_t f = THIS(_first).type();
     
     while (true)
     {
         while (true)
             if (THIS(first).equal(VA(last))) {
-                delete(last);
-                return first;
+                return ARP_Return(first);
             } else if (pred(FORM_WITH_OBJ(f, THIS(first).derefer())))
                 THIS(first).inc();
             else
@@ -637,8 +620,7 @@ Iterator partition(Iterator _first, Iterator _last, Predicate pred, ...)
         THIS(last).dec();
         while (true)
             if (THIS(first).equal(VA(last))) {
-                delete(last);
-                return first;
+                return ARP_Return(first);
             } else if (!pred(FORM_WITH_OBJ(f, THIS(last).derefer())))
                 THIS(last).dec();
             else
@@ -651,6 +633,7 @@ Iterator partition(Iterator _first, Iterator _last, Predicate pred, ...)
 Iterator remove_element(Iterator _first, Iterator _last, FormWO_t val, ...)
 {
     enum {Assign, Equal};
+    ARP_CreatePool();
     FormWO_t op[2] = {VAEND, VAEND};
     va_list ap;
     va_start(ap, val);
@@ -660,18 +643,18 @@ Iterator remove_element(Iterator _first, Iterator _last, FormWO_t val, ...)
 
     Iterator first = find(_first, _last, val, op[Equal]);
     if (THIS(first).equal(VA(_last)))
-        return first;
-    Iterator next = THIS(first).ctor(NULL, VA(first), VAEND);
+        return ARP_Return(first);
+    Iterator next = THIS(first).ctor(ALLOC(sizeOf(first)), VA(first), VAEND);
     THIS(next).inc();
     first = remove_copy(next, _last, first, val, op[Assign], op[Equal]);
-    delete(next);
-    return first;
+    return ARP_Return(first);
 }
 
 Iterator remove_copy(Iterator _first, Iterator _last,
                      Iterator _result, FormWO_t val, ...)
 {
     enum {Assign, Equal};
+    ARP_CreatePool();
     FormWO_t op[2] = {VAEND, VAEND};
     va_list ap;
     va_start(ap, val);
@@ -679,9 +662,8 @@ Iterator remove_copy(Iterator _first, Iterator _last,
         op[i] = va_arg(ap, FormWO_t);
     va_end(ap);
 
-    void *mem = ARP_MallocARelDtor(sizeOf(_result), destroy);
-    Iterator result = THIS(_result).ctor(mem, VA(_result), VAEND);
-    Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    Iterator result = THIS(_result).ctor(ALLOC(sizeOf(_result)), VA(_result), VAEND);
+    Iterator first = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
     Form_t f1 = THIS(first).type();
     Form_t f2 = THIS(result).type();
     for (; !THIS(first).equal(VA(_last)); THIS(first).inc()) {
@@ -692,12 +674,12 @@ Iterator remove_copy(Iterator _first, Iterator _last,
             THIS(result).inc();
         }
     }
-    delete(first);
-    return result;
+    return ARP_Return(result);
 }
 
 Iterator remove_if(Iterator _first, Iterator _last, Predicate pred, ...)
 {
+    ARP_CreatePool();
     va_list ap;
     va_start(ap, pred);
     FormWO_t op = va_arg(ap, FormWO_t);
@@ -705,25 +687,24 @@ Iterator remove_if(Iterator _first, Iterator _last, Predicate pred, ...)
 
     Iterator first = find_if(_first, _last, pred);
     if (THIS(first).equal(VA(_last)))
-        return first;
-    Iterator next = THIS(first).ctor(NULL, VA(first), VAEND);
+        return ARP_Return(first);
+    Iterator next = THIS(first).ctor(ALLOC(sizeOf(first)), VA(first), VAEND);
     THIS(next).inc();
     first = remove_copy_if(next, _last, first, pred, op);
-    delete(next);
-    return first;
+    return ARP_Return(first);
 }
 
 Iterator remove_copy_if(Iterator _first, Iterator _last,
                         Iterator _result, Predicate pred, ...)
 {
+    ARP_CreatePool();
     va_list ap;
     va_start(ap, pred);
     FormWO_t op = va_arg(ap, FormWO_t);
     va_end(ap);
 
-    void *mem = ARP_MallocARelDtor(sizeOf(_result), destroy);
-    Iterator result = THIS(_result).ctor(mem, VA(_result), VAEND);
-    Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    Iterator result = THIS(_result).ctor(ALLOC(sizeOf(_result)), VA(_result), VAEND);
+    Iterator first = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
     Form_t f1 = THIS(first).type();
     Form_t f2 = THIS(result).type();
     for (; !THIS(first).equal(VA(_last)); THIS(first).inc()) {
@@ -734,13 +715,13 @@ Iterator remove_copy_if(Iterator _first, Iterator _last,
             THIS(result).inc();
         }
     }
-    delete(first);
-    return result;
+    return ARP_Return(result);
 }
 
 void replace(Iterator _first, Iterator _last, FormWO_t old_val, FormWO_t new_val, ...)
 {
     enum {Assign, Equal};
+    ARP_CreatePool();
     FormWO_t op[2] = {VAEND, VAEND};
     va_list ap;
     va_start(ap, new_val);
@@ -748,14 +729,13 @@ void replace(Iterator _first, Iterator _last, FormWO_t old_val, FormWO_t new_val
         op[i] = va_arg(ap, FormWO_t);
     va_end(ap);
 
-    Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    Iterator first = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
     Form_t f = THIS(_first).type();
     for (; !THIS(first).equal(VA(_last)); THIS(first).inc()) {
         FormWO_t v = FORM_WITH_OBJ(f, THIS(first).derefer());
         if (EqualOpt(v, old_val, op[Equal]))
             AssignOpt(v, new_val, op[Assign]);
     }
-    delete(first);
 }
 
 Iterator replace_copy(Iterator _first, Iterator _last,
@@ -763,6 +743,7 @@ Iterator replace_copy(Iterator _first, Iterator _last,
                       FormWO_t new_val, ...)
 {
     enum {Assign, Equal};
+    ARP_CreatePool();
     FormWO_t op[2] = {VAEND, VAEND};
     va_list ap;
     va_start(ap, new_val);
@@ -770,9 +751,8 @@ Iterator replace_copy(Iterator _first, Iterator _last,
         op[i] = va_arg(ap, FormWO_t);
     va_end(ap);
 
-    void *mem = ARP_MallocARelDtor(sizeOf(_result), destroy);
-    Iterator result = THIS(_result).ctor(mem, VA(_result), VAEND);
-    Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    Iterator result = THIS(_result).ctor(ALLOC(sizeOf(_result)), VA(_result), VAEND);
+    Iterator first = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
     Form_t f1 = THIS(_first).type();
     Form_t f2 = THIS(_result).type();
     for (; !THIS(first).equal(VA(_last)); THIS(first).inc(), THIS(result).inc()) {
@@ -784,37 +764,37 @@ Iterator replace_copy(Iterator _first, Iterator _last,
             AssignOpt(FORM_WITH_OBJ(f2, THIS(result).derefer()),
                       v, op[Assign]);
     }
-    delete(first);
-    return result;
+    return ARP_Return(result);
 }
 
 void replace_if(Iterator _first, Iterator _last, Predicate pred, FormWO_t new_val, ...)
 {
+    ARP_CreatePool();
     va_list ap;
     va_start(ap, new_val);
     FormWO_t op = va_arg(ap, FormWO_t);
     va_end(ap);
 
-    Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    Iterator first = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
     Form_t f = THIS(_first).type();
     for (; !THIS(first).equal(VA(_last)); THIS(first).inc()) {
         FormWO_t v = FORM_WITH_OBJ(f, THIS(first).derefer());
         if (pred(v))
             AssignOpt(v, new_val, op);
     }
-    delete(first);
+    ARP_FreePool();
 }
 
 Iterator replace_copy_if(Iterator _first, Iterator _last, Iterator _result, Predicate pred, FormWO_t new_val, ...)
 {
+    ARP_CreatePool();
     va_list ap;
     va_start(ap, new_val);
     FormWO_t op = va_arg(ap, FormWO_t);
     va_end(ap);
 
-    void *mem = ARP_MallocARelDtor(sizeOf(_result), destroy);
-    Iterator result = THIS(_result).ctor(mem, VA(_result), VAEND);
-    Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    Iterator result = THIS(_result).ctor(ALLOC(sizeOf(_result)), VA(_result), VAEND);
+    Iterator first = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
     Form_t f1 = THIS(_first).type();
     Form_t f2 = THIS(_result).type();
     for (; !THIS(first).equal(VA(_last)); THIS(first).inc(), THIS(result).inc()) {
@@ -826,15 +806,14 @@ Iterator replace_copy_if(Iterator _first, Iterator _last, Iterator _result, Pred
             AssignOpt(FORM_WITH_OBJ(f2, THIS(result).derefer()),
                       v, op);
     }
-    delete(first);
-    return result;
+    return ARP_Return(result);
 }
 
 static void __reverse(Iterator _first, Iterator _last, FormWO_t op)
 {
     assert(_first->rank >= BidirectionalIter && _last->rank >= BidirectionalIter);
-    Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
-    Iterator last = THIS(_last).ctor(NULL, VA(_last), VAEND);
+    Iterator first = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
+    Iterator last = THIS(_last).ctor(ALLOC(sizeOf(_last)), VA(_last), VAEND);
     if (first->rank >= RandomAccessIter && last->rank >= RandomAccessIter) {
         while (THIS(first).cmp(VA(last)) < 0)
         {
@@ -854,29 +833,29 @@ static void __reverse(Iterator _first, Iterator _last, FormWO_t op)
             THIS(first).inc();
         }
     }
-    delete(first);
-    delete(last);
 }
 
 void reverse(Iterator _first, Iterator _last, ...)
 {
+    ARP_CreatePool();
     va_list ap;
     va_start(ap, _last);
     FormWO_t op = va_arg(ap, FormWO_t);
     va_end(ap);
     __reverse(_first, _last, op);
+    ARP_FreePool();
 }
 
 Iterator reverse_copy(Iterator _first, Iterator _last, Iterator _result, ...)
 {
+    ARP_CreatePool();
     va_list ap;
     va_start(ap, _result);
     FormWO_t op = va_arg(ap, FormWO_t);
     va_end(ap);
 
-    void *mem = ARP_MallocARelDtor(sizeOf(_result), destroy);
-    Iterator result = THIS(_result).ctor(mem, VA(_result), VAEND);
-    Iterator last = THIS(_last).ctor(NULL, VA(_last), VAEND);
+    Iterator result = THIS(_result).ctor(ALLOC(sizeOf(_result)), VA(_result), VAEND);
+    Iterator last = THIS(_last).ctor(ALLOC(sizeOf(_last)), VA(_last), VAEND);
     Form_t f1 = THIS(last).type();
     Form_t f2 = THIS(result).type();
     while (!THIS(_first).equal(VA(last)))
@@ -886,8 +865,7 @@ Iterator reverse_copy(Iterator _first, Iterator _last, Iterator _result, ...)
                   FORM_WITH_OBJ(f1, THIS(last).derefer()), op);
         THIS(result).inc();
     }
-    delete(last);
-    return result;
+    return ARP_Return(result);
 }
 
 static size_t __gcd(size_t m, size_t n)
@@ -911,7 +889,7 @@ static void __rotate_cycle(Iterator _first, Iterator _last, Iterator initial, si
     else
         val = FORM_WITH_OBJ(f, mem);
     AssignOpt(val, FORM_WITH_OBJ(f, THIS(initial).derefer()), op);
-    Iterator ptr1 = THIS(initial).ctor(NULL, VA(initial), VAEND);
+    Iterator ptr1 = THIS(initial).ctor(ALLOC(sizeOf(initial)), VA(initial), VAEND);
     Iterator ptr2 = THIS(ptr1).add(VA(shift));
     while (!THIS(ptr2).equal(VA(initial)))
     {
@@ -930,9 +908,9 @@ static void __rotate_cycle(Iterator _first, Iterator _last, Iterator initial, si
 
 static void __rotate(Iterator _first, Iterator _middle, Iterator _last, FormWO_t op)
 {
-    Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
-    Iterator middle = THIS(_middle).ctor(NULL, VA(_middle), VAEND);
-    Iterator i = THIS(_middle).ctor(NULL, VA(_middle), VAEND);
+    Iterator first = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
+    Iterator middle = THIS(_middle).ctor(ALLOC(sizeOf(_middle)), VA(_middle), VAEND);
+    Iterator i = THIS(_middle).ctor(ALLOC(sizeOf(_middle)), VA(_middle), VAEND);
     if (first->rank == ForwardIter) {
         while (true)
         {
@@ -954,26 +932,26 @@ static void __rotate(Iterator _first, Iterator _middle, Iterator _last, FormWO_t
         while (n--)
             __rotate_cycle(first, _last, THIS(first).add(VA(n)), distance(first, middle), op);
     }
-    delete(first);
-    delete(i);
-    delete(middle);
 }
 
 void rotate(Iterator _first, Iterator _middle, Iterator _last, ...)
 {
     if (THIS(_first).equal(VA(_middle)) || THIS(_middle).equal(VA(_last))) return;
 
+    ARP_CreatePool();
     va_list ap;
     va_start(ap, _last);
     FormWO_t op = va_arg(ap, FormWO_t);
     va_end(ap);
 
     __rotate(_first, _middle, _last, op);
+    ARP_FreePool();
 }
 
 Iterator rotate_copy(Iterator _first, Iterator _middle, Iterator _last, Iterator _result)
 {
-    return copy(_first, _middle, copy(_middle, _last, _result));
+    ARP_CreatePool();
+    return ARP_Return(copy(_first, _middle, copy(_middle, _last, _result)));
 }
 
 static Iterator __search(Iterator _first1, Iterator _last1,
@@ -981,14 +959,12 @@ static Iterator __search(Iterator _first1, Iterator _last1,
 {
     size_t d1 = distance(_first1, _last1);
     size_t d2 = distance(_first2, _last2);
-    void *mem1 = ARP_MallocARelDtor(sizeOf(_last1), destroy);
-    void *mem2 = ARP_MallocARelDtor(sizeOf(_first1), destroy);
-    Iterator last1 = THIS(_last1).ctor(mem1, VA(_last1), VAEND);
-    Iterator first1 = THIS(_first1).ctor(mem2, VA(_first1), VAEND);
+    Iterator last1 = THIS(_last1).ctor(ALLOC(sizeOf(_last1)), VA(_last1), VAEND);
+    Iterator first1 = THIS(_first1).ctor(ALLOC(sizeOf(_first1)), VA(_first1), VAEND);
     if (d1 < d2) return last1;
 
-    Iterator current1 = THIS(_first1).ctor(NULL, VA(_first1), VAEND);
-    Iterator current2 = THIS(_first2).ctor(NULL, VA(_first2), VAEND);
+    Iterator current1 = THIS(_first1).ctor(ALLOC(sizeOf(_first1)), VA(_first1), VAEND);
+    Iterator current2 = THIS(_first2).ctor(ALLOC(sizeOf(_first2)), VA(_first2), VAEND);
     Form_t f = THIS(_first1).type();
 
     while (!THIS(current2).equal(VA(_last2)))
@@ -998,7 +974,7 @@ static Iterator __search(Iterator _first1, Iterator _last1,
             THIS(current2).inc();
         } else {
             if (d1 == d2)
-                return last1;
+                return ARP_Return(last1);
             else {
                 THIS(first1).inc();
                 THIS(current1).assign(VA(first1));
@@ -1012,27 +988,28 @@ static Iterator __search(Iterator _first1, Iterator _last1,
 Iterator search(Iterator _first1, Iterator _last1,
                 Iterator _first2, Iterator _last2, ...)
 {
+    ARP_CreatePool();
     va_list ap;
     va_start(ap, _last2);
     FormWO_t op = va_arg(ap, FormWO_t);
     va_end(ap);
 
-    return __search(_first1, _last1, _first2, _last2, op);
+    return ARP_Return(__search(_first1, _last1, _first2, _last2, op));
 }
 
 Iterator search_n(Iterator _first, Iterator _last, long long count, FormWO_t val, ...)
 {
+    ARP_CreatePool();
     va_list ap;
     va_start(ap, val);
     FormWO_t op = va_arg(ap, FormWO_t);
     va_end(ap);
 
-    void *mem =ARP_MallocARelDtor(sizeOf(_first), destroy);
-    Iterator first = THIS(_first).ctor(mem, VA(_first), VAEND);
-    Iterator i = THIS(first).ctor(NULL, VA(first), VAEND);
+    Iterator first = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
+    Iterator i = THIS(first).ctor(ALLOC(sizeOf(_first)), VA(first), VAEND);
     Form_t f = THIS(i).type();
     if (count <= 0)
-        return first;
+        return ARP_Return(first);
     else {
         first = find(first, _last, val, op);
         while (!THIS(first).equal(VA(_last)))
@@ -1051,49 +1028,47 @@ Iterator search_n(Iterator _first, Iterator _last, long long count, FormWO_t val
             else
                 first = find(i, _last, val, op);
         }
-        delete(i);
-        return first;
+        return ARP_Return(first);
     }
 }
 
 Iterator swap_ranges(Iterator _first1, Iterator _last1, Iterator _first2, ...)
 {
+    ARP_CreatePool();
     va_list ap;
     va_start(ap, _first2);
     FormWO_t op = va_arg(ap, FormWO_t);
     va_end(ap);
 
-    Iterator first1 = THIS(_first1).ctor(NULL, VA(_first1), VAEND);
-    void *mem =ARP_MallocARelDtor(sizeOf(_first2), destroy);
-    Iterator first2 = THIS(_first2).ctor(mem, VA(_first2), VAEND);
+    Iterator first1 = THIS(_first1).ctor(ALLOC(sizeOf(_first1)), VA(_first1), VAEND);
+    Iterator first2 = THIS(_first2).ctor(ALLOC(sizeOf(_first2)), VA(_first2), VAEND);
     for (; !THIS(first1).equal(VA(_last1)); THIS(first1).inc(), THIS(first2).inc())
         iter_swap(first1, first2, op);
-    delete(first1);
-    return first2;
+    return ARP_Return(first2);
 }
 
 Iterator transform(Iterator _first, Iterator _last, Iterator _result, UnaryOperation unary_op, ...)
 {
+    ARP_CreatePool();
     va_list ap;
     va_start(ap, unary_op);
     FormWO_t op = va_arg(ap, FormWO_t);
     va_end(ap);
 
-    Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
-    void *mem =ARP_MallocARelDtor(sizeOf(_first), destroy);
-    Iterator result = THIS(_result).ctor(mem, VA(_result), VAEND);
+    Iterator first = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
+    Iterator result = THIS(_result).ctor(ALLOC(sizeOf(_first)), VA(_result), VAEND);
     Form_t f1 = THIS(_first).type();
     Form_t f2 = THIS(result).type();
     for (; !THIS(first).equal(VA(_last)); THIS(first).inc(), THIS(result).inc())
         AssignOpt(FORM_WITH_OBJ(f2, THIS(result).derefer()),
                   unary_op(FORM_WITH_OBJ(f1, THIS(first).derefer())), op);
-    delete(first);
-    return result;
+    return ARP_Return(result);
 }
 
 Iterator unique(Iterator _first, Iterator _last, ...)
 {
     enum {Assign, Equal};
+    ARP_CreatePool();
     FormWO_t op[2] = {VAEND, VAEND};
     va_list ap;
     va_start(ap, _last);
@@ -1102,14 +1077,13 @@ Iterator unique(Iterator _first, Iterator _last, ...)
     va_end(ap);
 
     Iterator first = adjacent_find(_first, _last, op[Equal]);
-    return unique_copy(first, _last, first, op[Assign], op[Equal]);
+    return ARP_Return(unique_copy(first, _last, first, op[Assign], op[Equal]));
 }
 
 static Iterator __unique_copy(Iterator _first, Iterator _last, Iterator _result, FormWO_t assign, FormWO_t equal)
 {
-    Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
-    void *mem = ARP_MallocARelDtor(sizeOf(_result), destroy);
-    Iterator result = THIS(_result).ctor(mem, VA(_result), VAEND);
+    Iterator first = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
+    Iterator result = THIS(_result).ctor(ALLOC(sizeOf(_result)), VA(_result), VAEND);
 
     Form_t f1 = THIS(_first).type();
     Form_t f2 = THIS(_result).type();
@@ -1123,16 +1097,14 @@ static Iterator __unique_copy(Iterator _first, Iterator _last, Iterator _result,
         }
     }
     THIS(result).inc();
-    delete(first);
     return result;
 }
 
 Iterator unique_copy(Iterator _first, Iterator _last, Iterator _result, ...)
 {
-    if (THIS(_first).equal(VA(_last))) {
-        void *mem = ARP_MallocARelDtor(sizeOf(_result), destroy);
-        return THIS(_result).ctor(mem, VA(_result), VAEND);
-    }
+    ARP_CreatePool();
+    if (THIS(_first).equal(VA(_last)))
+        return THIS(_result).ctor(ALLOC(sizeOf(_result)), VA(_result), VAEND);
 
     enum {Assign, Equal};
     FormWO_t op[2] = {VAEND, VAEND};
@@ -1142,16 +1114,15 @@ Iterator unique_copy(Iterator _first, Iterator _last, Iterator _result, ...)
         op[i] = va_arg(ap, FormWO_t);
     va_end(ap);
 
-    return __unique_copy(_first, _last, _result, op[Assign], op[Equal]);
+    return ARP_Return(__unique_copy(_first, _last, _result, op[Assign], op[Equal]));
 }
 
 static Iterator __lower_bound(Iterator _first, Iterator _last, FormWO_t val, FormWO_t op)
 {
     long long len = distance(_first, _last);
     long long half;
-    Iterator middle = THIS(_first).ctor(NULL, VA(_first), VAEND);
-    void *mem = ARP_MallocARelDtor(sizeOf(_first), destroy);
-    Iterator first = THIS(_first).ctor(mem, VA(_first), VAEND);
+    Iterator middle = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
+    Iterator first = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
 
     Form_t f = THIS(first).type();
     while (len > 0)
@@ -1167,26 +1138,25 @@ static Iterator __lower_bound(Iterator _first, Iterator _last, FormWO_t val, For
         } else 
             len = half;
     }
-    delete(middle);
     return first;
 }
 
 Iterator lower_bound(Iterator _first, Iterator _last, FormWO_t val, ...)
 {
+    ARP_CreatePool();
     va_list ap;
     va_start(ap, val);
     FormWO_t op = va_arg(ap, FormWO_t);
     va_end(ap);
-    return __lower_bound(_first, _last, val, op);
+    return ARP_Return(__lower_bound(_first, _last, val, op));
 }
 
 static Iterator __upper_bound(Iterator _first, Iterator _last, FormWO_t val, FormWO_t op)
 {
     size_t len = distance(_first, _last);
     size_t half;
-    Iterator middle = THIS(_first).ctor(NULL, VA(_first), VAEND);
-    void *mem = ARP_MallocARelDtor(sizeOf(_first), destroy);
-    Iterator first = THIS(_first).ctor(mem, VA(_first), VAEND);
+    Iterator middle = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
+    Iterator first = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
 
     Form_t f = THIS(first).type();
     while (len > 0)
@@ -1203,34 +1173,41 @@ static Iterator __upper_bound(Iterator _first, Iterator _last, FormWO_t val, For
             len = len - half - 1;
         }
     }
-    delete(middle);
     return first;
 }
 
 Iterator upper_bound(Iterator _first, Iterator _last, FormWO_t val, ...)
 {
+    ARP_CreatePool();
     va_list ap;
     va_start(ap, val);
     FormWO_t op = va_arg(ap, FormWO_t);
     va_end(ap);
-    return __upper_bound(_first, _last, val, op);
+    return ARP_Return(__upper_bound(_first, _last, val, op));
 }
 
 bool binary_search(Iterator _first, Iterator _last, FormWO_t val, ...)
 {
+    ARP_CreatePool();
     va_list ap;
     va_start(ap, val);
     FormWO_t op = va_arg(ap, FormWO_t);
     va_end(ap);
     Iterator i = lower_bound(_first, _last, val, op);
-    return !THIS(i).equal(VA(_last)) && !CompareOpt(val,
-                                                   FORM_WITH_OBJ(THIS(i).type(),THIS(i).derefer()),
-                                                   op);
+    bool res = !THIS(i).equal(VA(_last));
+    res = res && !CompareOpt(val,
+                             FORM_WITH_OBJ(THIS(i).type(),THIS(i).derefer()), op);
+    ARP_FreePool();
+    return res;
 }
 
 bool next_permutation(Iterator _first, Iterator _last, ...)
 {
+    assert(_first->rank >= BidirectionalIter && _last->rank >= BidirectionalIter);
+    if (THIS(_first).equal(VA(_last))) return false;
+
     enum {Assign, Compare};
+    ARP_CreatePool();
     FormWO_t op[2] = {VAEND, VAEND};
     va_list ap;
     va_start(ap, _last);
@@ -1238,18 +1215,16 @@ bool next_permutation(Iterator _first, Iterator _last, ...)
         op[i] = va_arg(ap, FormWO_t);
     va_end(ap);
 
-    assert(_first->rank >= BidirectionalIter && _last->rank >= BidirectionalIter);
-    if (THIS(_first).equal(VA(_last))) return false;
-    Iterator i = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    Iterator i = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
     THIS(i).inc();
     if (THIS(i).equal(VA(_last))) {
-        delete(i);
+        ARP_FreePool();
         return false;
     }
     THIS(i).assign(VA(_last));
     THIS(i).dec();
-    Iterator ii = THIS(i).ctor(NULL, VA(i), VAEND);
-    Iterator j = THIS(i).ctor(NULL, VA(i), VAEND);
+    Iterator ii = THIS(i).ctor(ALLOC(sizeOf(i)), VA(i), VAEND);
+    Iterator j = THIS(i).ctor(ALLOC(sizeOf(i)), VA(i), VAEND);
 
     Form_t f = THIS(_first).type();
     for (;;) {
@@ -1268,16 +1243,12 @@ bool next_permutation(Iterator _first, Iterator _last, ...)
             }
             iter_swap(i, j, op[Assign]);
             reverse(ii, _last, op[Assign]);
-            delete(i);
-            delete(ii);
-            delete(j);
+            ARP_FreePool();
             return true;
         }
         if (THIS(i).equal(VA(_first))) {
             reverse(_first, _last, op[Assign]);
-            delete(i);
-            delete(ii);
-            delete(j);
+            ARP_FreePool();
             return false;
         }
     }
@@ -1285,7 +1256,11 @@ bool next_permutation(Iterator _first, Iterator _last, ...)
 
 bool prev_permutation(Iterator _first, Iterator _last, ...)
 {
+    assert(_first->rank >= BidirectionalIter && _last->rank >= BidirectionalIter);
+    if (THIS(_first).equal(VA(_last))) return false;
+
     enum {Assign, Compare};
+    ARP_CreatePool();
     FormWO_t op[2] = {VAEND, VAEND};
     va_list ap;
     va_start(ap, _last);
@@ -1293,18 +1268,16 @@ bool prev_permutation(Iterator _first, Iterator _last, ...)
         op[i] = va_arg(ap, FormWO_t);
     va_end(ap);
 
-    assert(_first->rank >= BidirectionalIter && _last->rank >= BidirectionalIter);
-    if (THIS(_first).equal(VA(_last))) return false;
-    Iterator i = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    Iterator i = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
     THIS(i).inc();
     if (THIS(i).equal(VA(_last))) {
-        delete(i);
+        ARP_FreePool();
         return false;
     }
     THIS(i).assign(VA(_last));
     THIS(i).dec();
-    Iterator ii = THIS(i).ctor(NULL, VA(i), VAEND);
-    Iterator j = THIS(i).ctor(NULL, VA(i), VAEND);
+    Iterator ii = THIS(i).ctor(ALLOC(sizeOf(i)), VA(i), VAEND);
+    Iterator j = THIS(i).ctor(ALLOC(sizeOf(i)), VA(i), VAEND);
 
     Form_t f = THIS(_first).type();
     for (;;) {
@@ -1323,16 +1296,12 @@ bool prev_permutation(Iterator _first, Iterator _last, ...)
             }
             iter_swap(i, j, op[Assign]);
             reverse(ii, _last, op[Assign]);
-            delete(i);
-            delete(ii);
-            delete(j);
+            ARP_FreePool();
             return true;
         }
         if (THIS(i).equal(VA(_first))) {
             reverse(_first, _last, op[Assign]);
-            delete(i);
-            delete(ii);
-            delete(j);
+            ARP_FreePool();
             return false;
         }
     }
@@ -1347,6 +1316,7 @@ void random_shuffle(Iterator _first, Iterator _last, unsigned int *seed, ...)
 
     assert(_first->rank >= RandomAccessIter && _last->rank >= RandomAccessIter);
     if (THIS(_first).equal(VA(_last))) return;
+    ARP_CreatePool();
     if (!seed) {
         for (Iterator i = THIS(_first).add(VA(1)); !THIS(i).equal(VA(_last)); THIS(i).inc()) {
             size_t n = distance(_first, i) + 1;
@@ -1358,13 +1328,15 @@ void random_shuffle(Iterator _first, Iterator _last, unsigned int *seed, ...)
             iter_swap(i, THIS(_first).add(VA(__rand_s(seed) % n)), op);
         }
     }
+    ARP_FreePool();
 }
 
 void partial_sort(Iterator _first, Iterator _middle, Iterator _last, Compare cmp)
 {
     assert(_first->rank >= RandomAccessIter && _middle->rank >= RandomAccessIter && _last->rank >= RandomAccessIter);
+    ARP_CreatePool();
     make_heap(_first, _middle, cmp);
-    Iterator i = THIS(_middle).ctor(NULL, VA(_middle), VAEND);
+    Iterator i = THIS(_middle).ctor(ALLOC(sizeOf(_middle)), VA(_middle), VAEND);
     Form_t f = THIS(i).type();
     for (; !THIS(i).equal(VA(_last)); THIS(i).inc()) {
         FormWO_t i_v = FORM_WITH_OBJ(f, THIS(i).derefer());
@@ -1375,8 +1347,8 @@ void partial_sort(Iterator _first, Iterator _middle, Iterator _last, Compare cmp
             push_heap(_first, _middle, cmp);
         }
     }
-    delete(i);
     sort_heap(_first, _middle, cmp);
+    ARP_FreePool();
 }
 
 void partial_sort_copy(Iterator _first, Iterator _last,
@@ -1388,8 +1360,9 @@ void partial_sort_copy(Iterator _first, Iterator _last,
     FormWO_t op = va_arg(ap, FormWO_t);
     va_end(ap);
 
-    Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
-    Iterator res_real_last = THIS(_res_first).ctor(NULL, VA(_res_first), VAEND);
+    ARP_CreatePool();
+    Iterator first = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
+    Iterator res_real_last = THIS(_res_first).ctor(ALLOC(sizeOf(_res_first)), VA(_res_first), VAEND);
     Form_t f1 = THIS(first).type();
     Form_t f2 = THIS(res_real_last).type();
     while (!THIS(first).equal(VA(_last)) && !THIS(res_real_last).equal(VA(_res_first)))
@@ -1412,8 +1385,7 @@ void partial_sort_copy(Iterator _first, Iterator _last,
         }
     }
     sort_heap(_res_first, res_real_last, cmp);
-    delete(first);
-    delete(res_real_last);
+    ARP_FreePool();
 }
 
 //sort
@@ -1544,12 +1516,14 @@ void sort(Iterator _first, Iterator _last, ...)
     va_start(ap, _last);
     FormWO_t op = va_arg(ap, FormWO_t);
     va_end(ap);
+    ARP_CreatePool();
 
     if (!THIS(_first).equal(VA(_last))) {
         size_t n = distance(_first, _last);
         __introsort_loop(_first, _last, __lg(n) * 2, op);
         __final_insertion_sort(_first, _last, op);
     }
+    ARP_FreePool();
 }
 
 //equal_range
@@ -1559,11 +1533,12 @@ Pair equal_range(Iterator _first, Iterator _last, FormWO_t val, ...)
     va_start(ap, val);
     FormWO_t op = va_arg(ap, FormWO_t);
     va_end(ap);
+    ARP_CreatePool();
 
     long long len = distance(_first, _last);
     size_t half;
-    Iterator first = THIS(_first).ctor(NULL, VA(_first), VAEND);
-    Iterator middle = THIS(_first).ctor(NULL, VA(_first), VAEND);
+    Iterator first = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
+    Iterator middle = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
     Iterator left, right;
     Form_t f = THIS(_first).type();
     while (len > 0)
@@ -1583,17 +1558,13 @@ Pair equal_range(Iterator _first, Iterator _last, FormWO_t val, ...)
             advance(first, len);
             THIS(middle).inc();
             right = upper_bound(middle, first, val, op);
-            delete(first);
-            delete(middle);
             Form_t real_form = {OBJ, .class = classOf(first)};
-            return tmpPair(real_form, real_form, VA(left, right), VAEND);
+            return ARP_Return(tmpPair(real_form, real_form, VA(left, right), VAEND));
         }
     }
     Form_t real_form = {OBJ, .class = classOf(first)};
     Pair p = tmpPair(real_form, real_form, VA(first, first), VAEND);
-    delete(first);
-    delete(middle);
-    return p;
+    return ARP_Return(p);
 }
 
 //inplace_merge
@@ -1603,9 +1574,9 @@ static Iterator __merge_backward(Iterator _first1, Iterator _last1, Iterator _fi
         return copy_backward(_first2, _last2, _result);
     if (THIS(_first2).equal(VA(_last2)))
         return copy_backward(_first1, _last1, _result);
-    Iterator last1 = THIS(_last1).ctor(NULL, VA(_last1), VAEND);
-    Iterator last2 = THIS(_last2).ctor(NULL, VA(_last2), VAEND);
-    Iterator result = THIS(_result).ctor(NULL, VA(_result), VAEND);
+    Iterator last1 = THIS(_last1).ctor(ALLOC(sizeOf(_last1)), VA(_last1), VAEND);
+    Iterator last2 = THIS(_last2).ctor(ALLOC(sizeOf(_last2)), VA(_last2), VAEND);
+    Iterator result = THIS(_result).ctor(ALLOC(sizeOf(_result)), VA(_result), VAEND);
     THIS(last1).dec();
     THIS(last2).dec();
     Form_t f1 = THIS(_first1).type();
@@ -1621,11 +1592,7 @@ static Iterator __merge_backward(Iterator _first1, Iterator _last1, Iterator _fi
             THIS(result).dec();
             if (THIS(_first1).equal(VA(last1))) {
                 THIS(last2).inc();
-                Iterator tmp = copy_backward(_first2, last2, result);
-                delete(last1);
-                delete(last2);
-                delete(result);
-                return tmp;
+                return copy_backward(_first2, last2, result);
             }
             THIS(last1).dec();
         } else {
@@ -1633,11 +1600,7 @@ static Iterator __merge_backward(Iterator _first1, Iterator _last1, Iterator _fi
             THIS(result).dec();
             if (THIS(_first2).equal(VA(last2))) {
                 THIS(last1).inc();
-                Iterator tmp = copy_backward(_first1, last1, result);
-                delete(last1);
-                delete(last2);
-                delete(result);
-                return tmp;
+                return copy_backward(_first1, last1, result);
             }
             THIS(last2).dec();
         }
@@ -1670,8 +1633,7 @@ static Iterator __rotate_adaptive(Iterator _first, Iterator _middle, Iterator _l
         return copy_backward(_buff, buff_end, _last);
     } else {
         rotate(_first, _middle, _last);
-        void *mem = ARP_MallocARelDtor(sizeOf(_first), destroy);
-        Iterator first = THIS(_first).ctor(mem, VA(_first), VAEND);
+        Iterator first = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
         advance(first, len2);
         return first;
     }
@@ -1686,8 +1648,8 @@ static void __merge_adaptive(Iterator _first, Iterator _middle, Iterator _last, 
         Iterator end_buff = copy(_middle, _last, _buff);
         __merge_backward(_first, _middle, _buff, end_buff, _last, op);
     } else {
-        Iterator first_cut = THIS(_first).ctor(NULL, VA(_first), VAEND);
-        Iterator second_cut = THIS(_middle).ctor(NULL, VA(_middle), VAEND);
+        Iterator first_cut = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
+        Iterator second_cut = THIS(_middle).ctor(ALLOC(sizeOf(_middle)), VA(_middle), VAEND);
         size_t len11 = 0, len22 = 0;
         if (len1 > len2) {
             len11 = len1 / 2;
@@ -1705,8 +1667,6 @@ static void __merge_adaptive(Iterator _first, Iterator _middle, Iterator _last, 
         Iterator new_middle = __rotate_adaptive(first_cut, _middle, second_cut, len1 - len11, len22, _buff, buff_size);
         __merge_adaptive(_first, first_cut, new_middle, len11, len22, _buff, buff_size, op);
         __merge_adaptive(new_middle, second_cut, _last, len1 - len11, len2 - len22, _buff, buff_size, op);
-        delete(first_cut);
-        delete(second_cut);
     }
 }
 
@@ -1721,8 +1681,8 @@ static void __merge_without_buff(Iterator _first, Iterator _middle, Iterator _la
             iter_swap(_first, _middle, VAEND);
         return;
     }
-    Iterator first_cut = THIS(_first).ctor(NULL, VA(_first), VAEND);
-    Iterator second_cut = THIS(_middle).ctor(NULL, VA(_middle), VAEND);
+    Iterator first_cut = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
+    Iterator second_cut = THIS(_middle).ctor(ALLOC(sizeOf(_middle)), VA(_middle), VAEND);
     size_t len11 = 0, len22 = 0;
     if (len1 > len2) {
         len11 = len1 / 2;
@@ -1736,13 +1696,10 @@ static void __merge_without_buff(Iterator _first, Iterator _middle, Iterator _la
         len11 = distance(_first, first_cut);
     }
     rotate(first_cut, _middle, second_cut);
-    Iterator new_middle = THIS(first_cut).ctor(NULL, VA(first_cut), VAEND);
+    Iterator new_middle = THIS(first_cut).ctor(ALLOC(sizeOf(first_cut)), VA(first_cut), VAEND);
     advance(new_middle, len22);
     __merge_without_buff(_first, first_cut, new_middle, len11, len22, op);
     __merge_without_buff(new_middle, second_cut, _last, len1 - len11, len2 - len22, op);
-    delete(new_middle);
-    //delete(first_cut); first_cut和second_cut被地址被替换，内存泄露了
-    //delete(second_cut);
 }
 
 void inplace_merge(Iterator _first, Iterator _middle, Iterator _last, ...)
@@ -1753,6 +1710,7 @@ void inplace_merge(Iterator _first, Iterator _middle, Iterator _last, ...)
     FormWO_t op = va_arg(ap, FormWO_t);
     va_end(ap);
 
+    ARP_CreatePool();
     Form_t f = THIS(_first).type();
     size_t size = f.f == OBJ ? classSz(f.class) : f.size;
     size_t len1 = distance(_first, _middle);
@@ -1766,6 +1724,7 @@ void inplace_merge(Iterator _first, Iterator _middle, Iterator _last, ...)
         __merge_adaptive(_first, _middle, _last, len1, len2, _oriPointIter_aux(f, buff, 0), buff_size, op);
         free(buff);
     }
+    ARP_FreePool();
 }
 
 void nth_element(Iterator _first, Iterator _nth, Iterator _last, ...)
@@ -1776,6 +1735,7 @@ void nth_element(Iterator _first, Iterator _nth, Iterator _last, ...)
     FormWO_t op = va_arg(ap, FormWO_t);
     va_end(ap);
 
+    ARP_CreatePool();
     size_t dis;
     while ((dis = distance(_first, _last)) > 3) {
         Form_t f = THIS(_first).type();
@@ -1791,6 +1751,7 @@ void nth_element(Iterator _first, Iterator _nth, Iterator _last, ...)
             _last = cut;
     }
     __insertion_sort(_first, _last, op);
+    ARP_FreePool();
 }
 
 void mergesort(Iterator _first, Iterator _last, ...)
@@ -1800,13 +1761,13 @@ void mergesort(Iterator _first, Iterator _last, ...)
     va_start(ap, _last);
     FormWO_t op = va_arg(ap, FormWO_t);
     va_end(ap);
+    ARP_CreatePool();
     size_t n = distance(_first, _last);
-    if (n <= 1)
-        return;
-    else {
+    if (n > 1){
         Iterator mid = THIS(_first).add(VA(n / 2));
         mergesort(_first, mid, op);
         mergesort(mid, _last, op);
         inplace_merge(_first, mid, _last, op);
     }
+    ARP_FreePool();
 }

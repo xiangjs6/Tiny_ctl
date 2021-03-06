@@ -285,3 +285,11 @@ void *ARP_Realloc(void *pMemLoc, size_t size)
         *node->p_pool_node = node;
     return node->block;
 }
+
+void *ARP_Return(void *pMemLoc)
+{
+    ARP_ExitARel(pMemLoc);
+    ARP_FreePool();
+    ARP_JoinARel(pMemLoc);
+    return pMemLoc;
+}

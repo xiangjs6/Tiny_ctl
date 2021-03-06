@@ -37,5 +37,6 @@ void *ARP_CallocARelDtor(size_t num, size_t size, dtorfunc_t dtorFunc);
 void *ARP_MallocARelDtor(size_t len, dtorfunc_t dtorFunc);
 //! just reallocate memory
 void *ARP_Realloc(void *pMemLoc, size_t size);
-
+//! return mem and free pool
+void *ARP_Return(void *pMemLoc);
 #endif //AUTO_RELEASE_POOL_AUTO_RELEASE_POOL_H
