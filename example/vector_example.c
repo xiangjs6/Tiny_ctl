@@ -12,7 +12,6 @@ int main(void)
     ARP_CreatePool();
     Vector v = new(T(Vector), VA(T(Double), 10, 3.20));
     printf("nmemb:%ld\n", THIS(v).size());
-    Int i_t = new(T(Int));
     for (int i = 0; i < 10; i++) {
         THIS(v).push_back(VA(i + 1.0));
     }
@@ -65,10 +64,6 @@ int main(void)
     THIS(v).erase(in_it);
     for (Iterator it = THIS(v).begin(); !THIS(it).equal(VA(THIS(v).end())); THIS(it).inc()) {
         printf("%lf ", ((Double)THIS(it).derefer())->val);
-        Iterator itt = THIS(v).begin();
-        int t = THIS(it).dist(itt);
-        t = distance(itt, it);
-        t = 0;
     }
     putchar('\n');
     putchar('\n');

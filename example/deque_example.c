@@ -122,10 +122,10 @@ int test_deque_1()
 {
     ARP_CreatePool();
     { // deque::deque: Construct deque container
-        unsigned int i;
+        //unsigned int i;
      
         // constructors used in the same order as described above:
-        Deque first = new(T(Deque), VA(T(int)));                                // empty deque of ints
+        //Deque first = new(T(Deque), VA(T(int)));                                // empty deque of ints
         Deque second = new(T(Deque), VA(T(int), 4, 100));                       // four ints with value 100
         Deque third = new(T(Deque), VA(T(int), THIS(second).begin(), THIS(second).end()));  // iterating through second
         Deque fourth = new(T(Deque), VA(T(int), third));                       // a copy of third
@@ -221,7 +221,7 @@ int test_deque_1()
     */
     
     { // deque::clear: Clear content
-        unsigned int i;
+        //unsigned int i;
         Deque mydeque = new(T(Deque), VA(T(unsigned)));
         THIS(mydeque).push_back(VA(100));
         THIS(mydeque).push_back(VA(200));
@@ -524,7 +524,7 @@ int test_deque_1()
     */
     { // deque::swap: Exchanges the content of the container by the content of x,
         // which is another deque object containing elements of the same type. Sizes may differ.
-        unsigned int i;
+        //unsigned int i;
         Deque foo = new(T(Deque), VA(T(int), 3, 100));// three ints with a value of 100
         Deque bar = new(T(Deque), VA(T(int), 5, 200));// five ints with a value of 200
         
