@@ -695,6 +695,7 @@ static void _list_merge(void *_this, List l, Compare cmp)
     if (first2 != last2)
         _transfer(last1, first2, last2);
 }
+
 static void _list_reverse(void *_this)
 {
     struct List *this = offsetOf(_this, __List);

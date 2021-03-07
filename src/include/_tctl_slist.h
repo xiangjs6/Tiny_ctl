@@ -17,7 +17,12 @@ struct SlistSelector {
     void (*pop_front)(void);
     Iterator (*erase_after)(Iterator iter);
     Iterator (*insert_after)(Iterator iter, FormWO_t x);
+    void (*remove)(FormWO_t x);
+    void (*unique)(void);
+    void (*splice_after)(Iterator position, Slist l, ...);
+    void (*merge)(Slist l, Compare cmp);
     void (*reverse)(void);
+    void (*sort)(Compare cmp);
     void (*clear)(void);
     void (*swap)(Slist l);
 };

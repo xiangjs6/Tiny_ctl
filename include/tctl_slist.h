@@ -10,21 +10,26 @@
 #include "tctl_metaclass.h"
 #include "tctl_class.h"
 
-#define SLIST_FUNC                                        \
-struct {                                                  \
-    CLASS_FUNC;                                           \
-    Iterator (*begin)(void);                              \
-    Iterator (*end)(void);                                \
-    void* (*front)(void);                                 \
-    size_t (*size)(void);                                 \
-    bool (*empty)(void);                                  \
-    void (*push_front)(FormWO_t x);                       \
-    void (*pop_front)(void);                              \
-    Iterator (*erase_after)(Iterator iter);               \
-    Iterator (*insert_after)(Iterator iter, FormWO_t x);  \
-    void (*reverse)(void);                                \
-    void (*clear)(void);                                  \
-    void (*swap)(Slist l);                                \
+#define SLIST_FUNC                                         \
+struct {                                                   \
+    CLASS_FUNC;                                            \
+    Iterator (*begin)(void);                               \
+    Iterator (*end)(void);                                 \
+    void* (*front)(void);                                  \
+    size_t (*size)(void);                                  \
+    bool (*empty)(void);                                   \
+    void (*push_front)(FormWO_t x);                        \
+    void (*pop_front)(void);                               \
+    Iterator (*erase_after)(Iterator iter);                \
+    Iterator (*insert_after)(Iterator iter, FormWO_t x);   \
+    void (*remove)(FormWO_t x);                            \
+    void (*unique)(void);                                  \
+    void (*splice_after)(Iterator position, Slist l, ...); \
+    void (*merge)(Slist l, Compare cmp);                   \
+    void (*reverse)(void);                                 \
+    void (*sort)(Compare cmp);                             \
+    void (*clear)(void);                                   \
+    void (*swap)(Slist l);                                 \
 }
 
 typedef struct _Slist *Slist;
