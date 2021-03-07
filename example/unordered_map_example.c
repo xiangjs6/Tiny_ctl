@@ -6,8 +6,8 @@
 #define Import UNORDERED_MAP, PAIR
 int scmp(FormWO_t _x, FormWO_t _y)
 {
-    Pair a = _x.mem, b = _y.mem;
-    int res = strcmp(a->first, b->first);
+    char *a = *(char**)_x.mem, *b = *(char**)_y.mem;
+    int res = strcmp(a, b);
     return res;
 }
 

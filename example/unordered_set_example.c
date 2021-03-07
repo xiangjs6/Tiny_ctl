@@ -3,21 +3,12 @@
 #include "../include/tctl_unordered_set.h"
 #include "../include/auto_release_pool.h"
 #include "../include/tctl_iterator.h"
-//#include "tctl_hash_fun.h"
+#include "../include/tctl_common.h"
 #define Import UNORDERED_SET
 int scmp(FormWO_t _x, FormWO_t _y)
 {
     const char *a = *(char**)_x.mem, *b = *(char**)_y.mem;
     int res = strcmp(a, b);
-    return res;
-}
-
-size_t hash_str(FormWO_t x)
-{
-    char *str = *(char**)x.mem;
-    size_t res = 0;
-    for (int i = 0; str[i]; i++)
-        res = 5 * res + str[i];
     return res;
 }
 
