@@ -33,12 +33,12 @@ static void *ctor(void *mem, ...);
 static void *dtor(void);
 static int differ(const void *b);
 static int puto (FILE *fp);
-static void *Object_ctor(void *_this, va_list *app);
-static void *Object_dtor(void *_this);
-static int Object_differ(const void *_this, const void *b);
-static int Object_puto(const void *_this, FILE *fp);
-static void *MetaClass_ctor(void *_this, va_list *app);
-static void *MetaClass_dtor(void *_this);
+static void *metaobject_ctor(void *_this, va_list *app);
+static void *metaobject_dtor(void *_this);
+static int metaobject_differ(const void *_this, const void *b);
+static int metaobject_puto(const void *_this, FILE *fp);
+static void *metaclass_ctor(void *_this, va_list *app);
+static void *metaclass_dtor(void *_this);
 
 static struct MetaClassSelector MetaClassS = {ctor, dtor, differ, puto};
 const struct MetaClassSelector *_MetaClassS = &MetaClassS;
@@ -46,11 +46,11 @@ const void *Selector = &MetaClassS;
 static const struct MetaClass _object[] = {
         {{&MetaClassS, _object + 1},
                 "MetaObject", _object, sizeof(struct MetaObject),
-                Object_ctor, Object_dtor, Object_differ, Object_puto
+                metaobject_ctor, metaobject_dtor, metaobject_differ, metaobject_puto
         },
         {{&MetaClassS, _object + 1},
                 "MetaClass",  _object, sizeof(struct MetaClass),
-                MetaClass_ctor,  MetaClass_dtor,  Object_differ, Object_puto
+                metaclass_ctor,  metaclass_dtor,  metaobject_differ, metaobject_puto
         }
 };
 
@@ -71,24 +71,24 @@ Form_t _MetaClass(void)
 /*
  *	Object
  */
-static void *Object_ctor(void *_this, va_list *app)
+static void *metaobject_ctor(void *_this, va_list *app)
 {
     struct MetaObject *this = _this;
     this->s = ((struct MetaObject*)classOf(_this))->s;
     return _this;
 }
 
-static void *Object_dtor(void *_this)
+static void *metaobject_dtor(void *_this)
 {
     return _this;
 }
 
-static int Object_differ(const void *_this, const void *b)
+static int metaobject_differ(const void *_this, const void *b)
 {
     return _this != b;
 }
 
-static int Object_puto(const void *_this, FILE *fp)
+static int metaobject_puto(const void *_this, FILE *fp)
 {
     const struct MetaClass *class = classOf(_this);
     return fprintf(fp, "%s at %p\n", class -> name, _this);
@@ -122,7 +122,7 @@ void *offsetOf(const void *this, const void *_class)
  *	MetaClass
  */
 
-static void *MetaClass_ctor(void *_this, va_list *app)
+static void *metaclass_ctor(void *_this, va_list *app)
 {
     struct MetaClass *this = _this;
     const size_t offset = offsetof(struct MetaClass, ctor);
@@ -157,7 +157,7 @@ static void *MetaClass_ctor(void *_this, va_list *app)
     return _this;
 }
 
-static void *MetaClass_dtor(void *_this)
+static void *metaclass_dtor(void *_this)
 {
     struct MetaClass *this = _this;
     fprintf(stderr, "%s: cannot destroy class\n", this->name);
