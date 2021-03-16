@@ -40,10 +40,12 @@ Form_t _FormAux(int t, ...); //用于将Form_t和FormWO_t转化成Form_t Form_t�
 #define FORM_WITH_OBJ(_t, ...) (FormWO_t){_t, __VA_ARGS__}
 //VA的结尾描述变量
 #define VAEND (FormWO_t){{END}}
-//获取变量的地址，并生成__ARG_ADDR_t变量
-#define VA_ADDR(arg) (FORM_WITH_OBJ((Form_t){ADDR, {sizeof(arg)}}, ((union {void *_v; char sizeof(void*);}){&(arg)})._))
+//获取变量的地址
+#define VA_ADDR(arg) (FORM_WITH_OBJ((Form_t){ADDR, {sizeof(arg)}}, ((union {void *_v; char _[sizeof(void*)];}){&(arg)})._))
 //遇到需要传入函数指针时，VA_FUNC()创造FormWO_t
-#define VA_FUNC(fun) (FORM_WITH_OBJ((Form_t){FUNC, {sizeof(&(fun))}}, ((union {void *_v; char sizeof(void*);}){&(fun)})._))
+#define VA_FUNC(fun) (FORM_WITH_OBJ((Form_t){FUNC, {sizeof(&(fun))}}, ((union {void *_v; char _[sizeof(void*)];}){&(fun)})._))
+//自定义类型变量
+#define VA_CT(t, v) (FORM_WITH_OBJ((Form_t){POD, {sizeof(t)}}, ((union {t _v; char _[sizeof(t)];}){v})._))
 //为每个变量生成对应的FormWO_t变量
 #define _VA_AUX(_t) FORM_WITH_OBJ(_T(_t), _Generic(_t,                                                                                                      \
                                     float              : ((union {float              _v; char _[sizeof(float)];})              {_basic_val('f', _t).f})._,  \
