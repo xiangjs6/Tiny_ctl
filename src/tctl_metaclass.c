@@ -368,52 +368,44 @@ void *pop_this(void)
     return (void*)p;
 }
 
-void *_ToPoint(int t, size_t size, ...)
+union _basic_val _basic_val(int t, ...)
 {
-    int8_t one;
-    int16_t two;
-    int32_t four;
-    int64_t eight;
-    double lf;
-    float f;
-    void *res = NULL;
-    assert(size <= 8);
+    union _basic_val ret;
     va_list ap;
-    va_start(ap, size);
-    if (t == 'f') {
-        lf = va_arg(ap, double);
-        if (size == 4) {
-            f = lf;
-            memcpy(&res, &f, size);
-        } else {
-            memcpy(&res, &lf, size);
-        }
-    } else if (t == 'F'){
-        res = va_arg(ap, FormWO_t).mem;
-    } else {
-        switch (size) {
-            case 1:
-                four = va_arg(ap, int32_t);
-                one = four;
-                memcpy(&res, &one, size);
-                break;
-            case 2:
-                four = va_arg(ap, int32_t);
-                two = four;
-                memcpy(&res, &two, size);
-                break;
-            case 4:
-                four = va_arg(ap, int32_t);
-                memcpy(&res, &four, 4);
-                break;
-            case 8:
-                eight = va_arg(ap, int64_t);
-                memcpy(&res, &eight, 8);
-                break;
-        }
+    va_start(ap, t);
+    switch (t)
+    {
+        case 'f':
+            ret.f = (float)va_arg(ap, double);
+            break;
+        case 'F':
+            ret.lf = (double)va_arg(ap, double);
+            break;
+        case 'c':
+            ret.c = (unsigned char)va_arg(ap, int);
+            break;
+        case 's':
+            ret.s = (unsigned short)va_arg(ap, int);
+            break;
+        case 'i':
+            ret.i = (unsigned int)va_arg(ap, int);
+            break;
+        case 'l':
+            ret.l = (unsigned long)va_arg(ap, long);
+            break;
+        case 'L':
+            ret.ll = (unsigned long long)va_arg(ap, long long);
+            break;
+        case 'p':
+            ret.p = (void*)va_arg(ap, void*);
+            break;
+        case 't':
+            ret.p = va_arg(ap, FormWO_t).mem;
+            break;
+        default:
+            assert(0);
     }
-    va_end(ap);
-    return res;
+    return ret;
 }
 
 Form_t _FormAux(int t, ...)

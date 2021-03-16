@@ -24,25 +24,43 @@ typedef struct {
     void *mem;
 } FormWO_t;
 
-void *_ToPoint(int t, size_t size, ...); //用于OBJ和POD
+union _basic_val {
+    unsigned char c;
+    unsigned short s;
+    unsigned int i;
+    unsigned long l;
+    unsigned long long ll;
+    float f;
+    double lf;
+    void *p;
+};
+union _basic_val _basic_val(int t, ...); //用于在_Generic中欺骗编译器，将变量转为合适的类型
 Form_t _FormAux(int t, ...); //用于将Form_t和FormWO_t转化成Form_t Form_t会改变f FormWO_t不变
 //FormWO_t的初始化宏
 #define FORM_WITH_OBJ(_t, ...) (FormWO_t){_t, __VA_ARGS__}
 //VA的结尾描述变量
 #define VAEND (FormWO_t){{END}}
 //获取变量的地址，并生成__ARG_ADDR_t变量
-#define VA_ADDR(arg) (FORM_WITH_OBJ((Form_t){ADDR, {sizeof(arg)}}, &(arg)))
+#define VA_ADDR(arg) (FORM_WITH_OBJ((Form_t){ADDR, {sizeof(arg)}}, ((union {void *_v; char sizeof(void*);}){&(arg)})._))
 //遇到需要传入函数指针时，VA_FUNC()创造FormWO_t
-#define VA_FUNC(fun) (FORM_WITH_OBJ((Form_t){FUNC, {sizeof(&fun)}}, fun))
+#define VA_FUNC(fun) (FORM_WITH_OBJ((Form_t){FUNC, {sizeof(&(fun))}}, ((union {void *_v; char sizeof(void*);}){&(fun)})._))
 //为每个变量生成对应的FormWO_t变量
-#define _VA_AUX(_t) FORM_WITH_OBJ(_T(_t), _Generic(_t,                                               \
-                                                       float : _ToPoint('f', sizeof(_t), _t),        \
-                                                       double : _ToPoint('f', sizeof(_t), _t),       \
-                                                       const float : _ToPoint('f', sizeof(_t), _t),  \
-                                                       const double : _ToPoint('f', sizeof(_t), _t), \
-                                                       Form_t : NULL,                                \
-                                                       FormWO_t : _ToPoint('F', 0, _t),              \
-                                                       default : _ToPoint(0, sizeof(_t), _t)))
+#define _VA_AUX(_t) FORM_WITH_OBJ(_T(_t), _Generic(_t,                                                                                                      \
+                                    float              : ((union {float              _v; char _[sizeof(float)];})              {_basic_val('f', _t).f})._,  \
+                                    double             : ((union {double             _v; char _[sizeof(double)];})             {_basic_val('F', _t).lf})._, \
+                                    char               : ((union {unsigned char      _v; char _[sizeof(char)];})               {_basic_val('c', _t).c})._,  \
+                                    short              : ((union {unsigned short     _v; char _[sizeof(short)];})              {_basic_val('s', _t).s})._,  \
+                                    int                : ((union {unsigned int       _v; char _[sizeof(int)];})                {_basic_val('i', _t).i})._,  \
+                                    long               : ((union {unsigned long      _v; char _[sizeof(long)];})               {_basic_val('l', _t).l})._,  \
+                                    long long          : ((union {unsigned long long _v; char _[sizeof(long long)];})          {_basic_val('L', _t).ll})._, \
+                                    unsigned char      : ((union {unsigned char      _v; char _[sizeof(unsigned char)];})      {_basic_val('c', _t).c})._,  \
+                                    unsigned short     : ((union {unsigned short     _v; char _[sizeof(unsigned short)];})     {_basic_val('s', _t).s})._,  \
+                                    unsigned int       : ((union {unsigned int       _v; char _[sizeof(unsigned int)];})       {_basic_val('i', _t).i})._,  \
+                                    unsigned long      : ((union {unsigned long      _v; char _[sizeof(unsigned long)];})      {_basic_val('l', _t).l})._,  \
+                                    unsigned long long : ((union {unsigned long long _v; char _[sizeof(unsigned long long)];}) {_basic_val('L', _t).ll})._, \
+                                    default            : ((union {void              *_v; char _[sizeof(void*)];})              {_basic_val('p', _t).p})._,  \
+                                    Form_t             : NULL,                                                                                              \
+                                    FormWO_t           : _basic_val('t', _t).p))
 //用于各个函数调用时的参数列表中，对每一个放入该宏的参数，都会计算它的Form_t并生成FormWO_t变量
 #define VA(...) MAP_LIST(_VA_AUX, ##__VA_ARGS__)
 
