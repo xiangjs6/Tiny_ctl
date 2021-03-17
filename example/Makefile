@@ -1,5 +1,5 @@
 CC = gcc
-C_FLAGS = -g -Wall
+C_FLAGS = -g -std=c11 -pedantic -Wall -O3
 INCLUDE = -I ../include
 LIBS = -L ../lib -ltiny_ctl -lpthread
 #wildcard对cpp文件进行展开

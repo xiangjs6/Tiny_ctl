@@ -109,7 +109,7 @@ static const void *__RDequeIter = NULL;
 static const void *__Deque = NULL;
 static const void *__DequeClass = NULL;
 volatile static struct DequeSelector DequeS = {
-        {},
+        { 0 },
         _begin,
         _end,
         _front,

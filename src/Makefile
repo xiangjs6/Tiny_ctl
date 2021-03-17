@@ -14,7 +14,7 @@ LIBS    := -lpthread
 LDFLAGS :=
 DEFINES :=
 INCLUDE := -I ../include
-CFLAGS  := -g -Wall -O3 -fPIC $(DEFINES) $(INCLUDE)
+CFLAGS  := -std=c11 -pedantic -g -Wall -O3 -fPIC $(DEFINES) $(INCLUDE)
 CXXFLAGS:= $(CFLAGS) -DHAVE_CONFIG_H
 SHARE   := -shared -o
 
