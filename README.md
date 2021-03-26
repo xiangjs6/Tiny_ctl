@@ -1,5 +1,8 @@
 ﻿# Tiny_ctl
 ## 记录问题：
+1. 重新适配新的FormWO_t，使得对POD、ADDR等各个变量类型没有歧义，都是从mem成员变量中的地址取值
+2. 将删除push_this和pop_this，将改成手动向成员函数中传this
+3. 将this全面改为self
 ## 编译使用
 ```shell
 cd src

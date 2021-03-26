@@ -368,7 +368,7 @@ void *pop_this(void)
     return (void*)p;
 }
 
-union _basic_val _basic_val(int t, ...)
+union _basic_val _valueAux(int t, ...)
 {
     union _basic_val ret;
     va_list ap;
@@ -408,7 +408,7 @@ union _basic_val _basic_val(int t, ...)
     return ret;
 }
 
-Form_t _FormAux(int t, ...)
+Form_t _formAux(int t, ...)
 {
     va_list ap;
     va_start(ap, t);
