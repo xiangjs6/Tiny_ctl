@@ -16,40 +16,42 @@ static const void *__Char = NULL;
 
 inline char toChar(FormWO_t t)
 {
-    char val = 0;
-    short s;
-    int i;
-    long long l;
+    char *c;
+    short *s;
+    int *i;
+    long long *l;
+    char res = 0;
     switch (t._.f) {
         case POD:
             switch (t._.size) {
                 case 1:
-                    memcpy(&val, &t.mem, t._.size);
+                    c = t.mem;
+                    res = *c;
                     break;
                 case 2:
-                    memcpy(&s, &t.mem, t._.size);
-                    val = s;
+                    s = t.mem;
+                    res = *s;
                     break;
                 case 4:
-                    memcpy(&i, &t.mem, t._.size);
-                    val = i;
+                    i = t.mem;
+                    res = *i;
                     break;
                 case 8:
-                    memcpy(&l, &t.mem, t._.size);
-                    val = l;
+                    l = t.mem;
+                    res = *l;
                     break;
             }
             break;
         case ADDR:
-            memcpy(&val, t.mem, t._.size);
+            memcpy(&res, *(void**)t.mem, sizeof(res));
             break;
         case OBJ:
-            val = *(char*)Cast(t.mem, char);
+            res = *(char*)Cast(*(Object*)t.mem, char);
             break;
         default:
             assert(0);
     }
-    return val;
+    return res;
 }
 
 static void *_ctor(void *_this, va_list *app)

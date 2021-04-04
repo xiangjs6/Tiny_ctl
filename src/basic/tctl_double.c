@@ -16,27 +16,29 @@ static const void *__Double = NULL;
 
 inline double toDouble(FormWO_t t)
 {
-    double val = 0;
-    float f;
+    double *d;
+    float *f;
+    double res = 0;
     switch (t._.f) {
         case POD:
             if (t._.size == 4) {
-                memcpy(&f, &t.mem, t._.size);
-                val = f;
+                f = t.mem;
+                res = *f;
             } else {
-                memcpy(&val, &t.mem, t._.size);
+                d = t.mem;
+                res = *d;
             }
             break;
         case ADDR:
-            memcpy(&val, t.mem, t._.size);
+            memcpy(&res, *(void**)t.mem, sizeof(res));
             break;
         case OBJ:
-            val = *(double*)Cast(t.mem, double);
+            res = *(double*)Cast(*(Object*)t.mem, double);
             break;
         default:
             assert(0);
     }
-    return val;
+    return res;
 }
 
 static void *_ctor(void *_this, va_list *app)

@@ -228,21 +228,17 @@ static Form_t _RVectorIter(void)
 static size_t _dealIterVarySize(void *src, size_t size)
 {
     if (size == 1) {
-        char c;
-        memcpy(&c, src, size);
-        size = c;
+        char *c = src;
+        size = *c;
     } else if (size == 2) {
-        short s;
-        memcpy(&s, src, size);
-        size = s;
+        short *s = src;
+        size = *s;
     } else if (size == 4) {
-        int i;
-        memcpy(&i, src, size);
-        size = i;
+        int *i = src;
+        size = *i;
     } else if (size == 8) {
-        long long l;
-        memcpy(&l, src, size);
-        size = l;
+        long long *l = src;
+        size = *l;
     }
     return size;
 }
@@ -252,26 +248,26 @@ static void *_dealIterVaryArg(FormWO_t t, char *type)
     if (t._.f == OBJ) {
         if (t._.class == _Iterator().class) {
             *type = 'I';
-            return t.mem;
+            return *(Object*)t.mem;
         }
         if (*type == 'p')
-            return Cast(t.mem, "point");
+            return Cast(*(Object*)t.mem, "point");
         if (*type == 'S')
-            return Cast(t.mem, "size");
+            return Cast(*(Object*)t.mem, "size");
     } else if (t._.f == POD) {
         if (*type == 'P') {
             assert(t._.size == sizeof(void*));
-            return t.mem;
+            return *(void**)t.mem;
         }
         if (*type == 'S') {
-            size_t size = _dealIterVarySize(&t.mem, t._.size);
+            size_t size = _dealIterVarySize(t.mem, t._.size);
             return (void*)size;
         }
     } else if (t._.f == ADDR) {
         if (*type == 'P')
-            return *(void**)t.mem;
+            return **(void***)t.mem;
         if (*type == 'S') {
-            size_t size = _dealIterVarySize(t.mem, t._.size);
+            size_t size = _dealIterVarySize(*(void**)t.mem, t._.size);
             return (void*)size;
         }
     }
@@ -282,7 +278,7 @@ static void *_dealIterVaryArg(FormWO_t t, char *type)
 static void _dealVectorArgs(void *_this, FormWO_t *args, int n)
 {
     if (args->_.class == _Vector().class) { //复制一个Vector
-        struct Vector *v = offsetOf(args->mem, __Vector);
+        struct Vector *v = offsetOf(*(Object*)args->mem, __Vector);
         size_t v_memb_size = v->_t.f == POD ? v->_t.size : classSz(v->_t.class);
         Form_t t = v->_t;
         for (char (*ptr)[v_memb_size] = v->start_ptr; (void*)ptr < v->finish_ptr; ptr++) {
@@ -290,7 +286,7 @@ static void _dealVectorArgs(void *_this, FormWO_t *args, int n)
                 char (*p)[t.size] = ptr;
                 _vector_push_back(_this, VA(VA_ADDR(*p)));
             } else if (t.f == OBJ) {
-                _vector_push_back(_this, FORM_WITH_OBJ(t, ptr));
+                _vector_push_back(_this, FORM_WITH_OBJ(t, VA(ptr).mem));
             }
         }
     } else if (args->_.f == POD || args->_.f == ADDR || args->_.class != _Iterator().class) { //size_type n, T value = T() 构造方法
@@ -305,10 +301,10 @@ static void _dealVectorArgs(void *_this, FormWO_t *args, int n)
     } else { //Iterator first, Iterator last 迭代器构造方法
         assert(n == 2);
         assert(args[1]._.class == _Iterator().class);
-        Iterator first = args[0].mem;
+        Iterator first = *(Iterator*)args[0].mem;
         char first_mem[sizeOf(first)];
         first = THIS(first).ctor(first_mem, VA(first), VAEND);
-        Iterator last = args[1].mem;
+        Iterator last = *(Iterator*)args[1].mem;
         char last_mem[sizeOf(last)];
         last = THIS(last).ctor(last_mem, VA(last), VAEND);
         Form_t t = THIS(first).type();
@@ -316,9 +312,9 @@ static void _dealVectorArgs(void *_this, FormWO_t *args, int n)
         {
             void *obj = THIS(first).derefer();
             if (t.f == ADDR) {
-                _vector_push_back(_this, FORM_WITH_OBJ(t, obj));
+                _vector_push_back(_this, FORM_WITH_OBJ(t, VA(obj).mem));
             } else if (t.f == OBJ || t.f == ADDR) {
-                _vector_push_back(_this, FORM_WITH_OBJ(t, obj));
+                _vector_push_back(_this, FORM_WITH_OBJ(t, VA(obj).mem));
             }
             THIS(first).inc();
         }
@@ -389,14 +385,14 @@ static void *_iter_ctor(void *_this, va_list *app)
 static bool _iter_equal(const void *_this, FormWO_t _x)
 {
     const struct VectorIter *this = offsetOf(_this, __VectorIter);
-    const struct VectorIter *x = offsetOf(_x.mem, __VectorIter);
+    const struct VectorIter *x = offsetOf(*(Object*)_x.mem, __VectorIter);
     return this->cur == x->cur;
 }
 
 static int _iter_cmp(const void *_this, FormWO_t _x)
 {
     const struct VectorIter *this = offsetOf(_this, __VectorIter);
-    const struct VectorIter *x = offsetOf(_x.mem, __VectorIter);
+    const struct VectorIter *x = offsetOf(*(Object*)_x.mem, __VectorIter);
     return this->cur - x->cur;
 }
 
@@ -404,7 +400,7 @@ static void *_iter_brackets(const void *_this, FormWO_t _x)
 {
     const struct VectorIter *this = offsetOf(_this, __VectorIter);
     const Iterator it = (void*)_this;
-    long long x =   toInt(_x);
+    long long x = toInt(_x);
     Form_t t = THIS(it).type();
     size_t size = t.f == ADDR ? t.size : classSz(t.class);
     void *res = this->ptr + size * (x + this->cur);
@@ -426,27 +422,21 @@ static void _iter_dec(void *_this)
 static void _iter_self_add(void *_this, FormWO_t _x)
 {
     struct VectorIter *this = offsetOf(_this, __VectorIter);
-    char tmp[classSz(_Int().class)];
-    Int x = (void*)tmp;
-    construct(_Int(), tmp, _x, VAEND);
-    this->cur += x->val;
-    destroy(x);
+    long long x = toInt(_x);
+    this->cur += x;
 }
 
 static void _iter_self_sub(void *_this, FormWO_t _x)
 {
     struct VectorIter *this = offsetOf(_this, __VectorIter);
-    char tmp[classSz(_Int().class)];
-    Int x = (void*)tmp;
-    construct(_Int(), tmp, _x, VAEND);
-    this->cur -= x->val;
-    destroy(x);
+    long long x = toInt(_x);
+    this->cur -= x;
 }
 
 static void _iter_assign(void *_this, FormWO_t _x)
 {
     struct VectorIter *this = offsetOf(_this, __VectorIter);
-    struct VectorIter *x = offsetOf(_x.mem, __VectorIter);
+    struct VectorIter *x = offsetOf(*(Object*)_x.mem, __VectorIter);
     *this = *x;
 }
 
@@ -454,13 +444,10 @@ static void *_iter_add(const void *_this, FormWO_t _x)
 {
     struct VectorIter *this = offsetOf(_this, __VectorIter);
     Iterator it = (void*)_this;
-    char i_mem[classSz(_Int().class)];
-    Int x = (void*)i_mem;
-    construct(_Int(), i_mem, _x, VAEND);
+    long long x = toInt(_x);
     void *mem = ARP_MallocARelDtor(classSz(__VectorIter), destroy);
     Form_t t = THIS(it).type();
-    void *res = new(compose(_VectorIter(), mem), VA(t, SequenceIter, this->cur + x->val, this->ptr));
-    destroy(x);
+    void *res = new(compose(_VectorIter(), mem), VA(t, SequenceIter, this->cur + x, this->ptr));
     return res;
 }
 
@@ -468,13 +455,10 @@ static void *_iter_sub(const void *_this, FormWO_t _x)
 {
     struct VectorIter *this = offsetOf(_this, __VectorIter);
     Iterator it = (void*)_this;
-    char i_mem[classSz(_Int().class)];
-    Int x = (void*)i_mem;
-    construct(_Int(), i_mem, _x, VAEND);
+    long long x = toInt(_x);
     void *mem = ARP_MallocARelDtor(classSz(__VectorIter), destroy);
     Form_t t = THIS(it).type();
-    void *res = new(compose(_VectorIter(), mem), VA(t, SequenceIter, this->cur - x->val, this->ptr));
-    destroy(x);
+    void *res = new(compose(_VectorIter(), mem), VA(t, SequenceIter, this->cur - x, this->ptr));
     return res;
 }
 
@@ -646,9 +630,9 @@ static void _vector_push_back(void *_this, FormWO_t _x)
     if (this->_t.f == POD) {
         assert(_x._.f != OBJ);
         if (_x._.f == ADDR)
-            memcpy(this->finish_ptr, _x.mem, memb_size);
+            memcpy(this->finish_ptr, *(void**)_x.mem, memb_size);
         else if (_x._.f == POD)
-            memcpy(this->finish_ptr, &_x.mem, memb_size);
+            memcpy(this->finish_ptr, _x.mem, memb_size);
         else if (_x._.f == END)
             memset(this->finish_ptr, 0, memb_size);
     } else {
@@ -715,9 +699,9 @@ static Iterator _vector_insert(void *_this, Iterator _iter, FormWO_t _x)
     if (this->_t.f == POD) {
         assert(_x._.f != OBJ);
         if (_x._.f == ADDR)
-            memcpy(p_target, _x.mem, memb_size);
+            memcpy(p_target, *(void**)_x.mem, memb_size);
         else if (_x._.f == POD)
-            memcpy(p_target, &_x.mem, memb_size);
+            memcpy(p_target, _x.mem, memb_size);
         else if (_x._.f == END)
             memset(p_target, 0, memb_size);
     } else {

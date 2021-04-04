@@ -3,8 +3,6 @@
 //
 
 #include "include/_tctl_iterator.h"
-//#include "tctl_allocator.h"
-//#include "../include/auto_release_pool.h"
 #include <assert.h>
 #include <stdarg.h>
 #include <string.h>
@@ -145,7 +143,7 @@ static void *_object_ctor(void *_this, va_list *app)
     FormWO_t t = va_arg(*app, FormWO_t);
     if (t._.f == OBJ) {
         assert(t._.class == __Iterator);
-        struct Iterator *it = offsetOf(t.mem, __Iterator);
+        struct Iterator *it = offsetOf(*(Object*)t.mem, __Iterator);
         *this = *it;
         va_copy(*app, ap);
         va_end(ap);
@@ -157,7 +155,7 @@ static void *_object_ctor(void *_this, va_list *app)
     this->_t = t._;
     t  = va_arg(*app, FormWO_t);
     assert(t._.f == POD);
-    memcpy(&this->rank, &t.mem, t._.size);
+    memcpy(&this->rank, t.mem, t._.size);
     va_end(ap);
     return _this;
 }

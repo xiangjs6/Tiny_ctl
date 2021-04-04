@@ -28,7 +28,7 @@ inline static Iterator copy_3S(Iterator first, Iterator last, Iterator result) /
         size_t dst_memb_size = classSz(dst_t.class);
         size_t dist = distance(first, last);
         for (size_t i = 0; i < dist; i++) {
-            construct(dst_t, dst_p, FORM_WITH_OBJ(src_t, src_p));
+            construct(dst_t, dst_p, FORM_WITH_OBJ(src_t, VA(src_p).mem));
             src_p += src_memb_size;
             dst_p += dst_memb_size;
         }

@@ -191,9 +191,9 @@ void *_new(FormWO_t t, ...)
         if (o._.f == END)
             memset(m, 0, t._.size);
         else if (o._.f == ADDR)
-            memcpy(m, o.mem, t._.size);
+            memcpy(m, *(void**)o.mem, t._.size);
         else if (o._.f == POD)
-            memcpy(m, &o.mem, t._.size);
+            memcpy(m, o.mem, t._.size);
         va_end(ap);
         return m;
     }
@@ -216,11 +216,11 @@ void *_new(FormWO_t t, ...)
 void _delete(FormWO_t t)
 {
     if (t._.f == POD || !t.mem) {
-        free(t.mem);
+        free(*(void**)t.mem);
         return;
     }
-    const struct MetaClass *class = classOf(t.mem);
-    free(class->dtor(t.mem));
+    const struct MetaClass *class = t._.class;
+    free(class->dtor(*(void**)t.mem));
 }
 
 void *construct_v(Form_t t, void *mem, va_list *app)

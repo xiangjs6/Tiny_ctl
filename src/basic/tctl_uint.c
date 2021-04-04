@@ -16,40 +16,42 @@ static const void *__UInt = NULL;
 
 inline unsigned long long toUInt(FormWO_t t)
 {
-    unsigned long long val = 0;
-    unsigned char c;
-    unsigned short s;
-    unsigned int i;
+    unsigned long long *l = 0;
+    unsigned char *c;
+    unsigned short *s;
+    unsigned int *i;
+    unsigned long long res;
     switch (t._.f) {
         case POD:
             switch (t._.size) {
                 case 1:
-                    memcpy(&c, &t.mem, t._.size);
-                    val = c;
+                    c = t.mem;
+                    res = *c;
                     break;
                 case 2:
-                    memcpy(&s, &t.mem, t._.size);
-                    val = s;
+                    s = t.mem;
+                    res = *s;
                     break;
                 case 4:
-                    memcpy(&i, &t.mem, t._.size);
-                    val = i;
+                    i = t.mem;
+                    res = *i;
                     break;
                 case 8:
-                    memcpy(&val, &t.mem, t._.size);
+                    l = t.mem;
+                    res = *l;
                     break;
             }
             break;
         case ADDR:
-            memcpy(&val, t.mem, t._.size);
+            memcpy(&res, *(void**)t.mem, sizeof(res));
             break;
         case OBJ:
-            val = *(unsigned long long *) Cast(t.mem, unsigned long long);
+            res = *(long long *) Cast(*(Object*)t.mem, long long);
             break;
         default:
             assert(0);
     }
-    return val;
+    return res;
 }
 
 static void *_ctor(void *_this, va_list *app)
