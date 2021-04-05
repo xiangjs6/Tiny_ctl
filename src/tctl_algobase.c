@@ -28,7 +28,7 @@ inline static Iterator copy_3S(Iterator first, Iterator last, Iterator result) /
         size_t dst_memb_size = classSz(dst_t.class);
         size_t dist = distance(first, last);
         for (size_t i = 0; i < dist; i++) {
-            construct(dst_t, dst_p, FORM_WITH_OBJ(src_t, VA(src_p).mem));
+            construct(dst_t, dst_p, FORM_WITH_OBJ(src_t, V(src_p)));
             src_p += src_memb_size;
             dst_p += dst_memb_size;
         }
@@ -55,7 +55,7 @@ inline static Iterator copy_2S(Iterator first, Iterator last, Iterator result) /
     } else { //OBJ
         while (dist--)
         {
-            construct(dst_t, THIS(out).derefer(), FORM_WITH_OBJ(src_t, src_p));
+            construct(dst_t, THIS(out).derefer(), FORM_WITH_OBJ(src_t, V(src_p)));
             src_p += src_memb_size;
             THIS(out).inc();
         }
@@ -83,7 +83,7 @@ inline static Iterator copy_2R(Iterator first, Iterator last, Iterator result) /
         } else {
             size_t dst_memb_size = classSz(src_t.class);
             for (size_t i = 0; i < dist; i++) {
-                construct(dst_t, dst_p, FORM_WITH_OBJ(src_t, THIS(src_it).derefer()));
+                construct(dst_t, dst_p, FORM_WITH_OBJ(src_t, V(THIS(src_it).derefer())));
                 dst_p += dst_memb_size;
                 THIS(src_it).inc();
             }
@@ -99,7 +99,7 @@ inline static Iterator copy_2R(Iterator first, Iterator last, Iterator result) /
         } else {
             while (dist--)
             {
-                construct(dst_t, THIS(out).derefer(), FORM_WITH_OBJ(src_t, THIS(src_it).derefer()));
+                construct(dst_t, THIS(out).derefer(), FORM_WITH_OBJ(src_t, V(THIS(src_it).derefer())));
                 THIS(out).inc(), THIS(src_it).inc();
             }
         }
@@ -129,7 +129,7 @@ Iterator copy(Iterator first, Iterator last, Iterator result)
                 memcpy(THIS(out).derefer(), THIS(src_it).derefer(), dst_t.size);
         } else {
             for (; !THIS(src_it).equal(VA(last)); THIS(src_it).inc(), THIS(out).inc())
-                construct(dst_t, THIS(out).derefer(), FORM_WITH_OBJ(src_t, THIS(src_it).derefer()));
+                construct(dst_t, THIS(out).derefer(), FORM_WITH_OBJ(src_t, V(THIS(src_it).derefer())));
         }
         return ARP_Return(out);
     }
@@ -155,7 +155,7 @@ inline static Iterator copy_backward_3S(Iterator first, Iterator last, Iterator 
         dst_p -= dst_memb_size;
         size_t dist = distance(first, last);
         for (size_t i = 0; i < dist; i++) {
-            construct(dst_t, dst_p, FORM_WITH_OBJ(src_t, src_p));
+            construct(dst_t, dst_p, FORM_WITH_OBJ(src_t, V(src_p)));
             src_p -= src_memb_size;
             dst_p -= dst_memb_size;
         }
@@ -184,7 +184,7 @@ inline static Iterator copy_backward_2S(Iterator first, Iterator last, Iterator 
     } else { //OBJ
         while (dist--)
         {
-            construct(dst_t, THIS(out).derefer(), FORM_WITH_OBJ(src_t, src_p));
+            construct(dst_t, THIS(out).derefer(), FORM_WITH_OBJ(src_t, V(src_p)));
             src_p -= src_memb_size;
             THIS(out).dec();
         }
@@ -216,7 +216,7 @@ inline static Iterator copy_backward_2R(Iterator first, Iterator last, Iterator 
             size_t dst_memb_size = classSz(src_t.class);
             dst_p -= dst_memb_size;
             for (size_t i = 0; i < dist; i++) {
-                construct(dst_t, dst_p, FORM_WITH_OBJ(src_t, THIS(src_it).derefer()));
+                construct(dst_t, dst_p, FORM_WITH_OBJ(src_t, V(THIS(src_it).derefer())));
                 dst_p -= dst_memb_size;
                 THIS(src_it).dec();
             }
@@ -233,7 +233,7 @@ inline static Iterator copy_backward_2R(Iterator first, Iterator last, Iterator 
         } else {
             while (dist--)
             {
-                construct(dst_t, THIS(out).derefer(), FORM_WITH_OBJ(src_t, THIS(src_it).derefer()));
+                construct(dst_t, THIS(out).derefer(), FORM_WITH_OBJ(src_t, V(THIS(src_it).derefer())));
                 THIS(out).dec(), THIS(src_it).dec();
             }
         }
@@ -271,7 +271,7 @@ Iterator copy_backward(Iterator first, Iterator last, Iterator result)
         } else {
             do
             {
-                construct(dst_t, THIS(out).derefer(), FORM_WITH_OBJ(src_t, THIS(src_it).derefer()));
+                construct(dst_t, THIS(out).derefer(), FORM_WITH_OBJ(src_t, V(THIS(src_it).derefer())));
                 THIS(out).dec();
                 THIS(src_it).dec();
             } while (!THIS(src_it).equal(VA(first)));
@@ -342,8 +342,8 @@ bool equal(Iterator _first1, Iterator _last1, Iterator _first2, .../*Compare*/)
     Form_t f1 = THIS(first1).type();
     Form_t f2 = THIS(first2).type();
     for (; !THIS(first1).equal(VA(_last1)); THIS(first1).inc(), THIS(first2).inc())
-        if (CompareOpt(FORM_WITH_OBJ(f1, THIS(first1).derefer()),
-                       FORM_WITH_OBJ(f2, THIS(first2).derefer()), op)) {
+        if (CompareOpt(FORM_WITH_OBJ(f1, V(THIS(first1).derefer())),
+                       FORM_WITH_OBJ(f2, V(THIS(first2).derefer())), op)) {
             ARP_FreePool();
             return false;
         }
@@ -358,7 +358,7 @@ void fill(Iterator _first, Iterator _last, FormWO_t x)
     Form_t f = THIS(_first).type();
     Iterator first = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
     for (; !THIS(first).equal(VA(_last)); THIS(first).inc())
-        AssignOpt(FORM_WITH_OBJ(f, THIS(first).derefer()), x);
+        AssignOpt(FORM_WITH_OBJ(f, V(THIS(first).derefer())), x);
     ARP_FreePool();
 }
 
@@ -369,7 +369,7 @@ void fill_n(Iterator _first, size_t n, FormWO_t x)
     Form_t f = THIS(_first).type();
     Iterator first = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
     for (; n--; THIS(first).inc())
-        AssignOpt(FORM_WITH_OBJ(f, THIS(first).derefer()), x);
+        AssignOpt(FORM_WITH_OBJ(f, V(THIS(first).derefer())), x);
     ARP_FreePool();
 }
 
@@ -384,17 +384,17 @@ void iter_swap(Iterator a, Iterator b)
         Object obj_b = THIS(b).derefer();
         char mem[sizeOf(obj_a)];
         Object tmp = construct(f, mem, VAEND);
-        AssignOpt(FORM_WITH_OBJ(f, tmp), FORM_WITH_OBJ(f, obj_a));
-        AssignOpt(FORM_WITH_OBJ(f, obj_a), FORM_WITH_OBJ(f, obj_b));
-        AssignOpt(FORM_WITH_OBJ(f, obj_b), FORM_WITH_OBJ(f, tmp));
+        AssignOpt(FORM_WITH_OBJ(f, V(tmp)), FORM_WITH_OBJ(f, V(obj_a)));
+        AssignOpt(FORM_WITH_OBJ(f, V(obj_a)), FORM_WITH_OBJ(f, V(obj_b)));
+        AssignOpt(FORM_WITH_OBJ(f, V(obj_b)), FORM_WITH_OBJ(f, V(tmp)));
         destroy(tmp);
     } else {
         char mem[f.size];
         void *p_a = THIS(a).derefer();
         void *p_b = THIS(b).derefer();
-        AssignOpt(FORM_WITH_OBJ(f, mem), FORM_WITH_OBJ(f, p_a));
-        AssignOpt(FORM_WITH_OBJ(f, p_a), FORM_WITH_OBJ(f, p_b));
-        AssignOpt(FORM_WITH_OBJ(f, p_b), FORM_WITH_OBJ(f, mem));
+        AssignOpt(FORM_WITH_OBJ(f, V(mem)), FORM_WITH_OBJ(f, V(p_a)));
+        AssignOpt(FORM_WITH_OBJ(f, V(p_a)), FORM_WITH_OBJ(f, V(p_b)));
+        AssignOpt(FORM_WITH_OBJ(f, V(p_b)), FORM_WITH_OBJ(f, V(mem)));
     }
 }
 
@@ -415,8 +415,8 @@ bool lexicographical_compare(Iterator _first1, Iterator _last1, Iterator _first2
     for (; !THIS(first1).equal(VA(_last1)) &&
            !THIS(first2).equal(VA(_last2));
            THIS(first1).inc(), THIS(first2).inc()) {
-        int res = CompareOpt(FORM_WITH_OBJ(f1, THIS(first1).derefer()),
-                             FORM_WITH_OBJ(f2, THIS(first2).derefer()), op);
+        int res = CompareOpt(FORM_WITH_OBJ(f1, V(THIS(first1).derefer())),
+                             FORM_WITH_OBJ(f2, V(THIS(first2).derefer())), op);
         if (res < 0)
             return true;
         else if (res > 0)
@@ -472,8 +472,8 @@ Pair mismatch(Iterator _first1, Iterator _last1, Iterator _first2, .../*Compare*
     va_end(ap);
 
     for (; !THIS(first1).equal(VA(_last1)); THIS(first1).inc(), THIS(first2).inc()) {
-        int res = CompareOpt(FORM_WITH_OBJ(f1, THIS(first1).derefer()),
-                             FORM_WITH_OBJ(f2, THIS(first2).derefer()), op);
+        int res = CompareOpt(FORM_WITH_OBJ(f1, V(THIS(first1).derefer())),
+                             FORM_WITH_OBJ(f2, V(THIS(first2).derefer())), op);
         if (res)
             break;
     }
@@ -497,16 +497,16 @@ void swap(FormWO_t a, FormWO_t b)
         Object obj_b = b.mem;
         char mem[sizeOf(obj_a)];
         Object tmp = construct(a._, mem, VAEND);
-        AssignOpt(FORM_WITH_OBJ(f, tmp), FORM_WITH_OBJ(f, obj_a));
-        AssignOpt(FORM_WITH_OBJ(f, obj_a), FORM_WITH_OBJ(f, obj_b));
-        AssignOpt(FORM_WITH_OBJ(f, obj_b), FORM_WITH_OBJ(f, tmp));
+        AssignOpt(FORM_WITH_OBJ(f, V(tmp)), FORM_WITH_OBJ(f, V(obj_a)));
+        AssignOpt(FORM_WITH_OBJ(f, V(obj_a)), FORM_WITH_OBJ(f, V(obj_b)));
+        AssignOpt(FORM_WITH_OBJ(f, V(obj_b)), FORM_WITH_OBJ(f, V(tmp)));
         destroy(tmp);
     } else {
         char mem[a._.size];
         void *p_a = a.mem;
         void *p_b = b.mem;
-        AssignOpt(FORM_WITH_OBJ(f, mem), FORM_WITH_OBJ(f, p_a));
-        AssignOpt(FORM_WITH_OBJ(f, p_a), FORM_WITH_OBJ(f, p_b));
-        AssignOpt(FORM_WITH_OBJ(f, p_b), FORM_WITH_OBJ(f, mem));
+        AssignOpt(FORM_WITH_OBJ(f, V(mem)), FORM_WITH_OBJ(f, V(p_a)));
+        AssignOpt(FORM_WITH_OBJ(f, V(p_a)), FORM_WITH_OBJ(f, V(p_b)));
+        AssignOpt(FORM_WITH_OBJ(f, V(p_b)), FORM_WITH_OBJ(f, V(mem)));
     }
 }

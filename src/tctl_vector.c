@@ -286,7 +286,7 @@ static void _dealVectorArgs(void *_this, FormWO_t *args, int n)
                 char (*p)[t.size] = ptr;
                 _vector_push_back(_this, VA(VA_ADDR(*p)));
             } else if (t.f == OBJ) {
-                _vector_push_back(_this, FORM_WITH_OBJ(t, VA(ptr).mem));
+                _vector_push_back(_this, FORM_WITH_OBJ(t, V(ptr)));
             }
         }
     } else if (args->_.f == POD || args->_.f == ADDR || args->_.class != _Iterator().class) { //size_type n, T value = T() 构造方法
@@ -312,9 +312,9 @@ static void _dealVectorArgs(void *_this, FormWO_t *args, int n)
         {
             void *obj = THIS(first).derefer();
             if (t.f == ADDR) {
-                _vector_push_back(_this, FORM_WITH_OBJ(t, VA(obj).mem));
+                _vector_push_back(_this, FORM_WITH_OBJ(t, V(obj)));
             } else if (t.f == OBJ || t.f == ADDR) {
-                _vector_push_back(_this, FORM_WITH_OBJ(t, VA(obj).mem));
+                _vector_push_back(_this, FORM_WITH_OBJ(t, V(obj)));
             }
             THIS(first).inc();
         }
