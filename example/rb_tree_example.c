@@ -18,7 +18,7 @@ int main(void)
 {
     ARP_CreatePool();
     RB_tree tree = new(T(RB_tree), VA(T(long int), VA_FUNC(cmp)));
-    int n = 100;
+    long int n = 100;
     THIS(tree).insert_equal(VA(n));
     n = 95;
     THIS(tree).insert_equal(VA(n));
@@ -44,17 +44,18 @@ int main(void)
     //THIS(&tree).insert_equal(&n);
     Iterator it = THIS(tree).begin();
     for (; !THIS(it).equal(VA(THIS(tree).end())); THIS(it).inc()) {
-        printf("%d ", *(int*)THIS(it).derefer());
+        printf("%ld ", *(long int*)THIS(it).derefer());
     }
     putchar('\n');
     for (THIS(it).dec(); !THIS(it).equal(VA(THIS(tree).end())); THIS(it).dec()) {
-        printf("%d ", *(int*)THIS(it).derefer());
+        printf("%ld ", *(long int*)THIS(it).derefer());
     }
     putchar('\n');
     n = 96;
-    printf("%ld\n", THIS(tree).count(VA(n)));
+    printf("%d\n", THIS(tree).count(VA(n)));
     n = 98;
     Iterator f_it = THIS(tree).find(VA(n));
+    printf("find:%ld\n", *(long int*)THIS(f_it).derefer());
     THIS(tree).erase(f_it);
     n = 96;
     FormWO_t t = VA(n);

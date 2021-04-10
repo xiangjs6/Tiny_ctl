@@ -397,9 +397,9 @@ static struct RB_treeNode *_insert_aux(struct RB_tree *this, struct RB_treeNode 
     if (this->_t.f == POD) {
         assert(_x._.f != OBJ);
         if (_x._.f == ADDR)
-            memcpy(new_node->base_ptr, _x.mem, memb_size);
+            memcpy(new_node->base_ptr, *(void**)_x.mem, memb_size);
         else if (_x._.f == POD)
-            memcpy(new_node->base_ptr, &_x.mem, memb_size);
+            memcpy(new_node->base_ptr, _x.mem, memb_size);
         else if (_x._.f == END)
             memset(new_node->base_ptr, 0, memb_size);
     } else {
@@ -460,16 +460,8 @@ static bool _find_aux(struct RB_tree *this, FormWO_t _x, struct RB_treeNode **pa
     int flag = 1;
     size_t save_is_unique = 0;
 
-    FormWO_t x_addr = _x;
-    if (x_addr._.f == POD) {
-        x_addr._.f = ADDR;
-        x_addr.mem = &_x.mem;
-    }
-    Form_t  t_addr;
-    t_addr = this->_t;
-    if (t_addr.f == POD)
-        t_addr.f = ADDR;
-    while (*next && ((flag = this->cmp(x_addr, FORM_WITH_OBJ(t_addr, (*next)->base_ptr))) ||
+    Form_t t = this->_t;
+    while (*next && ((flag = this->cmp(_x, FORM_WITH_OBJ(t, t.f == POD ? (*next)->base_ptr : V((*next)->base_ptr)))) ||
                      !*is_unique))
     {
         if (!flag)
@@ -492,7 +484,7 @@ static struct RB_treeNode *copyTree(struct RB_treeNode *node, Form_t t)
     if (t.f == POD)
         memcpy(new_tree->base_ptr, node->base_ptr, memb_size);
     else
-        construct(t, new_tree->base_ptr, FORM_WITH_OBJ(t, node->base_ptr), VAEND);
+        construct(t, new_tree->base_ptr, FORM_WITH_OBJ(t, V(node->base_ptr)), VAEND);
 
     Stack stack_left = new(T(Stack), VA(T(struct RB_treeNode*)));
     Stack stack_right = new(T(Stack), VA(T(struct RB_treeNode*)));
@@ -515,7 +507,7 @@ static struct RB_treeNode *copyTree(struct RB_treeNode *node, Form_t t)
             if (t.f == POD)
                 memcpy(n->base_ptr, pleft->right->base_ptr, memb_size);
             else
-                construct(t, n->base_ptr, FORM_WITH_OBJ(t, pleft->right->base_ptr), VAEND);
+                construct(t, n->base_ptr, FORM_WITH_OBJ(t, V(pleft->right->base_ptr)), VAEND);
             pright->right = n;
             THIS(stack_right).push(VA(n));
         }
@@ -528,7 +520,7 @@ static struct RB_treeNode *copyTree(struct RB_treeNode *node, Form_t t)
             if (t.f == POD)
                 memcpy(n->base_ptr, pleft->left->base_ptr, memb_size);
             else
-                construct(t, n->base_ptr, FORM_WITH_OBJ(t, pleft->left->base_ptr), VAEND);
+                construct(t, n->base_ptr, FORM_WITH_OBJ(t, V(pleft->left->base_ptr)), VAEND);
             pright->left = n;
             THIS(stack_right).push(VA(n));
         }
@@ -542,9 +534,9 @@ static void _dealRB_treeArgs(void *_this, FormWO_t *args, int n)
 {
     struct RB_tree *this = offsetOf(_this, __RB_tree);
     if (args->_.f == FUNC) {
-        this->cmp = args->mem;
+        this->cmp = *(void**)args->mem;
     } else if (args->_.class == __RB_tree) { //复制一个RB_tree
-        struct RB_tree *L = offsetOf(args->mem, __RB_tree);
+        struct RB_tree *L = offsetOf(*(Object*)args->mem, __RB_tree);
         assert(L->_t.f == this->_t.f && L->_t.class == this->_t.class);
         this->cmp = L->cmp;
         if (L->header->parent != L->header) { //当被复制的树不为空
@@ -569,18 +561,18 @@ static void *_iter_ctor(void *_this, va_list *app)
     FormWO_t t = va_arg(*app, FormWO_t);
     if (t._.f == OBJ) {
         if (t._.class == _Iterator().class) {
-            assert(classOf(t.mem) == __RB_treeIter || classOf(t.mem) == __RRB_treeIter);
+            assert(classOf(*(Object*)t.mem) == __RB_treeIter || classOf(*(Object*)t.mem) == __RRB_treeIter);
             struct RB_treeIter *it;
-            if (classOf(t.mem) == __RB_treeIter)
-                it = offsetOf(t.mem, __RB_treeIter);
+            if (classOf(*(Object*)t.mem) == __RB_treeIter)
+                it = offsetOf(*(Object*)t.mem, __RB_treeIter);
             else
-                it = offsetOf(t.mem, __RRB_treeIter);
+                it = offsetOf(*(Object*)t.mem, __RRB_treeIter);
             *this = *it;
         }
     } else if (t._.f == POD) {
-        this->node = t.mem;
+        this->node = *(void**)t.mem;
     } else {
-        this->node = *(struct RB_treeNode**)t.mem;
+        this->node = **(struct RB_treeNode***)t.mem;
     }
     return _this;
 }
@@ -588,7 +580,7 @@ static void *_iter_ctor(void *_this, va_list *app)
 static bool _iter_equal(const void *_this, FormWO_t _x)
 {
     const struct RB_treeIter *this = offsetOf(_this, __RB_treeIter);
-    const struct RB_treeIter *x = offsetOf(_x.mem, __RB_treeIter);
+    const struct RB_treeIter *x = offsetOf(*(Object*)_x.mem, __RB_treeIter);
     return this->node == x->node;
 }
 
@@ -639,7 +631,7 @@ static void _iter_dec(void *_this)
 static void _iter_assign(void *_this, FormWO_t _x)
 {
     struct RB_treeIter *this = offsetOf(_this, __RB_treeIter);
-    struct RB_treeIter *x = offsetOf(_x.mem, __RB_treeIter);
+    struct RB_treeIter *x = offsetOf(*(Object*)_x.mem, __RB_treeIter);
     this->node = x->node;
 }
 
