@@ -194,7 +194,7 @@ static Form_t _SlistIter(void)
 static void _dealSlistArgs(void *_this, FormWO_t *args, int n)
 {
     if (args->_.class == __Slist) { //复制一个List
-        struct Slist *L = offsetOf(args->mem, __Slist);
+        struct Slist *L = offsetOf(*(Object*)args->mem, __Slist);
         struct SlistNode *node = L->_head.nxt;
         Form_t t = L->_t;
         while (node)
@@ -204,7 +204,7 @@ static void _dealSlistArgs(void *_this, FormWO_t *args, int n)
                 char (*p)[t.size] = obj;
                 _slist_push_front(_this, VA(VA_ADDR(*p)));
             } else if (t.f == OBJ) {
-                _slist_push_front(_this, FORM_WITH_OBJ(t, obj));
+                _slist_push_front(_this, FORM_WITH_OBJ(t, V(obj)));
             }
             node = node->nxt;
         }
@@ -221,10 +221,10 @@ static void _dealSlistArgs(void *_this, FormWO_t *args, int n)
     } else { //Iterator first, Iterator last 迭代器构造方法
         assert(n == 2);
         assert(args[1]._.class == _Iterator().class); //因为上面的if已经检测过args[0]
-        Iterator first = args[0].mem;
+        Iterator first = *(Iterator*)args[0].mem;
         char first_mem[sizeOf(first)];
         first = THIS(first).ctor(first_mem, VA(first));
-        Iterator last = args[1].mem;
+        Iterator last = *(Iterator*)args[1].mem;
         char last_mem[sizeOf(last)];
         last = THIS(last).ctor(last_mem, VA(last));
         Form_t t = THIS(first).type();
@@ -235,7 +235,7 @@ static void _dealSlistArgs(void *_this, FormWO_t *args, int n)
                 char (*p)[t.size] = obj;
                 _slist_push_front(_this, VA(VA_ADDR(*p)));
             } else if (t.f == OBJ) {
-                _slist_push_front(_this, FORM_WITH_OBJ(t, obj));
+                _slist_push_front(_this, FORM_WITH_OBJ(t, V(obj)));
             }
             THIS(first).inc();
         }
@@ -254,14 +254,14 @@ static void *_iter_ctor(void *_this, va_list *app)
     FormWO_t t = va_arg(*app, FormWO_t);
     if (t._.f == OBJ) {
         if (t._.class == _Iterator().class) {
-            assert(classOf(t.mem) == __SlistIter);
-            struct SlistIter *it = offsetOf(t.mem, __SlistIter);
+            assert(classOf(*(Object*)t.mem) == __SlistIter);
+            struct SlistIter *it = offsetOf(*(Object*)t.mem, __SlistIter);
             *this = *it;
         }
     } else if (t._.f == POD) {
-        this->node = t.mem;
+        this->node = *(void**)t.mem;
     } else {
-        this->node = *(struct SlistNode**)t.mem;
+        this->node = **(struct SlistNode***)t.mem;
     }
     return _this;
 }
@@ -269,7 +269,7 @@ static void *_iter_ctor(void *_this, va_list *app)
 static bool _iter_equal(const void *_this, FormWO_t _x)
 {
     const struct SlistIter *this = offsetOf(_this, __SlistIter);
-    const struct SlistIter *x = offsetOf(_x.mem, __SlistIter);
+    const struct SlistIter *x = offsetOf(*(Object*)_x.mem, __SlistIter);
     return this->node == x->node;
 }
 
@@ -283,7 +283,7 @@ static void _iter_inc(void *_this)
 static void _iter_assign(void *_this, FormWO_t _x)
 {
     struct SlistIter *this = offsetOf(_this, __SlistIter);
-    struct SlistIter *x = offsetOf(_x.mem, __SlistIter);
+    struct SlistIter *x = offsetOf(*(Object*)_x.mem, __SlistIter);
     this->node = x->node;
 }
 
@@ -401,9 +401,9 @@ static void _slist_push_front(void *_this, FormWO_t _x)
     if (this->_t.f == POD) {
         assert(_x._.f != OBJ);
         if (_x._.f == ADDR)
-            memcpy(new_node->data, _x.mem, memb_size);
+            memcpy(new_node->data, *(void**)_x.mem, memb_size);
         else if (_x._.f == POD)
-            memcpy(new_node->data, &_x.mem, memb_size);
+            memcpy(new_node->data, _x.mem, memb_size);
         else if (_x._.f == END)
             memset(new_node->data, 0, memb_size);
     } else {
@@ -450,9 +450,9 @@ static Iterator _slist_insert_after(void *_this, Iterator iter, FormWO_t _x)
     if (this->_t.f == POD) {
         assert(_x._.f != OBJ);
         if (_x._.f == ADDR)
-            memcpy(new_node->data, _x.mem, memb_size);
+            memcpy(new_node->data, *(void**)_x.mem, memb_size);
         else if (_x._.f == POD)
-            memcpy(new_node->data, &_x.mem, memb_size);
+            memcpy(new_node->data, _x.mem, memb_size);
         else if (_x._.f == END)
             memset(new_node->data, 0, memb_size);
     } else {
@@ -470,7 +470,7 @@ static void _slist_remove(void *_this, FormWO_t x)
     if (this->_t.f == POD) {
         size_t memb_size = this->_t.size;
         assert(x._.class != OBJ);
-        void *mem = x._.f == POD ? &x.mem : x.mem;
+        void *mem = x._.f == POD ? x.mem : *(void**)x.mem;
         while (node->nxt)
         {
             if (!memcmp(node->nxt->data, mem, memb_size)) {
@@ -521,7 +521,7 @@ static void _slist_unique(void *_this)
         while (next_node)
         {
             Object obj = (Object)node->data;
-            x.mem = next_node->data;
+            x.mem = V(next_node->data);
             if (THIS(obj).equal(x)) {
                 node->nxt = node->nxt->nxt;
                 destroy(next_node->data);
@@ -557,15 +557,15 @@ static void _slist_splice_after(void *_this, Iterator _position, Slist l, va_lis
         first_node = L->_head.nxt;
     } else if (n == 1) {
         assert(args[0]._.f == OBJ);
-        first_node = ((struct SlistIter*)offsetOf(args[0].mem, __SlistIter))->node;
+        first_node = ((struct SlistIter*)offsetOf(*(Object*)args[0].mem, __SlistIter))->node;
         last_node = first_node->nxt;
         if (pos_node == first_node || pos_node == last_node)
             return;
     } else {
         assert(args[0]._.f == OBJ);
         assert(args[1]._.f == OBJ);
-        first_node = ((struct SlistIter*)offsetOf(args[0].mem, __SlistIter))->node;
-        last_node = ((struct SlistIter*)offsetOf(args[1].mem, __SlistIter))->node;
+        first_node = ((struct SlistIter*)offsetOf(*(Object*)args[0].mem, __SlistIter))->node;
+        last_node = ((struct SlistIter*)offsetOf(*(Object*)args[1].mem, __SlistIter))->node;
         if (first_node == last_node)
             return;
     }
@@ -594,8 +594,8 @@ static void _slist_merge(void *_this, Slist l, Compare cmp)
     struct SlistNode *node = &this->_head;
     while (node->nxt && L->_head.nxt)
     {
-        FormWO_t v1 = FORM_WITH_OBJ(t1, node->nxt->data);
-        FormWO_t v2 = FORM_WITH_OBJ(t2, L->_head.nxt->data);
+        FormWO_t v1 = FORM_WITH_OBJ(t1, V(node->nxt->data));
+        FormWO_t v2 = FORM_WITH_OBJ(t2, V(L->_head.nxt->data));
         if (cmp(v1, v2) > 0) {
             struct SlistNode *first_node = &L->_head;
             struct SlistNode *last_node = L->_head.nxt;
