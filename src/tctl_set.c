@@ -156,7 +156,7 @@ static void *_set_ctor(void *_this, va_list *app)
     assert(t._.f == OBJ || t._.f == FUNC);
     if (t._.f == OBJ) { //复制构造
         assert(t._.class == __Set);
-        struct Set *s = offsetOf(t.mem, __Set);
+        struct Set *s = offsetOf(*(Object*)t.mem, __Set);
         construct(_RB_tree(), this->c, f, VA(s->c), VAEND);
     } else { //迭代器构造和默认构造
         construct(_RB_tree(), this->c, f, t, VAEND);
@@ -165,16 +165,16 @@ static void *_set_ctor(void *_this, va_list *app)
             return _this;
 
         assert(t._.f == OBJ && t._.class == _Iterator().class);
-        Iterator first = t.mem;
+        Iterator first = *(Iterator*)t.mem;
         first = THIS(first).ctor(NULL, VA(first), VAEND);
         t = va_arg(*app, FormWO_t);
         assert(t._.f == OBJ && t._.class == _Iterator().class);
-        Iterator last = t.mem;
+        Iterator last = *(Iterator*)t.mem;
         last = THIS(first).ctor(NULL, VA(last), VAEND);
         Form_t it_t = THIS(first).type();
         while (!THIS(first).equal(VA(last)))
         {
-            THIS(this->c).insert_unique(FORM_WITH_OBJ(it_t, THIS(first).derefer()));
+            THIS(this->c).insert_unique(FORM_WITH_OBJ(it_t, V(THIS(first).derefer())));
             THIS(first).inc();
         }
         delete(first);

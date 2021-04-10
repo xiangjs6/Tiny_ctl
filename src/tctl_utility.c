@@ -25,7 +25,7 @@ static void *_pair_ctor(void *_this, va_list *app)
 
     FormWO_t t = va_arg(*app, FormWO_t);
     if (t._.f == OBJ && t._.class == __Pair) { //复制构造函数
-        struct Pair *p = offsetOf(t.mem, __Pair);
+        struct Pair *p = offsetOf(*(void**)t.mem, __Pair);
         this->f_t = p->f_t;
         if (this->f_t.f == OBJ)
             this->first = new(this->f_t, FORM_WITH_OBJ(p->f_t, p->first));
@@ -67,9 +67,9 @@ static void *_pair_dtor(void *_this)
 {
     _this = super_dtor(__Pair, _this);
     struct Pair *this = offsetOf(_this, __Pair);
-    FormWO_t t = FORM_WITH_OBJ(this->f_t, this->first);
+    FormWO_t t = FORM_WITH_OBJ(this->f_t, V(this->first));
     delete(t);
-    t = FORM_WITH_OBJ(this->s_t, this->second);
+    t = FORM_WITH_OBJ(this->s_t, V(this->second));
     delete(t);
     return _this;
 }

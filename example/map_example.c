@@ -14,8 +14,8 @@ int scmp(const char**a, const char**b)
 }
 int pcmp(FormWO_t _a, FormWO_t _b)
 {
-    Pair a = _a.mem;
-    Pair b = _b.mem;
+    Pair a = *(Pair*)_a.mem;
+    Pair b = *(Pair*)_b.mem;
     return strcmp(a->first, b->first);
 }
 //map测试

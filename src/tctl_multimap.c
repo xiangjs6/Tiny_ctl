@@ -165,7 +165,7 @@ static void *_multimap_ctor(void *_this, va_list *app)
     FormWO_t t = va_arg(*app, FormWO_t);
     assert(t._.f == OBJ || t._.f == FUNC);
     if (t._.f == OBJ && t._.class == __MultiMap) { //复制构造
-        struct MultiMap *s = offsetOf(t.mem, __MultiMap);
+        struct MultiMap *s = offsetOf(*(Object*)t.mem, __MultiMap);
         construct(_RB_tree(), this->c, VA(_Pair()), VA(s->c), VAEND);
     } else { //迭代器构造和默认构造
         construct(_RB_tree(), this->c, VA(_Pair()), t, VAEND);
@@ -174,16 +174,16 @@ static void *_multimap_ctor(void *_this, va_list *app)
             return _this;
         //迭代器
         assert(t._.f == OBJ && t._.class == _Iterator().class);
-        Iterator first = t.mem;
+        Iterator first = *(Iterator*)t.mem;
         first = THIS(first).ctor(NULL, VA(first), VAEND);
         t = va_arg(*app, FormWO_t);
         assert(t._.f == OBJ && t._.class == _Iterator().class);
-        Iterator last = t.mem;
+        Iterator last = *(Iterator*)t.mem;
         last = THIS(first).ctor(NULL, VA(last), VAEND);
         Form_t it_t = THIS(first).type();
         while (!THIS(first).equal(VA(last)))
         {
-            THIS(this->c).insert_unique(FORM_WITH_OBJ(it_t, THIS(first).derefer()));
+            THIS(this->c).insert_unique(FORM_WITH_OBJ(it_t, V(THIS(first).derefer())));
             THIS(first).inc();
         }
         delete(first);
