@@ -238,9 +238,9 @@ static void _insert_aux(struct Bucket_node **pos, FormWO_t x, Form_t t)
     if (t.f == POD) {
         assert(x._.f != OBJ);
         if (x._.f == POD)
-            memcpy(node->data, &x.mem, memb_size);
-        else if (x._.f == ADDR)
             memcpy(node->data, x.mem, memb_size);
+        else if (x._.f == ADDR)
+            memcpy(node->data, *(void**)x.mem, memb_size);
         else if (x._.f == END)
             memset(node->data, 0, memb_size);
     } else if (t.f == OBJ)
@@ -263,15 +263,15 @@ static void *_iter_ctor(void *_this, va_list *app)
     FormWO_t t = va_arg(*app, FormWO_t);
     if (t._.f == OBJ) {
         if (t._.class == _Iterator().class) {
-            assert(classOf(t.mem) == __HashtableIter);
-            struct HashtableIter *it = offsetOf(t.mem, __HashtableIter);
+            assert(classOf(*(Object*)t.mem) == __HashtableIter);
+            struct HashtableIter *it = offsetOf(*(Object*)t.mem, __HashtableIter);
             *this = *it;
         }
     } else if (t._.f == POD) {
-        this->cur = t.mem;
+        this->cur = *(void**)t.mem;
         t = va_arg(*app, FormWO_t);
         assert(t._.f == POD);
-        this->ht = t.mem;
+        this->ht = *(void**)t.mem;
     }
     return _this;
 }
@@ -279,7 +279,7 @@ static void *_iter_ctor(void *_this, va_list *app)
 static bool _iter_equal(const void *_this, FormWO_t _x)
 {
     const struct HashtableIter *this = offsetOf(_this, __HashtableIter);
-    const struct HashtableIter *x = offsetOf(_x.mem, __HashtableIter);
+    const struct HashtableIter *x = offsetOf(*(Object*)_x.mem, __HashtableIter);
     return this->cur == x->cur;
 }
 
@@ -290,7 +290,7 @@ static void _iter_inc(void *_this)
     if (!this->cur)
         return;
     if (!this->cur->next) {
-        FormWO_t t = FORM_WITH_OBJ(this->ht->_t, this->cur->data);
+        FormWO_t t = FORM_WITH_OBJ(this->ht->_t, V(this->cur->data));
         if (t._.f == POD)
             t._.f = ADDR;
         size_t n = _bkt_num(t, THIS(ht->buckets).size(), ht->hash, ht->get_key);
@@ -311,7 +311,7 @@ static void _iter_inc(void *_this)
 static void _iter_assign(void *_this, FormWO_t _x)
 {
     struct HashtableIter *this = offsetOf(_this, __HashtableIter);
-    struct HashtableIter *it = offsetOf(_x.mem, __HashtableIter);
+    struct HashtableIter *it = offsetOf(*(Object*)_x.mem, __HashtableIter);
     *this = *it;
 }
 
@@ -362,20 +362,20 @@ static void *_hashtable_ctor(void *_this, va_list *app)
     this->_t = t._;
     t = va_arg(*app, FormWO_t);
     if (t._.class == __Hashtable) { //处理复制构造
-        _hashtable_copy_from(_this, t.mem);
+        _hashtable_copy_from(_this, *(void**)t.mem);
         return _this;
     }
     //equal函数
     assert(t._.f == FUNC);
-    this->equal = t.mem;
+    this->equal = *(void**)t.mem;
     assert(this->equal);
     t = va_arg(*app, FormWO_t); //hash函数
     assert(t._.f == FUNC);
-    this->hash = t.mem;
+    this->hash = *(void**)t.mem;
     assert(this->hash);
     t = va_arg(*app, FormWO_t); //get_key函数
     assert(t._.f == FUNC);
-    this->get_key = t.mem;
+    this->get_key = *(void**)t.mem;
     assert(this->get_key);
     return _this;
 }
@@ -426,20 +426,15 @@ static bool _hashtable_empty(const void *_this)
 static Iterator _hashtable_insert_unique(void *_this, FormWO_t _x)
 {
     struct Hashtable *this = offsetOf(_this, __Hashtable);
-    FormWO_t x = _x;
-    if (x._.f == POD) {
-        x._.f = ADDR;
-        x.mem = &_x.mem;
-    }
     _hashtable_resize(_this, this->nmemb + 1);
-    const size_t n = _bkt_num(x, THIS(this->buckets).size(), this->hash, this->get_key);
+    const size_t n = _bkt_num(_x, THIS(this->buckets).size(), this->hash, this->get_key);
     FormWO_t t = FORM_WITH_OBJ(this->_t);
     if (t._.f == POD)
         t._.f = ADDR;
     struct Bucket_node **first = THIS(this->buckets).brackets(VA(n));
     for (struct Bucket_node *cur = *first; cur; cur = cur->next) {
-        t.mem = cur->data;
-        if (!this->equal(this->get_key(t), this->get_key(x)))
+        t.mem = V(cur->data);
+        if (!this->equal(this->get_key(t), this->get_key(_x)))
             return _hashtable_end(_this);
     }
     _insert_aux(first, _x, this->_t);
@@ -456,13 +451,8 @@ static Iterator _hashtable_insert_unique(void *_this, FormWO_t _x)
 static Iterator _hashtable_insert_equal(void *_this, FormWO_t _x)
 {
     struct Hashtable *this = offsetOf(_this, __Hashtable);
-    FormWO_t x = _x;
-    if (x._.f == POD) {
-        x._.f = ADDR;
-        x.mem = &_x.mem;
-    }
     _hashtable_resize(_this, this->nmemb + 1);
-    const size_t n = _bkt_num(x, THIS(this->buckets).size(), this->hash, this->get_key);
+    const size_t n = _bkt_num(_x, THIS(this->buckets).size(), this->hash, this->get_key);
     struct Bucket_node **first = THIS(this->buckets).brackets(VA(n));
     _insert_aux(first, _x, this->_t);
     if (n < this->start || !this->nmemb)
@@ -487,7 +477,7 @@ static void _hashtable_erase(void *_this, Iterator iter)
         return;
     struct Bucket_node *cur = it->cur;
     _iter_inc(iter); //迭代器向后走一个
-    FormWO_t x = FORM_WITH_OBJ(this->_t, cur->data);
+    FormWO_t x = FORM_WITH_OBJ(this->_t, V(cur->data));
     if (x._.f == POD)
         x._.f = ADDR;
     const size_t n = _bkt_num(x, THIS(this->buckets).size(), this->hash, this->get_key);
@@ -527,19 +517,14 @@ static void _hashtable_erase(void *_this, Iterator iter)
 static Iterator _hashtable_find(void *_this, FormWO_t _x)
 {
     struct Hashtable *this = offsetOf(_this, __Hashtable);
-    FormWO_t x = _x;
-    if (x._.f == POD) {
-        x._.f = ADDR;
-        x.mem = &_x.mem;
-    }
-    size_t n = _bkt_num(x, THIS(this->buckets).size(), this->hash, this->get_key);
+    size_t n = _bkt_num(_x, THIS(this->buckets).size(), this->hash, this->get_key);
     struct Bucket_node **first = THIS(this->buckets).brackets(VA(n));
     FormWO_t t = FORM_WITH_OBJ(this->_t);
     if (t._.f == POD)
         t._.f = ADDR;
     for (struct Bucket_node *cur = *first; cur; cur = cur->next) {
-        t.mem = cur->data;
-        if (!this->equal(this->get_key(t), this->get_key(x))) {
+        t.mem = V(cur->data);
+        if (!this->equal(this->get_key(t), this->get_key(_x))) {
             void *mem = ARP_MallocARelDtor(classSz(__HashtableIter), destroy);
             return new(compose(_HashtableIter(), mem), VA(t._, ForwardIter, cur, this));
         }
@@ -550,20 +535,15 @@ static Iterator _hashtable_find(void *_this, FormWO_t _x)
 static size_t _hashtable_count(void *_this, FormWO_t _x)
 {
     struct Hashtable *this = offsetOf(_this, __Hashtable);
-    FormWO_t addr_t = _x;
-    if (addr_t._.f == POD) {
-        addr_t._.f = ADDR;
-        addr_t.mem = &_x.mem;
-    }
     size_t res = 0;
-    size_t n = _bkt_num(addr_t, THIS(this->buckets).size(), this->hash, this->get_key);
+    size_t n = _bkt_num(_x, THIS(this->buckets).size(), this->hash, this->get_key);
     struct Bucket_node **first = THIS(this->buckets).brackets(VA(n));
     FormWO_t t = FORM_WITH_OBJ(this->_t);
     if (t._.f == POD)
         t._.f = ADDR;
     for (struct Bucket_node *cur = *first; cur; cur = cur->next) {
-        t.mem = cur->data;
-        if (!this->equal(this->get_key(t), this->get_key(addr_t)))
+        t.mem = V(cur->data);
+        if (!this->equal(this->get_key(t), this->get_key(_x)))
             res++;
     }
     return res;
@@ -598,7 +578,7 @@ static void _hashtable_resize(void *_this, size_t new_size)
                     struct Bucket_node *first = *node;
                     while (first)
                     {
-                        x.mem = first->data;
+                        x.mem = V(first->data);
                         size_t new_bucket = _bkt_num(x, n, this->hash, this->get_key);
                         max_bkt = max_bkt > new_bucket ? max_bkt : new_bucket;
                         min_bkt = min_bkt < new_bucket ? min_bkt : new_bucket;
@@ -634,14 +614,14 @@ static void _hashtable_copy_from(void *_this, const Hashtable _h)
     for (size_t i = h->start; i != h->finish; i++) {
         struct Bucket_node *cur = *(struct Bucket_node**)THIS(h->buckets).brackets(VA(i));
         if (cur) {
-            x.mem = cur->data;
+            x.mem = V(cur->data);
             _insert_aux(&tmpNode, x, this->_t);
             struct Bucket_node *copy = tmpNode;
             tmpNode = copy->next;
             copy->next = NULL;
             *(struct Bucket_node**)THIS(this->buckets).brackets(VA(i)) = copy;
             for (struct Bucket_node *next = cur->next; next; next = next->next) {
-                x.mem = next->data;
+                x.mem = V(next->data);
                 _insert_aux(&tmpNode, x, this->_t);
                 copy->next = tmpNode;
                 tmpNode = tmpNode->next;
