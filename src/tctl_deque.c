@@ -261,7 +261,7 @@ static long long dist_aux(const struct DequeIter *it1, const struct DequeIter *i
 static void _dealDequeArgs(void *_this, FormWO_t *args, int n)
 {
     if (args->_.class == __Deque) { //复制一个Deque
-        struct Deque *d = offsetOf(args->mem, __Deque);
+        struct Deque *d = offsetOf(*(Object*)args->mem, __Deque);
         size_t d_memb_size = d->_t.f == POD ? d->_t.size : classSz(d->_t.class);
         Form_t t = d->_t;
         struct DequeIter it = d->start;
@@ -270,7 +270,7 @@ static void _dealDequeArgs(void *_this, FormWO_t *args, int n)
                 char (*p)[t.size] = it.cur;
                 _deque_push_back(_this, VA(VA_ADDR(*p)));
             } else if (t.f == OBJ) {
-                _deque_push_back(_this, FORM_WITH_OBJ(t, it.cur));
+                _deque_push_back(_this, FORM_WITH_OBJ(t, V(it.cur)));
             }
             it.cur = (char*)it.cur + d_memb_size;
             if (it.cur == it.last) {
@@ -291,10 +291,10 @@ static void _dealDequeArgs(void *_this, FormWO_t *args, int n)
     } else { //Iterator first, Iterator last 迭代器构造方法
         assert(n == 2);
         assert(args[1]._.class == _Iterator().class);
-        Iterator first = args[0].mem;
+        Iterator first = *(Iterator*)args[0].mem;
         char first_mem[sizeOf(first)];
         first = THIS(first).ctor(first_mem, VA(first), VAEND);
-        Iterator last = args[1].mem;
+        Iterator last = *(Iterator*)args[1].mem;
         char last_mem[sizeOf(last)];
         last = THIS(last).ctor(last_mem, VA(last), VAEND);
         Form_t t = THIS(first).type();
@@ -302,9 +302,9 @@ static void _dealDequeArgs(void *_this, FormWO_t *args, int n)
         {
             void *obj = THIS(first).derefer();
             if (t.f == ADDR) {
-                _deque_push_back(_this, FORM_WITH_OBJ(t, obj));
+                _deque_push_back(_this, FORM_WITH_OBJ(t, V(obj)));
             } else if (t.f == OBJ) {
-                _deque_push_back(_this, FORM_WITH_OBJ(t, obj));
+                _deque_push_back(_this, FORM_WITH_OBJ(t, V(obj)));
             }
             THIS(first).inc();
         }
@@ -325,7 +325,7 @@ static void *_iter_ctor(void *_this, va_list *app)
     this->map_node = NULL;
     FormWO_t t = va_arg(*app, FormWO_t);
     if (t._.f == ADDR) 
-        memcpy(this, t.mem, t._.size);
+        memcpy(this, *(void**)t.mem, t._.size);
     else if (t._.f == OBJ)
         _iter_assign(_this, t);
     return _this;
@@ -334,16 +334,16 @@ static void *_iter_ctor(void *_this, va_list *app)
 static bool _iter_equal(const void *_this, FormWO_t _x)
 {
     struct DequeIter *this = offsetOf(_this, __DequeIter);
-    assert(classOf(_x.mem) == __DequeIter);
-    struct DequeIter *x = offsetOf(_x.mem, __DequeIter);
+    assert(classOf(*(Object*)_x.mem) == __DequeIter);
+    struct DequeIter *x = offsetOf(*(Object*)_x.mem, __DequeIter);
     return this->cur == x->cur;
 }
 
 static int _iter_cmp(const void *_this, FormWO_t _x)
 {
     struct DequeIter *this = offsetOf(_this, __DequeIter);
-    assert(classOf(_x.mem) == __DequeIter);
-    struct DequeIter *x = offsetOf(_x.mem, __DequeIter);
+    assert(classOf(*(Object*)_x.mem) == __DequeIter);
+    struct DequeIter *x = offsetOf(*(Object*)_x.mem, __DequeIter);
     if (this->map_node < x->map_node)
         return -1;
     else if (this->map_node > x->map_node)
@@ -416,8 +416,8 @@ static void _iter_dec(void *_this)
 static void _iter_assign(void *_this, FormWO_t _x)
 {
     struct DequeIter *this = offsetOf(_this, __DequeIter);
-    assert(classOf(_x.mem) == __DequeIter);
-    struct DequeIter *x = offsetOf(_x.mem, __DequeIter);
+    assert(classOf(*(Object*)_x.mem) == __DequeIter);
+    struct DequeIter *x = offsetOf(*(Object*)_x.mem, __DequeIter);
     *this = *x;
 }
 
@@ -640,9 +640,9 @@ static void _deque_push_back(void *_this, FormWO_t _x)
     if (this->_t.f == POD) {
         assert(_x._.f != OBJ);
         if (_x._.f == ADDR)
-            memcpy(finish->cur, _x.mem, memb_size);
+            memcpy(finish->cur, *(void**)_x.mem, memb_size);
         else if (_x._.f == POD)
-            memcpy(finish->cur, &_x.mem, memb_size);
+            memcpy(finish->cur, _x.mem, memb_size);
         else if (_x._.f == END)
             memset(finish->cur, 0, memb_size);
     } else {
@@ -676,9 +676,9 @@ static void _deque_push_front(void *_this, FormWO_t _x)
     if (this->_t.f == POD) {
         assert(_x._.f != OBJ);
         if (_x._.f == ADDR)
-            memcpy(start->cur, _x.mem, memb_size);
+            memcpy(start->cur, *(void**)_x.mem, memb_size);
         else if (_x._.f == POD)
-            memcpy(start->cur, &_x.mem, memb_size);
+            memcpy(start->cur, _x.mem, memb_size);
         else if (_x._.f == END)
             memset(start->cur, 0, memb_size);
     } else {
@@ -782,9 +782,9 @@ static Iterator _deque_insert(void *_this, Iterator _iter, FormWO_t x)
     } else {
         assert(x._.f != OBJ);
         if (x._.f == POD)
-            memcpy(_iter_derefer(_iter), &x.mem, this->_t.size);
-        else if (x._.f == ADDR)
             memcpy(_iter_derefer(_iter), x.mem, this->_t.size);
+        else if (x._.f == ADDR)
+            memcpy(_iter_derefer(_iter), *(void**)x.mem, this->_t.size);
         else if (x._.f == END)
             memset(_iter_derefer(_iter), 0, memb_size);
     }
