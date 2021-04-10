@@ -16,11 +16,11 @@ static const void *__UInt = NULL;
 
 inline unsigned long long toUInt(FormWO_t t)
 {
-    unsigned long long *l = 0;
+    unsigned long long *l;
     unsigned char *c;
     unsigned short *s;
     unsigned int *i;
-    unsigned long long res;
+    unsigned long long res = 0;
     switch (t._.f) {
         case POD:
             switch (t._.size) {
@@ -46,7 +46,7 @@ inline unsigned long long toUInt(FormWO_t t)
             memcpy(&res, *(void**)t.mem, sizeof(res));
             break;
         case OBJ:
-            res = *(long long *) Cast(*(Object*)t.mem, long long);
+            res = *(unsigned long long *) Cast(*(Object*)t.mem, unsigned long long);
             break;
         default:
             assert(0);

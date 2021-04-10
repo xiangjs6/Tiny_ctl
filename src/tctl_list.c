@@ -241,9 +241,9 @@ static struct ListNode *_insert_aux(struct List *this, struct ListNode *node, Fo
     if (this->_t.f == POD) {
         assert(_x._.f != OBJ);
         if (_x._.f == ADDR)
-            memcpy(new_node->data, _x.mem, memb_size);
+            memcpy(new_node->data, *(void**)_x.mem, memb_size);
         else if (_x._.f == POD)
-            memcpy(new_node->data, &_x.mem, memb_size);
+            memcpy(new_node->data, _x.mem, memb_size);
         else if (_x._.f == END)
             memset(new_node->data, 0, memb_size);
     } else {
@@ -290,7 +290,7 @@ static void _transfer(struct ListNode *pos, struct ListNode *first, struct ListN
 static void _dealListArgs(void *_this, FormWO_t *args, int n)
 {
     if (args->_.class == __List) { //复制一个List
-        struct List *L = offsetOf(args->mem, __List);
+        struct List *L = offsetOf(*(Object*)args->mem, __List);
         struct ListNode *node = L->_end.nxt;
         Form_t t = L->_t;
         while (node != &L->_end)
@@ -300,7 +300,7 @@ static void _dealListArgs(void *_this, FormWO_t *args, int n)
                 char (*p)[t.size] = obj;
                 _list_push_back(_this, VA(VA_ADDR(*p)));
             } else if (t.f == OBJ) {
-                _list_push_back(_this, FORM_WITH_OBJ(t, obj));
+                _list_push_back(_this, FORM_WITH_OBJ(t, V(obj)));
             }
             node = node->nxt;
         }
@@ -316,10 +316,10 @@ static void _dealListArgs(void *_this, FormWO_t *args, int n)
     } else { //Iterator first, Iterator last 迭代器构造方法
         assert(n == 2);
         assert(args[1]._.class == _Iterator().class); //因为上面的if已经检测过args[0]
-        Iterator first = args[0].mem;
+        Iterator first = *(Iterator*)args[0].mem;
         char first_mem[sizeOf(first)];
         first = THIS(first).ctor(first_mem, VA(first));
-        Iterator last = args[1].mem;
+        Iterator last = *(Iterator*)args[1].mem;
         char last_mem[sizeOf(last)];
         last = THIS(last).ctor(last_mem, VA(last));
         Form_t t = THIS(first).type();
@@ -327,9 +327,9 @@ static void _dealListArgs(void *_this, FormWO_t *args, int n)
         {
             void *obj = THIS(first).derefer();
             if (t.f == ADDR) {
-                _list_push_back(_this, FORM_WITH_OBJ(t, obj));
+                _list_push_back(_this, FORM_WITH_OBJ(t, V(obj)));
             } else if (t.f == OBJ) {
-                _list_push_back(_this, FORM_WITH_OBJ(t, obj));
+                _list_push_back(_this, FORM_WITH_OBJ(t, V(obj)));
             }
             THIS(first).inc();
         }
@@ -346,18 +346,18 @@ static void *_iter_ctor(void *_this, va_list *app)
     FormWO_t t = va_arg(*app, FormWO_t);
     if (t._.f == OBJ) {
         if (t._.class == _Iterator().class) {
-            assert(classOf(t.mem) == __ListIter || classOf(t.mem) == __RListIter);
+            assert(classOf(*(Object*)t.mem) == __ListIter || classOf(*(Object*)t.mem) == __RListIter);
             struct ListIter *it;
-            if (classOf(t.mem) == __ListIter)
-                it = offsetOf(t.mem, __ListIter);
+            if (classOf(*(Object*)t.mem) == __ListIter)
+                it = offsetOf(*(Object*)t.mem, __ListIter);
             else
-                it = offsetOf(t.mem, __RListIter);
+                it = offsetOf(*(Object*)t.mem, __RListIter);
             *this = *it;
         }
     } else if (t._.f == POD) {
-        this->node = t.mem;
-    } else {
         this->node = *(struct ListNode**)t.mem;
+    } else {
+        this->node = **(struct ListNode***)t.mem;
     }
     return _this;
 }
@@ -365,7 +365,7 @@ static void *_iter_ctor(void *_this, va_list *app)
 static bool _iter_equal(const void *_this, FormWO_t _x)
 {
     const struct ListIter *this = offsetOf(_this, __ListIter);
-    const struct ListIter *x = offsetOf(_x.mem, __ListIter);
+    const struct ListIter *x = offsetOf(*(Object*)_x.mem, __ListIter);
     return this->node == x->node;
 }
 
@@ -384,7 +384,7 @@ static void _iter_dec(void *_this)
 static void _iter_assign(void *_this, FormWO_t _x)
 {
     struct ListIter *this = offsetOf(_this, __ListIter);
-    struct ListIter *x = offsetOf(_x.mem, __ListIter);
+    struct ListIter *x = offsetOf(*(Object*)_x.mem, __ListIter);
     this->node = x->node;
 }
 
@@ -575,7 +575,7 @@ static void _list_remove(void *_this, FormWO_t x)
     if (this->_t.f == POD) {
         size_t memb_size = this->_t.size;
         assert(x._.class != OBJ);
-        void *mem = x._.f == POD ? &x.mem : x.mem;
+        void *mem = x._.f == POD ? x.mem : *(void**)x.mem;
         while (node != &this->_end)
         {
             if (!memcmp(node->data, mem, memb_size)) {
@@ -616,7 +616,7 @@ static void _list_unique(void *_this)
         while (next_node != &this->_end)
         {
             Object obj = (Object)node->data;
-            x.mem = next_node->data;
+            x.mem = V(next_node->data);
             if (THIS(obj).equal(x))
                 _erase_aux(this, next_node);
             else
@@ -650,15 +650,15 @@ static void _list_splice(void *_this, Iterator _position, List l, va_list *app)
         last_node = &L->_end;
     } else if (n == 1) {
         assert(args[0]._.f == OBJ);
-        first_node = ((struct ListIter*)offsetOf(args[0].mem, __ListIter))->node;
+        first_node = ((struct ListIter*)offsetOf(*(Object*)args[0].mem, __ListIter))->node;
         last_node = first_node->nxt;
         if (pos_node == first_node || pos_node == last_node)
             return;
     } else {
         assert(args[0]._.f == OBJ);
         assert(args[1]._.f == OBJ);
-        first_node = ((struct ListIter*)offsetOf(args[0].mem, __ListIter))->node;
-        last_node = ((struct ListIter*)offsetOf(args[1].mem, __ListIter))->node;
+        first_node = ((struct ListIter*)offsetOf(*(Object*)args[0].mem, __ListIter))->node;
+        last_node = ((struct ListIter*)offsetOf(*(Object*)args[1].mem, __ListIter))->node;
         if (first_node == last_node)
             return;
     }
@@ -682,8 +682,8 @@ static void _list_merge(void *_this, List l, Compare cmp)
         t2.f = ADDR;
     while (first1 != last1 && first2 != last2)
     {
-        FormWO_t v1 = FORM_WITH_OBJ(t1, first1->data);
-        FormWO_t v2 = FORM_WITH_OBJ(t2, first2->data);
+        FormWO_t v1 = FORM_WITH_OBJ(t1, V(first1->data));
+        FormWO_t v2 = FORM_WITH_OBJ(t2, V(first2->data));
         if (cmp(v1, v2) > 0) {
             struct ListNode *next = first2->nxt;
             _transfer(first1, first2, next);

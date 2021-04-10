@@ -23,7 +23,6 @@ int main(void)
 {
     ARP_CreatePool();
     List l = new(T(List), VA(T(Int)));
-    //init_list(&l, sizeof(int));
     int temp = 100;
     for (int i = 0; i < 10; i++) {
         THIS(l).push_back(VA(i));
