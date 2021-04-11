@@ -28,14 +28,14 @@ static void *_pair_ctor(void *_this, va_list *app)
         struct Pair *p = offsetOf(*(void**)t.mem, __Pair);
         this->f_t = p->f_t;
         if (this->f_t.f == OBJ)
-            this->first = new(this->f_t, FORM_WITH_OBJ(p->f_t, p->first));
+            this->first = new(this->f_t, FORM_WITH_OBJ(p->f_t, V(p->first)));
         else {
             this->first = new(this->f_t);
             memcpy(this->first, p->first, this->f_t.size);
         }
         this->s_t = p->s_t;
         if (this->s_t.f == OBJ)
-            this->second = new(this->s_t, FORM_WITH_OBJ(p->s_t, p->second));
+            this->second = new(this->s_t, FORM_WITH_OBJ(p->s_t, V(p->second)));
         else {
             this->second = new(this->s_t);
             memcpy(this->second, p->second, this->s_t.size);

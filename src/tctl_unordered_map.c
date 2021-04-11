@@ -138,7 +138,9 @@ Form_t _Unordered_MapClass(void)
 static FormWO_t _get_val(FormWO_t x)
 {
     assert(x._.f == OBJ && x._.class == T(Pair).class);
-    Pair p = x.mem;
+    Pair p = *(Pair*)x.mem;
+    if (p->f_t.f == OBJ) //OBJ则要加一层指针
+        return FORM_WITH_OBJ(p->f_t, V(p->first));
     return FORM_WITH_OBJ(p->f_t, p->first);
 }
 
@@ -189,7 +191,7 @@ static void *_unordered_map_ctor(void *_this, va_list *app)
     assert(t._.f == OBJ || t._.f == FUNC);
     if (t._.f == OBJ) { //复制构造
         assert(t._.class == __Unordered_Map);
-        struct Unordered_Map *s = offsetOf(t.mem, __Unordered_Map);
+        struct Unordered_Map *s = offsetOf(*(Object*)t.mem, __Unordered_Map);
         construct(_Hashtable(), this->c, f, VA(s->c), VAEND);
     } else { //迭代器构造和默认构造
         FormWO_t equal = t;
@@ -202,11 +204,11 @@ static void *_unordered_map_ctor(void *_this, va_list *app)
             return _this;
         //迭代器
         assert(t._.f == OBJ && t._.class == _Iterator().class);
-        Iterator first = t.mem;
+        Iterator first = *(Iterator*)t.mem;
         first = THIS(first).ctor(NULL, VA(first), VAEND);
         t = va_arg(*app, FormWO_t);
         assert(t._.f == OBJ && t._.class == _Iterator().class);
-        Iterator last = t.mem;
+        Iterator last = *(Iterator*)t.mem;
         last = THIS(first).ctor(NULL, VA(last), VAEND);
         Form_t it_t = THIS(first).type();
         while (!THIS(first).equal(VA(last)))

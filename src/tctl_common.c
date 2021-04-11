@@ -59,9 +59,9 @@ size_t hash_str(FormWO_t x)
 {
     char *str;
     if (x._.f == POD)
-        str = **(char***)x.mem; //存放了指向了char指针的指针
+        str = *(char**)x.mem; //存放了指向了char指针的指针
     else
-        str = *(char**)x.mem;
+        str = **(char***)x.mem;
     size_t res = 0;
     for (int i = 0; str[i]; i++)
         res = 5 * res + str[i];

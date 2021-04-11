@@ -83,7 +83,7 @@ int main(void)
     putchar('\n');
 
     for (int i = 0; i < 3000; i++) {
-        int temp = random();
+        long int temp = random();
         THIS(tree).insert_equal(VA(temp));
     }
     it = THIS(tree).begin();
