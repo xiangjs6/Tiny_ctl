@@ -4,6 +4,7 @@
 
 #include "../include/tctl_allocator.h"
 #include "../include/tctl_portable.h"
+#include "../include/auto_release_pool.h"
 #include "include/_tctl_metaclass.h"
 #include <stdarg.h>
 #include <stdlib.h>
@@ -368,39 +369,50 @@ void *pop_this(void)
     return (void*)p;
 }
 
-union _basic_val _valueAux(int t, ...)
+void *_valueAux(int t, ...)
 {
-    union _basic_val ret;
+    void *ret;
     va_list ap;
     va_start(ap, t);
     switch (t)
     {
         case 'f':
-            ret.f = (float)va_arg(ap, double);
+            ret = ARP_MallocARel(sizeof(float));
+            *(float*)ret = (float)va_arg(ap, double);
             break;
         case 'F':
-            ret.lf = (double)va_arg(ap, double);
+            ret = ARP_MallocARel(sizeof(double));
+            *(double*)ret = (double)va_arg(ap, double);
             break;
         case 'c':
-            ret.c = (unsigned char)va_arg(ap, int);
+            ret = ARP_MallocARel(sizeof(unsigned char));
+            *(char*)ret = (unsigned char)va_arg(ap, int);
             break;
         case 's':
-            ret.s = (unsigned short)va_arg(ap, int);
+            ret = ARP_MallocARel(sizeof(unsigned short));
+            *(unsigned short*)ret = (unsigned short)va_arg(ap, int);
             break;
         case 'i':
-            ret.i = (unsigned int)va_arg(ap, int);
+            ret = ARP_MallocARel(sizeof(unsigned int));
+            *(unsigned int*)ret = (unsigned int)va_arg(ap, unsigned int);
             break;
         case 'l':
-            ret.l = (unsigned long)va_arg(ap, long);
+            ret = ARP_MallocARel(sizeof(unsigned long));
+            *(unsigned long*)ret = (unsigned long)va_arg(ap, unsigned long);
             break;
         case 'L':
-            ret.ll = (unsigned long long)va_arg(ap, long long);
+            ret = ARP_MallocARel(sizeof(unsigned long long));
+            *(unsigned long long*)ret = (unsigned long long)va_arg(ap, unsigned long long);
             break;
         case 'p':
-            ret.p = (void*)va_arg(ap, void*);
+            ret = ARP_MallocARel(sizeof(void*));
+            *(void**)ret = (void*)va_arg(ap, void*);
             break;
         case 't':
-            ret.p = va_arg(ap, FormWO_t).mem;
+            ret = va_arg(ap, FormWO_t).mem;
+            break;
+        case 'S':
+            ret = ARP_MallocARel(va_arg(ap, size_t));
             break;
         default:
             assert(0);
