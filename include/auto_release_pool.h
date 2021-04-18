@@ -39,4 +39,6 @@ void *ARP_MallocARelDtor(size_t len, dtorfunc_t dtorFunc);
 void *ARP_Realloc(void *pMemLoc, size_t size);
 //! return mem and free pool
 void *ARP_Return(void *pMemLoc);
+//! clear top pool
+void ARP_Clear(void);
 #endif //AUTO_RELEASE_POOL_AUTO_RELEASE_POOL_H

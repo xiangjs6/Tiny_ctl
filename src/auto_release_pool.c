@@ -293,3 +293,9 @@ void *ARP_Return(void *pMemLoc)
     ARP_JoinARel(pMemLoc);
     return pMemLoc;
 }
+
+void ARP_Clear(void)
+{
+    ARP_FreePool();
+    ARP_CreatePool();
+}
