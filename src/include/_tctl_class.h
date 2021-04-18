@@ -22,7 +22,6 @@ struct ClassSelector {
     void *(*mul)(FormWO_t x);
     void *(*div)(FormWO_t x);
     void *(*mod)(FormWO_t x);
-    void *(*cast)(const char *c);
 };
 extern const struct ClassSelector *_ClassS;
 

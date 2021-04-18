@@ -17,31 +17,33 @@ struct MetaObject {
 };
 
 struct MetaClass {
-    const struct MetaObject _;			/* class' description */
-    const char *name;				/* class' name */
-    const struct MetaClass *super;		/* class' super class */
-    size_t size;					/* class' object's size */
-    void *(*ctor)(void *this, va_list *app);
-    void *(*dtor)(void *this);
-    int (*differ)(const void *this, const void *b);
-    int (*puto)(const void *this, FILE *fp);
+    const struct MetaObject _;
+    const char *name;
+    const struct MetaClass *super;
+    size_t size;
+    void *(*ctor)(void *self, va_list *app);
+    void *(*dtor)(void *self);
+    int (*differ)(const void *self, const void *b);
+    int (*puto)(const void *self, FILE *fp);
+    void *(*cast)(const void *self, const void *class);
 };
 /*
  *	initialization
  */
 
-static void *ctor(void *mem, ...);
-static void *dtor(void);
-static int differ(const void *b);
-static int puto (FILE *fp);
-static void *metaobject_ctor(void *_this, va_list *app);
-static void *metaobject_dtor(void *_this);
-static int metaobject_differ(const void *_this, const void *b);
-static int metaobject_puto(const void *_this, FILE *fp);
-static void *metaclass_ctor(void *_this, va_list *app);
-static void *metaclass_dtor(void *_this);
+static void *_ctor(void *mem, ...);
+static void *_dtor(void);
+static int _differ(const void *b);
+static int _puto (FILE *fp);
+static void *_cast(const void *class);
+static void *metaobject_ctor(void *_self, va_list *app);
+static void *metaobject_dtor(void *_self);
+static int metaobject_differ(const void *_self, const void *b);
+static int metaobject_puto(const void *_self, FILE *fp);
+static void *metaclass_ctor(void *_self, va_list *app);
+static void *metaclass_dtor(void *_self);
 
-static struct MetaClassSelector MetaClassS = {ctor, dtor, differ, puto};
+static struct MetaClassSelector MetaClassS = {_ctor, _dtor, _differ, _puto, _cast};
 const struct MetaClassSelector *_MetaClassS = &MetaClassS;
 const void *Selector = &MetaClassS;
 static const struct MetaClass _object[] = {
@@ -58,84 +60,82 @@ static const struct MetaClass _object[] = {
 static const void *__MetaObject = _object;
 static const void *__MetaClass = _object + 1;
 
-Form_t _MetaObject(void)
+const void *_MetaObject(void)
 {
-    Form_t t = {OBJ , {.class = __MetaObject}};
-    return t;
+    return __MetaObject;
 }
 
-Form_t _MetaClass(void)
+const void *_MetaClass(void)
 {
-    Form_t t = {OBJ , {.class = __MetaClass}};
-    return t;
+    return __MetaClass;
 }
 /*
  *	Object
  */
-static void *metaobject_ctor(void *_this, va_list *app)
+static void *metaobject_ctor(void *_self, va_list *app)
 {
-    struct MetaObject *this = _this;
-    this->s = ((struct MetaObject*)classOf(_this))->s;
-    return _this;
+    struct MetaObject *self = _self;
+    self->s = ((struct MetaObject*)classOf(_self))->s;
+    return _self;
 }
 
-static void *metaobject_dtor(void *_this)
+static void *metaobject_dtor(void *_self)
 {
-    return _this;
+    return _self;
 }
 
-static int metaobject_differ(const void *_this, const void *b)
+static int metaobject_differ(const void *_self, const void *b)
 {
-    return _this != b;
+    return _self != b;
 }
 
-static int metaobject_puto(const void *_this, FILE *fp)
+static int metaobject_puto(const void *_self, FILE *fp)
 {
-    const struct MetaClass *class = classOf(_this);
-    return fprintf(fp, "%s at %p\n", class -> name, _this);
+    const struct MetaClass *class = classOf(_self);
+    return fprintf(fp, "%s at %p\n", class -> name, _self);
 }
 
-const void *classOf(const void *_this)
+const void *classOf(const void *_self)
 {
-    const struct MetaObject *this = _this;
-    assert(this && this->class);
-    return this->class;
+    const struct MetaObject *self = _self;
+    assert(self && self->class);
+    return self->class;
 }
 
-size_t sizeOf(const void *_this)
+size_t sizeOf(const void *_self)
 {
-    const struct MetaClass *class = classOf(_this);
+    const struct MetaClass *class = classOf(_self);
     return class->size;
 }
 
-size_t classSz(const void *this)
+size_t classSz(const void *self)
 {
-    const struct MetaClass *class = this;
+    const struct MetaClass *class = self;
     return class->size;
 }
 
-void *offsetOf(const void *this, const void *_class)
+void *offsetOf(const void *self, const void *_class)
 {
     const struct MetaClass *class = _class;
-    return (void*)this + classSz(class->super);
+    return (void*)self + classSz(class->super);
 }
 /*
  *	MetaClass
  */
 
-static void *metaclass_ctor(void *_this, va_list *app)
+static void *metaclass_ctor(void *_self, va_list *app)
 {
-    struct MetaClass *this = _this;
+    struct MetaClass *self = _self;
     const size_t offset = offsetof(struct MetaClass, ctor);
 
-    this->name = va_arg(*app, char*);
-    this->super = va_arg(*app, Form_t).class;
-    assert(this->super);
-    this->size = va_arg(*app, size_t);
+    self->name = va_arg(*app, char*);
+    self->super = va_arg(*app, void*);
+    assert(self->super);
+    self->size = va_arg(*app, size_t);
 
-    assert(this->super);
-    memcpy((char*)this + offset, (char*)this->super + offset, sizeOf(this->super) - offset);
-    *(void const **)&this->_.s = this->super->_.s;
+    assert(self->super);
+    memcpy((char*)self + offset, (char*)self->super + offset, sizeOf(self->super) - offset);
+    *(void const **)&self->_.s = self->super->_.s;
     voidf selector;
     va_list ap;
     va_copy(ap, *app);
@@ -144,90 +144,65 @@ static void *metaclass_ctor(void *_this, va_list *app)
     {
         voidf method = va_arg(ap, voidf);
         if (selector == (voidf)MetaClassS.ctor)
-            *(void**)&this->ctor = method;
+            *(void**)&self->ctor = method;
         else if (selector == (voidf)MetaClassS.dtor)
-            *(void**)&this->dtor = method;
+            *(void**)&self->dtor = method;
         else if (selector == (voidf)MetaClassS.differ)
-            *(void**)&this->differ = method;
+            *(void**)&self->differ = method;
         else if (selector == (voidf)MetaClassS.puto)
-            *(void**)&this->puto = method;
+            *(void**)&self->puto = method;
+        else if (selector == (voidf)MetaClassS.cast)
+            *(void**)&self->cast = method;
         else if (selector == Selector)
-            *(void**)&this->_.s = method;
+            *(void**)&self->_.s = method;
     }
     va_end(ap);
-    return _this;
+    return _self;
 }
 
-static void *metaclass_dtor(void *_this)
+static void *metaclass_dtor(void *_self)
 {
-    struct MetaClass *this = _this;
-    fprintf(stderr, "%s: cannot destroy class\n", this->name);
+    struct MetaClass *self = _self;
+    fprintf(stderr, "%s: cannot destroy class\n", self->name);
     return 0;
 }
 
-const void *super(const void *_this)
+const void *super(const void *_self)
 {
-    const struct MetaClass *this = _this;
-    assert(this && this->super);
-    return this->super;
+    const struct MetaClass *self = _self;
+    assert(self && self->super);
+    return self->super;
 }
 
 /*
  *	object management and selectors
  */
 
-void *_new(FormWO_t t, ...)
+void *new(const void *_class, ...)
 {
-    assert(t._.f != ADDR);
-    if (t._.f == POD) {
-        void *m;
-        if (t.mem)
-            m = t.mem;
-        else
-            m = malloc(t._.size);
-        va_list ap;
-        va_start(ap, t);
-        FormWO_t o = va_arg(ap, FormWO_t); 
-        assert(o._.f != OBJ);
-        if (o._.f == END)
-            memset(m, 0, t._.size);
-        else if (o._.f == ADDR)
-            memcpy(m, *(void**)o.mem, t._.size);
-        else if (o._.f == POD)
-            memcpy(m, o.mem, t._.size);
-        va_end(ap);
-        return m;
-    }
-    const struct MetaClass *class = t._.class;
+    const struct MetaClass *class = _class;
     struct MetaObject *object;
     va_list ap;
     assert(class && class->size);
-    if (t.mem)
-        object = t.mem;
-    else
-        object = calloc(1, class->size);
+    object = calloc(1, class->size);
     assert(object);
     object->class = class;
-    va_start(ap, t);
+    va_start(ap, _class);
     object = class->ctor(object, &ap);
     va_end(ap);
     return object;
 }
 
-void _delete(FormWO_t t)
+void delete(void *_obj)
 {
-    if (t._.f == POD || !t.mem) {
-        free(*(void**)t.mem);
-        return;
-    }
-    const struct MetaClass *class = t._.class;
-    free(class->dtor(*(void**)t.mem));
+    const struct MetaClass *class = classOf(_obj);
+    free(class->dtor(_obj));
 }
 
-void *construct_v(Form_t t, void *mem, va_list *app)
+void *construct_v(void *_class, void *mem, va_list *app)
 {
     assert(mem);
-    const struct MetaClass *class = t.class;
+    const struct MetaClass *class = _class;
     struct MetaObject *object = mem;
     assert(class && class->size);
     assert(object);
@@ -236,11 +211,11 @@ void *construct_v(Form_t t, void *mem, va_list *app)
     return object;
 }
 
-void *construct(Form_t t, void *mem, ...)
+void *construct(void *_class, void *mem, ...)
 {
     va_list ap;
     va_start(ap, mem);
-    struct MetaObject *object = construct_v(t, mem, &ap);
+    struct MetaObject *object = construct_v(_class, mem, &ap);
     va_end(ap);
     return object;
 }
@@ -251,10 +226,10 @@ void destroy(void *_obj)
     obj->class->dtor(_obj);
 }
 
-static void *ctor(void *mem, ...)
+static void *_ctor(void *mem, ...)
 {
-    void *_this = pop_this();
-    const struct MetaClass *class = classOf(_this);
+    void *_self = pop_this();
+    const struct MetaClass *class = classOf(_self);
     assert(class->ctor);
     va_list ap;
     va_start(ap, mem);
@@ -266,56 +241,51 @@ static void *ctor(void *mem, ...)
     return object;
 }
 
-void *super_ctor(const void *_class, void *_this, va_list *app)
-{
-    const struct MetaClass *superclass = super(_class);
-    assert(_this && superclass->ctor);
-    return superclass->ctor(_this, app);
-}
 
-static void *dtor(void)
+static void *_dtor(void)
 {
-    void *_this = pop_this();
-    const struct MetaClass *class = classOf(_this);
+    void *_self = pop_this();
+    const struct MetaClass *class = classOf(_self);
     assert(class->dtor);
-    return class->dtor(_this);
+    return class->dtor(_self);
 }
 
-void *super_dtor(const void *_class, void *_this)
+static void *_cast(const void *_class)
 {
-    const struct MetaClass *superclass = super(_class);
-    assert(_this && superclass->dtor);
-    return superclass->dtor(_this);
+    void *_self = pop_this();
+    const struct MetaClass *class = classOf(_self);
+    assert(class->cast);
+    return class->cast(_self, _class);
 }
 
-static int differ(const void *b)
+static int _differ(const void *b)
 {
-    const void *_this = pop_this();
-    const struct MetaClass *class = classOf(_this);
+    const void *_self = pop_this();
+    const struct MetaClass *class = classOf(_self);
     assert(class->differ);
-    return class->differ(_this, b);
+    return class->differ(_self, b);
 }
 
-int super_differ(const void *_class, const void *_this, const void *b)
+static int _puto(FILE *fp)
 {
-    const struct MetaClass *superclass = super(_class);
-    assert(_this && superclass->differ);
-    return superclass->differ(_this, b);
-}
-
-static int puto(FILE *fp)
-{
-    const void *_this = pop_this();
-    const struct MetaClass *class = classOf(_this);
+    const void *_self = pop_this();
+    const struct MetaClass *class = classOf(_self);
     assert(class->puto);
-    return class->puto(_this, fp);
+    return class->puto(_self, fp);
 }
 
-int super_puto(const void *_class, const void *_this, FILE *fp)
+void *super_ctor(const void *_class, void *_self, va_list *app)
 {
     const struct MetaClass *superclass = super(_class);
-    assert(_this && superclass->puto);
-    return superclass->puto(_this, fp);
+    assert(_self && superclass->ctor);
+    return superclass->ctor(_self, app);
+}
+
+void *super_dtor(const void *_class, void *_self)
+{
+    const struct MetaClass *superclass = super(_class);
+    assert(_self && superclass->dtor);
+    return superclass->dtor(_self);
 }
 
 //this指针
@@ -323,7 +293,7 @@ static thread_key_t this_key;
 static thread_once_t this_key_once = THREAD_ONCE_INIT;
 
 struct this_node {
-    const void *this;
+    const void *self;
     struct this_node *next;
 };
 struct this_stack {
@@ -350,7 +320,7 @@ void push_this(const void *p)
         thread_setspecific(this_key, ptr);
     }
     struct this_node *node = allocate(sizeof(struct this_node));
-    node->this = p;
+    node->self = p;
     node->next = ptr->head;
     ptr->head = node;
 }
@@ -363,73 +333,9 @@ void *pop_this(void)
         return NULL;
 
     struct this_node *node = ptr->head;
-    const void *p = node->this;
+    const void *p = node->self;
     ptr->head = node->next;
     deallocate(node, sizeof(struct this_node));
     return (void*)p;
 }
 
-void *_valueAux(int t, ...)
-{
-    void *ret;
-    va_list ap;
-    va_start(ap, t);
-    switch (t)
-    {
-        case 'f':
-            ret = ARP_MallocARel(sizeof(float));
-            *(float*)ret = (float)va_arg(ap, double);
-            break;
-        case 'F':
-            ret = ARP_MallocARel(sizeof(double));
-            *(double*)ret = (double)va_arg(ap, double);
-            break;
-        case 'c':
-            ret = ARP_MallocARel(sizeof(unsigned char));
-            *(char*)ret = (unsigned char)va_arg(ap, int);
-            break;
-        case 's':
-            ret = ARP_MallocARel(sizeof(unsigned short));
-            *(unsigned short*)ret = (unsigned short)va_arg(ap, int);
-            break;
-        case 'i':
-            ret = ARP_MallocARel(sizeof(unsigned int));
-            *(unsigned int*)ret = (unsigned int)va_arg(ap, unsigned int);
-            break;
-        case 'l':
-            ret = ARP_MallocARel(sizeof(unsigned long));
-            *(unsigned long*)ret = (unsigned long)va_arg(ap, unsigned long);
-            break;
-        case 'L':
-            ret = ARP_MallocARel(sizeof(unsigned long long));
-            *(unsigned long long*)ret = (unsigned long long)va_arg(ap, unsigned long long);
-            break;
-        case 'p':
-            ret = ARP_MallocARel(sizeof(void*));
-            *(void**)ret = (void*)va_arg(ap, void*);
-            break;
-        case 't':
-            ret = va_arg(ap, FormWO_t).mem;
-            break;
-        case 'S':
-            ret = ARP_MallocARel(va_arg(ap, size_t));
-            break;
-        default:
-            assert(0);
-    }
-    return ret;
-}
-
-Form_t _formAux(int t, ...)
-{
-    va_list ap;
-    va_start(ap, t);
-    Form_t f;
-    if (t == 0) {
-        f = va_arg(ap, Form_t);
-        f.f += FORM;
-    } else
-        f = va_arg(ap, FormWO_t)._;
-    va_end(ap);
-    return f;
-}

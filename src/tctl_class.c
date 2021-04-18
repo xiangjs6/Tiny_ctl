@@ -22,7 +22,6 @@ struct Class {
     void *(*mul)(const void *_this, FormWO_t x);
     void *(*div)(const void *_this, FormWO_t x);
     void *(*mod)(const void *_this, FormWO_t x);
-    void *(*cast)(const void *_this, const char *c);
 };
 
 struct Object {};
@@ -40,7 +39,6 @@ static void *_sub(FormWO_t x);
 static void *_mul(FormWO_t x);
 static void *_div(FormWO_t x);
 static void *_mod(FormWO_t x);
-static void *_cast(const char *c);
 //init
 volatile static struct ClassSelector ClassS = {
         {},
@@ -57,7 +55,6 @@ volatile static struct ClassSelector ClassS = {
         _mul,
         _div,
         _mod,
-        _cast
 };
 const struct ClassSelector *_ClassS = NULL;
 static const void *__Class = NULL;
@@ -168,13 +165,6 @@ static void *_mod(FormWO_t x)
     return class->mod(_this, x);
 }
 
-static void *_cast(const char *c)
-{
-    void *_this = pop_this();
-    const struct Class *class = offsetOf(classOf(_this), __Class);
-    assert(class->cast);
-    return class->cast(_this, c);
-}
 
 static void *_class_ctor(void *_this, va_list *app)
 {
@@ -199,13 +189,6 @@ static void *_class_ctor(void *_this, va_list *app)
     }
     va_end(ap);
     return _this;
-}
-
-void *__cast_aux(void *_this, const char *c)
-{
-    const struct Class *class = offsetOf(classOf(_this), __Class);
-    assert(class->cast);
-    return class->cast(_this, c);
 }
 
 static void initClass(void)

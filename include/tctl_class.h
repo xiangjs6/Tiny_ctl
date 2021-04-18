@@ -24,7 +24,6 @@ struct {                           \
     void *(*mul)(FormWO_t x);      \
     void *(*div)(FormWO_t x);      \
     void *(*mod)(FormWO_t x);      \
-    void *(*cast)(const char *c);  \
 }
 
 typedef struct {
@@ -34,9 +33,6 @@ typedef struct {
 typedef struct {
     METAOBJECT_HEAD(CLASS_FUNC);
 } *Object;
-
-#define Cast(obj, __T) __cast_aux(obj, #__T)
-void *__cast_aux(void *_this, const char *c);
 
 Form_t _Class(void);
 Form_t _Object(void);
