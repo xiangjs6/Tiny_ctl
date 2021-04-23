@@ -24,7 +24,6 @@ typedef struct {
     INT_OBJ;
 } *Int;
 
-long long toInt(FormWO_t t);
-Form_t _Int(void);
+const void *_Int(void);
 #define INT Int : _Int()
 #endif //TINY_CTL_TCTL_INT_H

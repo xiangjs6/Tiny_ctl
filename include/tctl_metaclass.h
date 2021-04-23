@@ -22,13 +22,13 @@ size_t sizeOf(const void *self);
 size_t classSz(const void *self);
 void *offsetOf(const void *self, const void *class);
 
-#define METACLASS_FUNC             \
-struct {                           \
-    void *(*ctor)(void *mem, ...); \
-    void *(*dtor)(void);           \
-    int (*differ)(const void *b);  \
-    int (*puto)(FILE *fp);         \
-    void *(*cast)(void *class);    \
+#define METACLASS_FUNC                 \
+struct {                               \
+    void *(*ctor)(void *mem, ...);     \
+    void *(*dtor)(void);               \
+    int (*differ)(const void *b);      \
+    int (*puto)(FILE *fp);             \
+    void *(*cast)(const void *class);  \
 }
 
 typedef struct {

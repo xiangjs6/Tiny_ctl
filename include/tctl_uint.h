@@ -22,7 +22,6 @@ typedef struct {
     UINT_OBJ;
 } *UInt;
 
-unsigned long long toUInt(FormWO_t t);
-Form_t _UInt(void);
+const void *_UInt(void);
 #define UINT UInt : _UInt()
 #endif //TINY_CTL_TCTL_UINT_H
