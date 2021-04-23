@@ -199,7 +199,7 @@ void delete(void *_obj)
     free(class->dtor(_obj));
 }
 
-void *construct_v(void *_class, void *mem, va_list *app)
+void *construct_v(const void *_class, void *mem, va_list *app)
 {
     assert(mem);
     const struct MetaClass *class = _class;
@@ -211,7 +211,7 @@ void *construct_v(void *_class, void *mem, va_list *app)
     return object;
 }
 
-void *construct(void *_class, void *mem, ...)
+void *construct(const void *_class, void *mem, ...)
 {
     va_list ap;
     va_start(ap, mem);

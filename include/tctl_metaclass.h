@@ -14,8 +14,8 @@
 #define T(__T) _Generic(*(__T volatile *)NULL, Import)
 
 //只能传对象
-void *construct_v(void *class, void *mem, va_list *app);
-void *construct(void *class, void *mem, ...);
+void *construct_v(const void *class, void *mem, va_list *app);
+void *construct(const void *class, void *mem, ...);
 void destroy(void *obj);
 const void *classOf(const void *self);
 size_t sizeOf(const void *self);

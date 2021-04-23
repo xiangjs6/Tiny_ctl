@@ -1,4 +1,0 @@
-#ifndef _TCTL_PLAINDATA_H
-#define _TCTL_PLAINDATA_H
-
-#endif //SRC/INCLUDE/_TCTL_PLAINDATA_H
