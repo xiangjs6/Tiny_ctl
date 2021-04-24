@@ -5,9 +5,14 @@
 enum TypeFlag {POD, OBJ};
 
 typedef struct {
-    METACLASS_FUNC;
-    void *(*value)(void);
-    size_t (*size)(void);
+    METAOBJECT_HEAD(
+        struct {
+            METACLASS_FUNC;
+            void *(*value)(void);
+            size_t (*size)(void);
+            enum TypeFlag (*type)(void);
+        }
+    );
  } *Any;
 
 //Any不可以被继承

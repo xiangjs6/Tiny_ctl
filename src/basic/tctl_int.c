@@ -2,15 +2,16 @@
 // Created by xjs on 2020/12/31.
 //
 
-#include "include/_tctl_int.h"
+#include <stdarg.h>
 #include "../../include/auto_release_pool.h"
 #include "../../include/tctl_any.h"
-#include <stdarg.h>
 #include "../../include/tctl_arg.h"
-#include "../../include/tctl_uint.h"
+#include "../../include/tctl_int.h"
 #include "../../include/tctl_char.h"
 #include "../../include/tctl_double.h"
-#define Import CLASS, INT, OBJECT, ANY, UINT, CHAR, DOUBLE
+#include "../include/_tctl_metaclass.h"
+#include "../include/_tctl_class.h"
+#define Import CLASS, INT, OBJECT, ANY, CHAR, DOUBLE
 
 struct Int {
     long long val;
@@ -22,14 +23,19 @@ static void *_int_ctor(void *_self, va_list *app)
 {
     _self = super_ctor(__Int, _self, app);
     struct Int *self = offsetOf(_self, __Int);
-    Object val = va_arg(*app, Object);
-    struct Int *p;
-    if (val == VAEND)
+    MetaObject val = va_arg(*app, MetaObject);
+    Int p;
+    if (val == VAEND) {
         self->val = 0;
-    else if (classOf(val) == __Int)
-        p = offsetOf(val, __Int);
-    else
+        return _self;
+    } else if (classOf(val) == __Int) {
+        p = (Int)val;
+    } else if (classOf(val) == T(Any)) {
+        Any any = (Any)val;
+        p = THIS(any).cast(__Int);
+    } else {
         p = THIS(val).cast(__Int);
+    }
     self->val = p->val;
     return _self;
 }
@@ -37,12 +43,14 @@ static void *_int_ctor(void *_self, va_list *app)
 static bool _int_equal(const void *_self, Int x)
 {
     const struct Int *self = offsetOf(_self, __Int);
+    x = classOf(x) == __Int ? x : THIS(x).cast(__Int);
     return self->val == x->val;
 }
 
 static int _int_cmp(const void *_self, Int x)
 {
     const struct Int *self = offsetOf(_self, __Int);
+    x = classOf(x) == __Int ? x : THIS(x).cast(__Int);
     return self->val - x->val;
 }
 
@@ -61,25 +69,28 @@ static void _int_dec(void *_self)
 static void _int_self_add(void *_self, Int x)
 {
     struct Int *self = offsetOf(_self, __Int);
+    x = classOf(x) == __Int ? x : THIS(x).cast(__Int);
     self->val += x->val;
 }
 
 static void _int_self_sub(void *_self, Int x)
 {
     struct Int *self = offsetOf(_self, __Int);
-    long long val = x->val;
-    self->val -= val;
+    x = classOf(x) == __Int ? x : THIS(x).cast(__Int);
+    self->val -= x->val;
 }
 
 static void _int_assign(void *_self, Int x)
 {
     struct Int *self = offsetOf(_self, __Int);
+    x = classOf(x) == __Int ? x : THIS(x).cast(__Int);
     self->val = x->val;
 }
 
 static void *_int_add(const void *_self, Int x)
 {
     const struct Int *self = offsetOf(_self, __Int);
+    x = classOf(x) == __Int ? VA(x->val) : THIS(x).cast(__Int);
     x->val += self->val;
     void *mem = ARP_MallocARelDtor(classSz(__Int), destroy);
     return construct(_Int(), mem, x, VAEND);
@@ -88,6 +99,7 @@ static void *_int_add(const void *_self, Int x)
 static void *_int_sub(const void *_self, Int x)
 {
     const struct Int *self = offsetOf(_self, __Int);
+    x = classOf(x) == __Int ? VA(x->val) : THIS(x).cast(__Int);
     x->val += self->val;
     void *mem = ARP_MallocARelDtor(classSz(__Int), destroy);
     return construct(_Int(), mem, x, VAEND);
@@ -96,6 +108,7 @@ static void *_int_sub(const void *_self, Int x)
 static void *_int_mul(const void *_self, Int x)
 {
     const struct Int *self = offsetOf(_self, __Int);
+    x = classOf(x) == __Int ? VA(x->val) : THIS(x).cast(__Int);
     x->val *= self->val;
     void *mem = ARP_MallocARelDtor(classSz(__Int), destroy);
     return construct(_Int(), mem, x, VAEND);
@@ -104,7 +117,8 @@ static void *_int_mul(const void *_self, Int x)
 static void *_int_div(const void *_self, Int x)
 {
     const struct Int *self = offsetOf(_self, __Int);
-    x->val /= self->val;
+    x = classOf(x) == __Int ? VA(x->val) : THIS(x).cast(__Int);
+    x->val = self->val / x->val;
     void *mem = ARP_MallocARelDtor(classSz(__Int), destroy);
     return construct(_Int(), mem, x, VAEND);
 }
@@ -112,7 +126,8 @@ static void *_int_div(const void *_self, Int x)
 static void *_int_mod(const void *_self, Int x)
 {
     const struct Int *self = offsetOf(_self, __Int);
-    x->val %= self->val;
+    x = classOf(x) == __Int ? VA(x->val) : THIS(x).cast(__Int);
+    x->val = self->val % x->val;
     void *mem = ARP_MallocARelDtor(classSz(__Int), destroy);
     return construct(_Int(), mem, x, VAEND);
 }
@@ -124,10 +139,6 @@ static void *_int_cast(const void *_self, const void *class)
     if (class == __Int) {
         ret = ARP_MallocARel(classSz(class));
         construct(__Int, ret, _self, VAEND);
-    } else if (class == T(UInt)) {
-        ret = ARP_MallocARel(classSz(class));
-        UInt v = construct(class, ret, VAEND);
-        v->val = self->val;
     } else if (class == T(Char)) {
         ret = ARP_MallocARel(classSz(class));
         Char v = construct(class, ret, VAEND);
@@ -136,6 +147,9 @@ static void *_int_cast(const void *_self, const void *class)
         ret = ARP_MallocARel(classSz(class));
         Double v = construct(class, ret, VAEND);
         v->val = self->val;
+    } else if (class == T(Any)) {
+        ret = ARP_MallocARel(classSz(class));
+        construct(class, ret, _self, VAEND);
     } else {
         MetaObject m_obj = offsetOf(_self, T(MetaObject));
         ret = THIS(m_obj).cast(class);

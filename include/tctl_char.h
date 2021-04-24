@@ -24,7 +24,6 @@ typedef struct {
     CHAR_OBJ;
 } BYTE_ALIGNED *Char ;
 
-char toChar(FormWO_t t);
-Form_t _Char(void);
+const void *_Char(void);
 #define CHAR Char : _Char()
 #endif //TINY_CTL_TCTL_CHAR_H

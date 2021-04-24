@@ -11,29 +11,35 @@ struct AnySelector {
     char _[sizeof(struct MetaClassSelector)];
     void *(*value)(void);
     size_t (*size)(void);
+    enum TypeFlag (*type)(void);
 };
 
 struct AnyClass {
     void *(*value)(void *self);
     size_t (*size)(void *self);
+    enum TypeFlag (*type)(void *self);
 };
 
 struct Any {
     size_t size;
     enum TypeFlag type_flag;
+    void *(*cast)(void *self, const void *class);
     void *mem;
 };
 
 //Selector
 static void *_value(void);
 static size_t _size(void);
+static enum TypeFlag _type(void);
 //AnyClass
-static void *_AnyClass_ctor(void *_self, va_list *app);
+static void *_anyclass_ctor(void *_self, va_list *app);
 //Any
-static void *_Any_ctor(void *_self, va_list *app);
-static void *_Any_dtor(void *_self);
-static size_t _Any_size(void *_self);
-static void *_Any_value(void *_self);
+static void *_any_ctor(void *_self, va_list *app);
+static void *_any_dtor(void *_self);
+static size_t _any_size(void *_self);
+static void *_any_value(void *_self);
+static enum TypeFlag _any_type(void *_self);
+static void *_any_cast(void *_self, const void *class);
 
 static const void *__AnyClass = NULL;
 static const void *__Any = NULL;
@@ -41,7 +47,8 @@ static const void *__Any = NULL;
 volatile static struct AnySelector AnyS = {
         ._ = {},
         .value = _value,
-        .size = _size
+        .size = _size,
+        .type = _type
 };
 
 static const struct AnySelector *_AnyS = NULL;
@@ -56,18 +63,20 @@ static void initAny(void)
     if (!__AnyClass)
         __AnyClass = new(T(MetaClass), "AnyClass",
                                T(MetaClass), sizeof(struct AnyClass) + classSz(T(MetaClass)),
-                               _MetaClassS->ctor, _AnyClass_ctor, NULL);
+                               _MetaClassS->ctor, _anyclass_ctor, NULL);
 
     if (!__Any)
         __Any = new(__AnyClass, "Any",
                           T(MetaObject), sizeof(struct Any) + classSz(T(MetaObject)),
-                          _MetaClassS->ctor, _Any_ctor,
-                          _MetaClassS->dtor, _Any_dtor,
-                          _AnyS->value, _Any_value,
-                          _AnyS->size, _Any_size, NULL);
+                          _MetaClassS->ctor, _any_ctor,
+                          _MetaClassS->dtor, _any_dtor,
+                          _MetaClassS->cast, _any_cast,
+                          _AnyS->value, _any_value,
+                          _AnyS->size, _any_size,
+                          _AnyS->type, _any_type, NULL);
 }
 
-const void *_Any(void)
+const void *_any(void)
 {
     if (!__Any)
         initAny();
@@ -75,7 +84,7 @@ const void *_Any(void)
 }
 
 //AnyClass
-static void *_AnyClass_ctor(void *_self, va_list *app)
+static void *_anyclass_ctor(void *_self, va_list *app)
 {
     _self = super_ctor(__AnyClass, _self, app);
     struct AnyClass *this = offsetOf(_self, __AnyClass);
@@ -101,7 +110,7 @@ static void *_AnyClass_ctor(void *_self, va_list *app)
 }
 
 //Any
-static void *_Any_ctor(void *_self, va_list *app)
+static void *_any_ctor(void *_self, va_list *app)
 {
     _self = super_ctor(__Any, _self, app);
     struct Any *self = offsetOf(_self, __Any);
@@ -112,7 +121,9 @@ static void *_Any_ctor(void *_self, va_list *app)
     if (va_arg(ap, void*) == VAEND) {
         if (classOf(value) == __Any) {
             struct Any *p = offsetOf(value, __Any);
+            self->type_flag = p->type_flag;
             self->size = p->size;
+            self->cast = p->cast;
             if (self->type_flag == POD)
                 self->mem = new(classOf(p->mem), p->mem, VAEND);
             else {
@@ -120,11 +131,16 @@ static void *_Any_ctor(void *_self, va_list *app)
                 memcpy(self->mem, p->mem, self->size);
             }
         } else {
+            self->type_flag = OBJ;
             self->size = classSz(value);
             self->mem = new(classOf(value), value, VAEND);
         }
     } else {
+        self->type_flag = POD;
         self->size = va_arg(*app, size_t);
+        self->cast = va_arg(*app, void*);
+        if (self->cast == VAEND)
+            self->cast = NULL;
         self->mem = malloc(self->size);
         memcpy(self->mem, value, self->size);
     }
@@ -132,7 +148,7 @@ static void *_Any_ctor(void *_self, va_list *app)
     return _self;
 }
 
-static void *_Any_dtor(void *_self)
+static void *_any_dtor(void *_self)
 {
     _self = super_dtor(__Any, _self);
     struct Any *self = offsetOf(_self, __Any);
@@ -150,16 +166,33 @@ static void *_Any_dtor(void *_self)
     return _self;
 }
 
-static size_t _Any_size(void *_self)
+static size_t _any_size(void *_self)
 {
     struct Any *self = offsetOf(_self, __Any);
     return self->size;
 }
 
-static void *_Any_value(void *_self)
+static void *_any_value(void *_self)
 {
     struct Any *self = offsetOf(_self, __Any);
     return self->mem;
+}
+
+static enum TypeFlag _any_type(void *_self)
+{
+    struct Any *self = offsetOf(_self, __Any);
+    return self->type_flag;
+}
+
+static void *_any_cast(void *_self, const void *class)
+{
+    struct Any *self = offsetOf(_self, __Any);
+    if (self->type_flag == OBJ) {
+        MetaObject m_obj = self->mem;
+        return THIS(m_obj).cast(class);
+    }
+    assert(self->cast);
+    return self->cast(self->mem, class);
 }
 
 //Selector
@@ -177,4 +210,12 @@ static size_t _size(void)
     const struct AnyClass *class = offsetOf(classOf(_self), __AnyClass);
     assert(class->size);
     return class->size(_self);
+}
+
+static enum TypeFlag _type(void)
+{
+    void *_self = pop_this();
+    const struct AnyClass *class = offsetOf(classOf(_self), __AnyClass);
+    assert(class->type);
+    return class->type(_self);
 }

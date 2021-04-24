@@ -22,7 +22,6 @@ typedef struct {
     DOUBLE_OBJ;
 } *Double;
 
-double toDouble(FormWO_t t);
-Form_t _Double(void);
+const void *_Double(void);
 #define DOUBLE Double : _Double()
 #endif //TINY_CTL_TCTL_DOUBLE_H

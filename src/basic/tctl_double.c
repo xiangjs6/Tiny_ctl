@@ -2,11 +2,17 @@
 // Created by xjs on 2021/1/3.
 //
 
-#include "include/_tctl_double.h"
-#include "../../include/auto_release_pool.h"
-#include <string.h>
 #include <assert.h>
-#define Import CLASS, DOUBLE, OBJECT
+#include "../../include/tctl_double.h"
+#include "../../include/tctl_any.h"
+#include "../../include/tctl_arg.h"
+#include "../../include/tctl_int.h"
+#include "../../include/tctl_char.h"
+#include "../../include/tctl_double.h"
+#include "../include/_tctl_metaclass.h"
+#include "../include/_tctl_class.h"
+#include "../../include/auto_release_pool.h"
+#define Import CLASS, INT, OBJECT, ANY, CHAR, DOUBLE
 
 struct Double {
     double val;
@@ -14,189 +20,133 @@ struct Double {
 
 static const void *__Double = NULL;
 
-inline double toDouble(FormWO_t t)
+static void *_double_ctor(void *_self, va_list *app)
 {
-    double *d;
-    float *f;
-    double res = 0;
-    switch (t._.f) {
-        case POD:
-            if (t._.size == 4) {
-                f = t.mem;
-                res = *f;
-            } else {
-                d = t.mem;
-                res = *d;
-            }
-            break;
-        case ADDR:
-            memcpy(&res, *(void**)t.mem, sizeof(res));
-            break;
-        case OBJ:
-            res = *(double*)Cast(*(Object*)t.mem, double);
-            break;
-        default:
-            assert(0);
+    _self = super_ctor(__Double, _self, app);
+    struct Double *self = offsetOf(_self, __Double);
+    MetaObject val = va_arg(*app, MetaObject);
+    Double p;
+    if (val == VAEND) {
+        self->val = 0;
+        return _self;
+    } else if (classOf(val) == __Double) {
+        p = (Double)val;
+    } else if (classOf(val) == T(Any)) {
+        Any any = (Any)val;
+        p = THIS(any).cast(__Double);
+    } else {
+        p = THIS(val).cast(__Double);
     }
-    return res;
+    self->val = p->val;
+    return _self;
 }
 
-static void *_ctor(void *_this, va_list *app)
+static bool _double_equal(const void *_self, Double x)
 {
-    _this = super_ctor(__Double, _this, app);
-    struct Double *this = offsetOf(_this, __Double);
-    FormWO_t t = va_arg(*app, FormWO_t);
-    if (t._.f == END)
-        this->val = 0;
-    else
-        this->val = toDouble(t);
-    return _this;
+    const struct Double *self = offsetOf(_self, __Double);
+    x = classOf(x) == __Double ? x : THIS(x).cast(__Double);
+    return self->val == x->val;
 }
 
-static bool _equal(const void *_this, FormWO_t x)
+static int _double_cmp(const void *_self, Double x)
 {
-    const struct Double *this = offsetOf(_this, __Double);
-    double val = toDouble(x);
-    return this->val == val;
+    const struct Double *self = offsetOf(_self, __Double);
+    x = classOf(x) == __Double ? x : THIS(x).cast(__Double);
+    return self->val - x->val;
 }
 
-static int _cmp(const void *_this, FormWO_t x)
+static void _double_inc(void *_self)
 {
-    const struct Double *this = offsetOf(_this, __Double);
-    double val = toDouble(x);
-    return this->val - val;
+    struct Double *self = offsetOf(_self, __Double);
+    self->val++;
 }
 
-static void _inc(void *_this)
+static void _double_dec(void *_self)
 {
-    struct Double *this = offsetOf(_this, __Double);
-    this->val++;
+    struct Double *self = offsetOf(_self, __Double);
+    self->val--;
 }
 
-static void _dec(void *_this)
+static void _double_self_add(void *_self, Double x)
 {
-    struct Double *this = offsetOf(_this, __Double);
-    this->val--;
+    struct Double *self = offsetOf(_self, __Double);
+    x = classOf(x) == __Double ? x : THIS(x).cast(__Double);
+    self->val += x->val;
 }
 
-static void _self_add(void *_this, FormWO_t x)
+static void _double_self_sub(void *_self, Double x)
 {
-    struct Double *this = offsetOf(_this, __Double);
-    double val = toDouble(x);
-    this->val += val;
+    struct Double *self = offsetOf(_self, __Double);
+    x = classOf(x) == __Double ? x : THIS(x).cast(__Double);
+    self->val -= x->val;
 }
 
-static void _self_sub(void *_this, FormWO_t x)
+static void _double_assign(void *_self, Double x)
 {
-    struct Double *this = offsetOf(_this, __Double);
-    double val = toDouble(x);
-    this->val -= val;
+    struct Double *self = offsetOf(_self, __Double);
+    x = classOf(x) == __Double ? x : THIS(x).cast(__Double);
+    self->val = x->val;
 }
 
-static void _assign(void *_this, FormWO_t x)
+static void *_double_add(const void *_self, Double x)
 {
-    struct Double *this = offsetOf(_this, __Double);
-    double val = toDouble(x);
-    this->val = val;
-}
-
-static void *_add(const void *_this, FormWO_t x)
-{
-    const struct Double *this = offsetOf(_this, __Double);
-    double val = toDouble(x) + this->val;
+    const struct Double *self = offsetOf(_self, __Double);
+    x = classOf(x) == __Double ? VA(x->val) : THIS(x).cast(__Double);
+    x->val += self->val;
     void *mem = ARP_MallocARelDtor(classSz(__Double), destroy);
-    return new(compose(_Double(), mem), VA(val));
+    return construct(_Double(), mem, x, VAEND);
 }
 
-static void *_sub(const void *_this, FormWO_t x)
+static void *_double_sub(const void *_self, Double x)
 {
-    const struct Double *this = offsetOf(_this, __Double);
-    double val = toDouble(x) - this->val;
+    const struct Double *self = offsetOf(_self, __Double);
+    x = classOf(x) == __Double ? VA(x->val) : THIS(x).cast(__Double);
+    x->val -= self->val;
     void *mem = ARP_MallocARelDtor(classSz(__Double), destroy);
-    return new(compose(_Double(), mem), VA(val));
+    return construct(_Double(), mem, x, VAEND);
 }
 
-static void *_mul(const void *_this, FormWO_t x)
+static void *_double_mul(const void *_self, Double x)
 {
-    const struct Double *this = offsetOf(_this, __Double);
-    double val = toDouble(x) * this->val;
+    const struct Double *self = offsetOf(_self, __Double);
+    x = classOf(x) == __Double ? VA(x->val) : THIS(x).cast(__Double);
+    x->val *= self->val;
     void *mem = ARP_MallocARelDtor(classSz(__Double), destroy);
-    return new(compose(_Double(), mem), VA(val));
+    return construct(_Double(), mem, x, VAEND);
 }
 
-static void *_div(const void *_this, FormWO_t x)
+static void *_double_div(const void *_self, Double x)
 {
-    const struct Double *this = offsetOf(_this, __Double);
-    double val = toDouble(x) / this->val;
+    const struct Double *self = offsetOf(_self, __Double);
+    x = classOf(x) == __Double ? VA(x->val) : THIS(x).cast(__Double);
+    x->val = self->val / x->val;
     void *mem = ARP_MallocARelDtor(classSz(__Double), destroy);
-    return new(compose(_Double(), mem), VA(val));
+    return construct(_Double(), mem, x, VAEND);
 }
 
-static void *_cast(const void *_this, const char *c)
+static void *_double_cast(const void *_self, const void *class)
 {
-    const struct Double *this = offsetOf(_this, __Double);
-    if (!strcmp(c, "long long")) {
-        long long *v = ARP_MallocARel(sizeof(long long));
-        *v = (long long)this->val;
-        return v;
+    const struct Double *self = offsetOf(_self, __Double);
+    void *ret;
+    if (class == __Double) {
+        ret = ARP_MallocARel(classSz(class));
+        construct(__Double, ret, _self, VAEND);
+    } else if (class == T(Char)) {
+        ret = ARP_MallocARel(classSz(class));
+        Char v = construct(class, ret, VAEND);
+        v->val = self->val;
+    } else if (class == T(Double)) {
+        ret = ARP_MallocARel(classSz(class));
+        Double v = construct(class, ret, VAEND);
+        v->val = self->val;
+    } else if (class == T(Any)) {
+        ret = ARP_MallocARel(classSz(class));
+        construct(class, ret, _self, VAEND);
+    } else {
+        MetaObject m_obj = offsetOf(_self, T(MetaObject));
+        ret = THIS(m_obj).cast(class);
     }
-    if (!strcmp(c, "long")) {
-        long *v = ARP_MallocARel(sizeof(long));
-        *v = (long)this->val;
-        return v;
-    }
-    if (!strcmp(c, "int")) {
-        int *v = ARP_MallocARel(sizeof(int));
-        *v = (int)this->val;
-        return v;
-    }
-    if (!strcmp(c, "short")) {
-        short *v = ARP_MallocARel(sizeof(short));
-        *v = (short)this->val;
-        return v;
-    }
-    if (!strcmp(c, "char")) {
-        char *v = ARP_MallocARel(sizeof(char));
-        *v = (char)this->val;
-        return v;
-    }
-    if (!strcmp(c, "unsigned long long")) {
-        unsigned long long *v = ARP_MallocARel(sizeof(unsigned long long));
-        *v = (unsigned long long)this->val;
-        return v;
-    }
-    if (!strcmp(c, "unsigned long")) {
-        unsigned long *v = ARP_MallocARel(sizeof(unsigned long));
-        *v = (unsigned long)this->val;
-        return v;
-    }
-    if (!strcmp(c, "unsigned int")) {
-        unsigned int *v = ARP_MallocARel(sizeof(unsigned int));
-        *v = (unsigned int)this->val;
-        return v;
-    }
-    if (!strcmp(c, "unsigned short")) {
-        unsigned short *v = ARP_MallocARel(sizeof(unsigned short));
-        *v = (unsigned short)this->val;
-        return v;
-    }
-    if (!strcmp(c, "unsigned char")) {
-        unsigned char *v = ARP_MallocARel(sizeof(unsigned char));
-        *v = (unsigned char)this->val;
-        return v;
-    }
-    if (!strcmp(c, "float")) {
-        float *v = ARP_MallocARel(sizeof(float));
-        *v = (float)this->val;
-        return v;
-    }
-    if (!strcmp(c, "double")) {
-        double *v = ARP_MallocARel(sizeof(double));
-        *v = (double)this->val;
-        return v;
-    }
-    assert(0);
-    return NULL;
+    return ret;
 }
 
 static void initDouble(void)
@@ -204,25 +154,25 @@ static void initDouble(void)
     T(Class); //初始化Class选择器
     if (!__Double)
         __Double = new(T(Class), "Double", T(Object), sizeof(struct Double) + classSz(_Object().class),
-                     _MetaClassS->ctor, _ctor,
-                     _ClassS->equal, _equal,
-                     _ClassS->cmp, _cmp,
-                     _ClassS->inc, _inc,
-                     _ClassS->dec, _dec,
-                     _ClassS->self_add, _self_add,
-                     _ClassS->self_sub, _self_sub,
-                     _ClassS->assign, _assign,
-                     _ClassS->add, _add,
-                     _ClassS->sub, _sub,
-                     _ClassS->mul, _mul,
-                     _ClassS->div, _div,
-                     _ClassS->cast, _cast,
+                     _MetaClassS->ctor, _double_ctor,
+                     _MetaClassS->cast, _double_cast,
+                     _ClassS->equal, _double_equal,
+                     _ClassS->cmp, _double_cmp,
+                     _ClassS->inc, _double_inc,
+                     _ClassS->dec, _double_dec,
+                     _ClassS->self_add, _double_self_add,
+                     _ClassS->self_sub, _double_self_sub,
+                     _ClassS->assign, _double_assign,
+                     _ClassS->add, _double_add,
+                     _ClassS->sub, _double_sub,
+                     _ClassS->mul, _double_mul,
+                     _ClassS->div, _double_div,
                      Selector, _ClassS, NULL);
 }
 
-Form_t _Double(void)
+const void *_Double(void)
 {
     if (!__Double)
         initDouble();
-    return (Form_t){OBJ, {.class = __Double}};
+    return __Double;
 }
