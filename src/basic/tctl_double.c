@@ -172,7 +172,7 @@ const void *_Double(void)
     return __Double;
 }
 
-static void *to_Double(const double *p, const void *class)
+void *to_Double(const double *p, const void *class)
 {
     void *mem = ARP_MallocARel(classSz(T(Double)));
     Double d = construct(T(Double), mem, VAEND);

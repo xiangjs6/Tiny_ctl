@@ -76,7 +76,7 @@ static void initAny(void)
                           _AnyS->type, _any_type, NULL);
 }
 
-const void *_any(void)
+const void *_Any(void)
 {
     if (!__Any)
         initAny();

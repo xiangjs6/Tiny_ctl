@@ -15,6 +15,6 @@
 #define autofree(func) __attribute__((cleanup(func)))
 #define compose(...) __VA_ARGS__
 
-size_t hash_numeric(FormWO_t x);
-size_t hash_str(FormWO_t x);
+size_t hash_numeric(void *x);
+size_t hash_str(void *x);
 #endif //TINY_CTL_TCTL_COMMON_H
