@@ -8,7 +8,6 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <assert.h>
-#include "map_macro.h"
 
 //由类型名生成对应的class变量
 #define T(__T) _Generic(*(__T volatile *)NULL, Import)

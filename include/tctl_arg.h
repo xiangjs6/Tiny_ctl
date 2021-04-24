@@ -4,7 +4,7 @@
 
 #ifndef TINY_CTL_TCTL_ARG_H
 #define TINY_CTL_TCTL_ARG_H
-
+#include "map_macro.h"
 
 void *_valueAux(int t, ...);
 
