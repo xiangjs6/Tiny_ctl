@@ -2,7 +2,6 @@
 // Created by xjs on 2021/1/3.
 //
 
-#include <assert.h>
 #include "../../include/auto_release_pool.h"
 #include "../../include/tctl_any.h"
 #include "../../include/tctl_arg.h"
@@ -11,7 +10,7 @@
 #include "../../include/tctl_double.h"
 #include "../include/_tctl_metaclass.h"
 #include "../include/_tctl_class.h"
-#define Import CLASS, CHAR, OBJECT， ANY, INT, DOUBLE
+#define Import CLASS, CHAR, OBJECT, ANY, INT, DOUBLE, METAOBJECT
 
 struct Char {
     char val;
@@ -30,13 +29,10 @@ static void *_char_ctor(void *_self, va_list *app)
         return _self;
     } else if (classOf(val) == __Char) {
         p = (Char)val;
-    } else if (classOf(val) == T(Any)) {
-        Any any = (Any)val;
-        p = THIS(any).cast(__Char);
     } else {
         p = THIS(val).cast(__Char);
     }
-    
+    self->val = p->val;
     return _self;
 }
 
@@ -161,7 +157,7 @@ static void initChar(void)
 {
     T(Class); //初始化Class选择器
     if (!__Char)
-        __Char = new(T(Class), "Char", T(Object), sizeof(struct Char) + classSz(_Object().class),
+        __Char = new(T(Class), "Char", T(Object), sizeof(struct Char) + classSz(T(Object)),
                     _MetaClassS->ctor, _char_ctor,
                     _MetaClassS->cast, _char_cast,
                     _ClassS->equal, _char_equal,
@@ -184,4 +180,14 @@ const void *_Char(void)
     if (!__Char)
         initChar();
     return __Char;
+}
+
+void *to_Char(const char *p, const void *class)
+{
+    void *mem = ARP_MallocARel(classSz(T(Char)));
+    Char c = construct(T(Char), mem, VAEND);
+    c->val = *p;
+    if (class != T(Char))
+        return THIS(c).cast(class);
+    return c;
 }

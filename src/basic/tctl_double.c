@@ -2,17 +2,15 @@
 // Created by xjs on 2021/1/3.
 //
 
-#include <assert.h>
-#include "../../include/tctl_double.h"
 #include "../../include/tctl_any.h"
 #include "../../include/tctl_arg.h"
+#include "../../include/tctl_double.h"
 #include "../../include/tctl_int.h"
 #include "../../include/tctl_char.h"
-#include "../../include/tctl_double.h"
 #include "../include/_tctl_metaclass.h"
 #include "../include/_tctl_class.h"
 #include "../../include/auto_release_pool.h"
-#define Import CLASS, INT, OBJECT, ANY, CHAR, DOUBLE
+#define Import CLASS, INT, OBJECT, ANY, CHAR, DOUBLE, METAOBJECT
 
 struct Double {
     double val;
@@ -31,9 +29,6 @@ static void *_double_ctor(void *_self, va_list *app)
         return _self;
     } else if (classOf(val) == __Double) {
         p = (Double)val;
-    } else if (classOf(val) == T(Any)) {
-        Any any = (Any)val;
-        p = THIS(any).cast(__Double);
     } else {
         p = THIS(val).cast(__Double);
     }
@@ -153,7 +148,7 @@ static void initDouble(void)
 {
     T(Class); //初始化Class选择器
     if (!__Double)
-        __Double = new(T(Class), "Double", T(Object), sizeof(struct Double) + classSz(_Object().class),
+        __Double = new(T(Class), "Double", T(Object), sizeof(struct Double) + classSz(T(Object)),
                      _MetaClassS->ctor, _double_ctor,
                      _MetaClassS->cast, _double_cast,
                      _ClassS->equal, _double_equal,
@@ -175,4 +170,14 @@ const void *_Double(void)
     if (!__Double)
         initDouble();
     return __Double;
+}
+
+static void *to_Double(const double *p, const void *class)
+{
+    void *mem = ARP_MallocARel(classSz(T(Double)));
+    Double d = construct(T(Double), mem, VAEND);
+    d->val = *p;
+    if (class != T(Double))
+        return THIS(d).cast(class);
+    return d;
 }

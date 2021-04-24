@@ -24,4 +24,6 @@ typedef struct {
 
 const void *_Double(void);
 #define DOUBLE Double : _Double()
+
+static void *to_Double(const double *p, const void *class);
 #endif //TINY_CTL_TCTL_DOUBLE_H

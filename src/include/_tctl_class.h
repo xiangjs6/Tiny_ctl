@@ -6,7 +6,6 @@
 #define TINY_CTL__TCTL_CLASS_H
 #include "_tctl_metaclass.h"
 #include "../../include/tctl_class.h"
-#include <stdbool.h>
 
 struct ClassSelector {
     char _[sizeof(struct MetaClassSelector)];

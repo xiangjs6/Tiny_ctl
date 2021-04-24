@@ -15,43 +15,13 @@
 
 void *VAEND = &VAEND;
 
-static void *to_Int(void *p, const void *class)
-{
-    void *mem = ARP_MallocARel(classSz(T(Int)));
-    Int i = construct(T(Int), mem, VAEND);
-    i->val = *(unsigned long long*)p;
-    if (class != T(Int))
-        return THIS(i).cast(class);
-    return i;
-}
-
-static void *to_Char(void *p, const void *class)
-{
-    void *mem = ARP_MallocARel(classSz(T(Char)));
-    Char c = construct(T(Char), mem, VAEND);
-    c->val = *(char*)p;
-    if (class != T(Char))
-        return THIS(c).cast(class);
-    return c;
-}
-
-static void *to_Double(void *p, const void *class)
-{
-    void *mem = ARP_MallocARel(classSz(T(Double)));
-    Double d = construct(T(Double), mem, VAEND);
-    d->val = *(double*)p;
-    if (class != T(Double))
-        return THIS(d).cast(class);
-    return d;
-}
-
 void *_valueAux(int t, ...)
 {
 
     void *ret;
     double d;
-    unsigned char c;
-    unsigned long long i;
+    char c;
+    long long i;
     void *p_st;
     size_t st_size;
     void *p_cast;
@@ -66,7 +36,7 @@ void *_valueAux(int t, ...)
             ret = to_Double(&d, T(Double));
             break;
         case 'c':
-            c = va_arg(ap, unsigned int);
+            c = va_arg(ap, int);
             ret = to_Char(&c, T(Char));
             break;
         case 's':
@@ -77,13 +47,13 @@ void *_valueAux(int t, ...)
             {
                 case 's':
                 case 'i':
-                    i = va_arg(ap, unsigned int);
+                    i = va_arg(ap, int);
                     break;
                 case 'l':
-                    i = va_arg(ap, unsigned long);
+                    i = va_arg(ap, long);
                     break;
                 case 'L':
-                    i = va_arg(ap, unsigned long long);
+                    i = va_arg(ap, long long);
                     break;
             }
             ret = to_Int(&i, T(Int));

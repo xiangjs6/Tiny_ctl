@@ -26,4 +26,6 @@ typedef struct {
 
 const void *_Char(void);
 #define CHAR Char : _Char()
+
+void *to_Char(const char *p, const void *class);
 #endif //TINY_CTL_TCTL_CHAR_H

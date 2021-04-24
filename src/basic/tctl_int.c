@@ -11,7 +11,7 @@
 #include "../../include/tctl_double.h"
 #include "../include/_tctl_metaclass.h"
 #include "../include/_tctl_class.h"
-#define Import CLASS, INT, OBJECT, ANY, CHAR, DOUBLE
+#define Import CLASS, INT, OBJECT, ANY, CHAR, DOUBLE, METAOBJECT
 
 struct Int {
     long long val;
@@ -30,9 +30,6 @@ static void *_int_ctor(void *_self, va_list *app)
         return _self;
     } else if (classOf(val) == __Int) {
         p = (Int)val;
-    } else if (classOf(val) == T(Any)) {
-        Any any = (Any)val;
-        p = THIS(any).cast(__Int);
     } else {
         p = THIS(val).cast(__Int);
     }
@@ -161,7 +158,7 @@ static void initInt(void)
 {
     T(Class); //初始化Class选择器
     if (!__Int)
-        __Int = new(T(Class), "Int", T(Object), sizeof(struct Int) + classSz(_Object().class),
+        __Int = new(T(Class), "Int", T(Object), sizeof(struct Int) + classSz(T(Object)),
                    _MetaClassS->ctor, _int_ctor,
                    _MetaClassS->cast, _int_cast,
                    _ClassS->equal, _int_equal,
@@ -184,4 +181,14 @@ const void *_Int(void)
     if (!__Int)
         initInt();
     return __Int;
+}
+
+void *to_Int(const long long *p, const void *class)
+{
+    void *mem = ARP_MallocARel(classSz(T(Int)));
+    Int i = construct(T(Int), mem, VAEND);
+    i->val = *p;
+    if (class != T(Int))
+        return THIS(i).cast(class);
+    return i;
 }

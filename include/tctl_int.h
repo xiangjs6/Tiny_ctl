@@ -26,4 +26,6 @@ typedef struct {
 
 const void *_Int(void);
 #define INT Int : _Int()
+
+void *to_Int(const long long *p, const void *class);
 #endif //TINY_CTL_TCTL_INT_H
