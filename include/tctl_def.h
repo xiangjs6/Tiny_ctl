@@ -11,7 +11,6 @@
 #include "tctl_metaclass.h"
 
 typedef long long offset_t;
-typedef char byte;
 
 typedef int (*Compare)(FormWO_t, FormWO_t);
 typedef bool (*Equal)(FormWO_t, FormWO_t);

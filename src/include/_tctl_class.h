@@ -6,22 +6,23 @@
 #define TINY_CTL__TCTL_CLASS_H
 #include "_tctl_metaclass.h"
 #include "../../include/tctl_class.h"
+#include <stdbool.h>
 
 struct ClassSelector {
-    byte _[sizeof(struct MetaClassSelector)];
-    bool (*equal)(FormWO_t x);
-    int (*cmp)(FormWO_t x);
-    void *(*brackets)(FormWO_t x);
+    char _[sizeof(struct MetaClassSelector)];
+    bool (*equal)(void *x);
+    int (*cmp)(void *x);
+    void *(*brackets)(void *x);
     void (*inc)(void);
     void (*dec)(void);
-    void (*self_add)(FormWO_t x);
-    void (*self_sub)(FormWO_t x);
-    void (*assign)(FormWO_t x);
-    void *(*add)(FormWO_t x);
-    void *(*sub)(FormWO_t x);
-    void *(*mul)(FormWO_t x);
-    void *(*div)(FormWO_t x);
-    void *(*mod)(FormWO_t x);
+    void (*self_add)(void *x);
+    void (*self_sub)(void *x);
+    void (*assign)(void *x);
+    void *(*add)(void *x);
+    void *(*sub)(void *x);
+    void *(*mul)(void *x);
+    void *(*div)(void *x);
+    void *(*mod)(void *x);
 };
 extern const struct ClassSelector *_ClassS;
 
