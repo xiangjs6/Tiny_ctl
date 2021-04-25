@@ -95,30 +95,43 @@ static int metaobject_puto(const void *_self, FILE *fp)
     return fprintf(fp, "%s at %p\n", class -> name, _self);
 }
 
-const void *classOf(const void *_self)
+const void *classOf(const void *_obj)
 {
-    const struct MetaObject *self = _self;
-    assert(self && self->class);
-    return self->class;
+    const struct MetaObject *obj = _obj;
+    assert(obj && obj->class);
+    return obj->class;
 }
 
-size_t sizeOf(const void *_self)
+size_t sizeOf(const void *_obj)
 {
-    const struct MetaClass *class = classOf(_self);
+    const struct MetaClass *class = classOf(_obj);
     return class->size;
 }
 
-size_t classSz(const void *self)
+size_t classSz(const void *obj)
 {
-    const struct MetaClass *class = self;
+    const struct MetaClass *class = obj;
     return class->size;
 }
 
-void *offsetOf(const void *self, const void *_class)
+void *offsetOf(const void *obj, const void *_class)
 {
     const struct MetaClass *class = _class;
-    return (void*)self + classSz(class->super);
+    return (void*)obj + classSz(class->super);
 }
+
+bool class_check(const void *obj, const void *class)
+{
+    const void *obj_class = classOf(obj);
+    while (obj_class != class)
+    {
+        if (obj_class == __MetaObject)
+            return false;
+        obj_class = super(obj);
+    }
+    return true;
+}
+
 /*
  *	MetaClass
  */

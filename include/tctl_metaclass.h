@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <assert.h>
+#include <stdbool.h>
 
 //由类型名生成对应的class变量
 #define T(__T) _Generic(*(__T volatile *)NULL, Import)
@@ -16,10 +17,11 @@
 void *construct_v(const void *class, void *mem, va_list *app);
 void *construct(const void *class, void *mem, ...);
 void destroy(void *obj);
-const void *classOf(const void *self);
-size_t sizeOf(const void *self);
-size_t classSz(const void *self);
-void *offsetOf(const void *self, const void *class);
+const void *classOf(const void *obj);
+size_t sizeOf(const void *obj);
+size_t classSz(const void *class);
+void *offsetOf(const void *obj, const void *class);
+bool class_check(const void *obj, const void *class);
 
 #define METACLASS_FUNC                 \
 struct {                               \

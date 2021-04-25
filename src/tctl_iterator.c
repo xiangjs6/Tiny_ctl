@@ -6,35 +6,31 @@
 #include <assert.h>
 #include <stdarg.h>
 #include <string.h>
+#include "../include/tctl_any.h"
+#include "../include/tctl_arg.h"
 
-#define Import METACLASS, CLASS, OBJECT, ITERATOR
+#define Import METACLASS, CLASS, OBJECT, ITERATOR, ANY
 
 struct IteratorClass {
-    void *(*derefer)(const void *_this);
-    Form_t (*type)(const void *_this);
-    long long (*dist)(const void *_this, Iterator it);
-    Iterator (*reverse_iterator)(void *_this);
+    void *(*derefer)(const void *_self);
+    long long (*dist)(const void *_self, Iterator it);
+    Iterator (*reverse_iterator)(void *_self);
 };
 
 struct Iterator {
     enum IterRank rank;
-    Form_t _t;
-    byte _v[0];
 };
 
-static void *_class_ctor(void *_this, va_list *app);
-static void *_object_ctor(void *_this, va_list *app);
-static void *_object_derefer(const void *_this);
-static Form_t _object_type(const void *_this);
+static void *_class_ctor(void *_self, va_list *app);
+static void *_object_ctor(void *_self, va_list *app);
+static void *_object_derefer(const void *_self);
 static void *_derefer(void);
-static Form_t _type(void);
 static long long _dist(Iterator it);
 static Iterator _reverse_iterator(void);
 //init
 volatile static struct IteratorSelector IteratorS = {
         {},
         _derefer,
-        _type,
         _dist,
         _reverse_iterator
 };
@@ -52,69 +48,60 @@ static void initIterator(void)
     }
     if (!__IteratorClass) {
         __IteratorClass = new(T(MetaClass), "IteratorClass", T(Class),
-                              sizeof(struct IteratorClass) + classSz(_Class().class),
+                              sizeof(struct IteratorClass) + classSz(T(Class)),
                               _MetaClassS->ctor, _class_ctor, NULL);
     }
     if (!__Iterator) {
         __Iterator = new(_IteratorClass(), "Iterator", T(Object),
-                         sizeof(struct Iterator) + classSz(_Object().class),
+                         sizeof(struct Iterator) + classSz(T(Object)),
                          _MetaClassS->ctor, _object_ctor,
                          IteratorS.derefer, _object_derefer,
-                         IteratorS.type, _object_type,
                          Selector, _IteratorS, NULL);
     }
 }
 
-Form_t _IteratorClass(void)
+const void *_IteratorClass(void)
 {
     if (!__IteratorClass)
         initIterator();
-    return (Form_t){OBJ, {.class = __IteratorClass}};
+    return __IteratorClass;
 }
 
-Form_t _Iterator(void)
+const void *_Iterator(void)
 {
     if (!__Iterator)
         initIterator();
-    return (Form_t){OBJ, {.class = __Iterator}};
+    return __Iterator;
 }
 
 static void *_derefer(void)
 {
-    void *_this = pop_this();
-    const struct IteratorClass *class = offsetOf(classOf(_this), __IteratorClass);
+    void *_self = pop_this();
+    const struct IteratorClass *class = offsetOf(classOf(_self), __IteratorClass);
     assert(class->derefer);
-    return class->derefer(_this);
-}
-
-static Form_t _type(void)
-{
-    void *_this = pop_this();
-    const struct IteratorClass *class = offsetOf(classOf(_this), __IteratorClass);
-    assert(class->type);
-    return class->type(_this);
+    return class->derefer(_self);
 }
 
 static long long _dist(Iterator it)
 {
-    void *_this = pop_this();
-    const struct IteratorClass *class = offsetOf(classOf(_this), __IteratorClass);
+    void *_self = pop_this();
+    const struct IteratorClass *class = offsetOf(classOf(_self), __IteratorClass);
     assert(class->dist);
-    return class->dist(_this, it);
+    return class->dist(_self, it);
 }
 
 static Iterator _reverse_iterator(void)
 {
-    void *_this = pop_this();
-    const struct IteratorClass *class = offsetOf(classOf(_this), __IteratorClass);
+    void *_self = pop_this();
+    const struct IteratorClass *class = offsetOf(classOf(_self), __IteratorClass);
     assert(class->reverse_iterator);
-    return class->reverse_iterator(_this);
+    return class->reverse_iterator(_self);
 }
 
-static void *_class_ctor(void *_this, va_list *app)
+static void *_class_ctor(void *_self, va_list *app)
 {
-    _this = super_ctor(__IteratorClass, _this, app);
-    struct IteratorClass *this = offsetOf(_this, __IteratorClass);
+    _self = super_ctor(__IteratorClass, _self, app);
+    struct IteratorClass *self = offsetOf(_self, __IteratorClass);
     va_list ap;
     va_copy(ap, *app);
     voidf selector;
@@ -122,54 +109,42 @@ static void *_class_ctor(void *_this, va_list *app)
     {
         voidf method = va_arg(ap, voidf);
         if (selector == (voidf)IteratorS.derefer)
-            *(void**)&this->derefer = method;
-        else if (selector == (voidf)IteratorS.type)
-            *(void**)&this->type = method;
+            *(void**)&self->derefer = method;
         else if (selector == (voidf)IteratorS.dist)
-            *(void**)&this->dist = method;
+            *(void**)&self->dist = method;
         else if (selector == (voidf)IteratorS.reverse_iterator)
-            *(void**)&this->reverse_iterator = method;
+            *(void**)&self->reverse_iterator = method;
     }
     va_end(ap);
-    return _this;
+    return _self;
 }
 
-static void *_object_ctor(void *_this, va_list *app)
+static void *_object_ctor(void *_self, va_list *app)
 {
-    _this = super_ctor(__Iterator, _this, app);
-    struct Iterator *this = offsetOf(_this, __Iterator);
+    _self = super_ctor(__Iterator, _self, app);
+    struct Iterator *self = offsetOf(_self, __Iterator);
     va_list ap;
     va_copy(ap, *app);
-    FormWO_t t = va_arg(*app, FormWO_t);
-    if (t._.f == OBJ) {
-        assert(t._.class == __Iterator);
-        struct Iterator *it = offsetOf(*(Object*)t.mem, __Iterator);
-        *this = *it;
+    MetaObject m_obj = va_arg(*app, MetaObject);
+    if (classOf(m_obj) == T(Any)) {
+        Any any = (Any)m_obj;
+        assert(THIS(any).size() == sizeof(enum IterRank));
+        self->rank = *(enum IterRank*)THIS(any).value();
+        assert(self->rank <= SequenceIter);
+    } else {
+        assert(class_check(m_obj, __Iterator));
+        struct Iterator *it = offsetOf(m_obj, __Iterator);
+        *self = *it;
         va_copy(*app, ap);
-        va_end(ap);
-        return _this;
     }
-    assert(t._.f >= FORM);
-    t._.f -= FORM;
-    assert(t._.f == OBJ || t._.f == ADDR);
-    this->_t = t._;
-    t  = va_arg(*app, FormWO_t);
-    assert(t._.f == POD);
-    memcpy(&this->rank, t.mem, t._.size);
     va_end(ap);
-    return _this;
+    return _self;
 }
 
-static void *_object_derefer(const void *_this)
+static void *_object_derefer(const void *_self)
 {
-    const struct Iterator *this = offsetOf(_this, __Iterator);
-    return (void*)this->_v;
-}
-
-static Form_t _object_type(const void *_this)
-{
-    const struct Iterator *this = offsetOf(_this, __Iterator);
-    return this->_t;
+    const struct Iterator *self = offsetOf(_self, __Iterator);
+    return (char*)self + sizeof(struct Iterator);
 }
 
 long long distance(Iterator _a, Iterator _b)

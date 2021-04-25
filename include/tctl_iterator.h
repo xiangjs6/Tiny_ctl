@@ -10,7 +10,6 @@
 struct {                                \
     CLASS_FUNC;                         \
     void *(*derefer)(void);             \
-    Form_t (*type)(void);               \
     long long (*dist)(Iterator it);     \
     Iterator (*reverse_iterator)(void); \
 }
@@ -33,8 +32,8 @@ struct _Iterator{
     ITERATOR_OBJ;
 };
 
-Form_t _IteratorClass(void);
-Form_t _Iterator(void);
+const void *_IteratorClass(void);
+const void *_Iterator(void);
 
 //#define ITERATORCLASS IteratorClass : _IteratorClass()
 #define ITERATOR Iterator : _Iterator()

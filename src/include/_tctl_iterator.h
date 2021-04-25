@@ -10,7 +10,6 @@
 struct IteratorSelector {
     char _[sizeof(struct ClassSelector)];
     void *(*derefer)(void);
-    Form_t (*type)(void);
     long long (*dist)(Iterator it);
     Iterator (*reverse_iterator)(void);
 };
