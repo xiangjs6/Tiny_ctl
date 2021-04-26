@@ -12,15 +12,15 @@
 
 typedef long long offset_t;
 
-typedef int (*Compare)(FormWO_t, FormWO_t);
-typedef bool (*Equal)(FormWO_t, FormWO_t);
-typedef bool (*Predicate)(FormWO_t);
-typedef FormWO_t (*Generator)(void);
-typedef void (*UnaryFunc)(FormWO_t);
-typedef size_t (*HashFunc)(FormWO_t);
-typedef FormWO_t (*ExtractKey)(FormWO_t); //提取出来的key，应为引用类型
+typedef int (*Compare)(const void *, const void *);
+typedef bool (*Equal)(const void *, const void *);
+typedef bool (*Predicate)(const void *);
+typedef void *(*Generator)(void);
+typedef void (*UnaryFunc)(const void *);
+typedef size_t (*HashFunc)(const void *);
+typedef void *(*ExtractKey)(const void *); //提取出来的key，应为引用类型
 
-typedef FormWO_t (*BinaryOperation)(FormWO_t first, FormWO_t second);
-typedef FormWO_t (*UnaryOperation)(FormWO_t self);
+typedef void *(*BinaryOperation)(const void *first, const void *second);
+typedef void *(*UnaryOperation)(void *self);
 
 #endif //TINY_CTL_TCTL_DEF_H

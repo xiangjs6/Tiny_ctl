@@ -11,23 +11,23 @@
 #include "tctl_portable.h"
 #include "tctl_class.h"
 
-#define VECTOR_FUNC                                \
-struct {                                           \
-    CLASS_FUNC;                                    \
-    Iterator (*begin)(void);                       \
-    Iterator (*end)(void);                         \
-    void* (*front)(void);                          \
-    void* (*back)(void);                           \
-    size_t (*size)(void);                          \
-    size_t (*capacity)(void);                      \
-    bool (*empty)(void);                           \
-    void (*push_back)(FormWO_t x);                 \
-    void (*pop_back)(void);                        \
-    Iterator (*erase)(Iterator iter);              \
-    Iterator (*insert)(Iterator iter, FormWO_t x); \
-    void (*resize)(size_t new_size);               \
-    void (*clear)(void);                           \
-    void (*swap)(Vector _v);                       \
+#define VECTOR_FUNC                                   \
+struct {                                              \
+    CLASS_FUNC;                                       \
+    Iterator (*begin)(void);                          \
+    Iterator (*end)(void);                            \
+    void* (*front)(void);                             \
+    void* (*back)(void);                              \
+    size_t (*size)(void);                             \
+    size_t (*capacity)(void);                         \
+    bool (*empty)(void);                              \
+    void (*push_back)(const void *x);                 \
+    void (*pop_back)(void);                           \
+    Iterator (*erase)(Iterator iter);                 \
+    Iterator (*insert)(Iterator iter, const void *x); \
+    void (*resize)(size_t new_size);                  \
+    void (*clear)(void);                              \
+    void (*swap)(Vector _v);                          \
 }
 
 typedef struct _Vector *Vector;

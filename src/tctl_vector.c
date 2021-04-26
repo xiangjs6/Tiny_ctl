@@ -7,7 +7,6 @@
 #include "../include/tctl_allocator.h"
 #include "../include/auto_release_pool.h"
 #include "../include/tctl_int.h"
-#include "../include/tctl_uint.h"
 #include "../include/tctl_algobase.h"
 #include "include/_tctl_iterator.h"
 #include <stdarg.h>
@@ -17,24 +16,23 @@
 #define Import CLASS, ITERATOR, OBJECT, METACLASS
 
 struct VectorClass {
-    Iterator (*begin)(const void *_this);
-    Iterator (*end)(const void *_this);
-    void *(*front)(const void *_this);
-    void *(*back)(const void *_this);
-    size_t (*size)(const void *_this);
-    size_t (*capacity)(const void *_this);
-    bool (*empty)(const void *_this);
-    void (*push_back)(void *_this, FormWO_t _x);
-    void (*pop_back)(void *_this);
-    Iterator (*erase)(void *_this, Iterator iter);
-    Iterator (*insert)(void *_this, Iterator iter, FormWO_t _x);
-    void (*resize)(void *_this, size_t new_size);
-    void (*clear)(void *_this);
-    void (*swap)(void *_this, Vector _v);
+    Iterator (*begin)(const void *_self);
+    Iterator (*end)(const void *_self);
+    void *(*front)(const void *_self);
+    void *(*back)(const void *_self);
+    size_t (*size)(const void *_self);
+    size_t (*capacity)(const void *_self);
+    bool (*empty)(const void *_self);
+    void (*push_back)(void *_self, const void *_x);
+    void (*pop_back)(void *_self);
+    Iterator (*erase)(void *_self, Iterator iter);
+    Iterator (*insert)(void *_self, Iterator iter, const void *_x);
+    void (*resize)(void *_self, size_t new_size);
+    void (*clear)(void *_self);
+    void (*swap)(void *_self, Vector _v);
 };
 
 struct Vector {
-    Form_t _t;
     size_t nmemb;
     size_t total_storage_memb;
     void *start_ptr;
@@ -54,49 +52,49 @@ static void* _back(void);
 static size_t _size(void);
 static size_t _capacity(void);
 static bool _empty(void);
-static void _push_back(FormWO_t x);
+static void _push_back(const void *x);
 static void _pop_back(void);
 static Iterator _erase(Iterator iter);
-static Iterator _insert(Iterator iter, FormWO_t x);
+static Iterator _insert(Iterator iter, const void *x);
 static void _resize(size_t new_size);
 static void _clear(void);
 static void _swap(Vector _v);
 //vectorclass
-static void *_vectorclass_ctor(void *_this, va_list *app);
+static void *_vectorclass_ctor(void *_self, va_list *app);
 //vector
-static void *_vector_ctor(void *_this, va_list *app);
-static void *_vector_dtor(void *_this);
-static void _vector_swap(void *_this, Vector _v);
-static void _vector_clear(void *_this);
-static void _vector_resize(void *_this, size_t new_size);
-static Iterator _vector_insert(void *_this, Iterator _iter, FormWO_t x);
-static Iterator _vector_erase(void *_this, Iterator _iter);
-static void _vector_pop_back(void *_this);
-static void _vector_push_back(void *_this, FormWO_t x);
-static bool _vector_empty(const void *_this);
-static size_t _vector_capacity(const void *_this);
-static size_t _vector_size(const void *_this);
-static const void *_vector_back(const void *_this);
-static const void *_vector_front(const void *_this);
-static Iterator _vector_end(const void *_this);
-static Iterator _vector_begin(const void *_this);
-static void *_vector_brackets(const void *_this, FormWO_t _x);
+static void *_vector_ctor(void *_self, va_list *app);
+static void *_vector_dtor(void *_self);
+static void _vector_swap(void *_self, Vector _v);
+static void _vector_clear(void *_self);
+static void _vector_resize(void *_self, size_t new_size);
+static Iterator _vector_insert(void *_self, Iterator _iter, const void *x);
+static Iterator _vector_erase(void *_self, Iterator _iter);
+static void _vector_pop_back(void *_self);
+static void _vector_push_back(void *_self, const void *x);
+static bool _vector_empty(const void *_self);
+static size_t _vector_capacity(const void *_self);
+static size_t _vector_size(const void *_self);
+static const void *_vector_back(const void *_self);
+static const void *_vector_front(const void *_self);
+static Iterator _vector_end(const void *_self);
+static Iterator _vector_begin(const void *_self);
+static void *_vector_brackets(const void *_self, const void *_x);
 //iterator
-static void *_iter_sub(const void *_this, FormWO_t _x);
-static void *_iter_add(const void *_this, FormWO_t _x);
-static void _iter_assign(void *_this, FormWO_t _x);
-static void _iter_self_sub(void *_this, FormWO_t _x);
-static void _iter_self_add(void *_this, FormWO_t _x);
-static void _iter_dec(void *_this);
-static void _iter_inc(void *_this);
-static void *_iter_brackets(const void *_this, FormWO_t _x);
-static int _iter_cmp(const void *_this, FormWO_t _x);
-static bool _iter_equal(const void *_this, FormWO_t _x);
-static void *_iter_ctor(void *_this, va_list *app);
-static void *_iter_derefer(const void *_this);
-static long long _iter_dist(const void *_this, Iterator _it);
-static long long _riter_dist(const void *_this, Iterator _it);
-static Iterator _iter_reverse_iterator(const void *_this);
+static void *_iter_sub(const void *_self, const void *_x);
+static void *_iter_add(const void *_self, const void *_x);
+static void _iter_assign(void *_self, const void *_x);
+static void _iter_self_sub(void *_self, const void *_x);
+static void _iter_self_add(void *_self, const void *_x);
+static void _iter_dec(void *_self);
+static void _iter_inc(void *_self);
+static void *_iter_brackets(const void *_self, const void *_x);
+static int _iter_cmp(const void *_self, const void *_x);
+static bool _iter_equal(const void *_self, const void *_x);
+static void *_iter_ctor(void *_self, va_list *app);
+static void *_iter_derefer(const void *_self);
+static long long _iter_dist(const void *_self, Iterator _it);
+static long long _riter_dist(const void *_self, Iterator _it);
+static Iterator _iter_reverse_iterator(const void *_self);
 //init
 static const void *__VectorIter = NULL;
 static const void *__RVectorIter = NULL;
@@ -131,7 +129,7 @@ static void initVector(void)
     }
     if (!__VectorIter) {
         __VectorIter = new(_IteratorClass(), "VectorIter",
-                           T(Iterator), sizeof(struct VectorIter) + classSz(_Iterator().class),
+                           T(Iterator), sizeof(struct VectorIter) + classSz(T(Iterator)),
                            _MetaClassS->ctor, _iter_ctor,
                            _ClassS->equal, _iter_equal,
                            _ClassS->cmp, _iter_cmp,
@@ -150,7 +148,7 @@ static void initVector(void)
     }
     if (!__RVectorIter) {
         __RVectorIter = new(_IteratorClass(), "RVectorIter",
-                           T(Iterator), sizeof(struct VectorIter) + classSz(_Iterator().class),
+                           T(Iterator), sizeof(struct VectorIter) + classSz(T(Iterator)),
                            _MetaClassS->ctor, _iter_ctor,
                            _ClassS->equal, _iter_equal,
                            _ClassS->cmp, _iter_cmp,
@@ -169,12 +167,12 @@ static void initVector(void)
     }
     if (!__VectorClass) {
         __VectorClass = new(T(MetaClass), "VectorClass",
-                            T(Class), sizeof(struct VectorClass) + classSz(_Class().class),
+                            T(Class), sizeof(struct VectorClass) + classSz(T(Class)),
                             _MetaClassS->ctor, _vectorclass_ctor, NULL);
     }
     if (!__Vector) {
         __Vector = new(_VectorClass(), "Vector",
-                       T(Object), sizeof(struct Vector) + classSz(_Object().class),
+                       T(Object), sizeof(struct Vector) + classSz(T(Object)),
                        _MetaClassS->ctor, _vector_ctor,
                        _MetaClassS->dtor, _vector_dtor,
                        _ClassS->brackets, _vector_brackets,
@@ -196,32 +194,32 @@ static void initVector(void)
     }
 }
 
-Form_t _Vector(void)
+const void *_Vector(void)
 {
     if (!__Vector)
         initVector();
-    return (Form_t){OBJ, .class = __Vector};
+    return __Vector;
 }
 
-Form_t _VectorClass(void)
+const void *_VectorClass(void)
 {
     if (!__VectorClass)
         initVector();
-    return (Form_t){OBJ, .class = __VectorClass};
+    return __VectorClass;
 }
 
-static Form_t _VectorIter(void)
+static const void *_VectorIter(void)
 {
     if (!__VectorIter)
         initVector();
-    return (Form_t){OBJ, .class = __VectorIter};
+    return __VectorIter;
 }
 
-static Form_t _RVectorIter(void)
+static const void *_RVectorIter(void)
 {
     if (!__RVectorIter)
         initVector();
-    return (Form_t){OBJ, .class = __RVectorIter};
+    return __RVectorIter;
 }
 
 //private
@@ -275,7 +273,7 @@ static void *_dealIterVaryArg(FormWO_t t, char *type)
     return NULL;
 }
 
-static void _dealVectorArgs(void *_this, FormWO_t *args, int n)
+static void _dealVectorArgs(void *_self, FormWO_t *args, int n)
 {
     if (args->_.class == _Vector().class) { //复制一个Vector
         struct Vector *v = offsetOf(*(Object*)args->mem, __Vector);
@@ -284,79 +282,79 @@ static void _dealVectorArgs(void *_this, FormWO_t *args, int n)
         for (char (*ptr)[v_memb_size] = v->start_ptr; (void*)ptr < v->finish_ptr; ptr++) {
             if (t.f == POD) {
                 char (*p)[t.size] = ptr;
-                _vector_push_back(_this, VA(VA_ADDR(*p)));
+                _vector_push_back(_self, VA(VA_ADDR(*p)));
             } else if (t.f == OBJ) {
-                _vector_push_back(_this, FORM_WITH_OBJ(t, V(ptr)));
+                _vector_push_back(_self, FORM_WITH_OBJ(t, V(ptr)));
             }
         }
     } else if (args->_.f == POD || args->_.f == ADDR || args->_.class != _Iterator().class) { //size_type n, T value = T() 构造方法
         unsigned long long nmemb = toUInt(*args);
         if (n == 1) {
             for (size_t i = 0; i < nmemb; i++)
-                _vector_push_back(_this, VAEND);
+                _vector_push_back(_self, VAEND);
         } else {
             for (size_t i = 0; i < nmemb; i++)
-                _vector_push_back(_this, args[1]);
+                _vector_push_back(_self, args[1]);
         }
     } else { //Iterator first, Iterator last 迭代器构造方法
         assert(n == 2);
         assert(args[1]._.class == _Iterator().class);
         Iterator first = *(Iterator*)args[0].mem;
         char first_mem[sizeOf(first)];
-        first = THIS(first).ctor(first_mem, VA(first), VAEND);
+        first = self(first).ctor(first_mem, VA(first), VAEND);
         Iterator last = *(Iterator*)args[1].mem;
         char last_mem[sizeOf(last)];
-        last = THIS(last).ctor(last_mem, VA(last), VAEND);
-        Form_t t = THIS(first).type();
-        while (!THIS(first).equal(VA(last)))
+        last = self(last).ctor(last_mem, VA(last), VAEND);
+        Form_t t = self(first).type();
+        while (!self(first).equal(VA(last)))
         {
-            void *obj = THIS(first).derefer();
+            void *obj = self(first).derefer();
             if (t.f == ADDR) {
-                _vector_push_back(_this, FORM_WITH_OBJ(t, V(obj)));
+                _vector_push_back(_self, FORM_WITH_OBJ(t, V(obj)));
             } else if (t.f == OBJ || t.f == ADDR) {
-                _vector_push_back(_this, FORM_WITH_OBJ(t, V(obj)));
+                _vector_push_back(_self, FORM_WITH_OBJ(t, V(obj)));
             }
-            THIS(first).inc();
+            self(first).inc();
         }
         destroy(first);
         destroy(last);
     }
 }
 
-static void fill_allocate(struct Vector *this)
+static void fill_allocate(struct Vector *self)
 {
-    size_t old_size = this->total_storage_memb;
-    size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
-    this->total_storage_memb *= 2;
-    this->total_storage_memb = this->total_storage_memb ? this->total_storage_memb : 1;
-    void *new_block = allocate(this->total_storage_memb * memb_size);
-    Form_t t = this->_t;
+    size_t old_size = self->total_storage_memb;
+    size_t memb_size = self->_t.f == POD ? self->_t.size : classSz(self->_t.class);
+    self->total_storage_memb *= 2;
+    self->total_storage_memb = self->total_storage_memb ? self->total_storage_memb : 1;
+    void *new_block = allocate(self->total_storage_memb * memb_size);
+    Form_t t = self->_t;
     if (t.f == POD)
         t.f = ADDR;
     Iterator new_it = new(_VectorIter(), VA(t, SequenceIter, 0, new_block));
-    Iterator first = new(_VectorIter(), VA(t, SequenceIter, 0, this->start_ptr));
-    Iterator last = new(_VectorIter(), VA(t, SequenceIter, this->nmemb, this->start_ptr));
+    Iterator first = new(_VectorIter(), VA(t, SequenceIter, 0, self->start_ptr));
+    Iterator last = new(_VectorIter(), VA(t, SequenceIter, self->nmemb, self->start_ptr));
     copy(first, last, new_it);
-    if (this->_t.f != POD) {
-        for (; !THIS(first).equal(VA(last)); THIS(first).inc()) {
-            Object obj = THIS(first).derefer();
-            THIS(obj).dtor();
+    if (self->_t.f != POD) {
+        for (; !self(first).equal(VA(last)); self(first).inc()) {
+            Object obj = self(first).derefer();
+            self(obj).dtor();
         }
     }
     delete(new_it);
     delete(first);
     delete(last);
-    deallocate(this->start_ptr, old_size * memb_size);
-    this->start_ptr = new_block;
-    this->finish_ptr = this->start_ptr + memb_size * this->nmemb;
+    deallocate(self->start_ptr, old_size * memb_size);
+    self->start_ptr = new_block;
+    self->finish_ptr = self->start_ptr + memb_size * self->nmemb;
 }
 
 //public
 //Iterator
-static void *_iter_ctor(void *_this, va_list *app)
+static void *_iter_ctor(void *_self, va_list *app)
 {
-    _this = super_ctor(__VectorIter, _this, app);
-    struct VectorIter *this = offsetOf(_this, __VectorIter);
+    _self = super_ctor(__VectorIter, _self, app);
+    struct VectorIter *self = offsetOf(_self, __VectorIter);
     FormWO_t t;
     const static char s[2] = {'S', 'P'};
     const char *s_p = s;
@@ -371,126 +369,126 @@ static void *_iter_ctor(void *_this, va_list *app)
                 it = offsetOf(res, __VectorIter);
             else
                 it = offsetOf(res, __RVectorIter);
-            *this = *it;
+            *self = *it;
             break;
         } else if (c == 'S') {
-            this->cur = (size_t)res;
+            self->cur = (size_t)res;
         } else if (c == 'P') {
-            this->ptr = res;
+            self->ptr = res;
         }
     }
-    return _this;
+    return _self;
 }
 
-static bool _iter_equal(const void *_this, FormWO_t _x)
+static bool _iter_equal(const void *_self, FormWO_t _x)
 {
-    const struct VectorIter *this = offsetOf(_this, __VectorIter);
+    const struct VectorIter *self = offsetOf(_self, __VectorIter);
     const struct VectorIter *x = offsetOf(*(Object*)_x.mem, __VectorIter);
-    return this->cur == x->cur;
+    return self->cur == x->cur;
 }
 
-static int _iter_cmp(const void *_this, FormWO_t _x)
+static int _iter_cmp(const void *_self, FormWO_t _x)
 {
-    const struct VectorIter *this = offsetOf(_this, __VectorIter);
+    const struct VectorIter *self = offsetOf(_self, __VectorIter);
     const struct VectorIter *x = offsetOf(*(Object*)_x.mem, __VectorIter);
-    return this->cur - x->cur;
+    return self->cur - x->cur;
 }
 
-static void *_iter_brackets(const void *_this, FormWO_t _x)
+static void *_iter_brackets(const void *_self, FormWO_t _x)
 {
-    const struct VectorIter *this = offsetOf(_this, __VectorIter);
-    const Iterator it = (void*)_this;
+    const struct VectorIter *self = offsetOf(_self, __VectorIter);
+    const Iterator it = (void*)_self;
     long long x = toInt(_x);
-    Form_t t = THIS(it).type();
+    Form_t t = self(it).type();
     size_t size = t.f == ADDR ? t.size : classSz(t.class);
-    void *res = this->ptr + size * (x + this->cur);
+    void *res = self->ptr + size * (x + self->cur);
     return res;
 }
 
-static void _iter_inc(void *_this)
+static void _iter_inc(void *_self)
 {
-    struct VectorIter *this = offsetOf(_this, __VectorIter);
-    this->cur++;
+    struct VectorIter *self = offsetOf(_self, __VectorIter);
+    self->cur++;
 }
 
-static void _iter_dec(void *_this)
+static void _iter_dec(void *_self)
 {
-    struct VectorIter *this = offsetOf(_this, __VectorIter);
-    this->cur--;
+    struct VectorIter *self = offsetOf(_self, __VectorIter);
+    self->cur--;
 }
 
-static void _iter_self_add(void *_this, FormWO_t _x)
+static void _iter_self_add(void *_self, FormWO_t _x)
 {
-    struct VectorIter *this = offsetOf(_this, __VectorIter);
+    struct VectorIter *self = offsetOf(_self, __VectorIter);
     long long x = toInt(_x);
-    this->cur += x;
+    self->cur += x;
 }
 
-static void _iter_self_sub(void *_this, FormWO_t _x)
+static void _iter_self_sub(void *_self, FormWO_t _x)
 {
-    struct VectorIter *this = offsetOf(_this, __VectorIter);
+    struct VectorIter *self = offsetOf(_self, __VectorIter);
     long long x = toInt(_x);
-    this->cur -= x;
+    self->cur -= x;
 }
 
-static void _iter_assign(void *_this, FormWO_t _x)
+static void _iter_assign(void *_self, FormWO_t _x)
 {
-    struct VectorIter *this = offsetOf(_this, __VectorIter);
+    struct VectorIter *self = offsetOf(_self, __VectorIter);
     struct VectorIter *x = offsetOf(*(Object*)_x.mem, __VectorIter);
-    *this = *x;
+    *self = *x;
 }
 
-static void *_iter_add(const void *_this, FormWO_t _x)
+static void *_iter_add(const void *_self, FormWO_t _x)
 {
-    struct VectorIter *this = offsetOf(_this, __VectorIter);
-    Iterator it = (void*)_this;
+    struct VectorIter *self = offsetOf(_self, __VectorIter);
+    Iterator it = (void*)_self;
     long long x = toInt(_x);
     void *mem = ARP_MallocARelDtor(classSz(__VectorIter), destroy);
-    Form_t t = THIS(it).type();
-    void *res = new(compose(_VectorIter(), mem), VA(t, SequenceIter, this->cur + x, this->ptr));
+    Form_t t = self(it).type();
+    void *res = new(compose(_VectorIter(), mem), VA(t, SequenceIter, self->cur + x, self->ptr));
     return res;
 }
 
-static void *_iter_sub(const void *_this, FormWO_t _x)
+static void *_iter_sub(const void *_self, FormWO_t _x)
 {
-    struct VectorIter *this = offsetOf(_this, __VectorIter);
-    Iterator it = (void*)_this;
+    struct VectorIter *self = offsetOf(_self, __VectorIter);
+    Iterator it = (void*)_self;
     long long x = toInt(_x);
     void *mem = ARP_MallocARelDtor(classSz(__VectorIter), destroy);
-    Form_t t = THIS(it).type();
-    void *res = new(compose(_VectorIter(), mem), VA(t, SequenceIter, this->cur - x, this->ptr));
+    Form_t t = self(it).type();
+    void *res = new(compose(_VectorIter(), mem), VA(t, SequenceIter, self->cur - x, self->ptr));
     return res;
 }
 
-static void *_iter_derefer(const void *_this)
+static void *_iter_derefer(const void *_self)
 {
-    struct VectorIter *this = offsetOf(_this, __VectorIter);
-    Iterator it = (void*)_this;
-    Form_t t = THIS(it).type();
+    struct VectorIter *self = offsetOf(_self, __VectorIter);
+    Iterator it = (void*)_self;
+    Form_t t = self(it).type();
     size_t memb_size = t.f == ADDR ? t.size : classSz(t.class);
-    return this->ptr + this->cur * memb_size;
+    return self->ptr + self->cur * memb_size;
 }
 
-static long long _iter_dist(const void *_this, Iterator _it)
+static long long _iter_dist(const void *_self, Iterator _it)
 {
-    struct VectorIter *this = offsetOf(_this, __VectorIter);
+    struct VectorIter *self = offsetOf(_self, __VectorIter);
     assert(classOf(_it) == __VectorIter);
     struct VectorIter *it = offsetOf(_it, __VectorIter);
-    return it->cur - this->cur;
+    return it->cur - self->cur;
 }
 
-static long long _riter_dist(const void *_this, Iterator _it)
+static long long _riter_dist(const void *_self, Iterator _it)
 {
-    struct VectorIter *this = offsetOf(_this, __VectorIter);
+    struct VectorIter *self = offsetOf(_self, __VectorIter);
     assert(classOf(_it) == __RVectorIter);
     struct VectorIter *it = offsetOf(_it, __VectorIter);
-    return this->cur - it->cur;
+    return self->cur - it->cur;
 }
 
-static Iterator _iter_reverse_iterator(const void *_this)
+static Iterator _iter_reverse_iterator(const void *_self)
 {
-    Iterator it = (void*)_this;
-    if (classOf(_this) == __VectorIter) {
+    Iterator it = (void*)_self;
+    if (classOf(_self) == __VectorIter) {
         void *mem = ARP_MallocARelDtor(classSz(__VectorIter), destroy);
         return construct(_RVectorIter(), mem, VA(it), VAEND);
     } else {
@@ -500,44 +498,44 @@ static Iterator _iter_reverse_iterator(const void *_this)
 }
 
 //VectorClass
-static void *_vectorclass_ctor(void *_this, va_list *app)
+static void *_vectorclass_ctor(void *_self, va_list *app)
 {
-    _this = super_ctor(__VectorClass, _this, app);
-    struct VectorClass *this = offsetOf(_this, __VectorClass);
+    _self = super_ctor(__VectorClass, _self, app);
+    struct VectorClass *self = offsetOf(_self, __VectorClass);
     voidf selector;
     va_list ap;
     va_copy(ap, *app);
     voidf *begin = (void*)&VectorS + sizeof(VectorS._);
     voidf *end = (void*)&VectorS + sizeof(VectorS);
-    voidf *this_begin = (void*)this;
+    voidf *self_begin = (void*)self;
     while ((selector = va_arg(ap, voidf)))
     {
         voidf method = va_arg(ap, voidf);
         for (voidf *p = begin; p != end; p++) {
             if (*p == selector) {
                 size_t n = p - begin;
-                *(this_begin + n) = method;
+                *(self_begin + n) = method;
                 break;
             }
         }
     }
     va_end(ap);
-    return _this;
+    return _self;
 }
 
 //Vector
-static void *_vector_ctor(void *_this, va_list *app)
+static void *_vector_ctor(void *_self, va_list *app)
 {
-    _this = super_ctor(__Vector, _this, app);
-    struct Vector *this = offsetOf(_this, __Vector);
+    _self = super_ctor(__Vector, _self, app);
+    struct Vector *self = offsetOf(_self, __Vector);
     FormWO_t t = va_arg(*app, FormWO_t);
     assert(t._.f >= FORM);
     t._.f -= FORM;
-    this->_t = t._;
-    this->nmemb = 0;
-    this->start_ptr = NULL;
-    this->finish_ptr = NULL;
-    this->total_storage_memb = 0;
+    self->_t = t._;
+    self->nmemb = 0;
+    self->start_ptr = NULL;
+    self->finish_ptr = NULL;
+    self->total_storage_memb = 0;
     FormWO_t args[2];
     int i = 0;
     while ((t = va_arg(*app, FormWO_t))._.f != END)
@@ -546,157 +544,157 @@ static void *_vector_ctor(void *_this, va_list *app)
         args[i++] = t;
     }
     if (i)
-        _dealVectorArgs(_this, args, i);
-    return _this;
+        _dealVectorArgs(_self, args, i);
+    return _self;
 }
 
-static void *_vector_dtor(void *_this)
+static void *_vector_dtor(void *_self)
 {
-    _this = super_dtor(__Vector, _this);
-    struct Vector *this = offsetOf(_this, __Vector);
-    _vector_clear(_this);
-    size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
-    deallocate(this->start_ptr, this->total_storage_memb * memb_size);
-    return _this;
+    _self = super_dtor(__Vector, _self);
+    struct Vector *self = offsetOf(_self, __Vector);
+    _vector_clear(_self);
+    size_t memb_size = self->_t.f == POD ? self->_t.size : classSz(self->_t.class);
+    deallocate(self->start_ptr, self->total_storage_memb * memb_size);
+    return _self;
 }
 
-static void *_vector_brackets(const void *_this, FormWO_t _x)
+static void *_vector_brackets(const void *_self, FormWO_t _x)
 {
-    const struct Vector *this = offsetOf(_this, __Vector);
+    const struct Vector *self = offsetOf(_self, __Vector);
     long long x = toInt(_x);
-    assert(x >= 0 && x <= this->nmemb);
-    size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
-    void *res = this->start_ptr + memb_size * x;
+    assert(x >= 0 && x <= self->nmemb);
+    size_t memb_size = self->_t.f == POD ? self->_t.size : classSz(self->_t.class);
+    void *res = self->start_ptr + memb_size * x;
     return res;
 }
 
-static Iterator _vector_begin(const void *_this)
+static Iterator _vector_begin(const void *_self)
 {
-    struct Vector *this = offsetOf(_this, __Vector);
+    struct Vector *self = offsetOf(_self, __Vector);
     void *mem = ARP_MallocARelDtor(classSz(__VectorIter), destroy);
-    Form_t t = this->_t;
+    Form_t t = self->_t;
     if (t.f == POD)
         t.f = ADDR;
-    return new(compose(_VectorIter(), mem), VA(t, SequenceIter, 0, this->start_ptr));
+    return new(compose(_VectorIter(), mem), VA(t, SequenceIter, 0, self->start_ptr));
 }
 
-static Iterator _vector_end(const void *_this)
+static Iterator _vector_end(const void *_self)
 {
-    struct Vector *this = offsetOf(_this, __Vector);
+    struct Vector *self = offsetOf(_self, __Vector);
     void *mem = ARP_MallocARelDtor(classSz(__VectorIter), destroy);
-    Form_t t = this->_t;
+    Form_t t = self->_t;
     if (t.f == POD)
         t.f = ADDR;
-    return new(compose(_VectorIter(), mem), VA(t, SequenceIter, this->nmemb, this->start_ptr));
+    return new(compose(_VectorIter(), mem), VA(t, SequenceIter, self->nmemb, self->start_ptr));
 }
 
-static const void *_vector_front(const void *_this)
+static const void *_vector_front(const void *_self)
 {
-    const struct Vector *this = offsetOf(_this, __Vector);
-    return this->start_ptr;
+    const struct Vector *self = offsetOf(_self, __Vector);
+    return self->start_ptr;
 }
 
-static const void *_vector_back(const void *_this)
+static const void *_vector_back(const void *_self)
 {
-    const struct Vector *this = offsetOf(_this, __Vector);
-    size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
-    return this->finish_ptr - memb_size;
+    const struct Vector *self = offsetOf(_self, __Vector);
+    size_t memb_size = self->_t.f == POD ? self->_t.size : classSz(self->_t.class);
+    return self->finish_ptr - memb_size;
 }
 
-static size_t _vector_size(const void *_this)
+static size_t _vector_size(const void *_self)
 {
-    const struct Vector *this = offsetOf(_this, __Vector);
-    return this->nmemb;
+    const struct Vector *self = offsetOf(_self, __Vector);
+    return self->nmemb;
 }
 
-static size_t _vector_capacity(const void *_this)
+static size_t _vector_capacity(const void *_self)
 {
-    const struct Vector *this = offsetOf(_this, __Vector);
-    return this->total_storage_memb - this->nmemb;
+    const struct Vector *self = offsetOf(_self, __Vector);
+    return self->total_storage_memb - self->nmemb;
 }
 
-static bool _vector_empty(const void *_this)
+static bool _vector_empty(const void *_self)
 {
-    const struct Vector *this = offsetOf(_this, __Vector);
-    return !this->nmemb;
+    const struct Vector *self = offsetOf(_self, __Vector);
+    return !self->nmemb;
 }
 
-static void _vector_push_back(void *_this, FormWO_t _x)
+static void _vector_push_back(void *_self, FormWO_t _x)
 {
-    struct Vector *this = offsetOf(_this, __Vector);
-    size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
-    if (!_vector_capacity(_this))
-        fill_allocate((void*)this);
-    if (this->_t.f == POD) {
+    struct Vector *self = offsetOf(_self, __Vector);
+    size_t memb_size = self->_t.f == POD ? self->_t.size : classSz(self->_t.class);
+    if (!_vector_capacity(_self))
+        fill_allocate((void*)self);
+    if (self->_t.f == POD) {
         assert(_x._.f != OBJ);
         if (_x._.f == ADDR)
-            memcpy(this->finish_ptr, *(void**)_x.mem, memb_size);
+            memcpy(self->finish_ptr, *(void**)_x.mem, memb_size);
         else if (_x._.f == POD)
-            memcpy(this->finish_ptr, _x.mem, memb_size);
+            memcpy(self->finish_ptr, _x.mem, memb_size);
         else if (_x._.f == END)
-            memset(this->finish_ptr, 0, memb_size);
+            memset(self->finish_ptr, 0, memb_size);
     } else {
-        construct(this->_t, this->finish_ptr, _x, VAEND);
+        construct(self->_t, self->finish_ptr, _x, VAEND);
     }
-    this->nmemb++;
-    this->finish_ptr += memb_size;
+    self->nmemb++;
+    self->finish_ptr += memb_size;
 }
 
-static void _vector_pop_back(void *_this)
+static void _vector_pop_back(void *_self)
 {
-    struct Vector *this = offsetOf(_this, __Vector);
-    size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
-    this->nmemb--;
-    this->finish_ptr -= memb_size;
-    if (this->_t.f == OBJ) {
-        Object o = this->finish_ptr;
+    struct Vector *self = offsetOf(_self, __Vector);
+    size_t memb_size = self->_t.f == POD ? self->_t.size : classSz(self->_t.class);
+    self->nmemb--;
+    self->finish_ptr -= memb_size;
+    if (self->_t.f == OBJ) {
+        Object o = self->finish_ptr;
         destroy(o);
     }
 }
 
-static Iterator _vector_erase(void *_this, Iterator _iter)
+static Iterator _vector_erase(void *_self, Iterator _iter)
 {
     struct VectorIter *iter = offsetOf(_iter, __VectorIter);
     assert(classOf(_iter) == __VectorIter);
-    struct Vector *this = offsetOf(_this, __Vector);
-    assert(iter->cur >= 0 && iter->cur < this->nmemb);
-    if (iter->cur == this->nmemb) {
-        _vector_pop_back(_this);
+    struct Vector *self = offsetOf(_self, __Vector);
+    assert(iter->cur >= 0 && iter->cur < self->nmemb);
+    if (iter->cur == self->nmemb) {
+        _vector_pop_back(_self);
         return _iter;
     }
-    Iterator target_it = new(_VectorIter(), VA(this->_t, SequenceIter, iter->cur, iter->ptr));
-    Iterator first = new(_VectorIter(), VA(this->_t, SequenceIter, iter->cur + 1, this->start_ptr));
-    Iterator last = new(_VectorIter(), VA(this->_t, SequenceIter, this->nmemb, this->start_ptr));
+    Iterator target_it = new(_VectorIter(), VA(self->_t, SequenceIter, iter->cur, iter->ptr));
+    Iterator first = new(_VectorIter(), VA(self->_t, SequenceIter, iter->cur + 1, self->start_ptr));
+    Iterator last = new(_VectorIter(), VA(self->_t, SequenceIter, self->nmemb, self->start_ptr));
     copy(first, last, target_it);
     delete(target_it);
     delete(first);
     delete(last);
-    _vector_pop_back(_this);
+    _vector_pop_back(_self);
     return _iter;
 }
 
-static Iterator _vector_insert(void *_this, Iterator _iter, FormWO_t _x)
+static Iterator _vector_insert(void *_self, Iterator _iter, FormWO_t _x)
 {
     struct VectorIter *iter = offsetOf(_iter, __VectorIter);
     assert(classOf(_iter) == __VectorIter);
-    struct Vector *this = offsetOf(_this, __Vector);
-    assert(iter->cur >= 0 && iter->cur <= this->nmemb);
-    if (iter->cur == this->nmemb) {
-        _vector_push_back(_this, _x);
+    struct Vector *self = offsetOf(_self, __Vector);
+    assert(iter->cur >= 0 && iter->cur <= self->nmemb);
+    if (iter->cur == self->nmemb) {
+        _vector_push_back(_self, _x);
         return _iter;
     }
-    if (!_vector_capacity(_this))
-        fill_allocate(_this);
-    size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
-    Iterator target_it = new(_VectorIter(), VA(this->_t, SequenceIter, iter->cur + 1, iter->ptr));
-    Iterator first = new(_VectorIter(), VA(this->_t, SequenceIter, iter->cur, this->start_ptr));
-    Iterator last = new(_VectorIter(), VA(this->_t, SequenceIter, this->nmemb, this->start_ptr));
+    if (!_vector_capacity(_self))
+        fill_allocate(_self);
+    size_t memb_size = self->_t.f == POD ? self->_t.size : classSz(self->_t.class);
+    Iterator target_it = new(_VectorIter(), VA(self->_t, SequenceIter, iter->cur + 1, iter->ptr));
+    Iterator first = new(_VectorIter(), VA(self->_t, SequenceIter, iter->cur, self->start_ptr));
+    Iterator last = new(_VectorIter(), VA(self->_t, SequenceIter, self->nmemb, self->start_ptr));
     copy(first, last, target_it);
     delete(target_it);
     delete(first);
     delete(last);
     void *p_target = iter->ptr + iter->cur * memb_size;
-    if (this->_t.f == POD) {
+    if (self->_t.f == POD) {
         assert(_x._.f != OBJ);
         if (_x._.f == ADDR)
             memcpy(p_target, *(void**)_x.mem, memb_size);
@@ -706,162 +704,162 @@ static Iterator _vector_insert(void *_this, Iterator _iter, FormWO_t _x)
             memset(p_target, 0, memb_size);
     } else {
         Object obj = p_target;
-        THIS(obj).assign(_x);
+        self(obj).assign(_x);
     }
-    this->nmemb++;
-    this->finish_ptr += memb_size;
+    self->nmemb++;
+    self->finish_ptr += memb_size;
     return _iter;
 }
 
-static void _vector_resize(void *_this, size_t new_size)
+static void _vector_resize(void *_self, size_t new_size)
 {
-    struct Vector *this = offsetOf(_this, __Vector);
-    while (new_size > this->total_storage_memb)
-        fill_allocate(this);
-    this->nmemb = new_size;
-    size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
-    char *old_finish_ptr = this->finish_ptr;
-    this->finish_ptr = this->start_ptr + new_size * memb_size;
-    if (this->_t.f == OBJ) {
-        for (; old_finish_ptr < (char*)this->finish_ptr; old_finish_ptr += memb_size)
-            construct(this->_t, old_finish_ptr, VAEND);
+    struct Vector *self = offsetOf(_self, __Vector);
+    while (new_size > self->total_storage_memb)
+        fill_allocate(self);
+    self->nmemb = new_size;
+    size_t memb_size = self->_t.f == POD ? self->_t.size : classSz(self->_t.class);
+    char *old_finish_ptr = self->finish_ptr;
+    self->finish_ptr = self->start_ptr + new_size * memb_size;
+    if (self->_t.f == OBJ) {
+        for (; old_finish_ptr < (char*)self->finish_ptr; old_finish_ptr += memb_size)
+            construct(self->_t, old_finish_ptr, VAEND);
     }
 }
 
-static void _vector_clear(void *_this)
+static void _vector_clear(void *_self)
 {
-    struct Vector *this = offsetOf(_this, __Vector);
-    if (this->_t.f == OBJ) {
-        void *it = this->start_ptr;
-        size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
-        while (it != this->start_ptr)
+    struct Vector *self = offsetOf(_self, __Vector);
+    if (self->_t.f == OBJ) {
+        void *it = self->start_ptr;
+        size_t memb_size = self->_t.f == POD ? self->_t.size : classSz(self->_t.class);
+        while (it != self->start_ptr)
         {
             destroy(it);
             it = (char*)it + memb_size;
         }
     }
-    this->nmemb = 0;
-    this->finish_ptr = this->start_ptr;
+    self->nmemb = 0;
+    self->finish_ptr = self->start_ptr;
 }
 
-static void _vector_swap(void *_this, Vector _v)
+static void _vector_swap(void *_self, Vector _v)
 {
-    struct Vector *this = offsetOf(_this, __Vector);
+    struct Vector *self = offsetOf(_self, __Vector);
     struct Vector *v = offsetOf((void*)_v, __Vector);
     struct Vector tmp = *v;
-    *v = *this;
-    *this = tmp;
+    *v = *self;
+    *self = tmp;
 }
 
 //selector
 static Iterator _begin(void)
 {
-    void *_this = pop_this();
-    const struct VectorClass *class = offsetOf(classOf(_this), __VectorClass);
+    void *_self = pop_self();
+    const struct VectorClass *class = offsetOf(classOf(_self), __VectorClass);
     assert(class->begin);
-    return class->begin(_this);
+    return class->begin(_self);
 }
 
 static Iterator _end(void)
 {
-    void *_this = pop_this();
-    const struct VectorClass *class = offsetOf(classOf(_this), __VectorClass);
+    void *_self = pop_self();
+    const struct VectorClass *class = offsetOf(classOf(_self), __VectorClass);
     assert(class->end);
-    return class->end(_this);
+    return class->end(_self);
 }
 
 static void* _front(void)
 {
-    void *_this = pop_this();
-    const struct VectorClass *class = offsetOf(classOf(_this), __VectorClass);
+    void *_self = pop_self();
+    const struct VectorClass *class = offsetOf(classOf(_self), __VectorClass);
     assert(class->front);
-    return class->front(_this);
+    return class->front(_self);
 }
 
 static void* _back(void)
 {
-    void *_this = pop_this();
-    const struct VectorClass *class = offsetOf(classOf(_this), __VectorClass);
+    void *_self = pop_self();
+    const struct VectorClass *class = offsetOf(classOf(_self), __VectorClass);
     assert(class->back);
-    return class->back(_this);
+    return class->back(_self);
 }
 
 static size_t _size(void)
 {
-    void *_this = pop_this();
-    const struct VectorClass *class = offsetOf(classOf(_this), __VectorClass);
+    void *_self = pop_self();
+    const struct VectorClass *class = offsetOf(classOf(_self), __VectorClass);
     assert(class->size);
-    return class->size(_this);
+    return class->size(_self);
 }
 
 static size_t _capacity(void)
 {
-    void *_this = pop_this();
-    const struct VectorClass *class = offsetOf(classOf(_this), __VectorClass);
+    void *_self = pop_self();
+    const struct VectorClass *class = offsetOf(classOf(_self), __VectorClass);
     assert(class->capacity);
-    return class->capacity(_this);
+    return class->capacity(_self);
 }
 
 static bool _empty(void)
 {
-    void *_this = pop_this();
-    const struct VectorClass *class = offsetOf(classOf(_this), __VectorClass);
+    void *_self = pop_self();
+    const struct VectorClass *class = offsetOf(classOf(_self), __VectorClass);
     assert(class->empty);
-    return class->empty(_this);
+    return class->empty(_self);
 }
 
 static void _push_back(FormWO_t x)
 {
-    void *_this = pop_this();
-    const struct VectorClass *class = offsetOf(classOf(_this), __VectorClass);
+    void *_self = pop_self();
+    const struct VectorClass *class = offsetOf(classOf(_self), __VectorClass);
     assert(class->push_back);
-    return class->push_back(_this, x);
+    return class->push_back(_self, x);
 }
 
 static void _pop_back(void)
 {
-    void *_this = pop_this();
-    const struct VectorClass *class = offsetOf(classOf(_this), __VectorClass);
+    void *_self = pop_self();
+    const struct VectorClass *class = offsetOf(classOf(_self), __VectorClass);
     assert(class->pop_back);
-    return class->pop_back(_this);
+    return class->pop_back(_self);
 }
 
 static Iterator _erase(Iterator iter)
 {
-    void *_this = pop_this();
-    const struct VectorClass *class = offsetOf(classOf(_this), __VectorClass);
+    void *_self = pop_self();
+    const struct VectorClass *class = offsetOf(classOf(_self), __VectorClass);
     assert(class->erase);
-    return class->erase(_this, iter);
+    return class->erase(_self, iter);
 }
 
 static Iterator _insert(Iterator iter, FormWO_t x)
 {
-    void *_this = pop_this();
-    const struct VectorClass *class = offsetOf(classOf(_this), __VectorClass);
+    void *_self = pop_self();
+    const struct VectorClass *class = offsetOf(classOf(_self), __VectorClass);
     assert(class->insert);
-    return class->insert(_this, iter, x);
+    return class->insert(_self, iter, x);
 }
 
 static void _resize(size_t new_size)
 {
-    void *_this = pop_this();
-    const struct VectorClass *class = offsetOf(classOf(_this), __VectorClass);
+    void *_self = pop_self();
+    const struct VectorClass *class = offsetOf(classOf(_self), __VectorClass);
     assert(class->resize);
-    return class->resize(_this, new_size);
+    return class->resize(_self, new_size);
 }
 
 static void _clear(void)
 {
-    void *_this = pop_this();
-    const struct VectorClass *class = offsetOf(classOf(_this), __VectorClass);
+    void *_self = pop_self();
+    const struct VectorClass *class = offsetOf(classOf(_self), __VectorClass);
     assert(class->clear);
-    return class->clear(_this);
+    return class->clear(_self);
 }
 
 static void _swap(Vector _v)
 {
-    void *_this = pop_this();
-    const struct VectorClass *class = offsetOf(classOf(_this), __VectorClass);
+    void *_self = pop_self();
+    const struct VectorClass *class = offsetOf(classOf(_self), __VectorClass);
     assert(class->swap);
-    return class->swap(_this, _v);
+    return class->swap(_self, _v);
 }
