@@ -754,7 +754,7 @@ static void _vector_swap(void *_self, Vector _v)
 //selector
 static Iterator _begin(void)
 {
-    void *_self = pop_self();
+    void *_self = pop_this();
     const struct VectorClass *class = offsetOf(classOf(_self), __VectorClass);
     assert(class->begin);
     return class->begin(_self);
@@ -762,7 +762,7 @@ static Iterator _begin(void)
 
 static Iterator _end(void)
 {
-    void *_self = pop_self();
+    void *_self = pop_this();
     const struct VectorClass *class = offsetOf(classOf(_self), __VectorClass);
     assert(class->end);
     return class->end(_self);
@@ -770,7 +770,7 @@ static Iterator _end(void)
 
 static void* _front(void)
 {
-    void *_self = pop_self();
+    void *_self = pop_this();
     const struct VectorClass *class = offsetOf(classOf(_self), __VectorClass);
     assert(class->front);
     return class->front(_self);
@@ -778,7 +778,7 @@ static void* _front(void)
 
 static void* _back(void)
 {
-    void *_self = pop_self();
+    void *_self = pop_this();
     const struct VectorClass *class = offsetOf(classOf(_self), __VectorClass);
     assert(class->back);
     return class->back(_self);
@@ -786,7 +786,7 @@ static void* _back(void)
 
 static size_t _size(void)
 {
-    void *_self = pop_self();
+    void *_self = pop_this();
     const struct VectorClass *class = offsetOf(classOf(_self), __VectorClass);
     assert(class->size);
     return class->size(_self);
@@ -794,7 +794,7 @@ static size_t _size(void)
 
 static size_t _capacity(void)
 {
-    void *_self = pop_self();
+    void *_self = pop_this();
     const struct VectorClass *class = offsetOf(classOf(_self), __VectorClass);
     assert(class->capacity);
     return class->capacity(_self);
@@ -802,7 +802,7 @@ static size_t _capacity(void)
 
 static bool _empty(void)
 {
-    void *_self = pop_self();
+    void *_self = pop_this();
     const struct VectorClass *class = offsetOf(classOf(_self), __VectorClass);
     assert(class->empty);
     return class->empty(_self);
@@ -810,7 +810,7 @@ static bool _empty(void)
 
 static void _push_back(FormWO_t x)
 {
-    void *_self = pop_self();
+    void *_self = pop_this();
     const struct VectorClass *class = offsetOf(classOf(_self), __VectorClass);
     assert(class->push_back);
     return class->push_back(_self, x);
@@ -818,7 +818,7 @@ static void _push_back(FormWO_t x)
 
 static void _pop_back(void)
 {
-    void *_self = pop_self();
+    void *_self = pop_this();
     const struct VectorClass *class = offsetOf(classOf(_self), __VectorClass);
     assert(class->pop_back);
     return class->pop_back(_self);
@@ -826,7 +826,7 @@ static void _pop_back(void)
 
 static Iterator _erase(Iterator iter)
 {
-    void *_self = pop_self();
+    void *_self = pop_this();
     const struct VectorClass *class = offsetOf(classOf(_self), __VectorClass);
     assert(class->erase);
     return class->erase(_self, iter);
@@ -834,7 +834,7 @@ static Iterator _erase(Iterator iter)
 
 static Iterator _insert(Iterator iter, FormWO_t x)
 {
-    void *_self = pop_self();
+    void *_self = pop_this();
     const struct VectorClass *class = offsetOf(classOf(_self), __VectorClass);
     assert(class->insert);
     return class->insert(_self, iter, x);
@@ -842,7 +842,7 @@ static Iterator _insert(Iterator iter, FormWO_t x)
 
 static void _resize(size_t new_size)
 {
-    void *_self = pop_self();
+    void *_self = pop_this();
     const struct VectorClass *class = offsetOf(classOf(_self), __VectorClass);
     assert(class->resize);
     return class->resize(_self, new_size);
@@ -850,7 +850,7 @@ static void _resize(size_t new_size)
 
 static void _clear(void)
 {
-    void *_self = pop_self();
+    void *_self = pop_this();
     const struct VectorClass *class = offsetOf(classOf(_self), __VectorClass);
     assert(class->clear);
     return class->clear(_self);
@@ -858,7 +858,7 @@ static void _clear(void)
 
 static void _swap(Vector _v)
 {
-    void *_self = pop_self();
+    void *_self = pop_this();
     const struct VectorClass *class = offsetOf(classOf(_self), __VectorClass);
     assert(class->swap);
     return class->swap(_self, _v);
