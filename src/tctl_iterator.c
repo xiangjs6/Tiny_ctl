@@ -19,6 +19,7 @@ struct IteratorClass {
 
 struct Iterator {
     enum IterRank rank;
+    void *class;
 };
 
 static void *_class_ctor(void *_self, va_list *app);
@@ -131,6 +132,9 @@ static void *_object_ctor(void *_self, va_list *app)
         assert(THIS(any).size() == sizeof(enum IterRank));
         self->rank = *(enum IterRank*)THIS(any).value();
         assert(self->rank <= SequenceIter);
+        void *class = va_arg(*app, void*);
+        assert(class != VAEND);
+        self->class = class;
     } else {
         assert(class_check(m_obj, __Iterator));
         struct Iterator *it = offsetOf(m_obj, __Iterator);

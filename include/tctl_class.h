@@ -8,22 +8,22 @@
 #include "tctl_metaclass.h"
 #include <stdbool.h>
 
-#define CLASS_FUNC              \
-struct {                        \
-    METACLASS_FUNC;             \
-    bool (*equal)(void *x);     \
-    int (*cmp)(void *x);        \
-    void *(*brackets)(void *x); \
-    void (*inc)(void);          \
-    void (*dec)(void);          \
-    void (*self_add)(void *x);  \
-    void (*self_sub)(void *x);  \
-    void (*assign)(void *x);    \
-    void *(*add)(void *x);      \
-    void *(*sub)(void *x);      \
-    void *(*mul)(void *x);      \
-    void *(*div)(void *x);      \
-    void *(*mod)(void *x);      \
+#define CLASS_FUNC                    \
+struct {                              \
+    METACLASS_FUNC;                   \
+    bool (*equal)(const void *x);     \
+    int (*cmp)(const void *x);        \
+    void *(*brackets)(const void *x); \
+    void (*inc)(void);                \
+    void (*dec)(void);                \
+    void (*self_add)(const void *x);  \
+    void (*self_sub)(const void *x);  \
+    void (*assign)(const void *x);    \
+    void *(*add)(const void *x);      \
+    void *(*sub)(const void *x);      \
+    void *(*mul)(const void *x);      \
+    void *(*div)(const void *x);      \
+    void *(*mod)(const void *x);      \
 }
 
 typedef struct {

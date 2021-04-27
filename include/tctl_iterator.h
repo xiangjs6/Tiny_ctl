@@ -24,6 +24,7 @@ enum IterRank {
 #define ITERATOR_OBJ          \
 struct {                      \
     const enum IterRank rank; \
+    void const * const class; \
 }
 
 typedef struct _Iterator *Iterator;
