@@ -11,12 +11,12 @@
 Iterator copy_backward(Iterator first, Iterator last, Iterator result);
 Iterator copy(Iterator first, Iterator last, Iterator result);
 bool equal(Iterator first1, Iterator last1, Iterator first2, .../*Compare*/);
-void fill(Iterator first, Iterator last, FormWO_t x);
-void fill_n(Iterator first, size_t n, FormWO_t x);
+void fill(Iterator first, Iterator last, const void *x);
+void fill_n(Iterator first, const void *n, const void *x);
 void iter_swap(Iterator a, Iterator b);
 bool lexicographical_compare(Iterator first1, Iterator last1, Iterator first2, Iterator last2, .../*Compare*/);
-FormWO_t max(FormWO_t a, FormWO_t b, .../*Compare*/);
-FormWO_t min(FormWO_t a, FormWO_t b, .../*Compare*/);
+void *max(const void *a, const void *b, .../*Compare*/);
+void *min(const void *a, const void *b, .../*Compare*/);
 Pair mismatch(Iterator first1, Iterator last1, Iterator first2, .../*Compare*/);
-void swap(FormWO_t a, FormWO_t b);
+void swap(void *a, void *b);
 #endif //TINY_CTL_TCTL_ALGOBASE_H

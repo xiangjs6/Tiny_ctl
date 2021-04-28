@@ -227,7 +227,7 @@ static const void *_RVectorIter(void)
 //private
 static void _deal_Vector_Args(void *_self, MetaObject *args, int n)
 {
-    if (classOf(args) == _Vector().class) { //复制一个Vector
+    if (classOf(args) == __Vector) { //复制一个Vector
         struct Vector *v = offsetOf(args, __Vector);
         size_t v_memb_size = classSz(v->class);
         for (char (*ptr)[v_memb_size] = v->start_ptr; (void*)ptr < v->finish_ptr; ptr++) {
@@ -235,7 +235,7 @@ static void _deal_Vector_Args(void *_self, MetaObject *args, int n)
         }
     } else if (classOf(args) != T(Int)) { //size_type n, T value = T() 构造方法
         Int ii = (Int)args;
-        unsigned long long nmemb = *(unsigned long long*)ii->val;
+        unsigned long long nmemb = (unsigned long long)ii->val;
         if (n == 1) {
             for (size_t i = 0; i < nmemb; i++)
                 _vector_push_back(_self, VAEND);
@@ -317,7 +317,7 @@ static void *_iter_ctor(void *_self, va_list *app)
     }
     assert(classOf(m_obj) == T(Int));
     Int i = (Int)m_obj;
-    self->cur = *(size_t*)i->val;
+    self->cur = (size_t)i->val;
     return _self;
 }
 
@@ -372,7 +372,7 @@ static void *_iter_brackets(const void *_self, const void *_x)
     else
         x = THIS(m_obj).cast(T(Int));
     size_t size = classSz(it->class);
-    void *res = self->ptr + size * (*(size_t*)x->val + self->cur);
+    void *res = self->ptr + size * ((size_t)x->val + self->cur);
     return res;
 }
 
@@ -409,7 +409,7 @@ static void _iter_self_add(void *_self, const void *_x)
         x = (void*)_x;
     else
         x = THIS(m_obj).cast(T(Int));
-    self->cur += *(size_t*)x->val;
+    self->cur += (size_t)x->val;
 }
 
 static void _iter_self_sub(void *_self, const void *_x)
@@ -425,7 +425,7 @@ static void _iter_self_sub(void *_self, const void *_x)
         x = (void*)_x;
     else
         x = THIS(m_obj).cast(T(Int));
-    self->cur -= *(size_t*)x->val;
+    self->cur -= (size_t)x->val;
 }
 
 static void _iter_assign(void *_self, const void *_x)
@@ -580,7 +580,7 @@ static void *_vector_brackets(const void *_self, const void *_x)
         MetaObject m_obj = (void*)_x;
         i = THIS(m_obj).cast(T(Int));
     }
-    long long x = *(long long*)i->val;
+    long long x = (long long)i->val;
     assert(x >= 0 && x <= self->nmemb);
     size_t memb_size = classSz(self->class);
     void *res = self->start_ptr + memb_size * x;

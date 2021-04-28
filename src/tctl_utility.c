@@ -5,101 +5,83 @@
 #include "../include/tctl_utility.h"
 #include "include/_tctl_metaclass.h"
 #include "../include/auto_release_pool.h"
-#include "../include/tctl_def.h"
+#include "../include/tctl_arg.h"
 #include <stdarg.h>
-#include <memory.h>
 #define Import METACLASS, METAOBJECT
 //Pair
 struct Pair {
-    Form_t f_t;
+    void *f_t;
     void *first;
-    Form_t s_t;
+    void *s_t;
     void *second;
 };
 static const void *__Pair = NULL;
 
-static void *_pair_ctor(void *_this, va_list *app)
+static void *_pair_ctor(void *_self, va_list *app)
 {
-    _this = super_ctor(__Pair, _this, app);
-    struct Pair *this = offsetOf(_this, __Pair);
+    _self = super_ctor(__Pair, _self, app);
+    struct Pair *self = offsetOf(_self, __Pair);
 
-    FormWO_t t = va_arg(*app, FormWO_t);
-    if (t._.f == OBJ && t._.class == __Pair) { //复制构造函数
-        struct Pair *p = offsetOf(*(void**)t.mem, __Pair);
-        this->f_t = p->f_t;
-        if (this->f_t.f == OBJ)
-            this->first = new(this->f_t, FORM_WITH_OBJ(p->f_t, V(p->first)));
-        else {
-            this->first = new(this->f_t);
-            memcpy(this->first, p->first, this->f_t.size);
-        }
-        this->s_t = p->s_t;
-        if (this->s_t.f == OBJ)
-            this->second = new(this->s_t, FORM_WITH_OBJ(p->s_t, V(p->second)));
-        else {
-            this->second = new(this->s_t);
-            memcpy(this->second, p->second, this->s_t.size);
-        }
+    void *t = va_arg(*app, void*);
+    if (t == __Pair) { //复制构造函数
+        struct Pair *p = offsetOf(t, __Pair);
+        self->f_t = p->f_t;
+        self->first = new(self->f_t, p->first, VAEND);
+        self->s_t = p->s_t;
+        self->second = new(self->s_t, p->second, VAEND);
     } else {
-        FormWO_t f[2];
-        f[0] = t;
-        assert(f[0]._.f >= FORM);
-        f[0]._.f -= FORM;
-        f[1] = va_arg(*app, FormWO_t);
-        assert(f[1]._.f >= FORM);
-        f[1]._.f -= FORM;
-        this->f_t = f[0]._;
-        this->s_t = f[1]._;
+        self->f_t = t;
+        assert(self->f_t != VAEND);
+        self->s_t = va_arg(*app, void*);
+        assert(self->s_t != VAEND);
 
-        t = va_arg(*app, FormWO_t);
-        this->first = new(this->f_t, t);
-        if (t._.f != END)
-            t = va_arg(*app, FormWO_t);
-        this->second = new(this->s_t, t);
+        t = va_arg(*app, void*);
+        self->first = new(self->f_t, t, VAEND);
+        if (t != VAEND)
+            t = va_arg(*app, void*);
+        self->second = new(self->s_t, t, VAEND);
     }
 
-    if (t._.f != END)
-        while (va_arg(*app, FormWO_t)._.f != END); //吃掉VAEND
-    return _this;
+    if (t != VAEND)
+        while (va_arg(*app, void*) != VAEND); //吃掉VAEND
+    return _self;
 }
 
-static void *_pair_dtor(void *_this)
+static void *_pair_dtor(void *_self)
 {
-    _this = super_dtor(__Pair, _this);
-    struct Pair *this = offsetOf(_this, __Pair);
-    FormWO_t t = FORM_WITH_OBJ(this->f_t, V(this->first));
-    delete(t);
-    t = FORM_WITH_OBJ(this->s_t, V(this->second));
-    delete(t);
-    return _this;
+    _self = super_dtor(__Pair, _self);
+    struct Pair *self = offsetOf(_self, __Pair);
+    delete(self->first);
+    delete(self->second);
+    return _self;
 }
 
 static void initPair(void)
 {
     if (!__Pair) {
-        __Pair = new(T(MetaClass), "Pair", T(MetaObject), sizeof(struct Pair) + classSz(_MetaObject().class),
+        __Pair = new(T(MetaClass), "Pair", T(MetaObject), sizeof(struct Pair) + classSz(T(MetaObject)),
                      _MetaClassS->ctor, _pair_ctor,
                      _MetaClassS->dtor, _pair_dtor, NULL);
     }
 }
 
-Form_t _Pair(void)
+const void *_Pair(void)
 {
     if (!__Pair)
         initPair();
-    return (Form_t){OBJ, .class = __Pair};
+    return __Pair;
 }
 
-Pair tmpPair(Form_t first_t, Form_t second_t, ...)
+Pair tmpPair(const void *first_t, const void *second_t, ...)
 {
     if (!__Pair)
         initPair();
     va_list ap;
     va_start(ap, second_t);
-    FormWO_t args[2] = {VAEND, VAEND};
-    FormWO_t t;
+    void *args[2] = {VAEND, VAEND};
+    void *t;
     int n = 0;
-    while ((t = va_arg(ap, FormWO_t))._.f != END)
+    while ((t = va_arg(ap, void*)) != VAEND)
     {
         assert(n < 2);
         args[n++] = t;
