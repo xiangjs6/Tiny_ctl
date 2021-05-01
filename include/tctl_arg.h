@@ -24,7 +24,7 @@ extern void *VAEND;
                 unsigned int       : _valueAux('i', _t),                             \
                 unsigned long      : _valueAux('l', _t),                             \
                 unsigned long long : _valueAux('L', _t),                             \
-                default : _valueAux("oO"[!_Generic(_t, Import, default : NULL)], _t))
+                default : _valueAux("Oo"[!_Generic(_t, Import, default : NULL)], _t))
 //对每个参数返回正确的obj对象
 #define VA(...) MAP_LIST(_VA_AUX, ##__VA_ARGS__)
 #define VA_ST(val) _valueAux('S', sizeof(val), val)

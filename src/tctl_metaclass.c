@@ -127,7 +127,7 @@ bool class_check(const void *obj, const void *class)
     {
         if (obj_class == __MetaObject)
             return false;
-        obj_class = super(obj);
+        obj_class = super(obj_class);
     }
     return true;
 }

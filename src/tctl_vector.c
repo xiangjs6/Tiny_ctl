@@ -227,15 +227,16 @@ static const void *_RVectorIter(void)
 //private
 static void _deal_Vector_Args(void *_self, MetaObject *args, int n)
 {
-    if (classOf(args) == __Vector) { //复制一个Vector
-        struct Vector *v = offsetOf(args, __Vector);
+    if (classOf(*args) == __Vector) { //复制一个Vector
+        struct Vector *v = offsetOf(*args, __Vector);
         size_t v_memb_size = classSz(v->class);
         for (char (*ptr)[v_memb_size] = v->start_ptr; (void*)ptr < v->finish_ptr; ptr++) {
             _vector_push_back(_self, ptr);
         }
-    } else if (classOf(args) != T(Int)) { //size_type n, T value = T() 构造方法
-        Int ii = (Int)args;
-        unsigned long long nmemb = (unsigned long long)ii->val;
+    } else if (classOf(*args) == T(Any)) { //size_type n, T value = T() 构造方法
+        Any any = (Any)*args;
+        Int ii = THIS(any).cast(T(Int));
+        unsigned long long nmemb = ii->val;
         if (n == 1) {
             for (size_t i = 0; i < nmemb; i++)
                 _vector_push_back(_self, VAEND);
@@ -261,26 +262,35 @@ static void _deal_Vector_Args(void *_self, MetaObject *args, int n)
 
 static void fill_allocate(struct Vector *self)
 {
+    ARP_CreatePool();
+    void *mem;
     size_t old_size = self->total_storage_memb;
     size_t memb_size = classSz(self->class);
     self->total_storage_memb *= 2;
     self->total_storage_memb = self->total_storage_memb ? self->total_storage_memb : 1;
     void *new_block = allocate(self->total_storage_memb * memb_size);
-    Iterator new_it = new(_VectorIter(), VA(SequenceIter, 0, new_block));
-    Iterator first = new(_VectorIter(), VA(SequenceIter, 0, self->start_ptr));
-    Iterator last = new(_VectorIter(), VA(SequenceIter, self->nmemb, self->start_ptr));
+
+    size_t iter_size = classSz(__VectorIter);
+    Any any = ctor_any(NULL, &new_block, sizeof(void*));
+    mem = ARP_MallocARelDtor(iter_size, destroy);
+    Iterator new_it = construct(__VectorIter, mem, VA(SequenceIter), self->class, any, VA(0), VAEND);
+
+    any = ctor_any(NULL, &self->start_ptr, sizeof(void*));
+    mem = ARP_MallocARelDtor(iter_size, destroy);
+    Iterator first = construct(__VectorIter, mem, VA(SequenceIter), self->class, any, VA(0), VAEND);
+    mem = ARP_MallocARelDtor(iter_size, destroy);
+    Iterator last = construct(__VectorIter, mem, VA(SequenceIter), self->class, any, VA(self->nmemb), VAEND);
+
     copy(first, last, new_it);
     for (; !THIS(first).equal(VA(last)); THIS(first).inc()) {
             Object obj = THIS(first).derefer();
             THIS(obj).dtor();
         }
 
-    delete(new_it);
-    delete(first);
-    delete(last);
     deallocate(self->start_ptr, old_size * memb_size);
     self->start_ptr = new_block;
     self->finish_ptr = self->start_ptr + memb_size * self->nmemb;
+    ARP_FreePool();
 }
 
 //public
@@ -295,10 +305,11 @@ static void *_iter_ctor(void *_self, va_list *app)
         self->ptr = NULL;
         return _self;
     }
+
     if (classOf(m_obj) == T(Any)) {
         Any any = (Any)m_obj;
         assert(THIS(any).size() == sizeof(void*));
-        self->ptr = THIS(any).value();
+        self->ptr = *(void**)THIS(any).value();
     } else {
         assert(classOf(m_obj) == __VectorIter || classOf(m_obj) == __RVectorIter);
         struct VectorIter *it;
@@ -315,8 +326,11 @@ static void *_iter_ctor(void *_self, va_list *app)
         self->cur = 0;
         return _self;
     }
-    assert(classOf(m_obj) == T(Int));
-    Int i = (Int)m_obj;
+    Int i;
+    if (classOf(m_obj) == T(Int))
+        i = (Int)m_obj;
+    else
+        i = THIS(m_obj).cast(T(Int));
     self->cur = (size_t)i->val;
     return _self;
 }
@@ -592,8 +606,8 @@ static Iterator _vector_begin(const void *_self)
     struct Vector *self = offsetOf(_self, __Vector);
     void *mem = ARP_MallocARelDtor(classSz(__VectorIter), destroy);
     char any_mem[classSz(T(Any))];
-    Any any = construct(T(Any), any_mem, POD, &self->start_ptr, sizeof(void*), VAEND);
-    Iterator res = construct(_VectorIter(), mem, VA(SequenceIter), self->class, VA(0), any, VAEND);
+    Any any = ctor_any(any_mem, &self->start_ptr, sizeof(void*));
+    Iterator res = construct(_VectorIter(), mem, VA(SequenceIter), self->class, any, VA(0), VAEND);
     destroy(any);
     return res;
 }
@@ -603,8 +617,8 @@ static Iterator _vector_end(const void *_self)
     struct Vector *self = offsetOf(_self, __Vector);
     void *mem = ARP_MallocARelDtor(classSz(__VectorIter), destroy);
     char any_mem[classSz(T(Any))];
-    Any any = construct(T(Any), any_mem, POD, &self->start_ptr, sizeof(void*), VAEND);
-    Iterator res = construct(_VectorIter(), mem, VA(SequenceIter), self->class, VA(self->nmemb), any, VAEND);
+    Any any = ctor_any(any_mem, &self->start_ptr, sizeof(void*));
+    Iterator res = construct(_VectorIter(), mem, VA(SequenceIter), self->class, any, VA(self->nmemb), VAEND);
     destroy(any);
     return res;
 }
@@ -662,6 +676,10 @@ static void _vector_pop_back(void *_self)
 
 static Iterator _vector_erase(void *_self, Iterator _iter)
 {
+    ARP_CreatePool();
+    void *mem;
+    Any any;
+
     struct VectorIter *iter = offsetOf(_iter, __VectorIter);
     assert(classOf(_iter) == __VectorIter);
     struct Vector *self = offsetOf(_self, __Vector);
@@ -670,19 +688,26 @@ static Iterator _vector_erase(void *_self, Iterator _iter)
         _vector_pop_back(_self);
         return _iter;
     }
-    Iterator target_it = new(_VectorIter(), self->class, VA(SequenceIter, iter->cur), iter->ptr);
-    Iterator first = new(_VectorIter(), self->class, VA(SequenceIter, iter->cur + 1), self->start_ptr);
-    Iterator last = new(_VectorIter(), self->class, VA(SequenceIter, self->nmemb), self->start_ptr);
+    size_t iter_size = classSz(__VectorIter);
+    any = ctor_any(NULL, &self->start_ptr, sizeof(void*));
+    mem = ARP_MallocARelDtor(iter_size, destroy);
+    Iterator first = construct(__VectorIter, mem, VA(SequenceIter), self->class, any, VA(iter->cur + 1), VAEND);
+    mem = ARP_MallocARelDtor(iter_size, destroy);
+    Iterator last = construct(__VectorIter, mem, VA(SequenceIter), self->class, any, VA(self->nmemb), VAEND);
+
+    mem = ARP_MallocARelDtor(iter_size, destroy);
+    Iterator target_it = construct(__VectorIter, mem, VA(SequenceIter), self->class, any, VA(iter->cur), VAEND);
     copy(first, last, target_it);
-    delete(target_it);
-    delete(first);
-    delete(last);
     _vector_pop_back(_self);
+    ARP_FreePool();
     return _iter;
 }
 
 static Iterator _vector_insert(void *_self, Iterator _iter, const void *_x)
 {
+    ARP_CreatePool();
+    void *mem;
+    Any any;
     struct VectorIter *iter = offsetOf(_iter, __VectorIter);
     assert(classOf(_iter) == __VectorIter);
     struct Vector *self = offsetOf(_self, __Vector);
@@ -694,18 +719,24 @@ static Iterator _vector_insert(void *_self, Iterator _iter, const void *_x)
     if (!_vector_capacity(_self))
         fill_allocate(_self);
     size_t memb_size = classSz(self->class);
-    Iterator target_it = new(_VectorIter(), self->class, VA(SequenceIter, iter->cur + 1), iter->ptr, VAEND);
-    Iterator first = new(_VectorIter(), self->class, VA(SequenceIter, iter->cur), self->start_ptr, VAEND);
-    Iterator last = new(_VectorIter(), VA(self->class, SequenceIter, self->nmemb, self->start_ptr));
+
+    size_t iter_size = classSz(__VectorIter);
+    any = ctor_any(NULL, &self->start_ptr, sizeof(void*));
+    mem = ARP_MallocARelDtor(iter_size, destroy);
+    Iterator first = construct(__VectorIter, mem, VA(SequenceIter), self->class, any, VA(iter->cur), VAEND);
+    mem = ARP_MallocARelDtor(iter_size, destroy);
+    Iterator last = construct(__VectorIter, mem, VA(SequenceIter), self->class, any, VA(self->nmemb), VAEND);
+
+    mem = ARP_MallocARelDtor(iter_size, destroy);
+    Iterator target_it = construct(__VectorIter, mem, VA(SequenceIter), self->class, any, VA(iter->cur + 1), VAEND);
     copy(first, last, target_it);
-    delete(target_it);
-    delete(first);
-    delete(last);
+
     void *p_target = iter->ptr + iter->cur * memb_size;
     Object obj = p_target;
     THIS(obj).assign(_x);
     self->nmemb++;
     self->finish_ptr += memb_size;
+    ARP_FreePool();
     return _iter;
 }
 

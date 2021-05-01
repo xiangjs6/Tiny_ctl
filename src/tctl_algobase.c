@@ -10,7 +10,6 @@
 #include "../include/tctl_int.h"
 #include <assert.h>
 #include <stdarg.h>
-#include <string.h>
 #define Import ITERATOR, OBJECT/*, PAIR*/, INT
 #define ALLOC(size) ARP_MallocARelDtor(size, destroy)
 //copy
@@ -239,7 +238,7 @@ void fill_n(Iterator _first, const void *_n, const void *x)
     Int n = (void*)_n;
     n = THIS(n).cast(T(Int));
     Iterator first = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
-    for (; (*(unsigned long long *)n->val)--; THIS(first).inc())
+    for (; n->val--; THIS(first).inc())
         AssignOpt(THIS(first).derefer(), x);
     ARP_FreePool();
 }
@@ -296,9 +295,9 @@ void *max(const void *a, const void *b, .../*Compare*/)
 
     int res = CompareOpt(a, b, op);
     if (res > 0)
-        return a;
+        return (void*)a;
     else
-        return b;
+        return (void*)b;
 }
 
 //min
@@ -311,9 +310,9 @@ void *min(const void *a, const void *b, .../*Compare*/)
 
     int res = CompareOpt(a, b, op);
     if (res < 0)
-        return a;
+        return (void*)a;
     else
-        return b;
+        return (void*)b;
 }
 
 //mismatch

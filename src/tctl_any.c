@@ -4,8 +4,9 @@
 #include "../include/tctl_arg.h"
 #include "../include/tctl_any.h"
 #include "include/_tctl_metaclass.h"
+#include "../include/auto_release_pool.h"
 
-#define Import METAOBJECT, METACLASS
+#define Import METAOBJECT, METACLASS, ANY
 
 struct AnySelector {
     char _[sizeof(struct MetaClassSelector)];
@@ -73,7 +74,8 @@ static void initAny(void)
                           _MetaClassS->cast, _any_cast,
                           _AnyS->value, _any_value,
                           _AnyS->size, _any_size,
-                          _AnyS->type, _any_type, NULL);
+                          _AnyS->type, _any_type,
+                          Selector, _AnyS, NULL);
 }
 
 const void *_Any(void)
@@ -142,6 +144,7 @@ static void *_any_ctor(void *_self, va_list *app)
         if (self->cast == VAEND)
             self->cast = NULL;
         self->mem = malloc(self->size);
+        assert(self->mem);
         memcpy(self->mem, value, self->size);
     }
     va_end(ap);
@@ -218,4 +221,12 @@ static enum TypeFlag _type(void)
     const struct AnyClass *class = offsetOf(classOf(_self), __AnyClass);
     assert(class->type);
     return class->type(_self);
+}
+
+Any ctor_any(void *mem, void *ptr, size_t size)
+{
+    if (!__Any)
+        T(Any);
+    mem = mem ? mem : ARP_MallocARelDtor(classSz(__Any), destroy);
+    return construct(__Any, mem, ptr, size, VAEND);
 }

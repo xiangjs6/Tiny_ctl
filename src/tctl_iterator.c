@@ -129,8 +129,8 @@ static void *_object_ctor(void *_self, va_list *app)
     MetaObject m_obj = va_arg(*app, MetaObject);
     if (classOf(m_obj) == T(Any)) {
         Any any = (Any)m_obj;
-        assert(THIS(any).size() == sizeof(enum IterRank));
-        self->rank = *(enum IterRank*)THIS(any).value();
+        assert(THIS(any).size() == sizeof(unsigned long long));
+        self->rank = *(unsigned long long*)THIS(any).value();
         assert(self->rank <= SequenceIter);
         void *class = va_arg(*app, void*);
         assert(class != VAEND);

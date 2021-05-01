@@ -15,6 +15,7 @@ typedef struct {
     );
  } *Any;
 
+Any ctor_any(void *mem, void *ptr, size_t size);
 //Any不可以被继承
 const void *_Any(void);
 #define ANY Any : _Any()
