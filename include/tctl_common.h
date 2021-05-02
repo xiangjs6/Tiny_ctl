@@ -13,7 +13,6 @@
 
 #define container_of(ptr, type, member) ((type *) ((char *)(ptr) - offsetof(type, member)))
 #define autofree(func) __attribute__((cleanup(func)))
-#define compose(...) __VA_ARGS__
 
 size_t hash_numeric(void *x);
 size_t hash_str(void *x);

@@ -129,7 +129,7 @@ static void *_double_cast(const void *_self, const void *class)
     } else if (class == T(Char)) {
         ret = ARP_MallocARel(classSz(class));
         Char v = construct(class, ret, VAEND);
-        v->val = self->val;
+        v->val = (char)self->val;
     } else if (class == T(Int)) {
         ret = ARP_MallocARel(classSz(class));
         Double v = construct(class, ret, VAEND);

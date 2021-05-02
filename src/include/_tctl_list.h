@@ -14,13 +14,13 @@ struct ListSelector {
     void* (*back)(void);
     size_t (*size)(void);
     bool (*empty)(void);
-    void (*push_back)(FormWO_t x);
-    void (*push_front)(FormWO_t x);
+    void (*push_back)(const void *x);
+    void (*push_front)(const void *x);
     void (*pop_back)(void);
     void (*pop_front)(void);
     Iterator (*erase)(Iterator iter);
-    Iterator (*insert)(Iterator iter, FormWO_t x);
-    void (*remove)(FormWO_t x);
+    Iterator (*insert)(Iterator iter, const void *x);
+    void (*remove)(const void *x);
     void (*unique)(void);
     void (*splice)(Iterator position, List l, ...);
     void (*merge)(List l, Compare cmp);
@@ -29,6 +29,6 @@ struct ListSelector {
     void (*clear)(void);
     void (*swap)(List _l);
 };
-Form_t _ListClass(void);
+const void *_ListClass(void);
 extern const struct ListSelector *_ListS;
 #endif //TINY_CTL__TCTL_LIST_H

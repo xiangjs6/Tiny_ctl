@@ -27,5 +27,5 @@ extern void *VAEND;
                 default : _valueAux("Oo"[!_Generic(_t, Import, default : NULL)], _t))
 //对每个参数返回正确的obj对象
 #define VA(...) MAP_LIST(_VA_AUX, ##__VA_ARGS__)
-#define VA_ST(val) _valueAux('S', sizeof(val), val)
+#define VA_ANY(val, ...) _valueAux('A', &val, sizeof(val), __VA_ARGS__, NULL)
 #endif //TINY_CTL_TCTL_ARG_H

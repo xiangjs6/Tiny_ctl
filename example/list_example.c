@@ -7,22 +7,22 @@
 #include "../include/tctl_list.h"
 #include "../include/tctl_int.h"
 #include "../include/tctl_double.h"
-#include "../include/tctl_iterator.h"
 #include "../include/auto_release_pool.h"
+#include "../include/tctl_arg.h"
 
 #define Import LIST, INT, DOUBLE, ITERATOR
 
-int cmp(FormWO_t _a, FormWO_t _b)
+int cmp(const void *_a, const void *_b)
 {
-    long long a = toInt(_a);
-    long long b = toInt(_b);
-    return a - b;
+    Int a = (void*)_a;
+    Int b = (void*)_b;
+    return (int)(a->val - b->val);
 }
 
 int main(void)
 {
     ARP_CreatePool();
-    List l = new(T(List), VA(T(Int)));
+    List l = new(T(List), T(Int), VAEND);
     int temp = 100;
     for (int i = 0; i < 10; i++) {
         THIS(l).push_back(VA(i));
@@ -41,6 +41,7 @@ int main(void)
         printf("%lld\n", ((Int)THIS(it).derefer())->val);
         //THIS(&l).insert(*it, &temp);
     }
+    fflush(stdout);
     printf("it:%lld\n", ((Int)THIS(iter).derefer())->val);
     THIS(l).erase(iter);
     printf("first\n");
@@ -63,7 +64,7 @@ int main(void)
     for (; !THIS(r_it).equal(VA(THIS(l).end())); THIS(r_it).dec()) {
         printf("%lld\n", ((Int)THIS(r_it).derefer())->val);
     }
-    List l2 = new(T(List), VA(T(Int)));
+    List l2 = new(T(List), T(Int), VAEND);
     //init_list(&l2, sizeof(int));
     for (int i = 10; i < 20; i++)
         THIS(l2).push_back(VA(i));
@@ -79,10 +80,10 @@ int main(void)
     }
     printf("front%lld\n", ((Int)THIS(l).front())->val);
     printf("back%lld\n", ((Int)THIS(l).back())->val);
-    printf("size:%ld\n", THIS(l).size());
+    printf("size:%u\n", THIS(l).size());
     printf("merge\n");
-    List l1 = new(T(List), VA(T(Int)));
-    List l3 = new(T(List), VA(T(Int)));
+    List l1 = new(T(List), T(Int), VAEND);
+    List l3 = new(T(List), T(Int), VAEND);
     for (int i = 0; i < 10; i++) {
         THIS(l1).push_back(VA(i));
         THIS(l3).push_back(VA(i));
@@ -96,7 +97,7 @@ int main(void)
     printf("sort\n");
     THIS(l).clear();
     for (int i = 0; i < 10000; i++) {
-        temp = (int)random();
+        temp = (int)rand();
         THIS(l).push_back(VA(temp));
     }
     THIS(l).sort(cmp);
@@ -109,9 +110,9 @@ int main(void)
             return 0;
         }
     }
-    int dis = distance(THIS(l).begin(), THIS(l).end());
-    printf("dist:%d\n", dis);
-    List l4 = new(T(List), VA(T(Double), l1));
+    long long dis = distance(THIS(l).begin(), THIS(l).end());
+    printf("dist:%lld\n", dis);
+    List l4 = new(T(List), T(Double), l1, VAEND);
     for (int i = 0; i < THIS(l4).size(); i++) {
         printf("%lf\n", ((Double)THIS(l4).brackets(VA(i)))->val);
     }
@@ -119,13 +120,14 @@ int main(void)
     delete(l1);
     delete(l2);
     delete(l3);
+    printf("%d\n", ARP_GetPoolsCount());
     printf("%d\n", ARP_GetPoolNodesCount());
 
 
-    List l5 = new(T(List), VA(T(int), 3, 4));
-    List l6 = new(T(List), VA(T(int), THIS(l5).begin(), THIS(l5).end()));
+    List l5 = new(T(List), T(Int), VA(3, 4), VAEND);
+    List l6 = new(T(List), T(Int), THIS(l5).begin(), THIS(l5).end(), VAEND);
     for (Iterator it = THIS(l6).begin(); !THIS(it).equal(VA(THIS(l6).end())); THIS(it).inc()) {
-        printf("%d\n", *(int*)THIS(it).derefer());
+        printf("%lld\n", ((Int)THIS(it).derefer())->val);
     }
     delete(l5);
     delete(l6);

@@ -222,11 +222,3 @@ static enum TypeFlag _type(void)
     assert(class->type);
     return class->type(_self);
 }
-
-Any ctor_any(void *mem, void *ptr, size_t size)
-{
-    if (!__Any)
-        T(Any);
-    mem = mem ? mem : ARP_MallocARelDtor(classSz(__Any), destroy);
-    return construct(__Any, mem, ptr, size, VAEND);
-}

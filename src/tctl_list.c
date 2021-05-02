@@ -2,50 +2,51 @@
 // Created by xjs on 2020/9/8.
 //
 
-#include "include/_tctl_list.h"
 #include "../include/tctl_allocator.h"
 #include "../include/auto_release_pool.h"
-#include "include/_tctl_metaclass.h"
-#include "include/_tctl_iterator.h"
 #include "../include/tctl_int.h"
-#include "../include/tctl_uint.h"
+#include "../include/tctl_def.h"
+#include "../include/tctl_arg.h"
+#include "../include/tctl_any.h"
+#include "include/_tctl_list.h"
+#include "include/_tctl_iterator.h"
 #include <assert.h>
 #include <stdarg.h>
-#include <stdio.h>
 #include <string.h>
 
-#define Import CLASS, OBJECT, METACLASS, ITERATOR, LIST
+#define Import CLASS, OBJECT, METACLASS, ITERATOR, LIST, ANY, INT
+
+#define DATA(node) ((void*)((char*)&(node) + sizeof(node)))
 
 struct ListNode {
     struct ListNode *pre;
     struct ListNode *nxt;
-    byte data[0];
 };
 struct ListClass {
-    Iterator (*begin)(const void *_this);
-    Iterator (*end)(const void *_this);
-    void* (*front)(const void *_this);
-    void* (*back)(const void *_this);
-    size_t (*size)(const void *_this);
-    bool (*empty)(const void *_this);
-    void (*push_back)(void *_this, FormWO_t x);
-    void (*push_front)(void *_this, FormWO_t x);
-    void (*pop_back)(void *_this);
-    void (*pop_front)(void *_this);
-    Iterator (*erase)(void *_this, Iterator iter);
-    Iterator (*insert)(void *_this, Iterator iter, FormWO_t x);
-    void (*remove)(void *_this, FormWO_t x);
-    void (*unique)(void *_this);
-    void (*splice)(void *_this, Iterator _position, List l, va_list *app);
-    void (*merge)(void *_this, List l, Compare cmp);
-    void (*reverse)(void *_this);
-    void (*sort)(void *_this, Compare cmp);
-    void (*clear)(void *_this);
-    void (*swap)(void *_this, struct _List *_v);
+    Iterator (*begin)(const void *_self);
+    Iterator (*end)(const void *_self);
+    void* (*front)(const void *_self);
+    void* (*back)(const void *_self);
+    size_t (*size)(const void *_self);
+    bool (*empty)(const void *_self);
+    void (*push_back)(void *_self, const void *x);
+    void (*push_front)(void *_self, const void *x);
+    void (*pop_back)(void *_self);
+    void (*pop_front)(void *_self);
+    Iterator (*erase)(void *_self, Iterator iter);
+    Iterator (*insert)(void *_self, Iterator iter, const void *x);
+    void (*remove)(void *_self, const void *x);
+    void (*unique)(void *_self);
+    void (*splice)(void *_self, Iterator _position, List l, va_list *app);
+    void (*merge)(void *_self, List l, Compare cmp);
+    void (*reverse)(void *_self);
+    void (*sort)(void *_self, Compare cmp);
+    void (*clear)(void *_self);
+    void (*swap)(void *_self, struct _List *_v);
 };
 
 struct List {
-    Form_t _t;
+    void *class;
     struct ListNode _end;
 };
 
@@ -60,13 +61,13 @@ static void *_front(void);
 static void *_back(void);
 static size_t _size(void);
 static bool _empty(void);
-static void _push_back(FormWO_t x);
-static void _push_front(FormWO_t x);
+static void _push_back(const void *x);
+static void _push_front(const void *x);
 static void _pop_back(void);
 static void _pop_front(void);
 static Iterator _erase(Iterator iter);
-static Iterator _insert(Iterator iter, FormWO_t x);
-static void _remove(FormWO_t x);
+static Iterator _insert(Iterator iter, const void *x);
+static void _remove(const void *x);
 static void _unique(void);
 static void _splice(Iterator position, List l, ...);
 static void _merge(List l, Compare cmp);
@@ -75,39 +76,39 @@ static void _sort(Compare cmp);
 static void _clear(void);
 static void _swap(List _l);
 //listclass
-static void *_listclass_ctor(void *_this, va_list *app);
+static void *_listclass_ctor(void *_self, va_list *app);
 //list
-static void *_list_ctor(void *_this, va_list *app);
-static void *_list_dtor(void *_this);
-static void *_list_brackets(const void *_this, FormWO_t x);
-static Iterator _list_begin(const void *_this);
-static Iterator _list_end(const void *_this);
-static void *_list_front(const void *_this);
-static void *_list_back(const void *_this);
-static size_t _list_size(const void *_this);
-static bool _list_empty(const void *_this);
-static void _list_push_back(void *_this, FormWO_t x);
-static void _list_push_front(void *_this, FormWO_t x);
-static void _list_pop_back(void *_this);
-static void _list_pop_front(void *_this);
-static Iterator _list_erase(void *_this, Iterator iter);
-static Iterator _list_insert(void *_this, Iterator iter, FormWO_t x);
-static void _list_remove(void *_this, FormWO_t x);
-static void _list_unique(void *_this);
-static void _list_splice(void *_this, Iterator _position, List l, va_list *app);
-static void _list_merge(void *_this, List l, Compare cmp);
-static void _list_reverse(void *_this);
-static void _list_sort(void *_this, Compare cmp);
-static void _list_clear(void *_this);
-static void _list_swap(void *_this, List _l);
+static void *_list_ctor(void *_self, va_list *app);
+static void *_list_dtor(void *_self);
+static void *_list_brackets(const void *_self, const void *x);
+static Iterator _list_begin(const void *_self);
+static Iterator _list_end(const void *_self);
+static void *_list_front(const void *_self);
+static void *_list_back(const void *_self);
+static size_t _list_size(const void *_self);
+static bool _list_empty(const void *_self);
+static void _list_push_back(void *_self, const void *x);
+static void _list_push_front(void *_self, const void *x);
+static void _list_pop_back(void *_self);
+static void _list_pop_front(void *_self);
+static Iterator _list_erase(void *_self, Iterator iter);
+static Iterator _list_insert(void *_self, Iterator iter, const void *x);
+static void _list_remove(void *_self, const void *x);
+static void _list_unique(void *_self);
+static void _list_splice(void *_self, Iterator _position, List l, va_list *app);
+static void _list_merge(void *_self, List l, Compare cmp);
+static void _list_reverse(void *_self);
+static void _list_sort(void *_self, Compare cmp);
+static void _list_clear(void *_self);
+static void _list_swap(void *_self, List _l);
 //iterator
-static void _iter_assign(void *_this, FormWO_t _x);
-static void _iter_dec(void *_this);
-static void _iter_inc(void *_this);
-static bool _iter_equal(const void *_this, FormWO_t _x);
-static void *_iter_ctor(void *_this, va_list *app);
-static void *_iter_derefer(const void *_this);
-static Iterator _iter_reverse_iterator(void *_this);
+static void _iter_assign(void *_self, const void *_x);
+static void _iter_dec(void *_self);
+static void _iter_inc(void *_self);
+static bool _iter_equal(const void *_self, const void *_x);
+static void *_iter_ctor(void *_self, va_list *app);
+static void *_iter_derefer(const void *_self);
+static Iterator _iter_reverse_iterator(void *_self);
 //init
 static const void *__ListIter = NULL;
 static const void *__RListIter = NULL;
@@ -148,7 +149,7 @@ static void initList(void)
     }
     if (!__ListIter) {
         __ListIter = new(_IteratorClass(), "ListIter",
-                         T(Iterator), sizeof(struct ListIter) + classSz(_Iterator().class),
+                         T(Iterator), sizeof(struct ListIter) + classSz(T(Iterator)),
                          _MetaClassS->ctor, _iter_ctor,
                          _ClassS->equal, _iter_equal,
                          _ClassS->inc, _iter_inc,
@@ -160,7 +161,7 @@ static void initList(void)
     }
     if (!__RListIter) {
         __RListIter = new(_IteratorClass(), "RListIter",
-                         T(Iterator), sizeof(struct ListIter) + classSz(_Iterator().class),
+                         T(Iterator), sizeof(struct ListIter) + classSz(T(Iterator)),
                          _MetaClassS->ctor, _iter_ctor,
                          _ClassS->equal, _iter_equal,
                          _ClassS->inc, _iter_dec,
@@ -172,12 +173,12 @@ static void initList(void)
     }
     if (!__ListClass) {
         __ListClass = new(T(MetaClass), "ListClass",
-                            T(Class), sizeof(struct ListClass) + classSz(_Class().class),
+                            T(Class), sizeof(struct ListClass) + classSz(T(Class)),
                             _MetaClassS->ctor, _listclass_ctor, NULL);
     }
     if (!__List) {
         __List = new(_ListClass(), "List",
-                       T(Object), sizeof(struct List) + classSz(_Object().class),
+                       T(Object), sizeof(struct List) + classSz(T(Object)),
                        _MetaClassS->ctor, _list_ctor,
                        _MetaClassS->dtor, _list_dtor,
                        _ClassS->brackets, _list_brackets,
@@ -205,50 +206,40 @@ static void initList(void)
     }
 }
 
-Form_t _List(void)
+const void *_List(void)
 {
     if (!__List)
         initList();
-    return (Form_t){OBJ, .class = __List};
+    return __List;
 }
 
-Form_t _ListClass(void)
+const void *_ListClass(void)
 {
     if (!__ListClass)
         initList();
-    return (Form_t){OBJ, .class = __ListClass};
+    return __ListClass;
 }
 
-static Form_t _ListIter(void)
+static const void *_ListIter(void)
 {
     if (!__ListIter)
         initList();
-    return (Form_t){OBJ, .class = __ListIter};
+    return __ListIter;
 }
 
-static Form_t _RListIter(void)
+static const void *_RListIter(void)
 {
     if (!__RListIter)
         initList();
-    return (Form_t){OBJ, .class = __RListIter};
+    return __RListIter;
 }
 
 //private
-static struct ListNode *_insert_aux(struct List *this, struct ListNode *node, FormWO_t _x)
+static struct ListNode *_insert_aux(struct List *self, struct ListNode *node, const void *_x)
 {
-    size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
+    size_t memb_size = classSz(self->class);
     struct ListNode *new_node = allocate(sizeof(struct ListNode) + memb_size);
-    if (this->_t.f == POD) {
-        assert(_x._.f != OBJ);
-        if (_x._.f == ADDR)
-            memcpy(new_node->data, *(void**)_x.mem, memb_size);
-        else if (_x._.f == POD)
-            memcpy(new_node->data, _x.mem, memb_size);
-        else if (_x._.f == END)
-            memset(new_node->data, 0, memb_size);
-    } else {
-        construct(this->_t, new_node->data, _x, VAEND);
-    }
+    construct(self->class, DATA(*new_node), _x, VAEND);
     new_node->nxt = node;
     node->pre->nxt = new_node;
     new_node->pre = node->pre;
@@ -256,12 +247,11 @@ static struct ListNode *_insert_aux(struct List *this, struct ListNode *node, Fo
     return new_node;
 }
 
-static struct ListNode *_erase_aux(struct List *this, struct ListNode *node)
+static struct ListNode *_erase_aux(struct List *self, struct ListNode *node)
 {
-    assert(node != &this->_end);
-    size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
-    if (this->_t.f == OBJ)
-        destroy(node->data);
+    assert(node != &self->_end);
+    size_t memb_size = classSz(self->class);
+    destroy(DATA(*node));
     node->pre->nxt = node->nxt;
     node->nxt->pre = node->pre;
     struct ListNode *next_node = node->nxt;
@@ -287,50 +277,41 @@ static void _transfer(struct ListNode *pos, struct ListNode *first, struct ListN
     first_node->pre = pos_pre_node;
 }
 
-static void _dealListArgs(void *_this, FormWO_t *args, int n)
+static void _deal_List_Args(void *_self, MetaObject *args, int n)
 {
-    if (args->_.class == __List) { //复制一个List
-        struct List *L = offsetOf(*(Object*)args->mem, __List);
+    if (classOf(*args) == __List) { //复制一个List
+        struct List *L = offsetOf(*args, __List);
         struct ListNode *node = L->_end.nxt;
-        Form_t t = L->_t;
         while (node != &L->_end)
         {
-            void *obj = node->data;
-            if (t.f == POD) {
-                char (*p)[t.size] = obj;
-                _list_push_back(_this, VA(VA_ADDR(*p)));
-            } else if (t.f == OBJ) {
-                _list_push_back(_this, FORM_WITH_OBJ(t, V(obj)));
-            }
+            void *obj = DATA(*node);
+            _list_push_back(_self, obj);
             node = node->nxt;
         }
-    } else if (args->_.f == POD || args->_.f == ADDR || args->_.class != _Iterator().class) { //size_type n, T value = T() 构造方法
-        unsigned long long nmemb = toUInt(*args);
+    } else if (classOf(*args) == T(Any)) { //size_type n, T value = T() 构造方法
+        Int ii = THIS(*args).cast(T(Int));
+        unsigned long long nmemb = ii->val;
         if (n == 1) {
             for (size_t i = 0; i < nmemb; i++)
-                _list_push_back(_this, VAEND);
+                _list_push_back(_self, VAEND);
         } else {
             for (size_t i = 0; i < nmemb; i++)
-                _list_push_back(_this, args[1]);
+                _list_push_back(_self, args[1]);
         }
     } else { //Iterator first, Iterator last 迭代器构造方法
         assert(n == 2);
-        assert(args[1]._.class == _Iterator().class); //因为上面的if已经检测过args[0]
-        Iterator first = *(Iterator*)args[0].mem;
+        assert(class_check(args[0], T(Iterator)));
+        assert(class_check(args[1], T(Iterator)));
+        Iterator first = (Iterator)args[0];
         char first_mem[sizeOf(first)];
-        first = THIS(first).ctor(first_mem, VA(first));
-        Iterator last = *(Iterator*)args[1].mem;
+        first = THIS(first).ctor(first_mem, first, VAEND);
+        Iterator last = (Iterator)args[1];
         char last_mem[sizeOf(last)];
-        last = THIS(last).ctor(last_mem, VA(last));
-        Form_t t = THIS(first).type();
-        while (!THIS(first).equal(VA(last)))
+        last = THIS(last).ctor(last_mem, last, VAEND);
+        while (!THIS(first).equal(last))
         {
             void *obj = THIS(first).derefer();
-            if (t.f == ADDR) {
-                _list_push_back(_this, FORM_WITH_OBJ(t, V(obj)));
-            } else if (t.f == OBJ) {
-                _list_push_back(_this, FORM_WITH_OBJ(t, V(obj)));
-            }
+            _list_push_back(_self, obj);
             THIS(first).inc();
         }
         destroy(first);
@@ -339,59 +320,58 @@ static void _dealListArgs(void *_this, FormWO_t *args, int n)
 }
 //public
 //Iterator
-static void *_iter_ctor(void *_this, va_list *app)
+static void *_iter_ctor(void *_self, va_list *app)
 {
-    _this = super_ctor(__ListIter, _this, app);
-    struct ListIter *this = offsetOf(_this, __ListIter);
-    FormWO_t t = va_arg(*app, FormWO_t);
-    if (t._.f == OBJ) {
-        if (t._.class == _Iterator().class) {
-            assert(classOf(*(Object*)t.mem) == __ListIter || classOf(*(Object*)t.mem) == __RListIter);
-            struct ListIter *it;
-            if (classOf(*(Object*)t.mem) == __ListIter)
-                it = offsetOf(*(Object*)t.mem, __ListIter);
-            else
-                it = offsetOf(*(Object*)t.mem, __RListIter);
-            *this = *it;
-        }
-    } else if (t._.f == POD) {
-        this->node = *(struct ListNode**)t.mem;
-    } else {
-        this->node = **(struct ListNode***)t.mem;
+    _self = super_ctor(__ListIter, _self, app);
+    struct ListIter *self = offsetOf(_self, __ListIter);
+    MetaObject t = va_arg(*app, MetaObject);
+    if (classOf(t) == __ListIter || classOf(t) == __RListIter) {
+        struct ListIter *it;
+        if (classOf(t) == __ListIter)
+            it = offsetOf(t, __ListIter);
+        else
+            it = offsetOf(t, __RListIter);
+        *self = *it;
+    } else if (classOf(t) == T(Any)) {
+        Any any = (Any)t;
+        assert(THIS(any).size() == sizeof(void*));
+        memcpy(&self->node, THIS(any).value(), sizeof(void*));
     }
-    return _this;
+    return _self;
 }
 
-static bool _iter_equal(const void *_this, FormWO_t _x)
+static bool _iter_equal(const void *_self, const void *_x)
 {
-    const struct ListIter *this = offsetOf(_this, __ListIter);
-    const struct ListIter *x = offsetOf(*(Object*)_x.mem, __ListIter);
-    return this->node == x->node;
+    assert(classOf(_self) == classOf(_x));
+    const struct ListIter *self = offsetOf(_self, __ListIter);
+    const struct ListIter *x = offsetOf(_x, __ListIter);
+    return self->node == x->node;
 }
 
-static void _iter_inc(void *_this)
+static void _iter_inc(void *_self)
 {
-    struct ListIter *this = offsetOf(_this, __ListIter);
-    this->node = this->node->nxt;
+    struct ListIter *self = offsetOf(_self, __ListIter);
+    self->node = self->node->nxt;
 }
 
-static void _iter_dec(void *_this)
+static void _iter_dec(void *_self)
 {
-    struct ListIter *this = offsetOf(_this, __ListIter);
-    this->node = this->node->pre;
+    struct ListIter *self = offsetOf(_self, __ListIter);
+    self->node = self->node->pre;
 }
 
-static void _iter_assign(void *_this, FormWO_t _x)
+static void _iter_assign(void *_self, const void *_x)
 {
-    struct ListIter *this = offsetOf(_this, __ListIter);
-    struct ListIter *x = offsetOf(*(Object*)_x.mem, __ListIter);
-    this->node = x->node;
+    assert(classOf(_self) == classOf(_x));
+    struct ListIter *self = offsetOf(_self, __ListIter);
+    struct ListIter *x = offsetOf(_x, __ListIter);
+    self->node = x->node;
 }
 
-static Iterator _iter_reverse_iterator(void *_this)
+static Iterator _iter_reverse_iterator(void *_self)
 {
-    Iterator it = (void*)_this;
-    if (classOf(_this) == __ListIter) {
+    Iterator it = (void*)_self;
+    if (classOf(_self) == __ListIter) {
         void *mem = ARP_MallocARelDtor(classSz(__ListIter), destroy);
         return construct(_RListIter(), mem, VA(it), VAEND);
     } else {
@@ -400,119 +380,121 @@ static Iterator _iter_reverse_iterator(void *_this)
     }
 }
 
-static void *_iter_derefer(const void *_this)
+static void *_iter_derefer(const void *_self)
 {
-    struct ListIter *this = offsetOf(_this, __ListIter);
-    return this->node->data;
+    struct ListIter *self = offsetOf(_self, __ListIter);
+    return DATA(*self->node);
 }
 
 //ListClass
-static void *_listclass_ctor(void *_this, va_list *app)
+static void *_listclass_ctor(void *_self, va_list *app)
 {
-    _this = super_ctor(__ListClass, _this, app);
-    struct ListClass *this = offsetOf(_this, __ListClass);
+    _self = super_ctor(__ListClass, _self, app);
+    struct ListClass *self = offsetOf(_self, __ListClass);
     voidf selector;
     va_list ap;
     va_copy(ap, *app);
     voidf *begin = (void*)&ListS + sizeof(ListS._);
     voidf *end = (void*)&ListS + sizeof(ListS);
-    voidf *this_begin = (void*)this;
+    voidf *self_begin = (void*)self;
     while ((selector = va_arg(ap, voidf)))
     {
         voidf method = va_arg(ap, voidf);
         for (voidf *p = begin; p != end; p++) {
             if (*p == selector) {
                 size_t n = p - begin;
-                *(this_begin + n) = method;
+                *(self_begin + n) = method;
                 break;
             }
         }
     }
     va_end(ap);
-    return _this;
+    return _self;
 }
 
 //List
-static void *_list_ctor(void *_this, va_list *app)
+static void *_list_ctor(void *_self, va_list *app)
 {
-    _this = super_ctor(__List, _this, app);
-    struct List *this = offsetOf(_this, __List);
-    FormWO_t t = va_arg(*app, FormWO_t);
-    assert(t._.f >= FORM);
-    t._.f -=FORM;
-    this->_t = t._;
-    this->_end.nxt = &this->_end;
-    this->_end.pre = &this->_end;
-    FormWO_t args[2];
+    _self = super_ctor(__List, _self, app);
+    struct List *self = offsetOf(_self, __List);
+    void *t = va_arg(*app, void*);
+    self->class = t;
+    self->_end.nxt = &self->_end;
+    self->_end.pre = &self->_end;
+    MetaObject args[2];
     int i = 0;
-    while ((t = va_arg(*app, FormWO_t))._.f != END)
+    while ((t = va_arg(*app, void*)) != VAEND)
     {
         assert(i < 2);
         args[i++] = t;
     }
     if (i)
-        _dealListArgs(_this, args, i);
-    return _this;
+        _deal_List_Args(_self, args, i);
+    return _self;
 }
 
-static void *_list_dtor(void *_this)
+static void *_list_dtor(void *_self)
 {
-    _this = super_dtor(__List, _this);
-    _list_clear(_this);
-    return _this;
+    _self = super_dtor(__List, _self);
+    _list_clear(_self);
+    return _self;
 }
 
-static void *_list_brackets(const void *_this, FormWO_t x)
+static void *_list_brackets(const void *_self, const void *_x)
 {
-    struct List *this = offsetOf(_this, __List);
-    struct ListNode *node = this->_end.nxt;
-    long long n = toInt(x);
-    while (n > 0 && node != &this->_end)
+    struct List *self = offsetOf(_self, __List);
+    struct ListNode *node = self->_end.nxt;
+    MetaObject x = (void*)_x;
+    Int n = THIS(x).cast(T(Int));
+    while (n->val > 0 && node != &self->_end)
     {
         node = node->nxt;
-        n--;
+        n->val--;
     }
-    assert(!n);
-    return node->data;
+    assert(!n->val);
+    return DATA(*node);
 }
-static Iterator _list_begin(const void *_this)
+
+static Iterator _list_begin(const void *_self)
 {
-    struct List *this = offsetOf(_this, __List);
-    Form_t t = this->_t;
-    if (t.f == POD)
-        t.f = ADDR;
+    struct List *self = offsetOf(_self, __List);
     void *mem = ARP_MallocARelDtor(classSz(__ListIter), destroy);
-    return new(compose(_ListIter(), mem), VA(t, BidirectionalIter, this->_end.nxt));
+    char any_mem[classSz(T(Any))];
+    Any any = VA_ANY(self->_end.nxt, NULL, any_mem);
+    Iterator ret = construct(__ListIter, mem, VA(BidirectionalIter), self->class, any, VAEND);
+    destroy(any);
+    return ret;
 }
 
-static Iterator _list_end(const void *_this)
+static Iterator _list_end(const void *_self)
 {
-    struct List *this = offsetOf(_this, __List);
-    Form_t t = this->_t;
-    if (t.f == POD)
-        t.f = ADDR;
+    struct List *self = offsetOf(_self, __List);
     void *mem = ARP_MallocARelDtor(classSz(__ListIter), destroy);
-    return new(compose(_ListIter(), mem), VA(t, BidirectionalIter, &this->_end));
+    char any_mem[classSz(T(Any))];
+    Any any = VA_ANY(self->_end.nxt->pre, NULL, any_mem);
+    Iterator ret = construct(__ListIter, mem, VA(BidirectionalIter), self->class, any, VAEND);
+    destroy(any);
+    return ret;
 }
 
-static void *_list_front(const void *_this)
+static void *_list_front(const void *_self)
 {
-    struct List *this = offsetOf(_this, __List);
-    return this->_end.nxt->data;
+    struct List *self = offsetOf(_self, __List);
+    return DATA(self->_end.nxt);
 }
 
-static void *_list_back(const void *_this)
+static void *_list_back(const void *_self)
 {
-    struct List *this = offsetOf(_this, __List);
-    return this->_end.pre->data;
+    struct List *self = offsetOf(_self, __List);
+    return DATA(self->_end.pre);
 }
 
-static size_t _list_size(const void *_this)
+static size_t _list_size(const void *_self)
 {
-    struct List *this = offsetOf(_this, __List);
-    struct ListNode *node = this->_end.nxt;
+    struct List *self = offsetOf(_self, __List);
+    struct ListNode *node = self->_end.nxt;
     size_t size = 0;
-    while (node != &this->_end)
+    while (node != &self->_end)
     {
         size++;
         node = node->nxt;
@@ -520,125 +502,95 @@ static size_t _list_size(const void *_this)
     return size;
 }
 
-static bool _list_empty(const void *_this)
+static bool _list_empty(const void *_self)
 {
-    struct List *this = offsetOf(_this, __List);
-    return this->_end.nxt == &this->_end;
+    struct List *self = offsetOf(_self, __List);
+    return self->_end.nxt == &self->_end;
 }
 
-static void _list_push_back(void *_this, FormWO_t x)
+static void _list_push_back(void *_self, const void *x)
 {
-    struct List *this = offsetOf(_this, __List);
-    _insert_aux(this, &this->_end, x);
+    struct List *self = offsetOf(_self, __List);
+    _insert_aux(self, &self->_end, x);
 }
 
-static void _list_push_front(void *_this, FormWO_t x)
+static void _list_push_front(void *_self, const void *x)
 {
-    struct List *this = offsetOf(_this, __List);
-    _insert_aux(this, this->_end.nxt, x);
+    struct List *self = offsetOf(_self, __List);
+    _insert_aux(self, self->_end.nxt, x);
 }
 
-static void _list_pop_back(void *_this)
+static void _list_pop_back(void *_self)
 {
-    struct List *this = offsetOf(_this, __List);
-    _erase_aux(this, this->_end.pre);
+    struct List *self = offsetOf(_self, __List);
+    _erase_aux(self, self->_end.pre);
 }
 
-static void _list_pop_front(void *_this)
+static void _list_pop_front(void *_self)
 {
-    struct List *this = offsetOf(_this, __List);
-    _erase_aux(this, this->_end.nxt);
+    struct List *self = offsetOf(_self, __List);
+    _erase_aux(self, self->_end.nxt);
 }
 
-static Iterator _list_erase(void *_this, Iterator iter)
+static Iterator _list_erase(void *_self, Iterator iter)
 {
-    struct List *this = offsetOf(_this, __List);
+    struct List *self = offsetOf(_self, __List);
     assert(classOf(iter) == __ListIter);
     struct ListIter *it = offsetOf(iter, __ListIter);
-    it->node = _erase_aux(this, it->node);
+    it->node = _erase_aux(self, it->node);
     return iter;
 }
 
-static Iterator _list_insert(void *_this, Iterator iter, FormWO_t x)
+static Iterator _list_insert(void *_self, Iterator iter, const void *x)
 {
-    struct List *this = offsetOf(_this, __List);
+    struct List *self = offsetOf(_self, __List);
     assert(classOf(iter) == __ListIter);
     struct ListIter *it = offsetOf(iter, __ListIter);
-    it->node = _insert_aux(this, it->node, x);
+    it->node = _insert_aux(self, it->node, x);
     return iter;
 }
 
-static void _list_remove(void *_this, FormWO_t x)
+static void _list_remove(void *_self, const void *x)
 {
-    struct List *this = offsetOf(_this, __List);
-    struct ListNode *node = this->_end.nxt;
-    if (this->_t.f == POD) {
-        size_t memb_size = this->_t.size;
-        assert(x._.class != OBJ);
-        void *mem = x._.f == POD ? x.mem : *(void**)x.mem;
-        while (node != &this->_end)
-        {
-            if (!memcmp(node->data, mem, memb_size)) {
-                _erase_aux(this, node);
-                break;
-            }
-        }
-    } else {
-        while (node != &this->_end)
-        {
-            Object obj = (Object)node->data;
-            if (THIS(obj).equal(x)) {
-                _erase_aux(this, node);
-                break;
-            }
-            node = node->nxt;
-        }
-    }
-}
-
-static void _list_unique(void *_this)
-{
-    struct List *this = offsetOf(_this, __List);
-    struct ListNode *node = this->_end.nxt;
-    struct ListNode *next_node = node->nxt;
-    if (this->_t.f == POD) {
-        size_t memb_size = this->_t.size;
-        while (next_node != &this->_end)
-        {
-            if (!memcmp(next_node->data, node->data, memb_size))
-                _erase_aux(this, next_node);
-            else
-                node = next_node;
-            next_node = next_node->nxt;
-        }
-    } else {
-        FormWO_t x = FORM_WITH_OBJ(this->_t);
-        while (next_node != &this->_end)
-        {
-            Object obj = (Object)node->data;
-            x.mem = V(next_node->data);
-            if (THIS(obj).equal(x))
-                _erase_aux(this, next_node);
-            else
-                node = next_node;
-            next_node = next_node->nxt;
-        }
-    }
-}
-
-static void _list_splice(void *_this, Iterator _position, List l, va_list *app)
-{
-    struct List *this = offsetOf(_this, __List);
-    struct List *L = offsetOf(l, __List);
-    assert(L->_t.f == this->_t.f && L->_t.class == this->_t.class);
-    FormWO_t t;
-    FormWO_t args[2];
-    int n = 0;
-    while ((t = va_arg(*app, FormWO_t))._.f != END)
+    struct List *self = offsetOf(_self, __List);
+    struct ListNode *node = self->_end.nxt;
+    while (node != &self->_end)
     {
-        assert(n < 2);
-        args[n++] = t;
+        Object obj = DATA(*node);
+        if (THIS(obj).equal(x)) {
+            _erase_aux(self, node);
+            break;
+        }
+        node = node->nxt;
     }
+}
+
+static void _list_unique(void *_self)
+{
+    struct List *self = offsetOf(_self, __List);
+    struct ListNode *node = self->_end.nxt;
+    struct ListNode *next_node = node->nxt;
+    while (next_node != &self->_end)
+    {
+        Object obj = DATA(*node);
+        void *x = DATA(*next_node);
+        if (THIS(obj).equal(x))
+            _erase_aux(self, next_node);
+        else
+            node = next_node;
+        next_node = next_node->nxt;
+    }
+}
+
+static void _list_splice(void *_self, Iterator _position, List l, va_list *app)
+{
+    struct List *self = offsetOf(_self, __List);
+    struct List *L = offsetOf(l, __List);
+    assert(L->class == self->class);
+    MetaObject args[2];
+    int n = 0;
+    while ((args[n] = va_arg(*app, MetaObject)) != VAEND)
+        assert(n++ < 2);
     assert(classOf(_position) == __ListIter);
     struct ListNode *pos_node = ((struct ListIter*)offsetOf(_position, __ListIter))->node;
     struct ListNode *first_node = NULL;
@@ -649,42 +601,31 @@ static void _list_splice(void *_this, Iterator _position, List l, va_list *app)
         first_node = L->_end.nxt;
         last_node = &L->_end;
     } else if (n == 1) {
-        assert(args[0]._.f == OBJ);
-        first_node = ((struct ListIter*)offsetOf(*(Object*)args[0].mem, __ListIter))->node;
+        first_node = ((struct ListIter*)offsetOf(args[0], __ListIter))->node;
         last_node = first_node->nxt;
         if (pos_node == first_node || pos_node == last_node)
             return;
     } else {
-        assert(args[0]._.f == OBJ);
-        assert(args[1]._.f == OBJ);
-        first_node = ((struct ListIter*)offsetOf(*(Object*)args[0].mem, __ListIter))->node;
-        last_node = ((struct ListIter*)offsetOf(*(Object*)args[1].mem, __ListIter))->node;
+        first_node = ((struct ListIter*)offsetOf(args[0], __ListIter))->node;
+        last_node = ((struct ListIter*)offsetOf(args[1], __ListIter))->node;
         if (first_node == last_node)
             return;
     }
     _transfer(pos_node, first_node, last_node);
 }
 
-static void _list_merge(void *_this, List l, Compare cmp)
+static void _list_merge(void *_self, List l, Compare cmp)
 {
-    struct List *this = offsetOf(_this, __List);
+    struct List *self = offsetOf(_self, __List);
     struct List *L = offsetOf(l, __List);
-    assert(L->_t.f == this->_t.f && L->_t.class == this->_t.class);
-    struct ListNode *first1 = this->_end.nxt;
-    struct ListNode *last1 = &this->_end;
+    assert(L->class == self->class);
+    struct ListNode *first1 = self->_end.nxt;
+    struct ListNode *last1 = &self->_end;
     struct ListNode *first2 = L->_end.nxt;
     struct ListNode *last2 = &L->_end;
-    Form_t t1 = this->_t;
-    if (t1.f == POD)
-        t1.f = ADDR;
-    Form_t t2 = L->_t;
-    if (t2.f == POD)
-        t2.f = ADDR;
     while (first1 != last1 && first2 != last2)
     {
-        FormWO_t v1 = FORM_WITH_OBJ(t1, V(first1->data));
-        FormWO_t v2 = FORM_WITH_OBJ(t2, V(first2->data));
-        if (cmp(v1, v2) > 0) {
+        if (cmp(DATA(*first1), DATA(*first2)) > 0) {
             struct ListNode *next = first2->nxt;
             _transfer(first1, first2, next);
             first2 = next;
@@ -696,34 +637,34 @@ static void _list_merge(void *_this, List l, Compare cmp)
         _transfer(last1, first2, last2);
 }
 
-static void _list_reverse(void *_this)
+static void _list_reverse(void *_self)
 {
-    struct List *this = offsetOf(_this, __List);
-    if (this->_end.nxt == &this->_end || this->_end.nxt->nxt == &this->_end)
+    struct List *self = offsetOf(_self, __List);
+    if (self->_end.nxt == &self->_end || self->_end.nxt->nxt == &self->_end)
         return;
-    struct ListNode *first = this->_end.nxt;
-    while (first != &this->_end)
+    struct ListNode *first = self->_end.nxt;
+    while (first != &self->_end)
     {
         struct ListNode *next = first->nxt;
-        _transfer(this->_end.nxt, first, next);
+        _transfer(self->_end.nxt, first, next);
         first = next;
     }
 }
 
-static void _list_sort(void *_this, Compare cmp)
+static void _list_sort(void *_self, Compare cmp)
 {
-    struct List *this = offsetOf(_this, __List);
-    if (this->_end.nxt == &this->_end || this->_end.nxt->nxt == &this->_end)
+    struct List *self = offsetOf(_self, __List);
+    if (self->_end.nxt == &self->_end || self->_end.nxt->nxt == &self->_end)
         return;
-    List _carry = new(T(List), VA(this->_t));
+    List _carry = new(T(List), self->class, VAEND);
     struct List *carry = offsetOf(_carry, __List);
     List counter[64];
     int fill = 0;
-    while (this->_end.nxt != &this->_end)
+    while (self->_end.nxt != &self->_end)
     {
         struct ListNode *carry_first = carry->_end.nxt;
-        struct ListNode *this_first = this->_end.nxt;
-        _transfer(carry_first, this_first, this_first->nxt);
+        struct ListNode *self_first = self->_end.nxt;
+        _transfer(carry_first, self_first, self_first->nxt);
         int i = 0;
         while (i < fill  && !THIS(counter[i]).empty())
         {
@@ -731,51 +672,51 @@ static void _list_sort(void *_this, Compare cmp)
             THIS(_carry).swap(counter[i++]);
         }
         if (i == fill)
-            counter[fill++] = new(T(List), VA(this->_t));
+            counter[fill++] = new(T(List), self->class, VAEND);
         THIS(counter[i]).swap(_carry);
     }
     for (int i = 1; i < fill; i++) {
         THIS(counter[i]).merge(counter[i - 1], cmp);
         delete(counter[i - 1]);
     }
-    _list_swap(_this, counter[fill - 1]);
+    _list_swap(_self, counter[fill - 1]);
     delete(counter[fill - 1]);
     delete(_carry);
 }
 
-static void _list_clear(void *_this)
+static void _list_clear(void *_self)
 {
-    struct List *this = offsetOf(_this, __List);
-    while (this->_end.nxt != &this->_end)
-        _list_pop_back(_this);
+    struct List *self = offsetOf(_self, __List);
+    while (self->_end.nxt != &self->_end)
+        _list_pop_back(_self);
 }
 
-static void _list_swap(void *_this, List _l)
+static void _list_swap(void *_self, List _l)
 {
-    struct List *this = offsetOf(_this, __List);
+    struct List *self = offsetOf(_self, __List);
     struct List *L = offsetOf(_l, __List);
-    assert(L->_t.f == this->_t.f && L->_t.class == this->_t.class);
-    if (this->_end.nxt == &this->_end && L->_end.nxt == &L->_end) //都是空的
+    assert(L->class == self->class);
+    if (self->_end.nxt == &self->_end && L->_end.nxt == &L->_end) //都是空的
         return;
-    else if (this->_end.nxt == &this->_end) { //this是空的
-        this->_end = L->_end;
-        L->_end.pre->nxt = &this->_end;
-        L->_end.nxt->pre = &this->_end;
+    else if (self->_end.nxt == &self->_end) { //self是空的
+        self->_end = L->_end;
+        L->_end.pre->nxt = &self->_end;
+        L->_end.nxt->pre = &self->_end;
         L->_end.nxt = &L->_end;
         L->_end.pre = &L->_end;
     } else if (L->_end.nxt == &L->_end) { //L是空的
-        L->_end = this->_end;
-        this->_end.pre->nxt = &L->_end;
-        this->_end.nxt->pre = &L->_end;
-        this->_end.nxt = &this->_end;
-        this->_end.pre = &this->_end;
+        L->_end = self->_end;
+        self->_end.pre->nxt = &L->_end;
+        self->_end.nxt->pre = &L->_end;
+        self->_end.nxt = &self->_end;
+        self->_end.pre = &self->_end;
     } else { //都不是空的
-        this->_end.pre->nxt = &L->_end;
-        this->_end.nxt->pre = &L->_end;
-        L->_end.pre->nxt = &this->_end;
-        L->_end.nxt->pre = &this->_end;
-        struct ListNode tmp = this->_end;
-        this->_end = L->_end;
+        self->_end.pre->nxt = &L->_end;
+        self->_end.nxt->pre = &L->_end;
+        L->_end.pre->nxt = &self->_end;
+        L->_end.nxt->pre = &self->_end;
+        struct ListNode tmp = self->_end;
+        self->_end = L->_end;
         L->_end = tmp;
     }
 }
@@ -783,163 +724,163 @@ static void _list_swap(void *_this, List _l)
 //selector
 static Iterator _begin(void)
 {
-    void *_this = pop_this();
-    const struct ListClass *class = offsetOf(classOf(_this), __ListClass);
+    void *_self = pop_this();
+    const struct ListClass *class = offsetOf(classOf(_self), __ListClass);
     assert(class->begin);
-    return class->begin(_this);
+    return class->begin(_self);
 }
 
 static Iterator _end(void)
 {
-    void *_this = pop_this();
-    const struct ListClass *class = offsetOf(classOf(_this), __ListClass);
+    void *_self = pop_this();
+    const struct ListClass *class = offsetOf(classOf(_self), __ListClass);
     assert(class->end);
-    return class->end(_this);
+    return class->end(_self);
 }
 
 static void *_front(void)
 {
-    void *_this = pop_this();
-    const struct ListClass *class = offsetOf(classOf(_this), __ListClass);
+    void *_self = pop_this();
+    const struct ListClass *class = offsetOf(classOf(_self), __ListClass);
     assert(class->front);
-    return class->front(_this);
+    return class->front(_self);
 }
 
 static void *_back(void)
 {
-    void *_this = pop_this();
-    const struct ListClass *class = offsetOf(classOf(_this), __ListClass);
+    void *_self = pop_this();
+    const struct ListClass *class = offsetOf(classOf(_self), __ListClass);
     assert(class->back);
-    return class->back(_this);
+    return class->back(_self);
 }
 
 static size_t _size(void)
 {
-    void *_this = pop_this();
-    const struct ListClass *class = offsetOf(classOf(_this), __ListClass);
+    void *_self = pop_this();
+    const struct ListClass *class = offsetOf(classOf(_self), __ListClass);
     assert(class->size);
-    return class->size(_this);
+    return class->size(_self);
 }
 
 static bool _empty(void)
 {
-    void *_this = pop_this();
-    const struct ListClass *class = offsetOf(classOf(_this), __ListClass);
+    void *_self = pop_this();
+    const struct ListClass *class = offsetOf(classOf(_self), __ListClass);
     assert(class->empty);
-    return class->empty(_this);
+    return class->empty(_self);
 }
 
-static void _push_back(FormWO_t x)
+static void _push_back(const void *x)
 {
-    void *_this = pop_this();
-    const struct ListClass *class = offsetOf(classOf(_this), __ListClass);
+    void *_self = pop_this();
+    const struct ListClass *class = offsetOf(classOf(_self), __ListClass);
     assert(class->push_back);
-    class->push_back(_this, x);
+    class->push_back(_self, x);
 }
 
-static void _push_front(FormWO_t x)
+static void _push_front(const void *x)
 {
-    void *_this = pop_this();
-    const struct ListClass *class = offsetOf(classOf(_this), __ListClass);
+    void *_self = pop_this();
+    const struct ListClass *class = offsetOf(classOf(_self), __ListClass);
     assert(class->push_front);
-    class->push_front(_this, x);
+    class->push_front(_self, x);
 }
 
 static void _pop_back(void)
 {
-    void *_this = pop_this();
-    const struct ListClass *class = offsetOf(classOf(_this), __ListClass);
+    void *_self = pop_this();
+    const struct ListClass *class = offsetOf(classOf(_self), __ListClass);
     assert(class->pop_back);
-    class->pop_back(_this);
+    class->pop_back(_self);
 }
 
 static void _pop_front(void)
 {
-    void *_this = pop_this();
-    const struct ListClass *class = offsetOf(classOf(_this), __ListClass);
+    void *_self = pop_this();
+    const struct ListClass *class = offsetOf(classOf(_self), __ListClass);
     assert(class->pop_front);
-    class->pop_front(_this);
+    class->pop_front(_self);
 }
 
 static Iterator _erase(Iterator iter)
 {
-    void *_this = pop_this();
-    const struct ListClass *class = offsetOf(classOf(_this), __ListClass);
+    void *_self = pop_this();
+    const struct ListClass *class = offsetOf(classOf(_self), __ListClass);
     assert(class->erase);
-    return class->erase(_this, iter);
+    return class->erase(_self, iter);
 }
 
-static Iterator _insert(Iterator iter, FormWO_t x)
+static Iterator _insert(Iterator iter, const void *x)
 {
-    void *_this = pop_this();
-    const struct ListClass *class = offsetOf(classOf(_this), __ListClass);
+    void *_self = pop_this();
+    const struct ListClass *class = offsetOf(classOf(_self), __ListClass);
     assert(class->insert);
-    return class->insert(_this, iter, x);
+    return class->insert(_self, iter, x);
 }
 
-static void _remove(FormWO_t x)
+static void _remove(const void *x)
 {
-    void *_this = pop_this();
-    const struct ListClass *class = offsetOf(classOf(_this), __ListClass);
+    void *_self = pop_this();
+    const struct ListClass *class = offsetOf(classOf(_self), __ListClass);
     assert(class->remove);
-    class->remove(_this, x);
+    class->remove(_self, x);
 }
 
 static void _unique(void)
 {
-    void *_this = pop_this();
-    const struct ListClass *class = offsetOf(classOf(_this), __ListClass);
+    void *_self = pop_this();
+    const struct ListClass *class = offsetOf(classOf(_self), __ListClass);
     assert(class->unique);
-    class->unique(_this);
+    class->unique(_self);
 }
 
 static void _splice(Iterator position, List l, ...)
 {
-    void *_this = pop_this();
-    const struct ListClass *class = offsetOf(classOf(_this), __ListClass);
+    void *_self = pop_this();
+    const struct ListClass *class = offsetOf(classOf(_self), __ListClass);
     assert(class->splice);
     va_list ap;
     va_start(ap, l);
-    class->splice(_this, position, l, &ap);
+    class->splice(_self, position, l, &ap);
     va_end(ap);
 }
 
 static void _merge(List l, Compare cmp)
 {
-    void *_this = pop_this();
-    const struct ListClass *class = offsetOf(classOf(_this), __ListClass);
+    void *_self = pop_this();
+    const struct ListClass *class = offsetOf(classOf(_self), __ListClass);
     assert(class->merge);
-    class->merge(_this, l, cmp);
+    class->merge(_self, l, cmp);
 }
 
 static void _reverse(void)
 {
-    void *_this = pop_this();
-    const struct ListClass *class = offsetOf(classOf(_this), __ListClass);
+    void *_self = pop_this();
+    const struct ListClass *class = offsetOf(classOf(_self), __ListClass);
     assert(class->reverse);
-    class->reverse(_this);
+    class->reverse(_self);
 }
 
 static void _sort(Compare cmp)
 {
-    void *_this = pop_this();
-    const struct ListClass *class = offsetOf(classOf(_this), __ListClass);
+    void *_self = pop_this();
+    const struct ListClass *class = offsetOf(classOf(_self), __ListClass);
     assert(class->sort);
-    class->sort(_this, cmp);
+    class->sort(_self, cmp);
 }
 
 static void _clear(void)
 {
-    void *_this = pop_this();
-    const struct ListClass *class = offsetOf(classOf(_this), __ListClass);
+    void *_self = pop_this();
+    const struct ListClass *class = offsetOf(classOf(_self), __ListClass);
     assert(class->clear);
-    class->clear(_this);
+    class->clear(_self);
 }
 
 static void _swap(List _l)
 {
-    void *_this = pop_this();
-    const struct ListClass *class = offsetOf(classOf(_this), __ListClass);
+    void *_self = pop_this();
+    const struct ListClass *class = offsetOf(classOf(_self), __ListClass);
     assert(class->swap);
-    class->swap(_this, _l);
+    class->swap(_self, _l);
 }

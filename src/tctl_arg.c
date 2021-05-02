@@ -22,8 +22,8 @@ void *_valueAux(int t, ...)
     double d;
     char c;
     long long i;
-    void *p_st;
-    size_t st_size;
+    void *p_val;
+    size_t val_size;
     void *p_cast;
 
     va_list ap;
@@ -35,13 +35,11 @@ void *_valueAux(int t, ...)
             d = va_arg(ap, double);
             ret = ARP_MallocARel(classSz(T(Any)));
             construct(T(Any), ret, &d, sizeof(d), &to_Double, VAEND);
-            //ret = to_Double(&d, T(Double));
             break;
         case 'c':
             c = va_arg(ap, int);
             ret = ARP_MallocARel(classSz(T(Any)));
             construct(T(Any), ret, &c, sizeof(c), &to_Char, VAEND);
-            //ret = to_Char(&c, T(Char));
             break;
         case 's':
         case 'i':
@@ -64,14 +62,14 @@ void *_valueAux(int t, ...)
             }
             ret = ARP_MallocARel(classSz(T(Any)));
             construct(T(Any), ret, &i, sizeof(i), &to_Int, VAEND);
-            //ret = to_Int(&i, T(Int));
             break;
-        case 'S':
-            ret = ARP_MallocARel(classSz(T(Any)));
-            p_st = va_arg(ap, void*);
-            st_size = va_arg(ap, size_t);
+        case 'A':
+            p_val = va_arg(ap, void*);
+            val_size = va_arg(ap, size_t);
             p_cast = va_arg(ap, void*);
-            construct(T(Any), ret, p_st, st_size, p_cast, VAEND);
+            ret = va_arg(ap, void*);
+            ret = ret ? ret : ARP_MallocARel(classSz(T(Any)));
+            construct(T(Any), ret, p_val, val_size, p_cast, VAEND);
             break;
         case 'O':
             ret = va_arg(ap, void*);
