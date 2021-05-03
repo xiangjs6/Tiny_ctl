@@ -9,15 +9,15 @@
 #include "tctl_deque.h"
 #include "tctl_metaclass.h"
 
-#define QUEUE_FUNC            \
-struct {                      \
-    CLASS_FUNC;               \
-    void *(*front)(void);     \
-    void *(*back)(void);      \
-    void (*push)(FormWO_t x); \
-    void (*pop)(void);        \
-    bool (*empty)(void);      \
-    size_t (*size)(void);     \
+#define QUEUE_FUNC               \
+struct {                         \
+    CLASS_FUNC;                  \
+    void *(*front)(void);        \
+    void *(*back)(void);         \
+    void (*push)(const void *x); \
+    void (*pop)(void);           \
+    bool (*empty)(void);         \
+    size_t (*size)(void);        \
 }
 
 typedef struct _Queue *Queue;
@@ -25,6 +25,6 @@ struct _Queue {
     METAOBJECT_HEAD(QUEUE_FUNC);
 };
 
-Form_t _Queue(void);
+const void *_Queue(void);
 #define QUEUE Queue : _Queue()
 #endif //TINY_CTL_TCTL_QUEUE_H

@@ -11,12 +11,12 @@ struct QueueSelector {
     char _[sizeof(struct ClassSelector)];
     void *(*front)(void);
     void *(*back)(void);
-    void (*push)(FormWO_t x);
+    void (*push)(const void *x);
     void (*pop)(void);
     bool (*empty)(void);
     size_t (*size)(void);
 };          
 
-Form_t _QueueClass(void);
+const void *_QueueClass(void);
 extern const struct QueueSelector *_QueueS;
 #endif //TINY_CTL__TCTL_QUEUE_H

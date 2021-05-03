@@ -4,21 +4,17 @@
 
 #include "../include/tctl_stack.h"
 #include "include/_tctl_stack.h"
-#include "include/_tctl_deque.h"
-#include "../include/tctl_class.h"
-#include "include/_tctl_class.h"
-#include "../include/tctl_deque.h"
 #include "memory.h"
 #include <stdarg.h>
 #include <stdlib.h>
 #define Import CLASS, OBJECT, METACLASS, DEQUE
 
 struct StackClass {
-    void *(*top)(void *_this);
-    void (*push)(void *_this, FormWO_t x);
-    void (*pop)(void *_this);
-    bool (*empty)(void *_this);
-    size_t (*size)(void *_this);
+    void *(*top)(void *_self);
+    void (*push)(void *_self, const void *x);
+    void (*pop)(void *_self);
+    bool (*empty)(void *_self);
+    size_t (*size)(void *_self);
 };
 
 struct Stack {
@@ -27,20 +23,20 @@ struct Stack {
 
 //selector
 static void *_top(void);
-static void _push(FormWO_t x);
+static void _push(const void *x);
 static void _pop(void);
 static bool _empty(void);
 static size_t _size(void);
 //stackclass
-static void *_stackclass_ctor(void *_this, va_list *app);
+static void *_stackclass_ctor(void *_self, va_list *app);
 //stack
-static void *_stack_ctor(void *_this, va_list *app);
-static void *_stack_dtor(void *_this);
-static void *_stack_top(const void *_this);
-static void _stack_push(void *_this, FormWO_t x);
-static void _stack_pop(void *_this);
-static bool _stack_empty(void *_this);
-static size_t _stack_size(void *_this);
+static void *_stack_ctor(void *_self, va_list *app);
+static void *_stack_dtor(void *_self);
+static void *_stack_top(const void *_self);
+static void _stack_push(void *_self, const void *x);
+static void _stack_pop(void *_self);
+static bool _stack_empty(void *_self);
+static size_t _stack_size(void *_self);
 
 //init
 static const void *__Stack = NULL;
@@ -64,12 +60,12 @@ static void initStack(void)
     }
     if (!__StackClass) {
         __StackClass = new(T(MetaClass), "StackClass",
-                           T(Class), sizeof(struct StackClass) + classSz(_Class().class),
+                           T(Class), sizeof(struct StackClass) + classSz(T(Class)),
                            _MetaClassS->ctor, _stackclass_ctor, NULL);
     }
     if (!__Stack) {
         __Stack = new(_StackClass(), "Stack",
-                     T(Object), sizeof(struct Stack) + classSz(_Object().class),
+                     T(Object), sizeof(struct Stack) + classSz(T(Object)),
                      _MetaClassS->ctor, _stack_ctor,
                      _MetaClassS->dtor, _stack_dtor,
                      _StackS->top, _stack_top,
@@ -81,131 +77,131 @@ static void initStack(void)
     }
 }
 
-Form_t _Stack(void)
+const void *_Stack(void)
 {
     if (!__Stack)
         initStack();
-    return (Form_t){OBJ, .class = __Stack};
+    return __Stack;
 }
 
-Form_t _StackClass(void)
+const void *_StackClass(void)
 {
     if (!__StackClass)
         initStack();
-    return (Form_t){OBJ, .class = __StackClass};
+    return __StackClass;
 }
 
 //StackClass
-static void *_stackclass_ctor(void *_this, va_list *app)
+static void *_stackclass_ctor(void *_self, va_list *app)
 {
-    _this = super_ctor(__StackClass, _this, app);
-    struct VectorClass *this = offsetOf(_this, __StackClass);
+    _self = super_ctor(__StackClass, _self, app);
+    struct VectorClass *self = offsetOf(_self, __StackClass);
     voidf selector;
     va_list ap;
     va_copy(ap, *app);
     voidf *begin = (void*)&StackS + sizeof(StackS._);
     voidf *end = (void*)&StackS + sizeof(StackS);
-    voidf *this_begin = (void*)this;
+    voidf *self_begin = (void*)self;
     while ((selector = va_arg(ap, voidf)))
     {
         voidf method = va_arg(ap, voidf);
         for (voidf *p = begin; p != end; p++) {
             if (*p == selector) {
                 size_t n = p - begin;
-                *(this_begin + n) = method;
+                *(self_begin + n) = method;
                 break;
             }
         }
     }
     va_end(ap);
-    return _this;
+    return _self;
 }
 
 //Stack
-static void *_stack_ctor(void *_this, va_list *app)
+static void *_stack_ctor(void *_self, va_list *app)
 {
-    _this = super_ctor(__Stack, _this, app);
-    struct Stack *this = offsetOf(_this, __Stack);
-    this->c = malloc(classSz(_Deque().class));
-    construct_v(_Deque(), this->c, app);
-    return _this;
+    _self = super_ctor(__Stack, _self, app);
+    struct Stack *self = offsetOf(_self, __Stack);
+    self->c = malloc(classSz(T(Deque)));
+    construct_v(_Deque(), self->c, app);
+    return _self;
 }
 
-static void *_stack_dtor(void *_this)
+static void *_stack_dtor(void *_self)
 {
-    _this = super_dtor(__Stack, _this);
-    struct Stack *this = offsetOf(_this, __Stack);
-    destroy(this->c);
-    free(this->c);
-    return _this;
+    _self = super_dtor(__Stack, _self);
+    struct Stack *self = offsetOf(_self, __Stack);
+    destroy(self->c);
+    free(self->c);
+    return _self;
 }
 
-static void *_stack_top(const void *_this)
+static void *_stack_top(const void *_self)
 {
-    struct Stack *this = offsetOf(_this, __Stack);
-    return THIS(this->c).back();
+    struct Stack *self = offsetOf(_self, __Stack);
+    return THIS(self->c).back();
 }
 
-static void _stack_push(void *_this, FormWO_t x)
+static void _stack_push(void *_self, const void *x)
 {
-    struct Stack *this = offsetOf(_this, __Stack);
-    THIS(this->c).push_back(x);
+    struct Stack *self = offsetOf(_self, __Stack);
+    THIS(self->c).push_back(x);
 }
 
-static void _stack_pop(void *_this)
+static void _stack_pop(void *_self)
 {
-    struct Stack *this = offsetOf(_this, __Stack);
-    THIS(this->c).pop_back();
+    struct Stack *self = offsetOf(_self, __Stack);
+    THIS(self->c).pop_back();
 }
 
-static bool _stack_empty(void *_this)
+static bool _stack_empty(void *_self)
 {
-    struct Stack *this = offsetOf(_this, __Stack);
-    return THIS(this->c).empty();
+    struct Stack *self = offsetOf(_self, __Stack);
+    return THIS(self->c).empty();
 }
 
-static size_t _stack_size(void *_this)
+static size_t _stack_size(void *_self)
 {
-    struct Stack *this = offsetOf(_this, __Stack);
-    return THIS(this->c).size();
+    struct Stack *self = offsetOf(_self, __Stack);
+    return THIS(self->c).size();
 }
 
 static void *_top(void)
 {
-    void *_this = pop_this();
-    const struct StackClass *class = offsetOf(classOf(_this), __StackClass);
+    void *_self = pop_this();
+    const struct StackClass *class = offsetOf(classOf(_self), __StackClass);
     assert(class->top);
-    return class->top(_this);
+    return class->top(_self);
 }
 
-static void _push(FormWO_t x)
+static void _push(const void *x)
 {
-    void *_this = pop_this();
-    const struct StackClass *class = offsetOf(classOf(_this), __StackClass);
+    void *_self = pop_this();
+    const struct StackClass *class = offsetOf(classOf(_self), __StackClass);
     assert(class->push);
-    class->push(_this, x);
+    class->push(_self, x);
 }
 
 static void _pop(void)
 {
-    void *_this = pop_this();
-    const struct StackClass *class = offsetOf(classOf(_this), __StackClass);
+    void *_self = pop_this();
+    const struct StackClass *class = offsetOf(classOf(_self), __StackClass);
     assert(class->push);
-    class->pop(_this);
+    class->pop(_self);
 }
 
 static bool _empty(void)
 {
-    void *_this = pop_this();
-    const struct StackClass *class = offsetOf(classOf(_this), __StackClass);
+    void *_self = pop_this();
+    const struct StackClass *class = offsetOf(classOf(_self), __StackClass);
     assert(class->empty);
-    return class->empty(_this);
+    return class->empty(_self);
 }
 
 static size_t _size(void)
 {
-    void *_this = pop_this();
-    const struct StackClass *class = offsetOf(classOf(_this), __StackClass);
+    void *_self = pop_this();
+    const struct StackClass *class = offsetOf(classOf(_self), __StackClass);
     assert(class->size);
-    return class->size(_this);
+    return class->size(_self);
 }

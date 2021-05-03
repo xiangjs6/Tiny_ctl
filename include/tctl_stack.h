@@ -9,14 +9,14 @@
 #include "tctl_deque.h"
 #include "tctl_metaclass.h"
 
-#define STACK_FUNC            \
-struct {                      \
-    CLASS_FUNC;               \
-    void *(*top)(void);       \
-    void (*push)(FormWO_t x); \
-    void (*pop)(void);        \
-    bool (*empty)(void);      \
-    size_t (*size)(void);     \
+#define STACK_FUNC               \
+struct {                         \
+    CLASS_FUNC;                  \
+    void *(*top)(void);          \
+    void (*push)(const void *x); \
+    void (*pop)(void);           \
+    bool (*empty)(void);         \
+    size_t (*size)(void);        \
 }
 
 typedef struct _Stack *Stack;
@@ -24,6 +24,6 @@ struct _Stack {
     METAOBJECT_HEAD(STACK_FUNC);
 };
 
-Form_t _Stack(void);
+const void *_Stack(void);
 #define STACK Stack : _Stack()
 #endif //TINY_CTL_TCTL_STACK_H
