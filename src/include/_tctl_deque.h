@@ -15,16 +15,16 @@ struct DequeSelector {
     void* (*back)(void);
     size_t (*size)(void);
     bool (*empty)(void);
-    void (*push_back)(FormWO_t x);
-    void (*push_front)(FormWO_t x);
+    void (*push_back)(const void *x);
+    void (*push_front)(const void *x);
     void (*pop_back)(void);
     void (*pop_front)(void);
     Iterator (*erase)(Iterator iter);
-    Iterator (*insert)(Iterator iter, FormWO_t x);
+    Iterator (*insert)(Iterator iter, const void *x);
     void (*resize)(size_t new_size);
     void (*clear)(void);
     void (*swap)(Deque _d);
 };
-Form_t _DequeClass(void);
+const void *_DequeClass(void);
 extern const struct DequeSelector *_DequeS;
 #endif //TINY_CTL__TCTL_DEQUE_H

@@ -1,51 +1,52 @@
 #include "../include/tctl_deque.h"
-#include "../include/tctl_metaclass.h"
 #include "../include/auto_release_pool.h"
+#include "../include/tctl_int.h"
+#include "../include/tctl_arg.h"
 #include <stdio.h>
-#define Import DEQUE, ITERATOR
+#define Import DEQUE, ITERATOR, INT
  
 int test_deque_2()
 {
     ARP_CreatePool();
     { // deque::at: Returns a reference to the element at a specified location in the deque.
-        Deque c1 = new(T(Deque), VA(T(int)));
+        Deque c1 = new(T(Deque), T(Int), VAEND);
      
         THIS(c1).push_back(VA(10));
         THIS(c1).push_back(VA(20));
      
-        const int *i = THIS(c1).brackets(VA(0));
-        int *j = THIS(c1).brackets(VA(1));
-        printf("The first element is %d\n", *i);
-        printf("The second element is %d\n", *j);
+        const Int i = (void*)THIS(c1).brackets(VA(0));
+        Int j = THIS(c1).brackets(VA(1));
+        printf("The first element is %lld\n", i->val);
+        printf("The second element is %lld\n", j->val);
         delete(c1);
     }
      
     { // deque::back: Returns a reference to the last element of the deque.
-        Deque c1 = new(T(Deque), VA(T(int)));
+        Deque c1 = new(T(Deque), T(Int), VAEND);
      
         THIS(c1).push_back(VA(10));
         THIS(c1).push_back(VA(11));
      
-        int *i = THIS(c1).back();
-        int *ii = THIS(c1).front();
+        Int i = THIS(c1).back();
+        Int ii = THIS(c1).front();
      
-        printf("The last integer of c1 is %d\n", *i); // 11
-        (*i)--;
-        printf("The next-to-last integer of c1 is %d\n", *ii); // 10
-        printf("The last integer of c1 is %d\n", *(int*)THIS(c1).back()); // 10
+        printf("The last integer of c1 is %lld\n", i->val); // 11
+        i->val--;
+        printf("The next-to-last integer of c1 is %lld\n", ii->val); // 10
+        printf("The last integer of c1 is %lld\n", ((Int)THIS(c1).back())->val); // 10
         delete(c1);
     }
      
     { // deque::clear: Erases all the elements of a deque.
-        Deque c1 = new(T(Deque), VA(T(int)));
-     
+        Deque c1 = new(T(Deque), T(Int), VAEND);
+
         THIS(c1).push_back(VA(10));
         THIS(c1).push_back(VA(20));
         THIS(c1).push_back(VA(30));
      
-        printf("The size of the deque is initially %ld\n", THIS(c1).size());
+        printf("The size of the deque is initially %u\n", THIS(c1).size());
         THIS(c1).clear();
-        printf("The size of the deque after clearing is %ld\n", THIS(c1).size());
+        printf("The size of the deque after clearing is %u\n", THIS(c1).size());
         delete(c1);
     }
      
@@ -70,7 +71,7 @@ int test_deque_2()
      
     //反向迭代器未写
     { // deque::crbegin: Returns a const iterator to the first element in a reversed deque
-        Deque v1 = new(T(Deque), VA(T(int)));
+        Deque v1 = new(T(Deque), T(Int), VAEND);
         Iterator v1_Iter;
         //deque <int>::const_reverse_iterator v1_rIter;
      
@@ -78,7 +79,7 @@ int test_deque_2()
         THIS(v1).push_back(VA(2));
      
         v1_Iter = THIS(v1).begin();
-        printf("The first element of deque is %d.\n", *(int*)THIS(v1_Iter).derefer());
+        printf("The first element of deque is %lld.\n", ((Int)THIS(v1_Iter).derefer())->val);
      
         //v1_rIter = v1.crbegin();
         //cout << "The first element of the reversed deque is " << *v1_rIter << "." << endl;
@@ -86,7 +87,7 @@ int test_deque_2()
     }
      
     { // deque::emplace: Inserts an element constructed in place into the deque at a specified position.
-        Deque v1 = new(T(Deque), VA(T(int)));
+        Deque v1 = new(T(Deque), T(Int), VAEND);
         Iterator Iter;
      
         THIS(v1).push_back(VA(10));
@@ -95,7 +96,7 @@ int test_deque_2()
      
         printf("v1 =");
         for (Iter = THIS(v1).begin(); !THIS(Iter).equal(VA(THIS(v1).end())); THIS(Iter).inc())
-            printf(" %d", *(int*)THIS(Iter).derefer());
+            printf(" %lld", ((Int)THIS(Iter).derefer())->val);
         putchar('\n');
      
         // initialize a deque of deques by moving v1  
@@ -118,30 +119,31 @@ int test_deque_2()
      
 
 // reference: http://www.cplusplus.com/reference/deque/deque/
+
 int test_deque_1()
 {
     ARP_CreatePool();
     { // deque::deque: Construct deque container
         //unsigned int i;
-     
+
         // constructors used in the same order as described above:
         //Deque first = new(T(Deque), VA(T(int)));                                // empty deque of ints
-        Deque second = new(T(Deque), VA(T(int), 4, 100));                       // four ints with value 100
-        Deque third = new(T(Deque), VA(T(int), THIS(second).begin(), THIS(second).end()));  // iterating through second
-        Deque fourth = new(T(Deque), VA(T(int), third));                       // a copy of third
-     
+        Deque second = new(T(Deque), T(Int), VA(4, 100), VAEND);                       // four ints with value 100
+        Deque third = new(T(Deque), T(Int), THIS(second).begin(), THIS(second).end(), VAEND);  // iterating through second
+        Deque fourth = new(T(Deque), T(Int), third, VAEND);                       // a copy of third
+
         // the iterator constructor can be used to copy arrays:
         //int myints[] = { 16, 2, 77, 29 };
         //std::deque<int> fifth(myints, myints + sizeof(myints) / sizeof(int));
-     
+
         printf("The contents of fifth are:");
         for (Iterator it = THIS(fourth).begin(); !THIS(it).equal(VA(THIS(fourth).end())); THIS(it).inc())
-            printf(" %d", *(int*)THIS(it).derefer()); // 16 2 77 29
+            printf(" %lld", ((Int)THIS(it).derefer())->val); // 16 2 77 29
         putchar('\n');
     }
 
     //assign未实现
-    /*
+/*
     { // deque::assign: Assigns new contents to the deque container,
       // replacing its current contents, and modifying its size accordingly.
      
@@ -164,17 +166,18 @@ int test_deque_1()
         std::cout << "Size of third: " << int(third.size()) << '\n'; // 3
     }
     */
+
      
     { // deque::at: Returns a reference to the element at position n in the deque container object.
-        Deque mydeque = new(T(Deque), VA(T(unsigned), 10));   // 10 zero-initialized unsigneds
+        Deque mydeque = new(T(Deque), T(Int), VA(10), VAEND);   // 10 zero-initialized unsigneds
      
         // assign some values:
         for (unsigned i = 0; i < THIS(mydeque).size(); i++)
-            *(unsigned*)THIS(mydeque).brackets(VA(i)) = i;
+            ((Int)THIS(mydeque).brackets(VA(i)))->val = i;
      
         printf("mydeque contains:");
         for (unsigned i = 0; i < THIS(mydeque).size(); i++)
-            printf(" %u", *(unsigned*)THIS(mydeque).brackets(VA(i))); // 0 1 2 3 4 5 6 7 8 9
+            printf(" %lld", ((Int)THIS(mydeque).brackets(VA(i)))->val); // 0 1 2 3 4 5 6 7 8 9
         putchar('\n');
         delete(mydeque);
     }
@@ -182,33 +185,33 @@ int test_deque_1()
     { // deque::back: Returns a reference to the last element in the container.
       // deque::push_back: Adds a new element at the end of the deque container,
       // after its current last element. The content of val is copied (or moved) to the new element
-        Deque mydeque = new(T(Deque), VA(T(unsigned), 10));   // 10 zero-initialized unsigneds
+        Deque mydeque = new(T(Deque), T(Int), VA(10), VAEND);   // 10 zero-initialized unsigneds
         THIS(mydeque).push_back(VA(10));
 
-        while (*(unsigned*)THIS(mydeque).back() != 0)
-            THIS(mydeque).push_back(VA(*(unsigned*)THIS(mydeque).back() - 1));
+        while (((Int)THIS(mydeque).back())->val != 0)
+            THIS(mydeque).push_back(VA(((Int)THIS(mydeque).back())->val - 1));
      
         printf("mydeque contains:");
         for (Iterator it = THIS(mydeque).begin(); !THIS(it).equal(VA(THIS(mydeque).end())); THIS(it).inc())
-            printf(" %u", *(unsigned*)THIS(it).derefer());
+            printf(" %lld", ((Int)THIS(it).derefer())->val);
         putchar('\n');
         delete(mydeque);
     }
     
     { // deque::begin: Return iterator to beginning
       // deque::end: Return iterator to end
-        Deque mydeque = new(T(Deque), VA(T(unsigned)));
+        Deque mydeque = new(T(Deque), T(Int), VAEND);
         for (int i = 1; i <= 5; i++) THIS(mydeque).push_back(VA(i));
      
         printf("mydeque contains:");
      
         for (Iterator it = THIS(mydeque).begin(); !THIS(it).equal(VA(THIS(mydeque).end())); THIS(it).inc())
-            printf(" %u", *(unsigned*)THIS(it).derefer());
+            printf(" %lld", ((Int)THIS(it).derefer())->val);
         putchar('\n');
         delete(mydeque);
     }
     
-    /*
+/*
     { // deque::cbegin: c++11, Return const_iterator to beginning
       // deque::cend: c++11, Return const_iterator to end
         std::deque<int> mydeque = { 10, 20, 30, 40, 50 };
@@ -219,17 +222,18 @@ int test_deque_1()
         std::cout << '\n';
     }
     */
+
     
     { // deque::clear: Clear content
         //unsigned int i;
-        Deque mydeque = new(T(Deque), VA(T(unsigned)));
+        Deque mydeque = new(T(Deque), T(Int), VAEND);
         THIS(mydeque).push_back(VA(100));
         THIS(mydeque).push_back(VA(200));
         THIS(mydeque).push_back(VA(300));
      
         printf("mydeque contains:");
         for (Iterator it = THIS(mydeque).begin(); !THIS(it).equal(VA(THIS(mydeque).end())); THIS(it).inc())
-            printf(" %u", *(unsigned*)THIS(it).derefer());
+            printf(" %lld", ((Int)THIS(it).derefer())->val);
         putchar('\n');
      
         THIS(mydeque).clear();
@@ -238,12 +242,12 @@ int test_deque_1()
      
         printf("mydeque contains:");
         for (Iterator it = THIS(mydeque).begin(); !THIS(it).equal(VA(THIS(mydeque).end())); THIS(it).inc())
-            printf(" %u", *(unsigned*)THIS(it).derefer());
+            printf(" %lld", ((Int)THIS(it).derefer())->val);
         putchar('\n');
         delete(mydeque);
     }
     
-    /*
+/*
     { // deque::crbegin: c++11, Return const_reverse_iterator to reverse beginning
       // deque::crend: c++11, Return const_reverse_iterator to reverse end
         std::deque<int> mydeque = { 1, 2, 3, 4, 5 };
@@ -253,9 +257,11 @@ int test_deque_1()
             std::cout << ' ' << *rit;
         std::cout << '\n';
     }
-    */
+    *//*
+
     //emplace都未实现
-    /*
+    */
+/*
     { // deque::emplace: c++11, Construct and insert element
         std::deque<int> mydeque = { 10, 20, 30 };
      
@@ -293,23 +299,24 @@ int test_deque_1()
         std::cout << '\n';
     }
     */
+
      
     { // deque::empty: Test whether container is empty
-        Deque mydeque = new(T(Deque), VA(T(int)));
-        int sum = 0;
+        Deque mydeque = new(T(Deque), T(Int), VAEND);
+        long long sum = 0;
      
         for (int i = 1; i <= 10; i++) THIS(mydeque).push_back(VA(i));
      
         while (!THIS(mydeque).empty()) {
-            sum += *(int*)THIS(mydeque).front();
+            sum += ((Int)THIS(mydeque).front())->val;
             THIS(mydeque).pop_front();
         }
      
-        printf("total: %d\n", sum);
+        printf("total: %lld\n", sum);
     }
     
     { // deque::erase: Erase elements
-        Deque mydeque = new(T(Deque), VA(T(int)));
+        Deque mydeque = new(T(Deque), T(Int), VAEND);
      
         // set some values (from 1 to 10)
         for (int i = 1; i <= 10; i++) THIS(mydeque).push_back(VA(i));
@@ -327,7 +334,7 @@ int test_deque_1()
      
         printf("mydeque contains:");
         for (Iterator it = THIS(mydeque).begin(); !THIS(it).equal(VA(THIS(mydeque).end())); THIS(it).inc())
-            printf(" %d", *(int*)THIS(it).derefer());
+            printf(" %lld", ((Int)THIS(it).derefer())->val);
         putchar('\n');
         delete(mydeque);
     }
@@ -335,16 +342,16 @@ int test_deque_1()
     { // deque::front: Access first element, Returns a reference to the first element in the deque containe
       // deque::push_front: Inserts a new element at the beginning of the deque container,
       // right before its current first element. The content of val is copied (or moved) to the inserted element
-        Deque mydeque = new(T(Deque), VA(T(int)));
+        Deque mydeque = new(T(Deque), T(Int), VAEND);
      
         THIS(mydeque).push_front(VA(77));
         THIS(mydeque).push_front(VA(20));
      
-        *(int*)THIS(mydeque).front() -= *(int*)THIS(mydeque).back();
+        ((Int)THIS(mydeque).front())->val -= ((Int)THIS(mydeque).back())->val;
      
-        printf("mydeque.front() is now %d\n", *(int*)THIS(mydeque).front());
+        printf("mydeque.front() is now %lld\n", ((Int)THIS(mydeque).front())->val);
     }
-    /*
+/*
     { // deque::get_allocator: Returns a copy of the allocator object associated with the deque object
         std::deque<int> mydeque;
         int * p;
@@ -366,8 +373,9 @@ int test_deque_1()
     }
     */
 
+
     { // deque::insert: Insert elements
-        Deque mydeque = new(T(Deque), VA(T(int)));
+        Deque mydeque = new(T(Deque), T(Int), VAEND);
      
         // set some initial values:
         for (int i = 1; i < 6; i++) THIS(mydeque).push_back(VA(i)); // 1 2 3 4 5
@@ -390,15 +398,15 @@ int test_deque_1()
         // 1 20 30 30 20 10 2 3 4 5
      
         printf("mydeque contains:");
-        for (Iterator it = THIS(mydeque).begin(); !THIS(it).equal(VA(THIS(mydeque).end())); THIS(it).inc())
-            printf(" %d", *(int*)THIS(it).derefer());
+        for (Iterator it = THIS(mydeque).begin(); !THIS(it).equal(THIS(mydeque).end()); THIS(it).inc())
+            printf(" %lld", ((Int)THIS(it).derefer())->val);
         putchar('\n');
         delete(mydeque);
     }
     
     { // deque::max_size: Return maximum size
         unsigned int i;
-        Deque mydeque = new(T(Deque), VA(T(int)));
+        Deque mydeque = new(T(Deque), T(Int), VAEND);
      
         i = 100;
      
@@ -406,10 +414,10 @@ int test_deque_1()
         //if (i < mydeque.max_size()) mydeque.resize(i);
         //else std::cout << "That size exceeds the limit.\n";
         //fprintf(stderr, "max size: %d\n", mydeque.max_size());
-        printf("size:%ld\n", THIS(mydeque).size());
+        printf("size:%u\n", THIS(mydeque).size());
         delete(mydeque);
     }
-    /*
+/*
     { // deque::operator=: Assigns new contents to the container, replacing its current contents, and modifying its size accordingly
         std::deque<int> first(3);    // deque with 3 zero-initialized ints
         std::deque<int> second(5);   // deque with 5 zero-initialized ints
@@ -422,47 +430,48 @@ int test_deque_1()
     }
     */
 
+
     { // deque::operator[]: Returns a reference to the element at position n in the deque container
-        Deque mydeque = new(T(Deque), VA(T(int), 10));
+        Deque mydeque = new(T(Deque), T(Int), VA(10));
         size_t sz = THIS(mydeque).size();
      
         // assign some values:
-        for (unsigned i = 0; i < sz; i++) *(int*)THIS(mydeque).brackets(VA(i)) = i;
+        for (unsigned i = 0; i < sz; i++) ((Int)THIS(mydeque).brackets(VA(i)))->val = i;
      
         // reverse order of elements using operator[]:
         for (unsigned i = 0; i < sz / 2; i++) {
-            int temp;
-            temp = *(int*)THIS(mydeque).brackets(VA(sz - 1 - i));
-            *(int*)THIS(mydeque).brackets(VA(sz - 1 - i)) = *(int*)THIS(mydeque).brackets(VA(i));
-            *(int*)THIS(mydeque).brackets(VA(i)) = temp;
+            long long temp;
+            temp = ((Int)THIS(mydeque).brackets(VA(sz - 1 - i)))->val;
+            ((Int)THIS(mydeque).brackets(VA(sz - 1 - i)))->val = ((Int)THIS(mydeque).brackets(VA(i)))->val;
+            ((Int)THIS(mydeque).brackets(VA(i)))->val = temp;
         }
      
         // print content:
         printf("mydeque contains:");
         for (unsigned i = 0; i < sz; i++)
-            printf(" %d", *(int*)THIS(mydeque).brackets(VA(i)));
+            printf(" %lld", ((Int)THIS(mydeque).brackets(VA(i)))->val);
         putchar('\n');
         delete(mydeque);
     }
     
     { // deque::pop_back: Removes the last element in the deque container, effectively reducing the container size by one
-        Deque mydeque = new(T(Deque), VA(T(int)));
-        int sum = 0;
+        Deque mydeque = new(T(Deque), T(Int), VAEND);
+        long long sum = 0;
         THIS(mydeque).push_back(VA(10));
         THIS(mydeque).push_back(VA(20));
         THIS(mydeque).push_back(VA(30));
      
         while (!THIS(mydeque).empty()) {
-            sum += *(int*)THIS(mydeque).back();
+            sum += ((Int)THIS(mydeque).back())->val;
             THIS(mydeque).pop_back();
         }
      
-        printf("The elements of mydeque add up to %d\n", sum);
+        printf("The elements of mydeque add up to %lld\n", sum);
         delete(mydeque);
     }
     
     { // deque::pop_front: Removes the first element in the deque container, effectively reducing its size by one.
-        Deque mydeque = new(T(Deque), VA(T(int)));
+        Deque mydeque = new(T(Deque), T(Int), VAEND);
      
         THIS(mydeque).push_back(VA(100));
         THIS(mydeque).push_back(VA(200));
@@ -470,14 +479,14 @@ int test_deque_1()
      
         printf("Popping out the elements in mydeque:");
         while (!THIS(mydeque).empty()) {
-            printf(" %d", *(int*)THIS(mydeque).front());
+            printf(" %lld", ((Int)THIS(mydeque).front())->val);
             THIS(mydeque).pop_front();
         }
         putchar('\n');
-        printf("The final size of mydeque is %ld\n", THIS(mydeque).size());
+        printf("The final size of mydeque is %u\n", THIS(mydeque).size());
         delete(mydeque);
     }
-    /*
+/*
     { // deque::rbegin: Returns a reverse iterator pointing to the last element in the container
         // deque::rend: Returns a reverse iterator pointing to the theoretical element preceding the first element in the deque container
         std::deque<int> mydeque(5);  // 5 default-constructed ints
@@ -494,8 +503,9 @@ int test_deque_1()
         std::cout << '\n';
     }
     */
+
     { // deque::resize: Resizes the container so that it contains n elements
-        Deque mydeque = new(T(Deque), VA(T(int)));
+        Deque mydeque = new(T(Deque), T(Int), VAEND);
      
         // set some initial content:
         for (int i = 1; i < 10; ++i) THIS(mydeque).push_back(VA(i));
@@ -505,11 +515,11 @@ int test_deque_1()
         THIS(mydeque).resize(12);
      
         for (Iterator it = THIS(mydeque).begin(); !THIS(it).equal(VA(THIS(mydeque).end())); THIS(it).inc())
-            printf(" %d", *(int*)THIS(it).derefer());
+            printf(" %lld", ((Int)THIS(it).derefer())->val);
         putchar('\n');
         delete(mydeque);
     }
-    /*
+/*
     { // deque::shrink_to_fit: c++11, Requests the container to reduce its memory usage to fit its size.
         // deque::size: Returns the number of elements in the deque container
         std::deque<int> mydeque(100);
@@ -522,26 +532,27 @@ int test_deque_1()
         fprintf(stderr, "3. size of mydeque: %d\n", mydeque.size());
     }
     */
+
     { // deque::swap: Exchanges the content of the container by the content of x,
         // which is another deque object containing elements of the same type. Sizes may differ.
         //unsigned int i;
-        Deque foo = new(T(Deque), VA(T(int), 3, 100));// three ints with a value of 100
-        Deque bar = new(T(Deque), VA(T(int), 5, 200));// five ints with a value of 200
+        Deque foo = new(T(Deque), T(Int), VA(3, 100), VAEND);// three ints with a value of 100
+        Deque bar = new(T(Deque), T(Int), VA(5, 200), VAEND);// five ints with a value of 200
         
      
         THIS(foo).swap(bar);
      
         printf("foo contains:");
         for (Iterator it = THIS(foo).begin(); !THIS(it).equal(VA(THIS(foo).end())); THIS(it).inc())
-            printf(" %d", *(int*)THIS(it).derefer());
+            printf(" %lld", ((Int)THIS(it).derefer())->val);
         putchar('\n');
      
         printf("bar contains:");
         for (Iterator it = THIS(bar).begin(); !THIS(it).equal(VA(THIS(bar).end())); THIS(it).inc())
-            printf(" %d", *(int*)THIS(it).derefer());
+            printf(" %lld", ((Int)THIS(it).derefer())->val);
         putchar('\n');
     }
-    /*
+/*
     { // relational operators: compare
         std::deque<int> foo(3, 100);   // three ints with a value of 100
         std::deque<int> bar(2, 200);   // two ints with a value of 200
@@ -572,10 +583,12 @@ int test_deque_1()
             std::cout << ' ' << *it;
         std::cout << '\n';
     }
-    */ 
+    */
+
     ARP_FreePool();
 	return 0;
 }
+
 
 
 int main(void)
