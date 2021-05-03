@@ -588,9 +588,13 @@ static void _list_splice(void *_self, Iterator _position, List l, va_list *app)
     struct List *L = offsetOf(l, __List);
     assert(L->class == self->class);
     MetaObject args[2];
+    void *t;
     int n = 0;
-    while ((args[n] = va_arg(*app, MetaObject)) != VAEND)
-        assert(n++ < 2);
+    while ((t = va_arg(*app, MetaObject)) != VAEND)
+    {
+        assert(n < 2);
+        args[n] = t;
+    }
     assert(classOf(_position) == __ListIter);
     struct ListNode *pos_node = ((struct ListIter*)offsetOf(_position, __ListIter))->node;
     struct ListNode *first_node = NULL;

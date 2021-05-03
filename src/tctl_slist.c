@@ -317,10 +317,12 @@ static void *_slist_ctor(void *_self, va_list *app)
     self->class = va_arg(*app, void*);
     self->_head.nxt = NULL;
     MetaObject args[2];
+    void *t;
     int i = 0;
-    while ((args[i] = va_arg(*app, void*)) != VAEND)
+    while ((t = va_arg(*app, void*)) != VAEND)
     {
-        assert(i++ < 2);
+        assert(i < 2);
+        args[i++] = t;
     }
     if (i)
         _deal_Slist_Args(_self, args, i);
@@ -476,9 +478,13 @@ static void _slist_splice_after(void *_self, Iterator _position, Slist l, va_lis
     struct Slist *L = offsetOf(l, __Slist);
     assert(L->class == self->class);
     MetaObject args[2];
+    void *t;
     int n = 0;
-    while ((args[n] = va_arg(*app, MetaObject)) != VAEND)
-        assert(n++ < 2);
+    while ((t = va_arg(*app, MetaObject)) != VAEND)
+    {
+        assert(n < 2);
+        args[n++] = t;
+    }
     assert(classOf(_position) == __SlistIter);
     struct SlistNode *pos_node = ((struct SlistIter*)offsetOf(_position, __SlistIter))->node;
     struct SlistNode *first_node = NULL;
