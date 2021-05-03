@@ -13,11 +13,11 @@ struct SlistSelector {
     void* (*front)(void);
     size_t (*size)(void);
     bool (*empty)(void);
-    void (*push_front)(FormWO_t x);
+    void (*push_front)(const void *x);
     void (*pop_front)(void);
     Iterator (*erase_after)(Iterator iter);
-    Iterator (*insert_after)(Iterator iter, FormWO_t x);
-    void (*remove)(FormWO_t x);
+    Iterator (*insert_after)(Iterator iter, const void *x);
+    void (*remove)(const void *x);
     void (*unique)(void);
     void (*splice_after)(Iterator position, Slist l, ...);
     void (*merge)(Slist l, Compare cmp);
@@ -26,6 +26,6 @@ struct SlistSelector {
     void (*clear)(void);
     void (*swap)(Slist l);
 };
-Form_t _SlistClass(void);
+const void *_SlistClass(void);
 extern const struct SlistSelector *_SlistS;
 #endif //TINY_CTL__TCTL_SLIST_H

@@ -10,6 +10,7 @@
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 #define BYTE_ALIGNED  __attribute__((packed, aligned(1)))
+#define TEMP_VAR(type, val) ((struct {type _;}){val})
 
 #define container_of(ptr, type, member) ((type *) ((char *)(ptr) - offsetof(type, member)))
 #define autofree(func) __attribute__((cleanup(func)))
