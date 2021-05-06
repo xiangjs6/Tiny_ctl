@@ -126,7 +126,7 @@ static void *_any_ctor(void *_self, va_list *app)
             self->type_flag = p->type_flag;
             self->size = p->size;
             self->cast = p->cast;
-            if (self->type_flag == POD)
+            if (self->type_flag == OBJ)
                 self->mem = new(classOf(p->mem), p->mem, VAEND);
             else {
                 self->mem = malloc(self->size);
