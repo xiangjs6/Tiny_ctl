@@ -12,14 +12,14 @@ struct RB_treeSelector {
     Iterator (*end)(void);
     size_t (*size)(void);
     bool (*empty)(void);
-    Iterator (*insert_unique)(FormWO_t);
-    Iterator (*insert_equal)(FormWO_t);
+    Iterator (*insert_unique)(const void *x);
+    Iterator (*insert_equal)(const void *x);
     void (*erase)(Iterator);
-    Iterator (*find)(FormWO_t);
-    size_t (*count)(FormWO_t);
+    Iterator (*find)(const void *x);
+    size_t (*count)(const void *x);
     void (*clear)(void);
     void (*swap)(RB_tree t);
 };
-Form_t _RB_treeClass(void);
+const void *RB_treeClass(void);
 extern const struct RB_treeSelector *_RB_treeS;
 #endif //TINY_CTL__TCTL_RB_TREE_H

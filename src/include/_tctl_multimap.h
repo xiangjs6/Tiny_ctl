@@ -14,12 +14,12 @@ struct MultiMapSelector {
     bool (*empty)(void);
     void (*erase)(Iterator iter);
     Iterator (*insert)(Pair x);
-    size_t (*count)(FormWO_t x);
-    Iterator (*find)(FormWO_t x);
+    size_t (*count)(const void *x);
+    Iterator (*find)(const void *x);
     void (*clear)(void);
     void (*swap)(MultiMap);
 };          
 
-Form_t _MultiMapClass(void);
+const void *_MultiMapClass(void);
 extern const struct MultiMapSelector *_MultiMapS;
 #endif //TINY_CTL__TCTL_MULTIMAP_H

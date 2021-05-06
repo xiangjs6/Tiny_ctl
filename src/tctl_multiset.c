@@ -4,22 +4,24 @@
 
 #include "include/_tctl_multiset.h"
 #include "../include/tctl_rb_tree.h"
+#include "../include/tctl_arg.h"
+#include "../include/tctl_any.h"
 #include <stdlib.h>
 #include <memory.h>
 
-#define Import CLASS, OBJECT, METACLASS, RB_TREE, ITERATOR
+#define Import CLASS, OBJECT, METACLASS, RB_TREE, ITERATOR, ANY
 
 struct MultiSetClass {
-    Iterator (*begin)(const void *_this);
-    Iterator (*end)(const void *_this);
-    size_t (*size)(const void *_this);
-    bool (*empty)(const void *_this);
-    void (*erase)(void *_this, Iterator iter);
-    Iterator (*insert)(void *_this, FormWO_t x);
-    size_t (*count)(void *_this, FormWO_t x);
-    Iterator (*find)(void *_this, FormWO_t x);
-    void (*clear)(void *_this);
-    void (*swap)(void *_this, MultiSet _s);
+    Iterator (*begin)(const void *_self);
+    Iterator (*end)(const void *_self);
+    size_t (*size)(const void *_self);
+    bool (*empty)(const void *_self);
+    void (*erase)(void *_self, Iterator iter);
+    Iterator (*insert)(void *_self, const void *x);
+    size_t (*count)(void *_self, const void *x);
+    Iterator (*find)(void *_self, const void *x);
+    void (*clear)(void *_self);
+    void (*swap)(void *_self, MultiSet _s);
 };
 
 struct MultiSet {
@@ -32,28 +34,28 @@ static Iterator _end(void);
 static size_t _size(void);
 static bool _empty(void);
 static void _erase(Iterator iter);
-static Iterator _insert(FormWO_t x);
-static size_t _count(FormWO_t x);
-static Iterator _find(FormWO_t x);
+static Iterator _insert(const void *x);
+static size_t _count(const void *x);
+static Iterator _find(const void *x);
 static void _clear(void);
 static void _swap(MultiSet _s);
 
 //MultiSetclass
-static void *_multisetclass_ctor(void *_this, va_list *app);
+static void *_multisetclass_ctor(void *_self, va_list *app);
 
 //MultiSet
-static void *_multiset_ctor(void *_this, va_list *app);
-static void *_multiset_dtor(void *_this);
-static Iterator _multiset_begin(const void *_this);
-static Iterator _multiset_end(const void *_this);
-static size_t _multiset_size(const void *_this);
-static bool _multiset_empty(const void *_this);
-static void _multiset_erase(void *_this, Iterator iter);
-static Iterator _multiset_insert(void *_this, FormWO_t x);
-static size_t _multiset_count(void *_this, FormWO_t x);
-static Iterator _multiset_find(void *_this, FormWO_t x);
-static void _multiset_clear(void *_this);
-static void _multiset_swap(void *_this, MultiSet _s);
+static void *_multiset_ctor(void *_self, va_list *app);
+static void *_multiset_dtor(void *_self);
+static Iterator _multiset_begin(const void *_self);
+static Iterator _multiset_end(const void *_self);
+static size_t _multiset_size(const void *_self);
+static bool _multiset_empty(const void *_self);
+static void _multiset_erase(void *_self, Iterator iter);
+static Iterator _multiset_insert(void *_self, const void *x);
+static size_t _multiset_count(void *_self, const void *x);
+static Iterator _multiset_find(void *_self, const void *x);
+static void _multiset_clear(void *_self);
+static void _multiset_swap(void *_self, MultiSet _s);
 
 //init
 static const void *__MultiSet = NULL;
@@ -82,12 +84,12 @@ static void initMultiSet(void)
     }
     if (!__MultiSetClass) {
         __MultiSetClass = new(T(MetaClass), "MultiSetClass",
-                           T(Class), sizeof(struct MultiSetClass) + classSz(_Class().class),
+                           T(Class), sizeof(struct MultiSetClass) + classSz(T(Class)),
                            _MetaClassS->ctor, _multisetclass_ctor, NULL);
     }
     if (!__MultiSet) {
         __MultiSet = new(_MultiSetClass(), "MultiSet",
-                     T(Object), sizeof(struct MultiSet) + classSz(_Object().class),
+                     T(Object), sizeof(struct MultiSet) + classSz(T(Object)),
                      _MetaClassS->ctor, _multiset_ctor,
                      _MetaClassS->dtor, _multiset_dtor,
                      _MultiSetS->begin, _multiset_begin,
@@ -104,231 +106,228 @@ static void initMultiSet(void)
     }
 }
 
-Form_t _MultiSet(void)
+const void *_MultiSet(void)
 {
     if (!__MultiSet)
         initMultiSet();
-    return (Form_t){OBJ, .class = __MultiSet};
+    return __MultiSet;
 }
 
-Form_t _MultiSetClass(void)
+const void *_MultiSetClass(void)
 {
     if (!__MultiSetClass)
         initMultiSet();
-    return (Form_t){OBJ, .class = __MultiSetClass};
+    return __MultiSetClass;
 }
 
 //MultiSetClass
-static void *_multisetclass_ctor(void *_this, va_list *app)
+static void *_multisetclass_ctor(void *_self, va_list *app)
 {
-    _this = super_ctor(__MultiSetClass, _this, app);
-    struct MultiSetClass *this = offsetOf(_this, __MultiSetClass);
+    _self = super_ctor(__MultiSetClass, _self, app);
+    struct MultiSetClass *self = offsetOf(_self, __MultiSetClass);
     voidf selector;
     va_list ap;
     va_copy(ap, *app);
     voidf *begin = (void*)&MultiSetS + sizeof(MultiSetS._);
     voidf *end = (void*)&MultiSetS + sizeof(MultiSetS);
-    voidf *this_begin = (void*)this;
+    voidf *self_begin = (void*)self;
     while ((selector = va_arg(ap, voidf)))
     {
         voidf method = va_arg(ap, voidf);
         for (voidf *p = begin; p != end; p++) {
             if (*p == selector) {
                 size_t n = p - begin;
-                *(this_begin + n) = method;
+                *(self_begin + n) = method;
                 break;
             }
         }
     }
     va_end(ap);
-    return _this;
+    return _self;
 }
 
 //MultiSet
-static void *_multiset_ctor(void *_this, va_list *app)
+static void *_multiset_ctor(void *_self, va_list *app)
 {
-    _this = super_ctor(__MultiSet, _this, app);
-    struct MultiSet *this = offsetOf(_this, __MultiSet);
-    this->c = malloc(classSz(_RB_tree().class));
-    FormWO_t f = va_arg(*app, FormWO_t);
-    assert(f._.f >= FORM);
-    FormWO_t t = va_arg(*app, FormWO_t);
-    assert(t._.f == OBJ || t._.f == FUNC);
-    if (t._.f == OBJ && t._.class == __MultiSet) { //复制构造
-        struct MultiSet *s = offsetOf(*(Object*)t.mem, __MultiSet);
-        construct(_RB_tree(), this->c, f, VA(s->c), VAEND);
+    _self = super_ctor(__MultiSet, _self, app);
+    struct MultiSet *self = offsetOf(_self, __MultiSet);
+    self->c = malloc(classSz(T(RB_tree)));
+    void *f = va_arg(*app, void*);
+    void *t = va_arg(*app, void*);
+    if (classOf(t) == __MultiSet) { //复制构造
+        struct MultiSet *s = offsetOf(t, __MultiSet);
+        construct(_RB_tree(), self->c, f, s->c, VAEND);
     } else { //迭代器构造和默认构造
-        construct(_RB_tree(), this->c, f, t, VAEND);
-        t = va_arg(*app, FormWO_t);
-        if (t._.f == END)
-            return _this;
+        construct(T(RB_tree), self->c, f, t, VAEND);
+        t = va_arg(*app, void*);
+        if (t == VAEND)
+            return _self;
 
-        assert(t._.f == OBJ && t._.class == _Iterator().class);
-        Iterator first = *(Iterator*)t.mem;
+        assert(class_check(t, T(Iterator)));
+        Iterator first = t;
         first = THIS(first).ctor(NULL, VA(first), VAEND);
-        t = va_arg(*app, FormWO_t);
-        assert(t._.f == OBJ && t._.class == _Iterator().class);
-        Iterator last = *(Iterator*)t.mem;
+        t = va_arg(*app, void*);
+        assert(class_check(t, T(Iterator)));
+        Iterator last = t;
         last = THIS(first).ctor(NULL, VA(last), VAEND);
-        Form_t it_t = THIS(first).type();
         while (!THIS(first).equal(VA(last)))
         {
-            THIS(this->c).insert_equal(FORM_WITH_OBJ(it_t, V(THIS(first).derefer())));
+            THIS(self->c).insert_equal(THIS(first).derefer());
             THIS(first).inc();
         }
         delete(first);
         delete(last);
     }
-    return _this;
+    return _self;
 }
 
-static void *_multiset_dtor(void *_this)
+static void *_multiset_dtor(void *_self)
 {
-    _this = super_dtor(__MultiSet, _this);
-    struct MultiSet *this = offsetOf(_this, __MultiSet);
-    destroy(this->c);
-    free(this->c);
-    return _this;
+    _self = super_dtor(__MultiSet, _self);
+    struct MultiSet *self = offsetOf(_self, __MultiSet);
+    destroy(self->c);
+    free(self->c);
+    return _self;
 }
 
-static Iterator _multiset_begin(const void *_this)
+static Iterator _multiset_begin(const void *_self)
 {
-    struct MultiSet *this = offsetOf(_this, __MultiSet);
-    return THIS(this->c).begin();
+    struct MultiSet *self = offsetOf(_self, __MultiSet);
+    return THIS(self->c).begin();
 }
 
-static Iterator _multiset_end(const void *_this)
+static Iterator _multiset_end(const void *_self)
 {
-    struct MultiSet *this = offsetOf(_this, __MultiSet);
-    return THIS(this->c).end();
+    struct MultiSet *self = offsetOf(_self, __MultiSet);
+    return THIS(self->c).end();
 }
 
-static size_t _multiset_size(const void *_this)
+static size_t _multiset_size(const void *_self)
 {
-    struct MultiSet *this = offsetOf(_this, __MultiSet);
-    return THIS(this->c).size();
+    struct MultiSet *self = offsetOf(_self, __MultiSet);
+    return THIS(self->c).size();
 }
 
-static bool _multiset_empty(const void *_this)
+static bool _multiset_empty(const void *_self)
 {
-    struct MultiSet *this = offsetOf(_this, __MultiSet);
-    return THIS(this->c).empty();
+    struct MultiSet *self = offsetOf(_self, __MultiSet);
+    return THIS(self->c).empty();
 }
 
-static void _multiset_erase(void *_this, Iterator iter)
+static void _multiset_erase(void *_self, Iterator iter)
 {
-    struct MultiSet *this = offsetOf(_this, __MultiSet);
-    THIS(this->c).erase(iter);
+    struct MultiSet *self = offsetOf(_self, __MultiSet);
+    THIS(self->c).erase(iter);
 }
 
-static Iterator _multiset_insert(void *_this, FormWO_t x)
+static Iterator _multiset_insert(void *_self, const void *x)
 {
-    struct MultiSet *this = offsetOf(_this, __MultiSet);
-    return THIS(this->c).insert_equal(x);
+    struct MultiSet *self = offsetOf(_self, __MultiSet);
+    return THIS(self->c).insert_equal(x);
 }
 
-static size_t _multiset_count(void *_this, FormWO_t x)
+static size_t _multiset_count(void *_self, const void *x)
 {
-    struct MultiSet *this = offsetOf(_this, __MultiSet);
-    return THIS(this->c).count(x);
+    struct MultiSet *self = offsetOf(_self, __MultiSet);
+    return THIS(self->c).count(x);
 }
 
-static Iterator _multiset_find(void *_this, FormWO_t x)
+static Iterator _multiset_find(void *_self, const void *x)
 {
-    struct MultiSet *this = offsetOf(_this, __MultiSet);
-    return THIS(this->c).find(x);
+    struct MultiSet *self = offsetOf(_self, __MultiSet);
+    return THIS(self->c).find(x);
 }
 
-static void _multiset_clear(void *_this)
+static void _multiset_clear(void *_self)
 {
-    struct MultiSet *this = offsetOf(_this, __MultiSet);
-    THIS(this->c).clear();
+    struct MultiSet *self = offsetOf(_self, __MultiSet);
+    THIS(self->c).clear();
 }
 
-static void _multiset_swap(void *_this, MultiSet _s)
+static void _multiset_swap(void *_self, MultiSet _s)
 {
-    struct MultiSet *this = offsetOf(_this, __MultiSet);
+    struct MultiSet *self = offsetOf(_self, __MultiSet);
     struct MultiSet *s = offsetOf(_s, __MultiSet);
-    THIS(this->c).swap(s->c);
+    THIS(self->c).swap(s->c);
 }
 
 //selector
 static Iterator _begin(void)
 {
-    void *_this = pop_this();
-    const struct MultiSetClass *class = offsetOf(classOf(_this), __MultiSetClass);
+    void *_self = pop_this();
+    const struct MultiSetClass *class = offsetOf(classOf(_self), __MultiSetClass);
     assert(class->begin);
-    return class->begin(_this);
+    return class->begin(_self);
 }
 
 static Iterator _end(void)
 {
-    void *_this = pop_this();
-    const struct MultiSetClass *class = offsetOf(classOf(_this), __MultiSetClass);
+    void *_self = pop_this();
+    const struct MultiSetClass *class = offsetOf(classOf(_self), __MultiSetClass);
     assert(class->end);
-    return class->end(_this);
+    return class->end(_self);
 }
 
 static size_t _size(void)
 {
-    void *_this = pop_this();
-    const struct MultiSetClass *class = offsetOf(classOf(_this), __MultiSetClass);
+    void *_self = pop_this();
+    const struct MultiSetClass *class = offsetOf(classOf(_self), __MultiSetClass);
     assert(class->size);
-    return class->size(_this);
+    return class->size(_self);
 }
 
 static bool _empty(void)
 {
-    void *_this = pop_this();
-    const struct MultiSetClass *class = offsetOf(classOf(_this), __MultiSetClass);
+    void *_self = pop_this();
+    const struct MultiSetClass *class = offsetOf(classOf(_self), __MultiSetClass);
     assert(class->empty);
-    return class->empty(_this);
+    return class->empty(_self);
 }
 
 static void _erase(Iterator iter)
 {
-    void *_this = pop_this();
-    const struct MultiSetClass *class = offsetOf(classOf(_this), __MultiSetClass);
+    void *_self = pop_this();
+    const struct MultiSetClass *class = offsetOf(classOf(_self), __MultiSetClass);
     assert(class->erase);
-    class->erase(_this, iter);
+    class->erase(_self, iter);
 }
 
-static Iterator _insert(FormWO_t x)
+static Iterator _insert(const void *x)
 {
-    void *_this = pop_this();
-    const struct MultiSetClass *class = offsetOf(classOf(_this), __MultiSetClass);
+    void *_self = pop_this();
+    const struct MultiSetClass *class = offsetOf(classOf(_self), __MultiSetClass);
     assert(class->insert);
-    return class->insert(_this, x);
+    return class->insert(_self, x);
 }
 
-static size_t _count(FormWO_t x)
+static size_t _count(const void *x)
 {
-    void *_this = pop_this();
-    const struct MultiSetClass *class = offsetOf(classOf(_this), __MultiSetClass);
+    void *_self = pop_this();
+    const struct MultiSetClass *class = offsetOf(classOf(_self), __MultiSetClass);
     assert(class->count);
-    return class->count(_this, x);
+    return class->count(_self, x);
 }
 
-static Iterator _find(FormWO_t x)
+static Iterator _find(const void *x)
 {
-    void *_this = pop_this();
-    const struct MultiSetClass *class = offsetOf(classOf(_this), __MultiSetClass);
+    void *_self = pop_this();
+    const struct MultiSetClass *class = offsetOf(classOf(_self), __MultiSetClass);
     assert(class->find);
-    return class->find(_this, x);
+    return class->find(_self, x);
 }
 
 static void _clear(void)
 {
-    void *_this = pop_this();
-    const struct MultiSetClass *class = offsetOf(classOf(_this), __MultiSetClass);
+    void *_self = pop_this();
+    const struct MultiSetClass *class = offsetOf(classOf(_self), __MultiSetClass);
     assert(class->clear);
-    class->clear(_this);
+    class->clear(_self);
 }
 
 static void _swap(MultiSet _s)
 {
-    void *_this = pop_this();
-    const struct MultiSetClass *class = offsetOf(classOf(_this), __MultiSetClass);
+    void *_self = pop_this();
+    const struct MultiSetClass *class = offsetOf(classOf(_self), __MultiSetClass);
     assert(class->swap);
-    class->swap(_this, _s);
+    class->swap(_self, _s);
 }

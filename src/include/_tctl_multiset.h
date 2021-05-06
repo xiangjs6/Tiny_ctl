@@ -13,13 +13,13 @@ struct MultiSetSelector {
     size_t (*size)(void);
     bool (*empty)(void);
     void (*erase)(Iterator iter);
-    Iterator (*insert)(FormWO_t x);
-    size_t (*count)(FormWO_t x);
-    Iterator (*find)(FormWO_t x);
+    Iterator (*insert)(const void *x);
+    size_t (*count)(const void *x);
+    Iterator (*find)(const void *x);
     void (*clear)(void);
     void (*swap)(MultiSet);
 };          
 
-Form_t _MultiSetClass(void);
+const void *_MultiSetClass(void);
 extern const struct MultiSetSelector *_MultiSetS;
 #endif //TINY_CTL__TCTL_MULTISET_H

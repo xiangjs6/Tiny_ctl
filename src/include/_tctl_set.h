@@ -13,13 +13,13 @@ struct SetSelector {
     size_t (*size)(void);
     bool (*empty)(void);
     void (*erase)(Iterator iter);
-    Iterator (*insert)(FormWO_t x);
-    size_t (*count)(FormWO_t x);
-    Iterator (*find)(FormWO_t x);
+    Iterator (*insert)(const void *x);
+    size_t (*count)(const void *x);
+    Iterator (*find)(const void *x);
     void (*clear)(void);
     void (*swap)(Set);
 };          
 
-Form_t _SetClass(void);
+const void *_SetClass(void);
 extern const struct SetSelector *_SetS;
 #endif //TINY_CTL__TCTL_SET_H

@@ -14,12 +14,12 @@ struct MapSelector {
     bool (*empty)(void);
     void (*erase)(Iterator iter);
     Iterator (*insert)(Pair x);
-    size_t (*count)(FormWO_t x);
-    Iterator (*find)(FormWO_t x);
+    size_t (*count)(const void *x);
+    Iterator (*find)(const void *x);
     void (*clear)(void);
     void (*swap)(Map);
 };          
 
-Form_t _MapClass(void);
+const void *_MapClass(void);
 extern const struct MapSelector *_MapS;
 #endif //TINY_CTL__TCTL_MAP_H

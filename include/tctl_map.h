@@ -9,19 +9,19 @@
 #include "tctl_def.h"
 #include "tctl_utility.h"
 
-#define MAP_FUNC                    \
-struct {                            \
-    CLASS_FUNC;                     \
-    Iterator (*begin)(void);        \
-    Iterator (*end)(void);          \
-    size_t (*size)(void);           \
-    bool (*empty)(void);            \
-    void (*erase)(Iterator iter);   \
-    Iterator (*insert)(Pair x);     \
-    size_t (*count)(FormWO_t x);    \
-    Iterator (*find)(FormWO_t x);   \
-    void (*clear)(void);            \
-    void (*swap)(Map);              \
+#define MAP_FUNC                       \
+struct {                               \
+    CLASS_FUNC;                        \
+    Iterator (*begin)(void);           \
+    Iterator (*end)(void);             \
+    size_t (*size)(void);              \
+    bool (*empty)(void);               \
+    void (*erase)(Iterator iter);      \
+    Iterator (*insert)(Pair x);        \
+    size_t (*count)(const void *x);    \
+    Iterator (*find)(const void *x);   \
+    void (*clear)(void);               \
+    void (*swap)(Map);                 \
 }
 
 typedef struct _Map *Map;
@@ -29,6 +29,6 @@ struct _Map {
     METAOBJECT_HEAD(MAP_FUNC);
 };
 
-Form_t _Map(void);
+const void *_Map(void);
 #define MAP Map : _Map()
 #endif //TINY_CTL_TCTL_MAP_H

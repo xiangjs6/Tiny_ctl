@@ -6,10 +6,12 @@
 #include "../include/auto_release_pool.h"
 #include "include/_tctl_iterator.h"
 #include "../include/tctl_stack.h"
+#include "../include/tctl_arg.h"
+#include "../include/tctl_any.h"
 #include <assert.h>
 #include <string.h>
 
-#define Import CLASS, OBJECT, METACLASS, ITERATOR, RB_TREE, STACK
+#define Import CLASS, OBJECT, METACLASS, ITERATOR, RB_TREE, STACK, ANY
 
 enum _Color {_RED, _BLACK};
 
@@ -22,21 +24,21 @@ struct RB_treeNode {
 };
 
 struct RB_treeClass {
-    Iterator (*begin)(void *_this);
-    Iterator (*end)(void *_this);
-    size_t (*size)(void *_this);
-    bool (*empty)(void *_this);
-    Iterator (*insert_unique)(void *_this, FormWO_t _x);
-    Iterator (*insert_equal)(void *_this, FormWO_t _x);
-    void (*erase)(void *_this, Iterator);
-    Iterator (*find)(void *_this, FormWO_t _x);
-    size_t (*count)(void *_this, FormWO_t _x);
-    void (*clear)(void *_this);
-    void (*swap)(void *_this, RB_tree t);
+    Iterator (*begin)(void *_self);
+    Iterator (*end)(void *_self);
+    size_t (*size)(void *_self);
+    bool (*empty)(void *_self);
+    Iterator (*insert_unique)(void *_self, const void *_x);
+    Iterator (*insert_equal)(void *_self, const void *_x);
+    void (*erase)(void *_self, Iterator);
+    Iterator (*find)(void *_self, const void *_x);
+    size_t (*count)(void *_self, const void *_x);
+    void (*clear)(void *_self);
+    void (*swap)(void *_self, RB_tree t);
 };
 
 struct RB_tree {
-    Form_t _t;
+    void *class;
     size_t nmemb;
     struct RB_treeNode *header;
     Compare cmp;
@@ -51,37 +53,37 @@ static Iterator _begin(void);
 static Iterator _end(void);
 static size_t _size(void);
 static bool _empty(void);
-static Iterator _insert_unique(FormWO_t _x);
-static Iterator _insert_equal(FormWO_t _x);
+static Iterator _insert_unique(const void *_x);
+static Iterator _insert_equal(const void *_x);
 static void _erase(Iterator);
-static Iterator _find(FormWO_t _x);
-static size_t _count(FormWO_t _x);
+static Iterator _find(const void *_x);
+static size_t _count(const void *_x);
 static void _clear(void);
 static void _swap(RB_tree t);
 //RB_treeclass
-static void *_rb_treeclass_ctor(void *_this, va_list *app);
+static void *_rb_treeclass_ctor(void *_self, va_list *app);
 //RB_tree
-static void *_rb_tree_ctor(void *_this, va_list *app);
-static void *_rb_tree_dtor(void *_this);
-static Iterator _rb_tree_begin(const void *_this);
-static Iterator _rb_tree_end(const void *_this);
-static size_t _rb_tree_size(const void *_this);
-static bool _rb_tree_empty(const void *_this);
-static Iterator _rb_tree_insert_unique(void *_this, FormWO_t _x);
-static Iterator _rb_tree_insert_equal(void *_this, FormWO_t _x);
-static void _rb_tree_erase(void *_this, Iterator iter);
-static Iterator _rb_tree_find(void *_this, FormWO_t _x);
-static size_t _rb_tree_count(void *_this, FormWO_t _x);
-static void _rb_tree_clear(void *_this);
-static void _rb_tree_swap(void *_this, RB_tree _t);
+static void *_rb_tree_ctor(void *_self, va_list *app);
+static void *_rb_tree_dtor(void *_self);
+static Iterator _rb_tree_begin(const void *_self);
+static Iterator _rb_tree_end(const void *_self);
+static size_t _rb_tree_size(const void *_self);
+static bool _rb_tree_empty(const void *_self);
+static Iterator _rb_tree_insert_unique(void *_self, const void *_x);
+static Iterator _rb_tree_insert_equal(void *_self, const void *_x);
+static void _rb_tree_erase(void *_self, Iterator iter);
+static Iterator _rb_tree_find(void *_self, const void *_x);
+static size_t _rb_tree_count(void *_self, const void *_x);
+static void _rb_tree_clear(void *_self);
+static void _rb_tree_swap(void *_self, RB_tree _t);
 //iterator
-static void _iter_assign(void *_this, FormWO_t _x);
-static void _iter_inc(void *_this);
-static void _iter_dec(void *_this);
-static bool _iter_equal(const void *_this, FormWO_t _x);
-static void *_iter_ctor(void *_this, va_list *app);
-static void *_iter_derefer(const void *_this);
-static Iterator _iter_reverse_iterator(void *_this);
+static void _iter_assign(void *_self, const void *_x);
+static void _iter_inc(void *_self);
+static void _iter_dec(void *_self);
+static bool _iter_equal(const void *_self, const void *_x);
+static void *_iter_ctor(void *_self, va_list *app);
+static void *_iter_derefer(const void *_self);
+static Iterator _iter_reverse_iterator(void *_self);
 //init
 static const void *__RB_treeIter = NULL;
 static const void *__RRB_treeIter = NULL;
@@ -113,7 +115,7 @@ static void initRB_tree(void)
     }
     if (!__RB_treeIter) {
         __RB_treeIter = new(_IteratorClass(), "RB_treeIter",
-                         T(Iterator), sizeof(struct RB_treeIter) + classSz(_Iterator().class),
+                         T(Iterator), sizeof(struct RB_treeIter) + classSz(T(Iterator)),
                          _MetaClassS->ctor, _iter_ctor,
                          _ClassS->equal, _iter_equal,
                          _ClassS->inc, _iter_inc,
@@ -125,7 +127,7 @@ static void initRB_tree(void)
     }
     if (!__RRB_treeIter) {
         __RRB_treeIter = new(_IteratorClass(), "RRB_treeIter",
-                         T(Iterator), sizeof(struct RB_treeIter) + classSz(_Iterator().class),
+                         T(Iterator), sizeof(struct RB_treeIter) + classSz(T(Iterator)),
                          _MetaClassS->ctor, _iter_ctor,
                          _ClassS->equal, _iter_equal,
                          _ClassS->inc, _iter_dec,
@@ -137,12 +139,12 @@ static void initRB_tree(void)
     }
     if (!__RB_treeClass) {
         __RB_treeClass = new(T(MetaClass), "RB_treeClass",
-                           T(Class), sizeof(struct RB_treeClass) + classSz(_Class().class),
+                           T(Class), sizeof(struct RB_treeClass) + classSz(T(Class)),
                            _MetaClassS->ctor, _rb_treeclass_ctor, NULL);
     }
     if (!__RB_tree) {
-        __RB_tree = new(_RB_treeClass(), "RB_tree",
-                       T(Object), sizeof(struct RB_tree) + classSz(_Object().class),
+        __RB_tree = new(__RB_treeClass, "RB_tree",
+                       T(Object), sizeof(struct RB_tree) + classSz(T(Object)),
                        _MetaClassS->ctor, _rb_tree_ctor,
                        _MetaClassS->dtor, _rb_tree_dtor,
                        RB_treeS.begin, _rb_tree_begin,
@@ -160,32 +162,32 @@ static void initRB_tree(void)
     }
 }
 
-Form_t _RB_tree(void)
+const void *_RB_tree(void)
 {
     if (!__RB_tree)
         initRB_tree();
-    return (Form_t){OBJ, .class = __RB_tree};
+    return __RB_tree;
 }
 
-Form_t _RB_treeClass(void)
+const void *_RB_treeClass(void)
 {
     if (!__RB_treeClass)
         initRB_tree();
-    return (Form_t){OBJ, .class = __RB_treeClass};
+    return __RB_treeClass;
 }
 
-static Form_t _RB_treeIter(void)
+static const void *_RB_treeIter(void)
 {
     if (!__RB_treeIter)
         initRB_tree();
-    return (Form_t){OBJ, .class = __RB_treeIter};
+    return __RB_treeIter;
 }
 
-static Form_t _RRB_treeIter(void)
+static const void *_RRB_treeIter(void)
 {
     if (!__RRB_treeIter)
         initRB_tree();
-    return (Form_t){OBJ, .class = __RRB_treeIter};
+    return __RRB_treeIter;
 }
 
 //private
@@ -274,9 +276,9 @@ static void _turn_right_node(struct RB_treeNode *drop_node)
         drop_node->left->parent = drop_node;
 }
 
-static void _balance_tree_insert(struct RB_tree *this, struct RB_treeNode *cur)
+static void _balance_tree_insert(struct RB_tree *self, struct RB_treeNode *cur)
 {
-    if (this->header->parent == cur) {//该节点为根节点
+    if (self->header->parent == cur) {//该节点为根节点
         cur->color = _BLACK;
     } else if(cur->parent->color == _RED) {//父节点是红色
         struct RB_treeNode *uncle_node = get_uncle_node(cur);
@@ -284,7 +286,7 @@ static void _balance_tree_insert(struct RB_tree *this, struct RB_treeNode *cur)
             uncle_node->color = _BLACK;
             cur->parent->color = _BLACK;
             cur->parent->parent->color = _RED;
-            _balance_tree_insert(this, cur->parent->parent);
+            _balance_tree_insert(self, cur->parent->parent);
         } else {//叔叔节点是黑色
             if (!_get_left_right_node(cur->parent)) {//插入节点的父节点在爷爷节点的左侧
                 if (_get_left_right_node(cur)) {//插入节点在父节点的右侧
@@ -310,12 +312,12 @@ static void _balance_tree_insert(struct RB_tree *this, struct RB_treeNode *cur)
     }
 }
 
-static void _balance_tree_erase(struct RB_tree *this, struct RB_treeNode *cur)
+static void _balance_tree_erase(struct RB_tree *self, struct RB_treeNode *cur)
 {
     struct RB_treeNode *parent = cur->parent;
     struct RB_treeNode *brother_node = _get_left_right_node(cur) ? parent->left : parent->right;
     if (cur->parent->parent == cur) {//删除节点为根 2
-        this->header->left = this->header->right = this->header->parent = this->header;
+        self->header->left = self->header->right = self->header->parent = self->header;
         return;
     }
     else if (cur->color == _RED) {//删除节点是红色 1
@@ -329,7 +331,7 @@ static void _balance_tree_erase(struct RB_tree *this, struct RB_treeNode *cur)
                 (!brother_node->right || brother_node->right->color == _BLACK)) {//兄弟节点的子节点是黑色
                 if (parent->color == _BLACK) {//父亲节点为黑色 8
                     brother_node->color = _RED;
-                    _balance_tree_erase(this, parent);
+                    _balance_tree_erase(self, parent);
                 } else {//父亲节点为红色 4
                     brother_node->color = _RED;
                     parent->color = _BLACK;
@@ -374,42 +376,32 @@ static void _balance_tree_erase(struct RB_tree *this, struct RB_treeNode *cur)
                 brother_node->color = parent->color;
                 parent->color = _RED;
                 _turn_left_node(parent);
-                _balance_tree_erase(this, cur);
+                _balance_tree_erase(self, cur);
             } else {//删除节点为父亲节点右边 10
                 brother_node->color = parent->color;
                 parent->color = _RED;
                 _turn_right_node(parent);
-                _balance_tree_erase(this, cur);
+                _balance_tree_erase(self, cur);
             }
         }
     }
 }
 
-static struct RB_treeNode *_insert_aux(struct RB_tree *this, struct RB_treeNode *node, struct RB_treeNode **access_node, FormWO_t _x)
+static struct RB_treeNode *_insert_aux(struct RB_tree *self, struct RB_treeNode *node, struct RB_treeNode **access_node, const void *_x)
 {
     struct RB_treeNode *new_node = _creat_rb_node();
     new_node->parent = node;
     *access_node = new_node;
-    _balance_tree_insert(this, new_node);
+    _balance_tree_insert(self, new_node);
     //赋值
-    size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
+    size_t memb_size = classSz(self->class);
     new_node->base_ptr = allocate(memb_size);
-    if (this->_t.f == POD) {
-        assert(_x._.f != OBJ);
-        if (_x._.f == ADDR)
-            memcpy(new_node->base_ptr, *(void**)_x.mem, memb_size);
-        else if (_x._.f == POD)
-            memcpy(new_node->base_ptr, _x.mem, memb_size);
-        else if (_x._.f == END)
-            memset(new_node->base_ptr, 0, memb_size);
-    } else {
-        construct(this->_t, new_node->base_ptr, _x, VAEND);
-    }
-    this->nmemb++;
+    construct(self->class, new_node->base_ptr, _x, VAEND);
+    self->nmemb++;
     return new_node;
 }
 
-static void _erase_aux(struct RB_tree *this, struct RB_treeNode *node)
+static void _erase_aux(struct RB_tree *self, struct RB_treeNode *node)
 {
     struct RB_treeNode *rep_node = node->right;
     if (!rep_node)
@@ -422,14 +414,14 @@ static void _erase_aux(struct RB_tree *this, struct RB_treeNode *node)
         node->base_ptr = rep_node->base_ptr;
         rep_node->base_ptr = temp;
     }
-    _balance_tree_erase(this, rep_node);
+    _balance_tree_erase(self, rep_node);
     //删除
-    size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
+    size_t memb_size = classSz(self->class);
     struct RB_treeNode *parent = rep_node->parent;
     struct RB_treeNode *next_node = rep_node == node ? rep_node->left : rep_node->right;
     if (rep_node == rep_node->parent->parent) {
-        next_node = next_node ? next_node : this->header;
-        if (next_node == this->header)
+        next_node = next_node ? next_node : self->header;
+        if (next_node == self->header)
             parent->left = parent->right = parent->parent = next_node;
         else
             parent->right = parent->parent = next_node;
@@ -442,26 +434,24 @@ static void _erase_aux(struct RB_tree *this, struct RB_treeNode *node)
         if (next_node)
             next_node->parent = parent;
     }
-    if (this->_t.f == OBJ)
-        destroy(rep_node->base_ptr);
+    destroy(rep_node->base_ptr);
     deallocate(rep_node->base_ptr, memb_size);
     _free_rb_node(rep_node);
-    this->nmemb--;
+    self->nmemb--;
 }
 
-static bool _find_aux(struct RB_tree *this, FormWO_t _x, struct RB_treeNode **parent, size_t *is_unique)
+static bool _find_aux(struct RB_tree *self, const void *_x, struct RB_treeNode **parent, size_t *is_unique)
 {
-    struct RB_treeNode **next = &this->header->parent;
-    *parent = this->header;
-    if (this->header->parent == this->header) {//树里没有节点
+    struct RB_treeNode **next = &self->header->parent;
+    *parent = self->header;
+    if (self->header->parent == self->header) {//树里没有节点
         *is_unique = 0;
         return false;
     }
     int flag = 1;
     size_t save_is_unique = 0;
 
-    Form_t t = this->_t;
-    while (*next && ((flag = this->cmp(_x, FORM_WITH_OBJ(t, t.f == POD ? (*next)->base_ptr : V((*next)->base_ptr)))) ||
+    while (*next && ((flag = self->cmp(_x, (*next)->base_ptr)) ||
                      !*is_unique))
     {
         if (!flag)
@@ -475,52 +465,45 @@ static bool _find_aux(struct RB_tree *this, FormWO_t _x, struct RB_treeNode **pa
     return &(*parent)->right == next;
 }
 
-static struct RB_treeNode *copyTree(struct RB_treeNode *node, Form_t t)
+static struct RB_treeNode *copyTree(struct RB_treeNode *node, const void *class)
 {
-    size_t memb_size = t.f == POD ? t.size : classSz(t.class);
+    size_t memb_size = classSz(class);
     struct RB_treeNode *new_tree = _creat_rb_node();
     new_tree->color = node->color;
     new_tree->base_ptr = allocate(memb_size);
-    if (t.f == POD)
-        memcpy(new_tree->base_ptr, node->base_ptr, memb_size);
-    else
-        construct(t, new_tree->base_ptr, FORM_WITH_OBJ(t, V(node->base_ptr)), VAEND);
+    construct(class, new_tree->base_ptr, node->base_ptr, VAEND);
 
-    Stack stack_left = new(T(Stack), VA(T(struct RB_treeNode*)));
-    Stack stack_right = new(T(Stack), VA(T(struct RB_treeNode*)));
+    Stack stack_left = new(T(Stack), T(Any));
+    Stack stack_right = new(T(Stack), T(Any));
 
-    THIS(stack_left).push(VA(node));
-    THIS(stack_right).push(VA(new_tree));
+    THIS(stack_left).push(VA_ANY(node, NULL));
+    THIS(stack_right).push(VA_ANY(new_tree, NULL));
 
     while (!THIS(stack_left).empty())
     {
-        struct RB_treeNode *pleft = *(struct RB_treeNode**)THIS(stack_left).top();
-        struct RB_treeNode *pright = *(struct RB_treeNode**)THIS(stack_right).top();
+        Any l = THIS(stack_left).top();
+        Any r = THIS(stack_right).top();
+        struct RB_treeNode *pleft = *(struct RB_treeNode**)THIS(l).value();
+        struct RB_treeNode *pright = *(struct RB_treeNode**)THIS(r).value();
         THIS(stack_left).pop();  
         THIS(stack_right).pop();
         if (pleft->right != NULL) {
-            THIS(stack_left).push(VA(pleft->right));
+            THIS(stack_left).push(VA_ANY(pleft->right, NULL));
             struct RB_treeNode *n = _creat_rb_node();
             n->color = pleft->right->color;
             n->parent = pright;
             n->base_ptr = allocate(memb_size);
-            if (t.f == POD)
-                memcpy(n->base_ptr, pleft->right->base_ptr, memb_size);
-            else
-                construct(t, n->base_ptr, FORM_WITH_OBJ(t, V(pleft->right->base_ptr)), VAEND);
+            construct(class, n->base_ptr, pleft->right->base_ptr, VAEND);
             pright->right = n;
             THIS(stack_right).push(VA(n));
         }
         if (pleft->left != NULL) {
-            THIS(stack_left).push(VA(pleft->left));
+            THIS(stack_left).push(VA_ANY(pleft->left, NULL));
             struct RB_treeNode *n = _creat_rb_node();
             n->color = pleft->left->color;
             n->parent = pright;
             n->base_ptr = allocate(memb_size);
-            if (t.f == POD)
-                memcpy(n->base_ptr, pleft->left->base_ptr, memb_size);
-            else
-                construct(t, n->base_ptr, FORM_WITH_OBJ(t, V(pleft->left->base_ptr)), VAEND);
+            construct(class, n->base_ptr, pleft->left->base_ptr, VAEND);
             pright->left = n;
             THIS(stack_right).push(VA(n));
         }
@@ -530,23 +513,26 @@ static struct RB_treeNode *copyTree(struct RB_treeNode *node, Form_t t)
     return new_tree;
 }
 
-static void _dealRB_treeArgs(void *_this, FormWO_t *args, int n)
+static void _deal_RB_tree_Args(void *_self, void *args[], int n)
 {
-    struct RB_tree *this = offsetOf(_this, __RB_tree);
-    if (args->_.f == FUNC) {
-        this->cmp = *(void**)args->mem;
-    } else if (args->_.class == __RB_tree) { //复制一个RB_tree
-        struct RB_tree *L = offsetOf(*(Object*)args->mem, __RB_tree);
-        assert(L->_t.f == this->_t.f && L->_t.class == this->_t.class);
-        this->cmp = L->cmp;
+    struct RB_tree *self = offsetOf(_self, __RB_tree);
+    self->cmp = args[0];
+    if (classOf(args[0]) == T(Any)) {
+        Any any = args[0];
+        self->cmp = *(void**)THIS(any).value();
+    } else {
+        assert(classOf(args[0]) == __RB_tree); //复制一个RB_tree
+        struct RB_tree *L = offsetOf(args[0], __RB_tree);
+        assert(L->class == self->class);
+        self->cmp = L->cmp;
         if (L->header->parent != L->header) { //当被复制的树不为空
             ARP_CreatePool();
-            struct RB_treeNode *node = copyTree(L->header->parent, L->_t);
-            node->parent = this->header;
-            this->header->parent = node;
-            this->header->left = _minimum(node);
-            this->header->right = _maximum(node);
-            this->nmemb = L->nmemb;
+            struct RB_treeNode *node = copyTree(L->header->parent, L->class);
+            node->parent = self->header;
+            self->header->parent = node;
+            self->header->left = _minimum(node);
+            self->header->right = _maximum(node);
+            self->nmemb = L->nmemb;
             ARP_FreePool();
         }
     }
@@ -554,40 +540,36 @@ static void _dealRB_treeArgs(void *_this, FormWO_t *args, int n)
 
 //public
 //Iterator
-static void *_iter_ctor(void *_this, va_list *app)
+static void *_iter_ctor(void *_self, va_list *app)
 {
-    _this = super_ctor(__RB_treeIter, _this, app);
-    struct RB_treeIter *this = offsetOf(_this, __RB_treeIter);
-    FormWO_t t = va_arg(*app, FormWO_t);
-    if (t._.f == OBJ) {
-        if (t._.class == _Iterator().class) {
-            assert(classOf(*(Object*)t.mem) == __RB_treeIter || classOf(*(Object*)t.mem) == __RRB_treeIter);
-            struct RB_treeIter *it;
-            if (classOf(*(Object*)t.mem) == __RB_treeIter)
-                it = offsetOf(*(Object*)t.mem, __RB_treeIter);
-            else
-                it = offsetOf(*(Object*)t.mem, __RRB_treeIter);
-            *this = *it;
-        }
-    } else if (t._.f == POD) {
-        this->node = *(void**)t.mem;
+    _self = super_ctor(__RB_treeIter, _self, app);
+    struct RB_treeIter *self = offsetOf(_self, __RB_treeIter);
+    void *t = va_arg(*app, void*);
+    if (classOf(t) == __RB_treeIter || classOf(t) == __RRB_treeIter) {
+        struct RB_treeIter *it;
+        if (classOf(t) == __RB_treeIter)
+            it = offsetOf(t, __RB_treeIter);
+        else
+            it = offsetOf(t, __RRB_treeIter);
+        *self = *it;
     } else {
-        this->node = **(struct RB_treeNode***)t.mem;
+        Any any = t;
+        self->node = *(struct RB_treeNode**)THIS(any).value();
     }
-    return _this;
+    return _self;
 }
 
-static bool _iter_equal(const void *_this, FormWO_t _x)
+static bool _iter_equal(const void *_self, const void *_x)
 {
-    const struct RB_treeIter *this = offsetOf(_this, __RB_treeIter);
-    const struct RB_treeIter *x = offsetOf(*(Object*)_x.mem, __RB_treeIter);
-    return this->node == x->node;
+    const struct RB_treeIter *self = offsetOf(_self, __RB_treeIter);
+    const struct RB_treeIter *x = offsetOf(_x, __RB_treeIter);
+    return self->node == x->node;
 }
 
-static void _iter_inc(void *_this)
+static void _iter_inc(void *_self)
 {
-    struct RB_treeIter *this = offsetOf(_this, __RB_treeIter);
-    struct RB_treeNode *node = this->node;
+    struct RB_treeIter *self = offsetOf(_self, __RB_treeIter);
+    struct RB_treeNode *node = self->node;
     if(node->right != NULL)
     {
         node = node->right;
@@ -603,13 +585,13 @@ static void _iter_inc(void *_this)
         if (node->right != parents)
             node = parents;
     }
-    this->node = node;
+    self->node = node;
 }
 
-static void _iter_dec(void *_this)
+static void _iter_dec(void *_self)
 {
-    struct RB_treeIter *this = offsetOf(_this, __RB_treeIter);
-    struct RB_treeNode *node = this->node;
+    struct RB_treeIter *self = offsetOf(_self, __RB_treeIter);
+    struct RB_treeNode *node = self->node;
     if (node->color == _RED && node->parent->parent == node)
         node = node->right;
     else if (node->left != NULL) {
@@ -625,229 +607,212 @@ static void _iter_dec(void *_this)
         }
         node = parents;
     }
-    this->node = node;
+    self->node = node;
 }
 
-static void _iter_assign(void *_this, FormWO_t _x)
+static void _iter_assign(void *_self, const void *_x)
 {
-    struct RB_treeIter *this = offsetOf(_this, __RB_treeIter);
-    struct RB_treeIter *x = offsetOf(*(Object*)_x.mem, __RB_treeIter);
-    this->node = x->node;
+    struct RB_treeIter *self = offsetOf(_self, __RB_treeIter);
+    struct RB_treeIter *x = offsetOf(_x, __RB_treeIter);
+    self->node = x->node;
 }
 
-static void *_iter_derefer(const void *_this)
+static void *_iter_derefer(const void *_self)
 {
-    struct RB_treeIter *this = offsetOf(_this, __RB_treeIter);
-    return this->node->base_ptr;
+    struct RB_treeIter *self = offsetOf(_self, __RB_treeIter);
+    return self->node->base_ptr;
 }
 
-static Iterator _iter_reverse_iterator(void *_this)
+static Iterator _iter_reverse_iterator(void *_self)
 {
-    Iterator it = (void*)_this;
-    if (classOf(_this) == __RB_treeIter) {
+    Iterator it = (void*)_self;
+    if (classOf(_self) == __RB_treeIter) {
         void *mem = ARP_MallocARelDtor(classSz(__RB_treeIter), destroy);
-        return construct(_RRB_treeIter(), mem, VA(it), VAEND);
+        return construct(_RRB_treeIter(), mem, it, VAEND);
     } else {
         void *mem = ARP_MallocARelDtor(classSz(__RRB_treeIter), destroy);
-        return construct(_RB_treeIter(), mem, VA(it), VAEND);
+        return construct(_RB_treeIter(), mem, it, VAEND);
     }
 }
 
 //RB_treeClass
-static void *_rb_treeclass_ctor(void *_this, va_list *app)
+static void *_rb_treeclass_ctor(void *_self, va_list *app)
 {
-    _this = super_ctor(__RB_treeClass, _this, app);
-    struct _RB_treeClass *this = offsetOf(_this, __RB_treeClass);
+    _self = super_ctor(__RB_treeClass, _self, app);
+    struct _RB_treeClass *self = offsetOf(_self, __RB_treeClass);
     voidf selector;
     va_list ap;
     va_copy(ap, *app);
     voidf *begin = (void*)&RB_treeS + sizeof(RB_treeS._);
     voidf *end = (void*)&RB_treeS + sizeof(RB_treeS);
-    voidf *this_begin = (void*)this;
+    voidf *self_begin = (void*)self;
     while ((selector = va_arg(ap, voidf)))
     {
         voidf method = va_arg(ap, voidf);
         for (voidf *p = begin; p != end; p++) {
             if (*p == selector) {
                 size_t n = p - begin;
-                *(this_begin + n) = method;
+                *(self_begin + n) = method;
                 break;
             }
         }
     }
     va_end(ap);
-    return _this;
+    return _self;
 }
 
 //RB_tree
-static void *_rb_tree_ctor(void *_this, va_list *app)
+static void *_rb_tree_ctor(void *_self, va_list *app)
 {
-    _this = super_ctor(__RB_tree, _this, app);
-    struct RB_tree *this = offsetOf(_this, __RB_tree);
-    FormWO_t t = va_arg(*app, FormWO_t);
-    assert(t._.f >= FORM);
-    t._.f -=FORM;
-    this->_t = t._;
-    this->nmemb = 0;
-    this->cmp = NULL;
+    _self = super_ctor(__RB_tree, _self, app);
+    struct RB_tree *self = offsetOf(_self, __RB_tree);
+    void *t = va_arg(*app, void*);
+    self->class = t;
+    self->nmemb = 0;
+    self->cmp = NULL;
     struct RB_treeNode *node= _creat_rb_node();
     node->parent = node->left = node->right = node;
-    this->header = node;
-    FormWO_t args[1];
+    self->header = node;
+    void *args[1];
     int i = 0;
-    while ((t = va_arg(*app, FormWO_t))._.f != END)
+    while ((t = va_arg(*app, void*)) != VAEND)
     {
         assert(i < 1);
         args[i++] = t;
     }
     if (i)
-        _dealRB_treeArgs(_this, args, i);
-    assert(this->cmp);
-    return _this;
+        _deal_RB_tree_Args(_self, args, i);
+    assert(self->cmp);
+    return _self;
 }
 
-static void *_rb_tree_dtor(void *_this)
+static void *_rb_tree_dtor(void *_self)
 {
-    _this = super_dtor(__RB_tree, _this);
-    struct RB_tree *this = offsetOf(_this, __RB_tree);
-    _rb_tree_clear(_this);
-    _free_rb_node(this->header);
-    return _this;
+    _self = super_dtor(__RB_tree, _self);
+    struct RB_tree *self = offsetOf(_self, __RB_tree);
+    _rb_tree_clear(_self);
+    _free_rb_node(self->header);
+    return _self;
 }
 
-static Iterator _rb_tree_begin(const void *_this)
+static Iterator _rb_tree_begin(const void *_self)
 {
-    struct RB_tree *this = offsetOf(_this, __RB_tree);
+    struct RB_tree *self = offsetOf(_self, __RB_tree);
     void *mem = ARP_MallocARelDtor(classSz(__RB_treeIter), destroy);
-    Form_t t = this->_t;
-    if (t.f == POD)
-        t.f = ADDR;
-    return new(compose(_RB_treeIter(), mem), VA(t, BidirectionalIter, this->header->left));
+    return construct(__RB_treeIter, mem, self->class, VA(BidirectionalIter), VA_ANY(self->header->left, NULL), VAEND);
 }
 
-static Iterator _rb_tree_end(const void *_this)
+static Iterator _rb_tree_end(const void *_self)
 {
-    struct RB_tree *this = offsetOf(_this, __RB_tree);
+    struct RB_tree *self = offsetOf(_self, __RB_tree);
     void *mem = ARP_MallocARelDtor(classSz(__RB_treeIter), destroy);
-    Form_t t = this->_t;
-    if (t.f == POD)
-        t.f = ADDR;
-    return new(compose(_RB_treeIter(), mem), VA(t, BidirectionalIter, this->header));
+    return construct(__RB_treeIter, mem, self->class, VA(BidirectionalIter), VA_ANY(self->header, NULL), VAEND);
 }
 
-static size_t _rb_tree_size(const void *_this)
+static size_t _rb_tree_size(const void *_self)
 {
-    struct RB_tree *this = offsetOf(_this, __RB_tree);
-    return this->nmemb;
+    struct RB_tree *self = offsetOf(_self, __RB_tree);
+    return self->nmemb;
 }
 
-static bool _rb_tree_empty(const void *_this)
+static bool _rb_tree_empty(const void *_self)
 {
-    return _rb_tree_size(_this);
+    return _rb_tree_size(_self);
 }
 
-static Iterator _rb_tree_insert_unique(void *_this, FormWO_t _x)
+static Iterator _rb_tree_insert_unique(void *_self, const void *_x)
 {
-    struct RB_tree *this = offsetOf(_this, __RB_tree);
+    struct RB_tree *self = offsetOf(_self, __RB_tree);
     struct RB_treeNode *new_node;
     struct RB_treeNode *parent;
     size_t is_unique = true;
-    bool left_right = _find_aux(this, _x, &parent, &is_unique);
+    bool left_right = _find_aux(self, _x, &parent, &is_unique);
     if (is_unique)
-        return _rb_tree_end(_this);
-    if (parent == this->header) {//没有根节点
-        new_node = _insert_aux(this, this->header, &this->header->parent, _x);
-        this->header->left = this->header->right = new_node;
+        return _rb_tree_end(_self);
+    if (parent == self->header) {//没有根节点
+        new_node = _insert_aux(self, self->header, &self->header->parent, _x);
+        self->header->left = self->header->right = new_node;
     } else {
         struct RB_treeNode **node = left_right ? &parent->right : &parent->left;//判断插入节点是父节点的左节点还是右节点
-        new_node = _insert_aux(this, parent, node, _x);
+        new_node = _insert_aux(self, parent, node, _x);
     }
     //重新分配header的指向,left总是指向最小值,right总是指向最大值
     if (left_right)
-        this->header->right = _maximum(this->header->right);
+        self->header->right = _maximum(self->header->right);
     else
-        this->header->left = _minimum(this->header->left);
+        self->header->left = _minimum(self->header->left);
     void *mem = ARP_MallocARelDtor(classSz(__RB_treeIter), destroy);
-    Form_t t = this->_t;
-    if (t.f == POD)
-        t.f = ADDR;
-    return new(compose(_RB_treeIter(), mem), VA(t, BidirectionalIter, new_node));
+    return construct(__RB_treeIter, mem, self->class, VA(BidirectionalIter), VA_ANY(new_node, NULL), VAEND);
 }
 
-static Iterator _rb_tree_insert_equal(void *_this, FormWO_t _x)
+static Iterator _rb_tree_insert_equal(void *_self, const void *_x)
 {
-    struct RB_tree *this = offsetOf(_this, __RB_tree);
+    struct RB_tree *self = offsetOf(_self, __RB_tree);
     struct RB_treeNode *new_node;
     struct RB_treeNode *parent;
     size_t is_unique = false;
-    bool left_right = _find_aux(this, _x, &parent, &is_unique);
+    bool left_right = _find_aux(self, _x, &parent, &is_unique);
     if (parent->parent == parent) {//没有根节点
-        new_node = _insert_aux(this, this->header, &this->header->parent, _x);
-        this->header->left = this->header->right = new_node;
+        new_node = _insert_aux(self, self->header, &self->header->parent, _x);
+        self->header->left = self->header->right = new_node;
     } else {
         struct RB_treeNode **node = left_right ? &parent->right : &parent->left;//判断插入节点是父节点的左节点还是右节点
-        new_node = _insert_aux(this, parent, node, _x);
+        new_node = _insert_aux(self, parent, node, _x);
     }
     //重新分配header的指向,left总是指向最小值,right总是指向最大值
     if (left_right)
-        this->header->right = _maximum(this->header->right);
+        self->header->right = _maximum(self->header->right);
     else
-        this->header->left = _minimum(this->header->left);
-    Form_t t = this->_t;
-    if (t.f == POD)
-        t.f = ADDR;
+        self->header->left = _minimum(self->header->left);
     void *mem = ARP_MallocARelDtor(classSz(__RB_treeIter), destroy);
-    return new(compose(_RB_treeIter(), mem), VA(t, BidirectionalIter, new_node));
+    return construct(__RB_treeIter, mem, self->class, VA(BidirectionalIter), VA_ANY(new_node, NULL), VAEND);
 }
 
-static void _rb_tree_erase(void *_this, Iterator iter)
+static void _rb_tree_erase(void *_self, Iterator iter)
 {
-    struct RB_tree *this = offsetOf(_this, __RB_tree);
+    struct RB_tree *self = offsetOf(_self, __RB_tree);
     struct RB_treeIter *it = offsetOf(iter, __RB_treeIter);
-    if (this->header == it->node)
+    if (self->header == it->node)
         return;
-    _erase_aux(this, it->node);
-    this->header->left = _minimum(this->header->parent);
-    this->header->right = _maximum(this->header->parent);
+    _erase_aux(self, it->node);
+    self->header->left = _minimum(self->header->parent);
+    self->header->right = _maximum(self->header->parent);
 }
 
-static Iterator _rb_tree_find(void *_this, FormWO_t _x)
+static Iterator _rb_tree_find(void *_self, const void *_x)
 {
-    struct RB_tree *this = offsetOf(_this, __RB_tree);
+    struct RB_tree *self = offsetOf(_self, __RB_tree);
     size_t is_unique = true;
     struct RB_treeNode *parent;
-    bool left_right = _find_aux(this, _x, &parent, &is_unique);
+    bool left_right = _find_aux(self, _x, &parent, &is_unique);
     if (!is_unique)
-        return _rb_tree_end(_this);
+        return _rb_tree_end(_self);
     else {
         struct RB_treeNode *node;
         void *mem = ARP_MallocARelDtor(classSz(__RB_treeIter), destroy);
-        if (parent == this->header)
+        if (parent == self->header)
             node = parent->parent;
         else
             node = !left_right ? parent->left : parent->right;
-        Form_t t = this->_t;
-        if (t.f == POD)
-            t.f = ADDR;
-        return new(compose(_RB_treeIter(), mem), VA(t, BidirectionalIter, node));
+        return construct(__RB_treeIter, mem, self->class, VA(BidirectionalIter), VA_ANY(node, NULL), VAEND);
     }
 }
 
-static size_t _rb_tree_count(void *_this, FormWO_t _x)
+static size_t _rb_tree_count(void *_self, const void *_x)
 {
-    struct RB_tree *this = offsetOf(_this, __RB_tree);
+    struct RB_tree *self = offsetOf(_self, __RB_tree);
     size_t is_unique = false;
     struct RB_treeNode *parent;
-    _find_aux(this, _x, &parent, &is_unique);
+    _find_aux(self, _x, &parent, &is_unique);
     return is_unique;
 }
 
-static void _rb_tree_clear(void *_this)
+static void _rb_tree_clear(void *_self)
 {
-    struct RB_tree *this = offsetOf(_this, __RB_tree);
-    struct RB_treeNode *node = this->header->left, *next;
-    size_t memb_size = this->_t.f == POD ? this->_t.size : classSz(this->_t.class);
-    while (node != this->header)
+    struct RB_tree *self = offsetOf(_self, __RB_tree);
+    struct RB_treeNode *node = self->header->left, *next;
+    size_t memb_size = classSz(self->class);
+    while (node != self->header)
     {
         node = _minimum(node);
         node = _maximum(node);
@@ -858,110 +823,109 @@ static void _rb_tree_clear(void *_this)
             node->parent->left = NULL;
         else
             node->parent->right = NULL;
-        if (this->_t.f == OBJ)
-            destroy(node->base_ptr);
+        destroy(node->base_ptr);
         deallocate(node->base_ptr, memb_size);
         _free_rb_node(node);
         node = next;
     }
-    this->nmemb = 0;
-    this->header->parent = this->header->left = this->header->right = this->header;
+    self->nmemb = 0;
+    self->header->parent = self->header->left = self->header->right = self->header;
 }
 
-static void _rb_tree_swap(void *_this, RB_tree _t)
+static void _rb_tree_swap(void *_self, RB_tree _t)
 {
-    struct RB_tree *this = offsetOf(_this, __RB_tree);
+    struct RB_tree *self = offsetOf(_self, __RB_tree);
     struct RB_tree *t = offsetOf(_t, __RB_tree);
-    struct RB_tree temp = *this;
-    *this = *t;
+    struct RB_tree temp = *self;
+    *self = *t;
     *t = temp;
 }
 
 //selector
 static Iterator _begin(void)
 {
-    void *_this = pop_this();
-    const struct RB_treeClass *class = offsetOf(classOf(_this), __RB_treeClass);
+    void *_self = pop_this();
+    const struct RB_treeClass *class = offsetOf(classOf(_self), __RB_treeClass);
     assert(class->begin);
-    return class->begin(_this);
+    return class->begin(_self);
 }
 
 static Iterator _end(void)
 {
-    void *_this = pop_this();
-    const struct RB_treeClass *class = offsetOf(classOf(_this), __RB_treeClass);
+    void *_self = pop_this();
+    const struct RB_treeClass *class = offsetOf(classOf(_self), __RB_treeClass);
     assert(class->end);
-    return class->end(_this);
+    return class->end(_self);
 }
 
 static size_t _size(void)
 {
-    void *_this = pop_this();
-    const struct RB_treeClass *class = offsetOf(classOf(_this), __RB_treeClass);
+    void *_self = pop_this();
+    const struct RB_treeClass *class = offsetOf(classOf(_self), __RB_treeClass);
     assert(class->size);
-    return class->size(_this);
+    return class->size(_self);
 }
 
 static bool _empty(void)
 {
-    void *_this = pop_this();
-    const struct RB_treeClass *class = offsetOf(classOf(_this), __RB_treeClass);
+    void *_self = pop_this();
+    const struct RB_treeClass *class = offsetOf(classOf(_self), __RB_treeClass);
     assert(class->empty);
-    return class->empty(_this);
+    return class->empty(_self);
 }
 
-static Iterator _insert_unique(FormWO_t _x)
+static Iterator _insert_unique(const void *_x)
 {
-    void *_this = pop_this();
-    const struct RB_treeClass *class = offsetOf(classOf(_this), __RB_treeClass);
+    void *_self = pop_this();
+    const struct RB_treeClass *class = offsetOf(classOf(_self), __RB_treeClass);
     assert(class->insert_unique);
-    return class->insert_unique(_this, _x);
+    return class->insert_unique(_self, _x);
 }
 
-static Iterator _insert_equal(FormWO_t _x)
+static Iterator _insert_equal(const void *_x)
 {
-    void *_this = pop_this();
-    const struct RB_treeClass *class = offsetOf(classOf(_this), __RB_treeClass);
+    void *_self = pop_this();
+    const struct RB_treeClass *class = offsetOf(classOf(_self), __RB_treeClass);
     assert(class->insert_equal);
-    return class->insert_equal(_this, _x);
+    return class->insert_equal(_self, _x);
 }
 
 static void _erase(Iterator iter)
 {
-    void *_this = pop_this();
-    const struct RB_treeClass *class = offsetOf(classOf(_this), __RB_treeClass);
+    void *_self = pop_this();
+    const struct RB_treeClass *class = offsetOf(classOf(_self), __RB_treeClass);
     assert(class->erase);
-    return class->erase(_this, iter);
+    return class->erase(_self, iter);
 }
 
-static Iterator _find(FormWO_t _x)
+static Iterator _find(const void *_x)
 {
-    void *_this = pop_this();
-    const struct RB_treeClass *class = offsetOf(classOf(_this), __RB_treeClass);
+    void *_self = pop_this();
+    const struct RB_treeClass *class = offsetOf(classOf(_self), __RB_treeClass);
     assert(class->find);
-    return class->find(_this, _x);
+    return class->find(_self, _x);
 }
 
-static size_t _count(FormWO_t _x)
+static size_t _count(const void *_x)
 {
-    void *_this = pop_this();
-    const struct RB_treeClass *class = offsetOf(classOf(_this), __RB_treeClass);
+    void *_self = pop_this();
+    const struct RB_treeClass *class = offsetOf(classOf(_self), __RB_treeClass);
     assert(class->count);
-    return class->count(_this, _x);
+    return class->count(_self, _x);
 }
 
 static void _clear(void)
 {
-    void *_this = pop_this();
-    const struct RB_treeClass *class = offsetOf(classOf(_this), __RB_treeClass);
+    void *_self = pop_this();
+    const struct RB_treeClass *class = offsetOf(classOf(_self), __RB_treeClass);
     assert(class->clear);
-    class->clear(_this);
+    class->clear(_self);
 }
 
 static void _swap(RB_tree t)
 {
-    void *_this = pop_this();
-    const struct RB_treeClass *class = offsetOf(classOf(_this), __RB_treeClass);
+    void *_self = pop_this();
+    const struct RB_treeClass *class = offsetOf(classOf(_self), __RB_treeClass);
     assert(class->swap);
-    class->swap(_this, t);
+    class->swap(_self, t);
 }

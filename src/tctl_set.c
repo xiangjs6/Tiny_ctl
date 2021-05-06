@@ -4,22 +4,24 @@
 
 #include "include/_tctl_set.h"
 #include "../include/tctl_rb_tree.h"
+#include "../include/tctl_arg.h"
+#include "../include/tctl_any.h"
 #include <stdlib.h>
 #include <memory.h>
 
-#define Import CLASS, OBJECT, METACLASS, RB_TREE, ITERATOR
+#define Import CLASS, OBJECT, METACLASS, RB_TREE, ITERATOR, ANY
 
 struct SetClass {
-    Iterator (*begin)(const void *_this);
-    Iterator (*end)(const void *_this);
-    size_t (*size)(const void *_this);
-    bool (*empty)(const void *_this);
-    void (*erase)(void *_this, Iterator iter);
-    Iterator (*insert)(void *_this, FormWO_t x);
-    size_t (*count)(void *_this, FormWO_t x);
-    Iterator (*find)(void *_this, FormWO_t x);
-    void (*clear)(void *_this);
-    void (*swap)(void *_this, Set _s);
+    Iterator (*begin)(const void *_self);
+    Iterator (*end)(const void *_self);
+    size_t (*size)(const void *_self);
+    bool (*empty)(const void *_self);
+    void (*erase)(void *_self, Iterator iter);
+    Iterator (*insert)(void *_self, const void *x);
+    size_t (*count)(void *_self, const void *x);
+    Iterator (*find)(void *_self, const void *x);
+    void (*clear)(void *_self);
+    void (*swap)(void *_self, Set _s);
 };
 
 struct Set {
@@ -32,28 +34,28 @@ static Iterator _end(void);
 static size_t _size(void);
 static bool _empty(void);
 static void _erase(Iterator iter);
-static Iterator _insert(FormWO_t x);
-static size_t _count(FormWO_t x);
-static Iterator _find(FormWO_t x);
+static Iterator _insert(const void *x);
+static size_t _count(const void *x);
+static Iterator _find(const void *x);
 static void _clear(void);
 static void _swap(Set _s);
 
 //Setclass
-static void *_setclass_ctor(void *_this, va_list *app);
+static void *_setclass_ctor(void *_self, va_list *app);
 
 //Set
-static void *_set_ctor(void *_this, va_list *app);
-static void *_set_dtor(void *_this);
-static Iterator _set_begin(const void *_this);
-static Iterator _set_end(const void *_this);
-static size_t _set_size(const void *_this);
-static bool _set_empty(const void *_this);
-static void _set_erase(void *_this, Iterator iter);
-static Iterator _set_insert(void *_this, FormWO_t x);
-static size_t _set_count(void *_this, FormWO_t x);
-static Iterator _set_find(void *_this, FormWO_t x);
-static void _set_clear(void *_this);
-static void _set_swap(void *_this, Set _s);
+static void *_set_ctor(void *_self, va_list *app);
+static void *_set_dtor(void *_self);
+static Iterator _set_begin(const void *_self);
+static Iterator _set_end(const void *_self);
+static size_t _set_size(const void *_self);
+static bool _set_empty(const void *_self);
+static void _set_erase(void *_self, Iterator iter);
+static Iterator _set_insert(void *_self, const void *x);
+static size_t _set_count(void *_self, const void *x);
+static Iterator _set_find(void *_self, const void *x);
+static void _set_clear(void *_self);
+static void _set_swap(void *_self, Set _s);
 
 //init
 static const void *__Set = NULL;
@@ -82,12 +84,12 @@ static void initSet(void)
     }
     if (!__SetClass) {
         __SetClass = new(T(MetaClass), "SetClass",
-                           T(Class), sizeof(struct SetClass) + classSz(_Class().class),
+                           T(Class), sizeof(struct SetClass) + classSz(T(Class)),
                            _MetaClassS->ctor, _setclass_ctor, NULL);
     }
     if (!__Set) {
         __Set = new(_SetClass(), "Set",
-                     T(Object), sizeof(struct Set) + classSz(_Object().class),
+                     T(Object), sizeof(struct Set) + classSz(T(Object)),
                      _MetaClassS->ctor, _set_ctor,
                      _MetaClassS->dtor, _set_dtor,
                      _SetS->begin, _set_begin,
@@ -104,232 +106,229 @@ static void initSet(void)
     }
 }
 
-Form_t _Set(void)
+const void *_Set(void)
 {
     if (!__Set)
         initSet();
-    return (Form_t){OBJ, .class = __Set};
+    return __Set;
 }
 
-Form_t _SetClass(void)
+const void *_SetClass(void)
 {
     if (!__SetClass)
         initSet();
-    return (Form_t){OBJ, .class = __SetClass};
+    return __SetClass;
 }
 
 //SetClass
-static void *_setclass_ctor(void *_this, va_list *app)
+static void *_setclass_ctor(void *_self, va_list *app)
 {
-    _this = super_ctor(__SetClass, _this, app);
-    struct SetClass *this = offsetOf(_this, __SetClass);
+    _self = super_ctor(__SetClass, _self, app);
+    struct SetClass *self = offsetOf(_self, __SetClass);
     voidf selector;
     va_list ap;
     va_copy(ap, *app);
     voidf *begin = (void*)&SetS + sizeof(SetS._);
     voidf *end = (void*)&SetS + sizeof(SetS);
-    voidf *this_begin = (void*)this;
+    voidf *self_begin = (void*)self;
     while ((selector = va_arg(ap, voidf)))
     {
         voidf method = va_arg(ap, voidf);
         for (voidf *p = begin; p != end; p++) {
             if (*p == selector) {
                 size_t n = p - begin;
-                *(this_begin + n) = method;
+                *(self_begin + n) = method;
                 break;
             }
         }
     }
     va_end(ap);
-    return _this;
+    return _self;
 }
 
 //Set
-static void *_set_ctor(void *_this, va_list *app)
+static void *_set_ctor(void *_self, va_list *app)
 {
-    _this = super_ctor(__Set, _this, app);
-    struct Set *this = offsetOf(_this, __Set);
-    this->c = malloc(classSz(_RB_tree().class));
-    FormWO_t f = va_arg(*app, FormWO_t);
-    assert(f._.f >= FORM);
-    FormWO_t t = va_arg(*app, FormWO_t);
-    assert(t._.f == OBJ || t._.f == FUNC);
-    if (t._.f == OBJ) { //复制构造
-        assert(t._.class == __Set);
-        struct Set *s = offsetOf(*(Object*)t.mem, __Set);
-        construct(_RB_tree(), this->c, f, VA(s->c), VAEND);
+    _self = super_ctor(__Set, _self, app);
+    struct Set *self = offsetOf(_self, __Set);
+    self->c = malloc(classSz(T(RB_tree)));
+    const void *f = va_arg(*app, void*);
+    void *t = va_arg(*app, void*);
+    if (classOf(t) == __Set) { //复制构造
+        struct Set *s = offsetOf(t, __Set);
+        construct(T(RB_tree), self->c, f, s->c, VAEND);
     } else { //迭代器构造和默认构造
-        construct(_RB_tree(), this->c, f, t, VAEND);
-        t = va_arg(*app, FormWO_t);
-        if (t._.f == END)
-            return _this;
+        assert(classOf(t) == T(Any));
+        construct(T(RB_tree), self->c, f, t, VAEND);
+        t = va_arg(*app, void*);
+        if (t == VAEND)
+            return _self;
 
-        assert(t._.f == OBJ && t._.class == _Iterator().class);
-        Iterator first = *(Iterator*)t.mem;
+        assert(class_check(t, T(Iterator)));
+        Iterator first = t;
         first = THIS(first).ctor(NULL, VA(first), VAEND);
-        t = va_arg(*app, FormWO_t);
-        assert(t._.f == OBJ && t._.class == _Iterator().class);
-        Iterator last = *(Iterator*)t.mem;
+        t = va_arg(*app, void*);
+        assert(class_check(t, T(Iterator)));
+        Iterator last = t;
         last = THIS(first).ctor(NULL, VA(last), VAEND);
-        Form_t it_t = THIS(first).type();
         while (!THIS(first).equal(VA(last)))
         {
-            THIS(this->c).insert_unique(FORM_WITH_OBJ(it_t, V(THIS(first).derefer())));
+            THIS(self->c).insert_unique(THIS(first).derefer());
             THIS(first).inc();
         }
         delete(first);
         delete(last);
     }
-    return _this;
+    return _self;
 }
 
-static void *_set_dtor(void *_this)
+static void *_set_dtor(void *_self)
 {
-    _this = super_dtor(__Set, _this);
-    struct Set *this = offsetOf(_this, __Set);
-    destroy(this->c);
-    free(this->c);
-    return _this;
+    _self = super_dtor(__Set, _self);
+    struct Set *self = offsetOf(_self, __Set);
+    destroy(self->c);
+    free(self->c);
+    return _self;
 }
 
-static Iterator _set_begin(const void *_this)
+static Iterator _set_begin(const void *_self)
 {
-    struct Set *this = offsetOf(_this, __Set);
-    return THIS(this->c).begin();
+    struct Set *self = offsetOf(_self, __Set);
+    return THIS(self->c).begin();
 }
 
-static Iterator _set_end(const void *_this)
+static Iterator _set_end(const void *_self)
 {
-    struct Set *this = offsetOf(_this, __Set);
-    return THIS(this->c).end();
+    struct Set *self = offsetOf(_self, __Set);
+    return THIS(self->c).end();
 }
 
-static size_t _set_size(const void *_this)
+static size_t _set_size(const void *_self)
 {
-    struct Set *this = offsetOf(_this, __Set);
-    return THIS(this->c).size();
+    struct Set *self = offsetOf(_self, __Set);
+    return THIS(self->c).size();
 }
 
-static bool _set_empty(const void *_this)
+static bool _set_empty(const void *_self)
 {
-    struct Set *this = offsetOf(_this, __Set);
-    return THIS(this->c).empty();
+    struct Set *self = offsetOf(_self, __Set);
+    return THIS(self->c).empty();
 }
 
-static void _set_erase(void *_this, Iterator iter)
+static void _set_erase(void *_self, Iterator iter)
 {
-    struct Set *this = offsetOf(_this, __Set);
-    THIS(this->c).erase(iter);
+    struct Set *self = offsetOf(_self, __Set);
+    THIS(self->c).erase(iter);
 }
 
-static Iterator _set_insert(void *_this, FormWO_t x)
+static Iterator _set_insert(void *_self, const void *x)
 {
-    struct Set *this = offsetOf(_this, __Set);
-    return THIS(this->c).insert_unique(x);
+    struct Set *self = offsetOf(_self, __Set);
+    return THIS(self->c).insert_unique(x);
 }
 
-static size_t _set_count(void *_this, FormWO_t x)
+static size_t _set_count(void *_self, const void *x)
 {
-    struct Set *this = offsetOf(_this, __Set);
-    return THIS(this->c).count(x);
+    struct Set *self = offsetOf(_self, __Set);
+    return THIS(self->c).count(x);
 }
 
-static Iterator _set_find(void *_this, FormWO_t x)
+static Iterator _set_find(void *_self, const void *x)
 {
-    struct Set *this = offsetOf(_this, __Set);
-    return THIS(this->c).find(x);
+    struct Set *self = offsetOf(_self, __Set);
+    return THIS(self->c).find(x);
 }
 
-static void _set_clear(void *_this)
+static void _set_clear(void *_self)
 {
-    struct Set *this = offsetOf(_this, __Set);
-    THIS(this->c).clear();
+    struct Set *self = offsetOf(_self, __Set);
+    THIS(self->c).clear();
 }
 
-static void _set_swap(void *_this, Set _s)
+static void _set_swap(void *_self, Set _s)
 {
-    struct Set *this = offsetOf(_this, __Set);
+    struct Set *self = offsetOf(_self, __Set);
     struct Set *s = offsetOf(_s, __Set);
-    THIS(this->c).swap(s->c);
+    THIS(self->c).swap(s->c);
 }
 
 //selector
 static Iterator _begin(void)
 {
-    void *_this = pop_this();
-    const struct SetClass *class = offsetOf(classOf(_this), __SetClass);
+    void *_self = pop_this();
+    const struct SetClass *class = offsetOf(classOf(_self), __SetClass);
     assert(class->begin);
-    return class->begin(_this);
+    return class->begin(_self);
 }
 
 static Iterator _end(void)
 {
-    void *_this = pop_this();
-    const struct SetClass *class = offsetOf(classOf(_this), __SetClass);
+    void *_self = pop_this();
+    const struct SetClass *class = offsetOf(classOf(_self), __SetClass);
     assert(class->end);
-    return class->end(_this);
+    return class->end(_self);
 }
 
 static size_t _size(void)
 {
-    void *_this = pop_this();
-    const struct SetClass *class = offsetOf(classOf(_this), __SetClass);
+    void *_self = pop_this();
+    const struct SetClass *class = offsetOf(classOf(_self), __SetClass);
     assert(class->size);
-    return class->size(_this);
+    return class->size(_self);
 }
 
 static bool _empty(void)
 {
-    void *_this = pop_this();
-    const struct SetClass *class = offsetOf(classOf(_this), __SetClass);
+    void *_self = pop_this();
+    const struct SetClass *class = offsetOf(classOf(_self), __SetClass);
     assert(class->empty);
-    return class->empty(_this);
+    return class->empty(_self);
 }
 
 static void _erase(Iterator iter)
 {
-    void *_this = pop_this();
-    const struct SetClass *class = offsetOf(classOf(_this), __SetClass);
+    void *_self = pop_this();
+    const struct SetClass *class = offsetOf(classOf(_self), __SetClass);
     assert(class->erase);
-    class->erase(_this, iter);
+    class->erase(_self, iter);
 }
 
-static Iterator _insert(FormWO_t x)
+static Iterator _insert(const void *x)
 {
-    void *_this = pop_this();
-    const struct SetClass *class = offsetOf(classOf(_this), __SetClass);
+    void *_self = pop_this();
+    const struct SetClass *class = offsetOf(classOf(_self), __SetClass);
     assert(class->insert);
-    return class->insert(_this, x);
+    return class->insert(_self, x);
 }
 
-static size_t _count(FormWO_t x)
+static size_t _count(const void *x)
 {
-    void *_this = pop_this();
-    const struct SetClass *class = offsetOf(classOf(_this), __SetClass);
+    void *_self = pop_this();
+    const struct SetClass *class = offsetOf(classOf(_self), __SetClass);
     assert(class->count);
-    return class->count(_this, x);
+    return class->count(_self, x);
 }
 
-static Iterator _find(FormWO_t x)
+static Iterator _find(const void *x)
 {
-    void *_this = pop_this();
-    const struct SetClass *class = offsetOf(classOf(_this), __SetClass);
+    void *_self = pop_this();
+    const struct SetClass *class = offsetOf(classOf(_self), __SetClass);
     assert(class->find);
-    return class->find(_this, x);
+    return class->find(_self, x);
 }
 
 static void _clear(void)
 {
-    void *_this = pop_this();
-    const struct SetClass *class = offsetOf(classOf(_this), __SetClass);
+    void *_self = pop_this();
+    const struct SetClass *class = offsetOf(classOf(_self), __SetClass);
     assert(class->clear);
-    class->clear(_this);
+    class->clear(_self);
 }
 
 static void _swap(Set _s)
 {
-    void *_this = pop_this();
-    const struct SetClass *class = offsetOf(classOf(_this), __SetClass);
+    void *_self = pop_this();
+    const struct SetClass *class = offsetOf(classOf(_self), __SetClass);
     assert(class->swap);
-    class->swap(_this, _s);
+    class->swap(_self, _s);
 }
