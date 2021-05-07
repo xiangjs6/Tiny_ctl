@@ -230,7 +230,7 @@ static void _map_erase(void *_self, Iterator iter)
 static Iterator _map_insert(void *_self, Pair x)
 {
     struct Map *self = offsetOf(_self, __Map);
-    return THIS(self->c).insert_unique(VA(x));
+    return THIS(self->c).insert_unique(x);
 }
 
 static size_t _map_count(void *_self, const void *x)

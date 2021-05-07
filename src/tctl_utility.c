@@ -23,7 +23,7 @@ static void *_pair_ctor(void *_self, va_list *app)
     struct Pair *self = offsetOf(_self, __Pair);
 
     void *t = va_arg(*app, void*);
-    if (t == __Pair) { //复制构造函数
+    if (classOf(t) == __Pair) { //复制构造函数
         struct Pair *p = offsetOf(t, __Pair);
         self->f_t = p->f_t;
         self->first = new(self->f_t, p->first, VAEND);
@@ -87,5 +87,5 @@ Pair tmpPair(const void *first_t, const void *second_t, ...)
         args[n++] = t;
     }
     void *mem = ARP_MallocARelDtor(classSz(__Pair), destroy);
-    return construct(_Pair(), mem, VA(first_t, second_t), args[0], args[1], VAEND);
+    return construct(_Pair(), mem, first_t, second_t, args[0], args[1], VAEND);
 }

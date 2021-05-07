@@ -230,7 +230,7 @@ static void _multimap_erase(void *_self, Iterator iter)
 static Iterator _multimap_insert(void *_self, Pair x)
 {
     struct MultiMap *self = offsetOf(_self, __MultiMap);
-    return THIS(self->c).insert_unique(VA(x));
+    return THIS(self->c).insert_unique(x);
 }
 
 static size_t _multimap_count(void *_self, const void *x)
