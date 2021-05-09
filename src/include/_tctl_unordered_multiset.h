@@ -13,9 +13,9 @@ struct Unordered_MultiSetSelector {
     size_t (*size)(void);
     bool (*empty)(void);
     void (*erase)(Iterator iter);
-    Iterator (*insert)(FormWO_t x);
-    size_t (*count)(FormWO_t x);
-    Iterator (*find)(FormWO_t x);
+    Iterator (*insert)(const void *x);
+    size_t (*count)(const void *x);
+    Iterator (*find)(const void *x);
     size_t (*bucket_count)(void);
     size_t (*max_bucket_count)(void);
     void (*reserve)(size_t);
@@ -23,6 +23,6 @@ struct Unordered_MultiSetSelector {
     void (*swap)(Unordered_MultiSet);
 };          
 
-Form_t _Unordered_MultiSetClass(void);
+const void *_Unordered_MultiSetClass(void);
 extern const struct Unordered_MultiSetSelector *_Unordered_MultiSetS;
 #endif //TINY_CTL__TCTL_UNORDERED_MULTISET_H
