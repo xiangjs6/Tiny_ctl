@@ -12,18 +12,18 @@ struct HashtableSelector {
     Iterator (*end)(void);
     size_t (*size)(void);
     bool (*empty)(void);
-    Iterator (*insert_unique)(FormWO_t);
-    Iterator (*insert_equal)(FormWO_t);
+    Iterator (*insert_unique)(const void *x);
+    Iterator (*insert_equal)(const void *x);
     void (*erase)(Iterator);
-    Iterator (*find)(FormWO_t);
-    size_t (*count)(FormWO_t);
+    Iterator (*find)(const void *x);
+    size_t (*count)(const void *x);
     size_t (*bucket_count)(void);
     size_t (*max_bucket_count)(void);
     void (*resize)(size_t);
-    void (*copy_from)(const Hashtable);
+    void (*copy_from)(Hashtable ht);
     void (*clear)(void);
-    void (*swap)(Hashtable h);
+    void (*swap)(Hashtable ht);
 };
-Form_t _HashtableClass(void);
+const void *_HashtableClass(void);
 extern const struct HashtableSelector *_HashtableS;
 #endif //TINY_CTL__TCTL_HASHTABLE_H

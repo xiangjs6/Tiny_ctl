@@ -7,61 +7,20 @@
 #include "../include/tctl_int.h"
 #include "../include/tctl_double.h"
 #include "../include/tctl_char.h"
-#include "../include/tctl_uint.h"
+#include "../include/tctl_any.h"
 
-#define Import INT, UINT, CHAR, DOUBLE
+#define Import INT, CHAR, DOUBLE
 
-size_t hash_numeric(FormWO_t x)
+size_t hash_numeric(const void *x)
 {
-    if (x._.f == POD) {
-        switch (x._.size)
-        {
-            case sizeof(char):
-                return *(char*)x.mem;
-            case sizeof(int):
-                return *(int*)x.mem;
-            case sizeof(short):
-                return *(short*)x.mem;
-            case sizeof(long long):
-                return *(long long*)x.mem;
-        }
-    } else if (x._.f == OBJ) {
-        if (x._.class == T(Int).class) {
-            Int v = *(Int*)x.mem;
-            return v->val;
-        } else if (x._.class == T(UInt).class) {
-            UInt v = *(UInt*)x.mem;
-            return v->val;
-        } else if (x._.class == T(Char).class) {
-            Char v = *(Char*)x.mem;
-            return v->val;
-        } else if (x._.class == T(Double).class) {
-            Double v = *(Double*)x.mem;
-            return (size_t)v->val;
-        }
-    } else {
-        switch (x._.size)
-        {
-            case sizeof(char):
-                return **(char**)x.mem;
-            case sizeof(int):
-                return **(int**)x.mem;
-            case sizeof(short):
-                return **(short**)x.mem;
-            case sizeof(long long):
-                return **(long long**)x.mem;
-        }
-    }
-    assert(0);
+    MetaObject obj = (MetaObject)x;
+    Int i = classOf(obj) == T(Int) ? obj : THIS(obj).cast(T(Int));
+    return i->val;
 }
 
-size_t hash_str(FormWO_t x)
+size_t hash_str(const void *x)
 {
-    char *str;
-    if (x._.f == POD)
-        str = *(char**)x.mem; //存放了指向了char指针的指针
-    else
-        str = **(char***)x.mem;
+    char *str = THIS((Any)x).value();
     size_t res = 0;
     for (int i = 0; str[i]; i++)
         res = 5 * res + str[i];

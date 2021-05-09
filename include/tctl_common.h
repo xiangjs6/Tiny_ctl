@@ -15,6 +15,6 @@
 #define container_of(ptr, type, member) ((type *) ((char *)(ptr) - offsetof(type, member)))
 #define autofree(func) __attribute__((cleanup(func)))
 
-size_t hash_numeric(void *x);
-size_t hash_str(void *x);
+size_t hash_numeric(const void *x);
+size_t hash_str(const void *x);
 #endif //TINY_CTL_TCTL_COMMON_H
