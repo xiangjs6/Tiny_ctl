@@ -6,6 +6,6 @@
 #define TINY_CTL_TCTL_POINTER_ITERATOR_H
 #include "tctl_iterator.h"
 #include "tctl_metaclass.h"
-Iterator _oriPointIter_aux(void *class, void *p, size_t x);
-#define oriPointIter(x, ...) _oriPointIter_aux(T(*(x)), x, ##__VA_ARGS__, 0)
+Iterator _oriPointerIter_aux(const void *class, void *p, size_t x, ...);
+#define oriPointerIter(x, ...) _oriPointIter_aux(_Generic(*(x), Import), x, ##__VA_ARGS__, 0)
 #endif //TINY_CTL_TCTL_POINTER_ITERATOR_H

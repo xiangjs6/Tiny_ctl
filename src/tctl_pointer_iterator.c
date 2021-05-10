@@ -7,40 +7,41 @@
 #include "include/_tctl_iterator.h"
 #include "../include/auto_release_pool.h"
 #include "../include/tctl_arg.h"
+#include "../include/tctl_any.h"
 
-#define Import ITERATOR, CLASS, INT
-struct OriPointIter {
+#define Import ITERATOR, CLASS, INT, ANY
+struct OriPointerIter {
     size_t cur;
     char *ptr;
 };
 
 //Iterator函数
-static void *_iter_sub(const void *_this, const void *_x);
-static void *_iter_add(const void *_this, const void *_x);
-static void _iter_assign(void *_this, const void *_x);
-static void _iter_self_sub(void *_this, const void *_x);
-static void _iter_self_add(void *_this, const void *_x);
-static void _iter_dec(void *_this);
-static void _iter_inc(void *_this);
-static void *_iter_brackets(const void *_this, const void *_x);
-static int _iter_cmp(const void *_this, const void *_x);
-static bool _iter_equal(const void *_this, const void *_x);
-static void *_iter_ctor(void *_this, va_list *app);
-static void *_iter_derefer(const void *_this);
-static long long _iter_dist(const void *_this, Iterator _it);
-static long long _riter_dist(const void *_this, Iterator _it);
-static Iterator _iter_reverse_iterator(const void *_this);
-//OriPointIter对象
-static const void *__OriPointIter = NULL;
-static const void *__ROriPointIter = NULL;
+static void *_iter_sub(const void *_self, const void *_x);
+static void *_iter_add(const void *_self, const void *_x);
+static void _iter_assign(void *_self, const void *_x);
+static void _iter_self_sub(void *_self, const void *_x);
+static void _iter_self_add(void *_self, const void *_x);
+static void _iter_dec(void *_self);
+static void _iter_inc(void *_self);
+static void *_iter_brackets(const void *_self, const void *_x);
+static int _iter_cmp(const void *_self, const void *_x);
+static bool _iter_equal(const void *_self, const void *_x);
+static void *_iter_ctor(void *_self, va_list *app);
+static void *_iter_derefer(const void *_self);
+static long long _iter_dist(const void *_self, Iterator _it);
+static long long _riter_dist(const void *_self, Iterator _it);
+static Iterator _iter_reverse_iterator(const void *_self);
+//OriPointerIter对象
+static const void *__OriPointerIter = NULL;
+static const void *__ROriPointerIter = NULL;
 //init
 static void initOriPointIter(void)
 {
     T(Class); //初始化_ClassS选择器
     T(Iterator); //初始化Iterator选择器
-    if (!__OriPointIter) {
-        __OriPointIter = new(_IteratorClass(), "OriPointIter",
-                           T(Iterator), sizeof(struct OriPointIter) + classSz(T(Iterator)),
+    if (!__OriPointerIter) {
+        __OriPointerIter = new(_IteratorClass(), "OriPointerIter",
+                           T(Iterator), sizeof(struct OriPointerIter) + classSz(T(Iterator)),
                            _MetaClassS->ctor, _iter_ctor,
                            _ClassS->equal, _iter_equal,
                            _ClassS->cmp, _iter_cmp,
@@ -57,9 +58,9 @@ static void initOriPointIter(void)
                            _IteratorS->reverse_iterator, _iter_reverse_iterator,
                            Selector, _IteratorS, NULL);
     }
-    if (!__ROriPointIter) {
-        __ROriPointIter = new(_IteratorClass(), "ROriPointIter",
-                           T(Iterator), sizeof(struct OriPointIter) + classSz(T(Iterator)),
+    if (!__ROriPointerIter) {
+        __ROriPointerIter = new(_IteratorClass(), "ROriPointerIter",
+                           T(Iterator), sizeof(struct OriPointerIter) + classSz(T(Iterator)),
                            _MetaClassS->ctor, _iter_ctor,
                            _ClassS->equal, _iter_equal,
                            _ClassS->cmp, _iter_cmp,
@@ -80,189 +81,166 @@ static void initOriPointIter(void)
 
 static const void *_OriPointIter(void)
 {
-    if (!__OriPointIter)
+    if (!__OriPointerIter)
         initOriPointIter();
-    return __OriPointIter;
+    return __OriPointerIter;
 }
 
 static const void *_ROriPointIter(void)
 {
-    if (!__ROriPointIter)
+    if (!__ROriPointerIter)
         initOriPointIter();
-    return __ROriPointIter;
+    return __ROriPointerIter;
 }
 
 //Iterator
-static void *_iter_ctor(void *_this, va_list *app)
+static void *_iter_ctor(void *_self, va_list *app)
 {
-    _this = super_ctor(__OriPointIter, _this, app);
-    struct OriPointIter *this = offsetOf(_this, __OriPointIter);
-    this->cur = 0;
+    _self = super_ctor(__OriPointerIter, _self, app);
+    struct OriPointerIter *self = offsetOf(_self, __OriPointerIter);
+    self->cur = 0;
     void *t = va_arg(*app, void*);
-    switch (t._.f) {
-        case POD:
-            this->ptr = t.mem;
-            break;
-        case ADDR:
-            assert(t._.size != sizeof(void*));
-            this->ptr = *(void**)t.mem;
-            break;
-        case OBJ:
-            assert(t._.class == T(Iterator).class);
-            assert(classOf(t.mem) == __OriPointIter || classOf(t.mem) == __ROriPointIter);
-            struct OriPointIter *p;
-            if (classOf(t.mem) == __OriPointIter)
-                p = offsetOf(t.mem, __OriPointIter);
-            else
-                p = offsetOf(t.mem, __ROriPointIter);
-            *this = *p;
-            break;
-        default:
-            this->ptr = NULL;
+    if (classOf(t) == T(Any)) {
+        Any any = t;
+        self->ptr = *(void**)THIS(any).value();
+    } else {
+        assert(class_check(t, T(Iterator)));
+        assert(classOf(t) == __OriPointerIter || classOf(t) == __ROriPointerIter);
+        struct OriPointerIter *p;
+        if (classOf(t) == __OriPointerIter)
+            p = offsetOf(t, __OriPointerIter);
+        else
+            p = offsetOf(t, __ROriPointerIter);
+        *self = *p;
     }
-    t = va_arg(*app, FormWO_t);
-    if (t._.f != END) {
-        this->cur = toUInt(t);
-        while (va_arg(*app, FormWO_t)._.f != END);
+    t = va_arg(*app, void*);
+    if (t != VAEND) {
+        MetaObject obj = t;
+        Int I = classOf(t) == T(Int) ? t : THIS(obj).cast(T(Int));
+        self->cur = I->val;
+        while (va_arg(*app, void*) != VAEND);
     }
-    return _this;
+    return _self;
 }
 
-static bool _iter_equal(const void *_this, FormWO_t _x)
+static bool _iter_equal(const void *_self, const void *_x)
 {
-    const struct OriPointIter *this = offsetOf(_this, __OriPointIter);
-    const struct OriPointIter *x = offsetOf(_x.mem, __OriPointIter);
-    return this->cur == x->cur;
+    const struct OriPointerIter *self = offsetOf(_self, __OriPointerIter);
+    const struct OriPointerIter *x = offsetOf(_x, __OriPointerIter);
+    return self->cur == x->cur && self->ptr == x->ptr;
 }
 
-static int _iter_cmp(const void *_this, FormWO_t _x)
+static int _iter_cmp(const void *_self, const void *_x)
 {
-    const struct OriPointIter *this = offsetOf(_this, __OriPointIter);
-    const struct OriPointIter *x = offsetOf(_x.mem, __OriPointIter);
-    return this->cur - x->cur;
+    const struct OriPointerIter *self = offsetOf(_self, __OriPointerIter);
+    const struct OriPointerIter *x = offsetOf(_x, __OriPointerIter);
+    assert(x->ptr == self->ptr);
+    return self->cur - x->cur;
 }
 
-static void *_iter_brackets(const void *_this, FormWO_t _x)
+static void *_iter_brackets(const void *_self, const void *_x)
 {
-    const struct OriPointIter *this = offsetOf(_this, __OriPointIter);
-    const Iterator it = (void*)_this;
-    long long x =   toInt(_x);
-    Form_t t = THIS(it).type();
-    if (t.f == ADDR)
-        return this->ptr + t.size * (x + this->cur);
-    else
-        return *(MetaObject*)(this->ptr + sizeof(MetaObject) * (x + this->cur));
+    const struct OriPointerIter *self = offsetOf(_self, __OriPointerIter);
+    MetaObject m_obj = (void*)_x;
+    Int x = classOf(_x) == T(Int) ? (Int)_x : THIS(m_obj).cast(T(Int));
+    return *(MetaObject*)(self->ptr + sizeof(MetaObject) * (x->val + self->cur));
 }
 
-static void _iter_inc(void *_this)
+static void _iter_inc(void *_self)
 {
-    struct OriPointIter *this = offsetOf(_this, __OriPointIter);
-    this->cur++;
+    struct OriPointerIter *self = offsetOf(_self, __OriPointerIter);
+    self->cur++;
 }
 
-static void _iter_dec(void *_this)
+static void _iter_dec(void *_self)
 {
-    struct OriPointIter *this = offsetOf(_this, __OriPointIter);
-    this->cur--;
+    struct OriPointerIter *self = offsetOf(_self, __OriPointerIter);
+    self->cur--;
 }
 
-static void _iter_self_add(void *_this, FormWO_t _x)
+static void _iter_self_add(void *_self, const void *_x)
 {
-    struct OriPointIter *this = offsetOf(_this, __OriPointIter);
-    char tmp[classSz(_Int().class)];
-    Int x = (void*)tmp;
-    construct(_Int(), tmp, _x, VAEND);
-    this->cur += x->val;
-    destroy(x);
+    struct OriPointerIter *self = offsetOf(_self, __OriPointerIter);
+    MetaObject m_obj = (void*)_x;
+    Int x = classOf(_x) == T(Int) ? (void*)_x : THIS(m_obj).cast(T(Int));
+    self->cur += x->val;
 }
 
-static void _iter_self_sub(void *_this, FormWO_t _x)
+static void _iter_self_sub(void *_self, const void *_x)
 {
-    struct OriPointIter *this = offsetOf(_this, __OriPointIter);
-    char tmp[classSz(_Int().class)];
-    Int x = (void*)tmp;
-    construct(_Int(), tmp, _x, VAEND);
-    this->cur -= x->val;
-    destroy(x);
+    struct OriPointerIter *self = offsetOf(_self, __OriPointerIter);
+    MetaObject m_obj = (void*)_x;
+    Int x = classOf(_x) == T(Int) ? (void*)_x : THIS(m_obj).cast(T(Int));
+    self->cur -= x->val;
 }
 
-static void _iter_assign(void *_this, FormWO_t _x)
+static void _iter_assign(void *_self, const void *_x)
 {
-    struct OriPointIter *this = offsetOf(_this, __OriPointIter);
-    struct OriPointIter *x = offsetOf(_x.mem, __OriPointIter);
-    *this = *x;
+    assert(classOf(_x) == __OriPointerIter || classOf(_x) == __ROriPointerIter);
+    struct OriPointerIter *self = offsetOf(_self, __OriPointerIter);
+    struct OriPointerIter *x = offsetOf(_x, __OriPointerIter);
+    *self = *x;
 }
 
-static void *_iter_add(const void *_this, FormWO_t _x)
+static void *_iter_add(const void *_self, const void *_x)
 {
-    struct OriPointIter *this = offsetOf(_this, __OriPointIter);
-    Iterator it = (void*)_this;
-    char i_mem[classSz(_Int().class)];
-    Int x = (void*)i_mem;
-    construct(T(Int), i_mem, _x, VAEND);
-    void *mem = ARP_MallocARelDtor(classSz(__OriPointIter), destroy);
-    Form_t t = THIS(it).type();
-    void *res = new(compose(_OriPointIter(), mem), VA(t, SequenceIter, this->cur + x->val, this->ptr));
-    destroy(x);
+    struct OriPointerIter *self = offsetOf(_self, __OriPointerIter);
+    Iterator it = (void*)_self;
+    MetaObject m_obj = (void*)_x;
+    Int x = classOf(_x) == T(Int) ? (void*)_x : THIS(m_obj).cast(T(Int));
+    void *mem = ARP_MallocARelDtor(classSz(__OriPointerIter), destroy);
+    void *res = construct(classOf(self), mem, SequenceIter, it->class, VA(self->cur + x->val), VA_ANY(self->ptr, NULL), VAEND);
     return res;
 }
 
-static void *_iter_sub(const void *_this, FormWO_t _x)
+static void *_iter_sub(const void *_self, const void *_x)
 {
-    struct OriPointIter *this = offsetOf(_this, __OriPointIter);
-    Iterator it = (void*)_this;
-    char i_mem[classSz(_Int().class)];
-    Int x = (void*)i_mem;
-    construct(T(Int), i_mem, _x, VAEND);
-    void *mem = ARP_MallocARelDtor(classSz(__OriPointIter), destroy);
-    Form_t t = THIS(it).type();
-    void *res = new(compose(_OriPointIter(), mem), VA(t, SequenceIter, this->cur - x->val, this->ptr));
-    destroy(x);
+    struct OriPointerIter *self = offsetOf(_self, __OriPointerIter);
+    Iterator it = (void*)_self;
+    MetaObject m_obj = (void*)_x;
+    Int x = classOf(_x) == T(Int) ? (void*)_x : THIS(m_obj).cast(T(Int));
+    void *mem = ARP_MallocARelDtor(classSz(__OriPointerIter), destroy);
+    void *res = construct(classOf(self), mem, SequenceIter, it->class, VA(self->cur - x->val), VA_ANY(self->ptr, NULL), VAEND);
     return res;
 }
 
-static void *_iter_derefer(const void *_this)
+static void *_iter_derefer(const void *_self)
 {
-    struct OriPointIter *this = offsetOf(_this, __OriPointIter);
-    Iterator it = (void*)_this;
-    Form_t t = THIS(it).type();
-    if (t.f == ADDR)
-        return this->ptr + t.size * this->cur;
-    else
-        return this->ptr + classSz(t.class) * this->cur;
+    struct OriPointerIter *self = offsetOf(_self, __OriPointerIter);
+    return *(MetaObject*)(self->ptr + sizeof(MetaObject) * self->cur);
 }
 
-static long long _iter_dist(const void *_this, Iterator _it)
+static long long _iter_dist(const void *_self, Iterator _it)
 {
-    struct OriPointIter *this = offsetOf(_this, __OriPointIter);
-    assert(classOf(_it) == __OriPointIter);
-    struct OriPointIter *it = offsetOf(_it, __OriPointIter);
-    return it->cur - this->cur;
+    struct OriPointerIter *self = offsetOf(_self, __OriPointerIter);
+    assert(classOf(_it) == __OriPointerIter);
+    struct OriPointerIter *it = offsetOf(_it, __OriPointerIter);
+    return it->cur - self->cur;
 }
 
-static long long _riter_dist(const void *_this, Iterator _it)
+static long long _riter_dist(const void *_self, Iterator _it)
 {
-    struct OriPointIter *this = offsetOf(_this, __OriPointIter);
-    assert(classOf(_it) == __OriPointIter);
-    struct OriPointIter *it = offsetOf(_it, __OriPointIter);
-    return this->cur - it->cur;
+    struct OriPointerIter *self = offsetOf(_self, __OriPointerIter);
+    assert(classOf(_it) == __OriPointerIter);
+    struct OriPointerIter *it = offsetOf(_it, __OriPointerIter);
+    return self->cur - it->cur;
 }
 
-static Iterator _iter_reverse_iterator(const void *_this)
+static Iterator _iter_reverse_iterator(const void *_self)
 {
-    Iterator it = (void*)_this;
-    if (classOf(_this) == __OriPointIter) {
-        void *mem = ARP_MallocARelDtor(classSz(__OriPointIter), destroy);
+    Iterator it = (void*)_self;
+    if (classOf(_self) == __OriPointerIter) {
+        void *mem = ARP_MallocARelDtor(classSz(__OriPointerIter), destroy);
         return construct(_ROriPointIter(), mem, VA(it), VAEND);
     } else {
-        void *mem = ARP_MallocARelDtor(classSz(__ROriPointIter), destroy);
+        void *mem = ARP_MallocARelDtor(classSz(__ROriPointerIter), destroy);
         return construct(_OriPointIter(), mem, VA(it), VAEND);
     }
 }
 
 //对外接口
-Iterator _oriPointIter_aux(void *class, void *p, size_t x)
+Iterator _oriPointerIter_aux(const void *class, void *p, size_t x, ...)
 {
-    void *mem = ARP_MallocARelDtor(classSz(__OriPointIter), destroy);
+    void *mem = ARP_MallocARelDtor(classSz(__OriPointerIter), destroy);
     return construct(_OriPointIter(), mem, class, SequenceIter, p, x, VAEND);
 }
