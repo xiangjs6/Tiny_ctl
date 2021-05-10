@@ -339,7 +339,7 @@ static bool _iter_equal(const void *_self, const void *_x)
 {
     assert(classOf(_x) == __VectorIter || classOf(_x) == __RVectorIter);
     const struct VectorIter *self;
-    if (classOf(self) == __VectorIter)
+    if (classOf(_self) == __VectorIter)
         self = offsetOf(_self, __VectorIter);
     else
         self = offsetOf(_self, __RVectorIter);
