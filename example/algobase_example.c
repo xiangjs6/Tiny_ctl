@@ -8,7 +8,7 @@
 
 #define Import VECTOR, ITERATOR, INT
 
-int less(FormWO_t a, FormWO_t b)
+int less(void *a, void *b)
 {
     return toInt(a) > toInt(b);
 }

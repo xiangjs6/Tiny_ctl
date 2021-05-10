@@ -3,10 +3,10 @@
 //
 #include "../include/tctl_pointer_iterator.h"
 #include "../include/tctl_int.h"
-#include "../include/tctl_uint.h"
 #include "include/_tctl_metaclass.h"
 #include "include/_tctl_iterator.h"
 #include "../include/auto_release_pool.h"
+#include "../include/tctl_arg.h"
 
 #define Import ITERATOR, CLASS, INT
 struct OriPointIter {
@@ -15,16 +15,16 @@ struct OriPointIter {
 };
 
 //Iterator函数
-static void *_iter_sub(const void *_this, FormWO_t _x);
-static void *_iter_add(const void *_this, FormWO_t _x);
-static void _iter_assign(void *_this, FormWO_t _x);
-static void _iter_self_sub(void *_this, FormWO_t _x);
-static void _iter_self_add(void *_this, FormWO_t _x);
+static void *_iter_sub(const void *_this, const void *_x);
+static void *_iter_add(const void *_this, const void *_x);
+static void _iter_assign(void *_this, const void *_x);
+static void _iter_self_sub(void *_this, const void *_x);
+static void _iter_self_add(void *_this, const void *_x);
 static void _iter_dec(void *_this);
 static void _iter_inc(void *_this);
-static void *_iter_brackets(const void *_this, FormWO_t _x);
-static int _iter_cmp(const void *_this, FormWO_t _x);
-static bool _iter_equal(const void *_this, FormWO_t _x);
+static void *_iter_brackets(const void *_this, const void *_x);
+static int _iter_cmp(const void *_this, const void *_x);
+static bool _iter_equal(const void *_this, const void *_x);
 static void *_iter_ctor(void *_this, va_list *app);
 static void *_iter_derefer(const void *_this);
 static long long _iter_dist(const void *_this, Iterator _it);
@@ -40,7 +40,7 @@ static void initOriPointIter(void)
     T(Iterator); //初始化Iterator选择器
     if (!__OriPointIter) {
         __OriPointIter = new(_IteratorClass(), "OriPointIter",
-                           T(Iterator), sizeof(struct OriPointIter) + classSz(_Iterator().class),
+                           T(Iterator), sizeof(struct OriPointIter) + classSz(T(Iterator)),
                            _MetaClassS->ctor, _iter_ctor,
                            _ClassS->equal, _iter_equal,
                            _ClassS->cmp, _iter_cmp,
@@ -59,7 +59,7 @@ static void initOriPointIter(void)
     }
     if (!__ROriPointIter) {
         __ROriPointIter = new(_IteratorClass(), "ROriPointIter",
-                           T(Iterator), sizeof(struct OriPointIter) + classSz(_Iterator().class),
+                           T(Iterator), sizeof(struct OriPointIter) + classSz(T(Iterator)),
                            _MetaClassS->ctor, _iter_ctor,
                            _ClassS->equal, _iter_equal,
                            _ClassS->cmp, _iter_cmp,
@@ -78,18 +78,18 @@ static void initOriPointIter(void)
     }
 }
 
-static Form_t _OriPointIter(void)
+static const void *_OriPointIter(void)
 {
     if (!__OriPointIter)
         initOriPointIter();
-    return (Form_t){OBJ, .class = __OriPointIter};
+    return __OriPointIter;
 }
 
-static Form_t _ROriPointIter(void)
+static const void *_ROriPointIter(void)
 {
     if (!__ROriPointIter)
         initOriPointIter();
-    return (Form_t){OBJ, .class = __ROriPointIter};
+    return __ROriPointIter;
 }
 
 //Iterator
@@ -98,7 +98,7 @@ static void *_iter_ctor(void *_this, va_list *app)
     _this = super_ctor(__OriPointIter, _this, app);
     struct OriPointIter *this = offsetOf(_this, __OriPointIter);
     this->cur = 0;
-    FormWO_t t = va_arg(*app, FormWO_t);
+    void *t = va_arg(*app, void*);
     switch (t._.f) {
         case POD:
             this->ptr = t.mem;
@@ -261,11 +261,8 @@ static Iterator _iter_reverse_iterator(const void *_this)
 }
 
 //对外接口
-Iterator _oriPointIter_aux(Form_t t, void *p, size_t x, ...)
+Iterator _oriPointIter_aux(void *class, void *p, size_t x)
 {
-    Form_t f = _OriPointIter(); //用于调用初始化initxxx函数
-    if (t.f == POD)
-        t.f = ADDR;
     void *mem = ARP_MallocARelDtor(classSz(__OriPointIter), destroy);
-    return construct(f, mem, VA(t, SequenceIter, p, x), VAEND);
+    return construct(_OriPointIter(), mem, class, SequenceIter, p, x, VAEND);
 }

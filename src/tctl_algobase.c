@@ -4,13 +4,12 @@
 
 #include "../include/tctl_algobase.h"
 #include "../include/auto_release_pool.h"
-#include "../include/tctl_class.h"
 #include "../include/tctl_arg.h"
 #include "../include/tctl_def.h"
 #include "../include/tctl_int.h"
 #include <assert.h>
 #include <stdarg.h>
-#define Import ITERATOR, OBJECT/*, PAIR*/, INT
+#define Import ITERATOR, OBJECT, PAIR, INT
 #define ALLOC(size) ARP_MallocARelDtor(size, destroy)
 //copy
 inline static Iterator copy_3S(Iterator first, Iterator last, Iterator result) //迭代器都为SequenceIter
