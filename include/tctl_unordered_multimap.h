@@ -18,8 +18,8 @@ struct {                              \
     bool (*empty)(void);              \
     void (*erase)(Iterator iter);     \
     Iterator (*insert)(Pair x);       \
-    size_t (*count)(FormWO_t x);      \
-    Iterator (*find)(FormWO_t x);     \
+    size_t (*count)(const void *x);      \
+    Iterator (*find)(const void *x);     \
     size_t (*bucket_count)(void);     \
     size_t (*max_bucket_count)(void); \
     void (*reserve)(size_t);          \
@@ -32,6 +32,6 @@ struct _Unordered_MultiMap {
     METAOBJECT_HEAD(UNORDERED_MULTIMAP_FUNC);
 };
 
-Form_t _Unordered_MultiMap(void);
+const void *_Unordered_MultiMap(void);
 #define UNORDERED_MULTIMAP Unordered_MultiMap : _Unordered_MultiMap()
 #endif //TINY_CTL_TCTL_UNORDERED_MULTIMAP_H

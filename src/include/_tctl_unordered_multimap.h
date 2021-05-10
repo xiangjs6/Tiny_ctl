@@ -14,8 +14,8 @@ struct Unordered_MultiMapSelector {
     bool (*empty)(void);
     void (*erase)(Iterator iter);
     Iterator (*insert)(Pair x);
-    size_t (*count)(FormWO_t x);
-    Iterator (*find)(FormWO_t x);
+    size_t (*count)(const void *x);
+    Iterator (*find)(const void *x);
     size_t (*bucket_count)(void);
     size_t (*max_bucket_count)(void);
     void (*reserve)(size_t);
@@ -23,6 +23,6 @@ struct Unordered_MultiMapSelector {
     void (*swap)(Unordered_MultiMap);
 };          
 
-Form_t _Unordered_MultiMapClass(void);
+const void *_Unordered_MultiMapClass(void);
 extern const struct Unordered_MultiMapSelector *_Unordered_MultiMapS;
 #endif //TINY_CTL__TCTL_UNORDERED_MULTIMAP_H

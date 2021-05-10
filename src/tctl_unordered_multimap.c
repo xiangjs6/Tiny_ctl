@@ -3,30 +3,32 @@
 //
 #include "include/_tctl_unordered_multimap.h"
 #include "../include/tctl_hashtable.h"
+#include "../include/tctl_any.h"
+#include "../include/tctl_arg.h"
 #include <stdlib.h>
 #include <memory.h>
 
-#define Import CLASS, OBJECT, METACLASS, HASHTABLE , ITERATOR, PAIR
+#define Import CLASS, OBJECT, METACLASS, HASHTABLE , ITERATOR, PAIR, ANY
 
 struct Unordered_MultiMapClass {
-    Iterator (*begin)(const void *_this);
-    Iterator (*end)(const void *_this);
-    size_t (*size)(const void *_this);
-    bool (*empty)(const void *_this);
-    void (*erase)(void *_this, Iterator iter);
-    Iterator (*insert)(void *_this, Pair x);
-    size_t (*count)(void *_this, FormWO_t x);
-    Iterator (*find)(void *_this, FormWO_t x);
-    size_t (*bucket_count)(void *_this);
-    size_t (*max_bucket_count)(void *_this);
-    void (*reserve)(void *_this, size_t x);
-    void (*clear)(void *_this);
-    void (*swap)(void *_this, Unordered_MultiMap _s);
+    Iterator (*begin)(const void *_self);
+    Iterator (*end)(const void *_self);
+    size_t (*size)(const void *_self);
+    bool (*empty)(const void *_self);
+    void (*erase)(void *_self, Iterator iter);
+    Iterator (*insert)(void *_self, Pair x);
+    size_t (*count)(void *_self, const void *x);
+    Iterator (*find)(void *_self, const void *x);
+    size_t (*bucket_count)(void *_self);
+    size_t (*max_bucket_count)(void *_self);
+    void (*reserve)(void *_self, size_t x);
+    void (*clear)(void *_self);
+    void (*swap)(void *_self, Unordered_MultiMap _s);
 };
 
 struct Unordered_MultiMap {
-    Form_t key_f;
-    Form_t val_f;
+    void *key_class;
+    void *val_class;
     Hashtable c;
 };
 
@@ -37,8 +39,8 @@ static size_t _size(void);
 static bool _empty(void);
 static void _erase(Iterator iter);
 static Iterator _insert(Pair x);
-static size_t _count(FormWO_t x);
-static Iterator _find(FormWO_t x);
+static size_t _count(const void *x);
+static Iterator _find(const void *x);
 static size_t _bucket_count(void);
 static size_t _max_bucket_count(void);
 static void _reserve(size_t);
@@ -46,24 +48,24 @@ static void _clear(void);
 static void _swap(Unordered_MultiMap _s);
 
 //Unordered_MultiMapclass
-static void *_unordered_multimapclass_ctor(void *_this, va_list *app);
+static void *_unordered_multimapclass_ctor(void *_self, va_list *app);
 
 //Unordered_MultiMap
-static void *_unordered_multimap_ctor(void *_this, va_list *app);
-static void *_unordered_multimap_dtor(void *_this);
-static Iterator _unordered_multimap_begin(const void *_this);
-static Iterator _unordered_multimap_end(const void *_this);
-static size_t _unordered_multimap_size(const void *_this);
-static bool _unordered_multimap_empty(const void *_this);
-static void _unordered_multimap_erase(void *_this, Iterator iter);
-static Iterator _unordered_multimap_insert(void *_this, Pair x);
-static size_t _unordered_multimap_count(void *_this, FormWO_t x);
-static Iterator _unordered_multimap_find(void *_this, FormWO_t x);
-static size_t _unordered_multimap_bucket_count(void *_this);
-static size_t _unordered_max_bucket_count(void *_this);
-void _unordered_multimap_reserve(void *_this, size_t x);
-static void _unordered_multimap_clear(void *_this);
-static void _unordered_multimap_swap(void *_this, Unordered_MultiMap _s);
+static void *_unordered_multimap_ctor(void *_self, va_list *app);
+static void *_unordered_multimap_dtor(void *_self);
+static Iterator _unordered_multimap_begin(const void *_self);
+static Iterator _unordered_multimap_end(const void *_self);
+static size_t _unordered_multimap_size(const void *_self);
+static bool _unordered_multimap_empty(const void *_self);
+static void _unordered_multimap_erase(void *_self, Iterator iter);
+static Iterator _unordered_multimap_insert(void *_self, Pair x);
+static size_t _unordered_multimap_count(void *_self, const void *x);
+static Iterator _unordered_multimap_find(void *_self, const void *x);
+static size_t _unordered_multimap_bucket_count(void *_self);
+static size_t _unordered_max_bucket_count(void *_self);
+void _unordered_multimap_reserve(void *_self, size_t x);
+static void _unordered_multimap_clear(void *_self);
+static void _unordered_multimap_swap(void *_self, Unordered_MultiMap _s);
 
 //init
 static const void *__Unordered_MultiMap = NULL;
@@ -95,12 +97,12 @@ static void initUnordered_MultiMap(void)
     }
     if (!__Unordered_MultiMapClass) {
         __Unordered_MultiMapClass = new(T(MetaClass), "Unordered_MultiMapClass",
-                           T(Class), sizeof(struct Unordered_MultiMapClass) + classSz(_Class().class),
+                           T(Class), sizeof(struct Unordered_MultiMapClass) + classSz(T(Class)),
                            _MetaClassS->ctor, _unordered_multimapclass_ctor, NULL);
     }
     if (!__Unordered_MultiMap) {
         __Unordered_MultiMap = new(_Unordered_MultiMapClass(), "Unordered_MultiMap",
-                     T(Object), sizeof(struct Unordered_MultiMap) + classSz(_Object().class),
+                     T(Object), sizeof(struct Unordered_MultiMap) + classSz(T(Object)),
                      _MetaClassS->ctor, _unordered_multimap_ctor,
                      _MetaClassS->dtor, _unordered_multimap_dtor,
                      _Unordered_MultiMapS->begin, _unordered_multimap_begin,
@@ -120,303 +122,300 @@ static void initUnordered_MultiMap(void)
     }
 }
 
-Form_t _Unordered_MultiMap(void)
+const void *_Unordered_MultiMap(void)
 {
     if (!__Unordered_MultiMap)
         initUnordered_MultiMap();
-    return (Form_t){OBJ, .class = __Unordered_MultiMap};
+    return __Unordered_MultiMap;
 }
 
-Form_t _Unordered_MultiMapClass(void)
+const void *_Unordered_MultiMapClass(void)
 {
     if (!__Unordered_MultiMapClass)
         initUnordered_MultiMap();
-    return (Form_t){OBJ, .class = __Unordered_MultiMapClass};
+    return __Unordered_MultiMapClass;
 }
 
 //private
-static FormWO_t _get_val(FormWO_t x)
+static void *_get_val(void *x)
 {
-    assert(x._.f == OBJ && x._.class == T(Pair).class);
-    Pair p = *(Pair*)x.mem;
-    if (p->f_t.f == OBJ) //OBJ则要加一层指针
-        return FORM_WITH_OBJ(p->f_t, V(p->first));
-    return FORM_WITH_OBJ(p->f_t, p->first);
+    assert(classOf(x) == T(Pair));
+    Pair p = x;
+    return p->first;
 }
 
 //public
 //Unordered_MultiMapClass
-static void *_unordered_multimapclass_ctor(void *_this, va_list *app)
+static void *_unordered_multimapclass_ctor(void *_self, va_list *app)
 {
-    _this = super_ctor(__Unordered_MultiMapClass, _this, app);
-    struct Unordered_MultiMapClass *this = offsetOf(_this, __Unordered_MultiMapClass);
+    _self = super_ctor(__Unordered_MultiMapClass, _self, app);
+    struct Unordered_MultiMapClass *self = offsetOf(_self, __Unordered_MultiMapClass);
     voidf selector;
     va_list ap;
     va_copy(ap, *app);
     voidf *begin = (void*)&Unordered_MultiMapS + sizeof(Unordered_MultiMapS._);
     voidf *end = (void*)&Unordered_MultiMapS + sizeof(Unordered_MultiMapS);
-    voidf *this_begin = (void*)this;
+    voidf *self_begin = (void*)self;
     while ((selector = va_arg(ap, voidf)))
     {
         voidf method = va_arg(ap, voidf);
         for (voidf *p = begin; p != end; p++) {
             if (*p == selector) {
                 size_t n = p - begin;
-                *(this_begin + n) = method;
+                *(self_begin + n) = method;
                 break;
             }
         }
     }
     va_end(ap);
-    return _this;
+    return _self;
 }
 
 //Unordered_MultiMap
-static void *_unordered_multimap_ctor(void *_this, va_list *app)
+static void *_unordered_multimap_ctor(void *_self, va_list *app)
 {
-    _this = super_ctor(__Unordered_MultiMap, _this, app);
-    struct Unordered_MultiMap *this = offsetOf(_this, __Unordered_MultiMap);
-    this->c = malloc(classSz(_Hashtable().class));
+    _self = super_ctor(__Unordered_MultiMap, _self, app);
+    struct Unordered_MultiMap *self = offsetOf(_self, __Unordered_MultiMap);
+    self->c = malloc(classSz(T(Hashtable)));
     //获取key和val的类型
-    FormWO_t f = va_arg(*app, FormWO_t);
-    assert(f._.f >= FORM);
-    f._.f -= FORM;
-    this->key_f = f._;
-    f = va_arg(*app, FormWO_t);
-    assert(f._.f >= FORM);
-    f._.f -= FORM;
-    this->val_f = f._;
+    void *class = va_arg(*app, void*);
+    self->key_class = class;
+    class = va_arg(*app, void*);
+    self->val_class = class;
     //构建Hashtable
-    FormWO_t t = va_arg(*app, FormWO_t);
-    assert(t._.f == OBJ || t._.f == FUNC);
-    if (t._.f == OBJ) { //复制构造
-        assert(t._.class == __Unordered_MultiMap);
-        struct Unordered_MultiMap *s = offsetOf(*(Object*)t.mem, __Unordered_MultiMap);
-        construct(_Hashtable(), this->c, f, VA(s->c), VAEND);
+    void *t = va_arg(*app, void*);
+    if (classOf(t) == __Unordered_MultiMap) { //复制构造
+        struct Unordered_MultiMap *s = offsetOf(t, __Unordered_MultiMap);
+        construct(_Hashtable(), self->c, T(Pair), s->c, VAEND);
     } else { //迭代器构造和默认构造
-        FormWO_t equal = t;
-        FormWO_t hash = va_arg(*app, FormWO_t);
-        assert(hash._.f == FUNC);
-        t = va_arg(*app, FormWO_t);
-        FormWO_t get_val = t._.f == FUNC ? t : VA_FUNC(_get_val);
-        construct(_Hashtable(), this->c, VA(T(Pair)), equal, hash, get_val, VAEND);
-        if (t._.f == END)
-            return _this;
+        // assert(classOf(t) == T(Any));
+        Any equal = t;
+        t = va_arg(*app, void*);
+        assert(classOf(t) == T(Any));
+        Any hash = t;
+        t = va_arg(*app, void*);
+        Any get_val;
+        if (t == VAEND && classOf(t) == T(Any))
+            get_val = t;
+        else
+            get_val = VA_ANY(TEMP_VAR(void*, &_get_val), NULL);
+        construct(T(Hashtable), self->c, T(Pair), equal, hash, get_val, VAEND);
+        if (t == VAEND)
+            return _self;
         //迭代器
-        assert(t._.f == OBJ && t._.class == _Iterator().class);
-        Iterator first = *(Iterator*)t.mem;
-        first = THIS(first).ctor(NULL, VA(first), VAEND);
-        t = va_arg(*app, FormWO_t);
-        assert(t._.f == OBJ && t._.class == _Iterator().class);
-        Iterator last = t.mem;
-        last = THIS(first).ctor(NULL, VA(last), VAEND);
-        Form_t it_t = THIS(first).type();
-        while (!THIS(first).equal(VA(last)))
+        assert(class_check(t, T(Iterator)));
+        Iterator first = t;
+        first = THIS(first).ctor(NULL, first, VAEND);
+        t = va_arg(*app, void*);
+        assert(class_check(t, T(Iterator)));
+        Iterator last = t;
+        last = THIS(first).ctor(NULL, last, VAEND);
+        while (!THIS(first).equal(last))
         {
-            THIS(this->c).insert_unique(FORM_WITH_OBJ(it_t, V(THIS(first).derefer())));
+            THIS(self->c).insert_equal(THIS(first).derefer());
             THIS(first).inc();
         }
         delete(first);
         delete(last);
     }
-    return _this;
+    return _self;
 }
 
-static void *_unordered_multimap_dtor(void *_this)
+static void *_unordered_multimap_dtor(void *_self)
 {
-    _this = super_dtor(__Unordered_MultiMap, _this);
-    struct Unordered_MultiMap *this = offsetOf(_this, __Unordered_MultiMap);
-    destroy(this->c);
-    free(this->c);
-    return _this;
+    _self = super_dtor(__Unordered_MultiMap, _self);
+    struct Unordered_MultiMap *self = offsetOf(_self, __Unordered_MultiMap);
+    destroy(self->c);
+    free(self->c);
+    return _self;
 }
 
-static Iterator _unordered_multimap_begin(const void *_this)
+static Iterator _unordered_multimap_begin(const void *_self)
 {
-    struct Unordered_MultiMap *this = offsetOf(_this, __Unordered_MultiMap);
-    return THIS(this->c).begin();
+    struct Unordered_MultiMap *self = offsetOf(_self, __Unordered_MultiMap);
+    return THIS(self->c).begin();
 }
 
-static Iterator _unordered_multimap_end(const void *_this)
+static Iterator _unordered_multimap_end(const void *_self)
 {
-    struct Unordered_MultiMap *this = offsetOf(_this, __Unordered_MultiMap);
-    return THIS(this->c).end();
+    struct Unordered_MultiMap *self = offsetOf(_self, __Unordered_MultiMap);
+    return THIS(self->c).end();
 }
 
-static size_t _unordered_multimap_size(const void *_this)
+static size_t _unordered_multimap_size(const void *_self)
 {
-    struct Unordered_MultiMap *this = offsetOf(_this, __Unordered_MultiMap);
-    return THIS(this->c).size();
+    struct Unordered_MultiMap *self = offsetOf(_self, __Unordered_MultiMap);
+    return THIS(self->c).size();
 }
 
-static bool _unordered_multimap_empty(const void *_this)
+static bool _unordered_multimap_empty(const void *_self)
 {
-    struct Unordered_MultiMap *this = offsetOf(_this, __Unordered_MultiMap);
-    return THIS(this->c).empty();
+    struct Unordered_MultiMap *self = offsetOf(_self, __Unordered_MultiMap);
+    return THIS(self->c).empty();
 }
 
-static void _unordered_multimap_erase(void *_this, Iterator iter)
+static void _unordered_multimap_erase(void *_self, Iterator iter)
 {
-    struct Unordered_MultiMap *this = offsetOf(_this, __Unordered_MultiMap);
-    THIS(this->c).erase(iter);
+    struct Unordered_MultiMap *self = offsetOf(_self, __Unordered_MultiMap);
+    THIS(self->c).erase(iter);
 }
 
-static Iterator _unordered_multimap_insert(void *_this, Pair x)
+static Iterator _unordered_multimap_insert(void *_self, Pair x)
 {
-    struct Unordered_MultiMap *this = offsetOf(_this, __Unordered_MultiMap);
-    return THIS(this->c).insert_equal(VA(x));
+    struct Unordered_MultiMap *self = offsetOf(_self, __Unordered_MultiMap);
+    return THIS(self->c).insert_equal(x);
 }
 
-static size_t _unordered_multimap_count(void *_this, FormWO_t x)
+static size_t _unordered_multimap_count(void *_self, const void *x)
 {
-    struct Unordered_MultiMap *this = offsetOf(_this, __Unordered_MultiMap);
-    Pair p = new(T(Pair), VA(this->key_f, this->val_f, x));
-    size_t res = THIS(this->c).count(VA(p));
+    struct Unordered_MultiMap *self = offsetOf(_self, __Unordered_MultiMap);
+    Pair p = new(T(Pair), self->key_class, self->val_class, x, VAEND);
+    size_t res = THIS(self->c).count(p);
     delete(p);
     return res;
 }
 
-static Iterator _unordered_multimap_find(void *_this, FormWO_t x)
+static Iterator _unordered_multimap_find(void *_self, const void *x)
 {
-    struct Unordered_MultiMap *this = offsetOf(_this, __Unordered_MultiMap);
-    Pair p = new(T(Pair), VA(this->key_f, this->val_f, x));
-    Iterator res = THIS(this->c).find(VA(p));
+    struct Unordered_MultiMap *self = offsetOf(_self, __Unordered_MultiMap);
+    Pair p = new(T(Pair), self->key_class, self->val_class, x, VAEND);
+    Iterator res = THIS(self->c).find(p);
     delete(p);
     return res;
 }
 
-static size_t _unordered_multimap_bucket_count(void *_this)
+static size_t _unordered_multimap_bucket_count(void *_self)
 {
-    struct Unordered_MultiMap *this = offsetOf(_this, __Unordered_MultiMap);
-    return THIS(this->c).bucket_count();
+    struct Unordered_MultiMap *self = offsetOf(_self, __Unordered_MultiMap);
+    return THIS(self->c).bucket_count();
 }
 
-static size_t _unordered_max_bucket_count(void *_this)
+static size_t _unordered_max_bucket_count(void *_self)
 {
-    struct Unordered_MultiMap *this = offsetOf(_this, __Unordered_MultiMap);
-    return THIS(this->c).max_bucket_count();
+    struct Unordered_MultiMap *self = offsetOf(_self, __Unordered_MultiMap);
+    return THIS(self->c).max_bucket_count();
 }
 
-void _unordered_multimap_reserve(void *_this, size_t x)
+void _unordered_multimap_reserve(void *_self, size_t x)
 {
-    struct Unordered_MultiMap *this = offsetOf(_this, __Unordered_MultiMap);
-    THIS(this->c).resize(x);
+    struct Unordered_MultiMap *self = offsetOf(_self, __Unordered_MultiMap);
+    THIS(self->c).resize(x);
 }
 
-static void _unordered_multimap_clear(void *_this)
+static void _unordered_multimap_clear(void *_self)
 {
-    struct Unordered_MultiMap *this = offsetOf(_this, __Unordered_MultiMap);
-    THIS(this->c).clear();
+    struct Unordered_MultiMap *self = offsetOf(_self, __Unordered_MultiMap);
+    THIS(self->c).clear();
 }
 
-static void _unordered_multimap_swap(void *_this, Unordered_MultiMap _s)
+static void _unordered_multimap_swap(void *_self, Unordered_MultiMap _s)
 {
-    struct Unordered_MultiMap *this = offsetOf(_this, __Unordered_MultiMap);
+    struct Unordered_MultiMap *self = offsetOf(_self, __Unordered_MultiMap);
     struct Unordered_MultiMap *s = offsetOf(_s, __Unordered_MultiMap);
-    THIS(this->c).swap(s->c);
+    THIS(self->c).swap(s->c);
 }
 
 //selector
 static Iterator _begin(void)
 {
-    void *_this = pop_this();
-    const struct Unordered_MultiMapClass *class = offsetOf(classOf(_this), __Unordered_MultiMapClass);
+    void *_self = pop_this();
+    const struct Unordered_MultiMapClass *class = offsetOf(classOf(_self), __Unordered_MultiMapClass);
     assert(class->begin);
-    return class->begin(_this);
+    return class->begin(_self);
 }
 
 static Iterator _end(void)
 {
-    void *_this = pop_this();
-    const struct Unordered_MultiMapClass *class = offsetOf(classOf(_this), __Unordered_MultiMapClass);
+    void *_self = pop_this();
+    const struct Unordered_MultiMapClass *class = offsetOf(classOf(_self), __Unordered_MultiMapClass);
     assert(class->end);
-    return class->end(_this);
+    return class->end(_self);
 }
 
 static size_t _size(void)
 {
-    void *_this = pop_this();
-    const struct Unordered_MultiMapClass *class = offsetOf(classOf(_this), __Unordered_MultiMapClass);
+    void *_self = pop_this();
+    const struct Unordered_MultiMapClass *class = offsetOf(classOf(_self), __Unordered_MultiMapClass);
     assert(class->size);
-    return class->size(_this);
+    return class->size(_self);
 }
 
 static bool _empty(void)
 {
-    void *_this = pop_this();
-    const struct Unordered_MultiMapClass *class = offsetOf(classOf(_this), __Unordered_MultiMapClass);
+    void *_self = pop_this();
+    const struct Unordered_MultiMapClass *class = offsetOf(classOf(_self), __Unordered_MultiMapClass);
     assert(class->empty);
-    return class->empty(_this);
+    return class->empty(_self);
 }
 
 static void _erase(Iterator iter)
 {
-    void *_this = pop_this();
-    const struct Unordered_MultiMapClass *class = offsetOf(classOf(_this), __Unordered_MultiMapClass);
+    void *_self = pop_this();
+    const struct Unordered_MultiMapClass *class = offsetOf(classOf(_self), __Unordered_MultiMapClass);
     assert(class->erase);
-    class->erase(_this, iter);
+    class->erase(_self, iter);
 }
 
 static Iterator _insert(Pair x)
 {
-    void *_this = pop_this();
-    const struct Unordered_MultiMapClass *class = offsetOf(classOf(_this), __Unordered_MultiMapClass);
+    void *_self = pop_this();
+    const struct Unordered_MultiMapClass *class = offsetOf(classOf(_self), __Unordered_MultiMapClass);
     assert(class->insert);
-    return class->insert(_this, x);
+    return class->insert(_self, x);
 }
 
-static size_t _count(FormWO_t x)
+static size_t _count(const void *x)
 {
-    void *_this = pop_this();
-    const struct Unordered_MultiMapClass *class = offsetOf(classOf(_this), __Unordered_MultiMapClass);
+    void *_self = pop_this();
+    const struct Unordered_MultiMapClass *class = offsetOf(classOf(_self), __Unordered_MultiMapClass);
     assert(class->count);
-    return class->count(_this, x);
+    return class->count(_self, x);
 }
 
-static Iterator _find(FormWO_t x)
+static Iterator _find(const void *x)
 {
-    void *_this = pop_this();
-    const struct Unordered_MultiMapClass *class = offsetOf(classOf(_this), __Unordered_MultiMapClass);
+    void *_self = pop_this();
+    const struct Unordered_MultiMapClass *class = offsetOf(classOf(_self), __Unordered_MultiMapClass);
     assert(class->find);
-    return class->find(_this, x);
+    return class->find(_self, x);
 }
 
 static size_t _bucket_count(void)
 {
-    void *_this = pop_this();
-    const struct Unordered_MultiMapClass *class = offsetOf(classOf(_this), __Unordered_MultiMapClass);
+    void *_self = pop_this();
+    const struct Unordered_MultiMapClass *class = offsetOf(classOf(_self), __Unordered_MultiMapClass);
     assert(class->bucket_count);
-    return class->bucket_count(_this);
+    return class->bucket_count(_self);
 }
 
 static size_t _max_bucket_count(void)
 {
-    void *_this = pop_this();
-    const struct Unordered_MultiMapClass *class = offsetOf(classOf(_this), __Unordered_MultiMapClass);
+    void *_self = pop_this();
+    const struct Unordered_MultiMapClass *class = offsetOf(classOf(_self), __Unordered_MultiMapClass);
     assert(class->max_bucket_count);
-    return class->max_bucket_count(_this);
+    return class->max_bucket_count(_self);
 }
 
 static void _reserve(size_t x)
 {
-    void *_this = pop_this();
-    const struct Unordered_MultiMapClass *class = offsetOf(classOf(_this), __Unordered_MultiMapClass);
+    void *_self = pop_this();
+    const struct Unordered_MultiMapClass *class = offsetOf(classOf(_self), __Unordered_MultiMapClass);
     assert(class->reserve);
-    return class->reserve(_this, x);
+    return class->reserve(_self, x);
 }
 
 static void _clear(void)
 {
-    void *_this = pop_this();
-    const struct Unordered_MultiMapClass *class = offsetOf(classOf(_this), __Unordered_MultiMapClass);
+    void *_self = pop_this();
+    const struct Unordered_MultiMapClass *class = offsetOf(classOf(_self), __Unordered_MultiMapClass);
     assert(class->clear);
-    class->clear(_this);
+    class->clear(_self);
 }
 
 static void _swap(Unordered_MultiMap _s)
 {
-    void *_this = pop_this();
-    const struct Unordered_MultiMapClass *class = offsetOf(classOf(_this), __Unordered_MultiMapClass);
+    void *_self = pop_this();
+    const struct Unordered_MultiMapClass *class = offsetOf(classOf(_self), __Unordered_MultiMapClass);
     assert(class->swap);
-    class->swap(_this, _s);
+    class->swap(_self, _s);
 }

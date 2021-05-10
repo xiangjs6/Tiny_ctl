@@ -14,8 +14,8 @@ struct Unordered_MapSelector {
     bool (*empty)(void);
     void (*erase)(Iterator iter);
     Iterator (*insert)(Pair x);
-    size_t (*count)(FormWO_t x);
-    Iterator (*find)(FormWO_t x);
+    size_t (*count)(const void *x);
+    Iterator (*find)(const void *x);
     size_t (*bucket_count)(void);
     size_t (*max_bucket_count)(void);
     void (*reserve)(size_t);
@@ -23,6 +23,6 @@ struct Unordered_MapSelector {
     void (*swap)(Unordered_Map);
 };          
 
-Form_t _Unordered_MapClass(void);
+const void *_Unordered_MapClass(void);
 extern const struct Unordered_MapSelector *_Unordered_MapS;
 #endif //TINY_CTL__TCTL_UNORDERED_MAP_H

@@ -1,12 +1,12 @@
-#include <stdio.h>
 #include "../include/tctl_iterator.h"
 #include "../include/tctl_map.h"
 #include "../include/tctl_allocator.h"
 #include "../include/auto_release_pool.h"
 #include "../include/tctl_any.h"
 #include "../include/tctl_int.h"
-#include <string.h>
 #include "../include/tctl_arg.h"
+#include <string.h>
+#include <stdio.h>
 
 #define Import MAP, ANY, INT
 
