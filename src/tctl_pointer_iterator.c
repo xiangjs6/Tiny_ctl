@@ -79,20 +79,6 @@ static void initOriPointIter(void)
     }
 }
 
-static const void *_OriPointIter(void)
-{
-    if (!__OriPointerIter)
-        initOriPointIter();
-    return __OriPointerIter;
-}
-
-static const void *_ROriPointIter(void)
-{
-    if (!__ROriPointerIter)
-        initOriPointIter();
-    return __ROriPointerIter;
-}
-
 //Iterator
 static void *_iter_ctor(void *_self, va_list *app)
 {
@@ -135,7 +121,7 @@ static int _iter_cmp(const void *_self, const void *_x)
     const struct OriPointerIter *self = offsetOf(_self, __OriPointerIter);
     const struct OriPointerIter *x = offsetOf(_x, __OriPointerIter);
     assert(x->ptr == self->ptr);
-    return self->cur - x->cur;
+    return (int)(self->cur - x->cur);
 }
 
 static void *_iter_brackets(const void *_self, const void *_x)
@@ -231,16 +217,18 @@ static Iterator _iter_reverse_iterator(const void *_self)
     Iterator it = (void*)_self;
     if (classOf(_self) == __OriPointerIter) {
         void *mem = ARP_MallocARelDtor(classSz(__OriPointerIter), destroy);
-        return construct(_ROriPointIter(), mem, VA(it), VAEND);
+        return construct(__ROriPointerIter, mem, VA(it), VAEND);
     } else {
         void *mem = ARP_MallocARelDtor(classSz(__ROriPointerIter), destroy);
-        return construct(_OriPointIter(), mem, VA(it), VAEND);
+        return construct(__OriPointerIter, mem, VA(it), VAEND);
     }
 }
 
 //对外接口
 Iterator _oriPointerIter_aux(const void *class, void *p, size_t x, ...)
 {
+    if (!__OriPointerIter)
+        initOriPointIter();
     void *mem = ARP_MallocARelDtor(classSz(__OriPointerIter), destroy);
-    return construct(_OriPointIter(), mem, class, SequenceIter, p, x, VAEND);
+    return construct(__OriPointerIter, mem, VA(SequenceIter), class, VA_ANY(p, NULL), VA(x), VAEND);
 }
