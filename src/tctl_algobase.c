@@ -47,8 +47,7 @@ inline static Iterator copy_2S(Iterator first, Iterator last, Iterator result) /
 inline static Iterator copy_2R(Iterator first, Iterator last, Iterator result) //first和last为RandomAccessIter
 {
     Iterator out = THIS(result).ctor(ALLOC(sizeOf(result)), result, VAEND);
-    char tmp[sizeOf(first)];
-    Iterator src_it = THIS(first).ctor(tmp, first, VAEND);
+    Iterator src_it = THIS(first).ctor(ALLOC(sizeOf(first)), first, VAEND);
     size_t dist = distance(first, last);
     if (result->rank == SequenceIter) {
         char *dst_p = THIS(result).derefer();
@@ -66,7 +65,6 @@ inline static Iterator copy_2R(Iterator first, Iterator last, Iterator result) /
             THIS(out).inc(), THIS(src_it).inc();
         }
     }
-    destroy(src_it);
     return out;
 }
 
@@ -82,8 +80,7 @@ Iterator copy(Iterator first, Iterator last, Iterator result)
         return ARP_Return(copy_2R(first, last, result));
     } else { //first和last都为BidirectionalIter或ForwardIter迭代器
         Iterator out = THIS(result).ctor(ALLOC(sizeOf(result)), VA(result), VAEND);
-        char tmp[sizeOf(first)];
-        Iterator src_it = THIS(first).ctor(tmp, VA(first), VAEND);
+        Iterator src_it = THIS(first).ctor(ALLOC(sizeOf(first)), VA(first), VAEND);
         for (; !THIS(src_it).equal(VA(last)); THIS(src_it).inc(), THIS(out).inc())
             construct(result->class, THIS(out).derefer(), THIS(src_it).derefer(), VAEND);
         return ARP_Return(out);
@@ -130,8 +127,7 @@ inline static Iterator copy_backward_2S(Iterator first, Iterator last, Iterator 
 inline static Iterator copy_backward_2R(Iterator first, Iterator last, Iterator result) //first和last为RandomAccessIter
 {
     Iterator out = THIS(result).ctor(ALLOC(sizeOf(result)), VA(result), VAEND);
-    char tmp[sizeOf(first)];
-    Iterator src_it = THIS(first).ctor(tmp, VA(last), VAEND);
+    Iterator src_it = THIS(first).ctor(ALLOC(sizeOf(first)), VA(last), VAEND);
     THIS(src_it).dec();
 
     size_t dist = distance(first, last);
@@ -171,8 +167,7 @@ Iterator copy_backward(Iterator first, Iterator last, Iterator result)
         Iterator out = THIS(result).ctor(ALLOC(sizeOf(result)), VA(result), VAEND);
         THIS(out).dec();
 
-        char tmp[sizeOf(first)];
-        Iterator src_it = THIS(first).ctor(tmp, VA(last), VAEND);
+        Iterator src_it = THIS(first).ctor(ALLOC(sizeOf(first)), VA(last), VAEND);
         THIS(src_it).dec();
         do
         {
@@ -274,10 +269,13 @@ bool lexicographical_compare(Iterator _first1, Iterator _last1, Iterator _first2
            THIS(first1).inc(), THIS(first2).inc()) {
         int res = CompareOpt(THIS(first1).derefer(),
                              THIS(first2).derefer(), op);
-        if (res < 0)
+        if (res < 0) {
+            ARP_FreePool();
             return true;
-        else if (res > 0)
+        } else if (res > 0) {
+            ARP_FreePool();
             return false;
+        }
     }
     bool res = THIS(first1).equal(VA(_last1)) && !THIS(first2).equal(VA(_last2));
     ARP_FreePool();

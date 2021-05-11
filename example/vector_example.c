@@ -97,7 +97,7 @@ int main(void)
     Vector v3 = new(T(Vector), T(Int), VA(3, 4), VAEND);
     Vector v4 = new(T(Vector), T(Int), v3, VAEND);
     for (Iterator it = THIS(v4).begin(); !THIS(it).equal(VA(THIS(v4).end())); THIS(it).inc()) {
-        printf("%d ", *(int*)THIS(it).derefer());
+        printf("%lld ", ((Int)THIS(it).derefer())->val);
     }
     ARP_FreePool();
     return 0;

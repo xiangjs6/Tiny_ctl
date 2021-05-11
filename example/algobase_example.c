@@ -100,6 +100,10 @@ int main(void)
     int res  = lexicographical_compare(oriPointerIter(stra1), oriPointerIter(stra1, 3),
                                        oriPointerIter(stra2), oriPointerIter(stra2, 3), strCmp);
     printf("%d\n", res); //1
+    for (int i = 0; i < 9; i++)
+        delete(ia[i]);
+    delete(iv1);
+    delete(iv2);
     ARP_FreePool();
     return 0;
 }
