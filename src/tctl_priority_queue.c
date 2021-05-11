@@ -3,21 +3,22 @@
 //
 
 #include "../include/tctl_heap.h"
-#include "include/_tctl_priority_queue.h"
 #include "../include/tctl_vector.h"
+#include "../include/auto_release_pool.h"
+#include "../include/tctl_any.h"
+#include "include/_tctl_priority_queue.h"
 #include <memory.h>
 #include <stdlib.h>
-#include "../include/auto_release_pool.h"
 
-#define Import CLASS, OBJECT, METACLASS, VECTOR
+#define Import CLASS, OBJECT, METACLASS, VECTOR, ANY
 
 struct Priority_QueueClass {
-    void *(*top)(const void *_this);
-    void (*push)(void *_this, FormWO_t x);
-    void (*pop)(void *_this);
-    bool (*empty)(void *_this);
-    size_t (*size)(void *_this);
-    void (*swap)(void *_this, Priority_Queue);
+    void *(*top)(const void *_self);
+    void (*push)(void *_self, const void *x);
+    void (*pop)(void *_self);
+    bool (*empty)(void *_self);
+    size_t (*size)(void *_self);
+    void (*swap)(void *_self, Priority_Queue);
 };
 
 struct Priority_Queue {
@@ -27,22 +28,22 @@ struct Priority_Queue {
 
 //selector
 static void *_top(void);
-static void _push(FormWO_t x);
+static void _push(const void *x);
 static void _pop(void);
 static bool _empty(void);
 static size_t _size(void);
 static void _swap(Priority_Queue que);
 //Priority_Queueclass
-static void *_priority_queueclass_ctor(void *_this, va_list *app);
+static void *_priority_queueclass_ctor(void *_self, va_list *app);
 //Priority_Queue
-static void *_priority_queue_ctor(void *_this, va_list *app);
-static void *_priority_queue_dtor(void *_this);
-static void *_priority_queue_top(const void *_this);
-static void _priority_queue_push(void *_this, FormWO_t x);
-static void _priority_queue_pop(void *_this);
-static bool _priority_queue_empty(void *_this);
-static size_t _priority_queue_size(void *_this);
-static void _priority_queue_swap(void *_this, Priority_Queue _que);
+static void *_priority_queue_ctor(void *_self, va_list *app);
+static void *_priority_queue_dtor(void *_self);
+static void *_priority_queue_top(const void *_self);
+static void _priority_queue_push(void *_self, const void *x);
+static void _priority_queue_pop(void *_self);
+static bool _priority_queue_empty(void *_self);
+static size_t _priority_queue_size(void *_self);
+static void _priority_queue_swap(void *_self, Priority_Queue _que);
 
 //init
 static const void *__Priority_Queue = NULL;
@@ -67,12 +68,12 @@ static void initPriority_Queue(void)
     }
     if (!__Priority_QueueClass) {
         __Priority_QueueClass = new(T(MetaClass), "Priority_QueueClass",
-                           T(Class), sizeof(struct Priority_QueueClass) + classSz(_Class().class),
+                           T(Class), sizeof(struct Priority_QueueClass) + classSz(T(Class)),
                            _MetaClassS->ctor, _priority_queueclass_ctor, NULL);
     }
     if (!__Priority_Queue) {
         __Priority_Queue = new(_Priority_QueueClass(), "Priority_Queue",
-                     T(Object), sizeof(struct Priority_Queue) + classSz(_Object().class),
+                     T(Object), sizeof(struct Priority_Queue) + classSz(T(Object)),
                      _MetaClassS->ctor, _priority_queue_ctor,
                      _MetaClassS->dtor, _priority_queue_dtor,
                      _Priority_QueueS->top, _priority_queue_top,
@@ -85,158 +86,158 @@ static void initPriority_Queue(void)
     }
 }
 
-Form_t _Priority_Queue(void)
+const void *_Priority_Queue(void)
 {
     if (!__Priority_Queue)
         initPriority_Queue();
-    return (Form_t){OBJ, .class = __Priority_Queue};
+    return __Priority_Queue;
 }
 
-Form_t _Priority_QueueClass(void)
+const void *_Priority_QueueClass(void)
 {
     if (!__Priority_QueueClass)
         initPriority_Queue();
-    return (Form_t){OBJ, .class = __Priority_QueueClass};
+    return __Priority_QueueClass;
 }
 
 //Priority_QueueClass
-static void *_priority_queueclass_ctor(void *_this, va_list *app)
+static void *_priority_queueclass_ctor(void *_self, va_list *app)
 {
-    _this = super_ctor(__Priority_QueueClass, _this, app);
-    struct VectorClass *this = offsetOf(_this, __Priority_QueueClass);
+    _self = super_ctor(__Priority_QueueClass, _self, app);
+    struct VectorClass *self = offsetOf(_self, __Priority_QueueClass);
     voidf selector;
     va_list ap;
     va_copy(ap, *app);
     voidf *begin = (void*)&Priority_QueueS + sizeof(Priority_QueueS._);
     voidf *end = (void*)&Priority_QueueS + sizeof(Priority_QueueS);
-    voidf *this_begin = (void*)this;
+    voidf *self_begin = (void*)self;
     while ((selector = va_arg(ap, voidf)))
     {
         voidf method = va_arg(ap, voidf);
         for (voidf *p = begin; p != end; p++) {
             if (*p == selector) {
                 size_t n = p - begin;
-                *(this_begin + n) = method;
+                *(self_begin + n) = method;
                 break;
             }
         }
     }
     va_end(ap);
-    return _this;
+    return _self;
 }
 
 //Priority_Queue
-static void *_priority_queue_ctor(void *_this, va_list *app)
+static void *_priority_queue_ctor(void *_self, va_list *app)
 {
-    _this = super_ctor(__Priority_Queue, _this, app);
-    struct Priority_Queue *this = offsetOf(_this, __Priority_Queue);
-    this->c = malloc(classSz(_Vector().class));
-    construct_v(_Vector(), this->c, app);
-    FormWO_t t = va_arg(*app, FormWO_t);
-    assert(t._.f == FUNC);
-    this->cmp = t.mem;
-    return _this;
+    _self = super_ctor(__Priority_Queue, _self, app);
+    struct Priority_Queue *self = offsetOf(_self, __Priority_Queue);
+    self->c = malloc(classSz(T(Vector)));
+    construct_v(_Vector(), self->c, app);
+    void *t = va_arg(*app, void*);
+    assert(classOf(t) == T(Any));
+    self->cmp = *(void**)THIS((Any)t).value();
+    return _self;
 }
 
-static void *_priority_queue_dtor(void *_this)
+static void *_priority_queue_dtor(void *_self)
 {
-    _this = super_dtor(__Priority_Queue, _this);
-    struct Priority_Queue *this = offsetOf(_this, __Priority_Queue);
-    destroy(this->c);
-    free(this->c);
-    return _this;
+    _self = super_dtor(__Priority_Queue, _self);
+    struct Priority_Queue *self = offsetOf(_self, __Priority_Queue);
+    destroy(self->c);
+    free(self->c);
+    return _self;
 }
 
-static void *_priority_queue_top(const void *_this)
+static void *_priority_queue_top(const void *_self)
 {
-    struct Priority_Queue *this = offsetOf(_this, __Priority_Queue);
-    return THIS(this->c).front();
+    struct Priority_Queue *self = offsetOf(_self, __Priority_Queue);
+    return THIS(self->c).front();
 }
 
-static void _priority_queue_push(void *_this, FormWO_t x)
+static void _priority_queue_push(void *_self, const void *x)
 {
     ARP_CreatePool();
-    struct Priority_Queue *this = offsetOf(_this, __Priority_Queue);
-    THIS(this->c).push_back(x);
-    push_heap(THIS(this->c).begin(), THIS(this->c).end(), this->cmp);
+    struct Priority_Queue *self = offsetOf(_self, __Priority_Queue);
+    THIS(self->c).push_back(x);
+    push_heap(THIS(self->c).begin(), THIS(self->c).end(), self->cmp);
     ARP_FreePool();
 }
 
-static void _priority_queue_pop(void *_this)
+static void _priority_queue_pop(void *_self)
 {
     ARP_CreatePool();
-    struct Priority_Queue *this = offsetOf(_this, __Priority_Queue);
-    pop_heap(THIS(this->c).begin(), THIS(this->c).end(), this->cmp);
-    THIS(this->c).pop_back();
+    struct Priority_Queue *self = offsetOf(_self, __Priority_Queue);
+    pop_heap(THIS(self->c).begin(), THIS(self->c).end(), self->cmp);
+    THIS(self->c).pop_back();
     ARP_FreePool();
 }
 
-static bool _priority_queue_empty(void *_this)
+static bool _priority_queue_empty(void *_self)
 {
-    struct Priority_Queue *this = offsetOf(_this, __Priority_Queue);
-    return THIS(this->c).empty();
+    struct Priority_Queue *self = offsetOf(_self, __Priority_Queue);
+    return THIS(self->c).empty();
 }
 
-static size_t _priority_queue_size(void *_this)
+static size_t _priority_queue_size(void *_self)
 {
-    struct Priority_Queue *this = offsetOf(_this, __Priority_Queue);
-    return THIS(this->c).size();
+    struct Priority_Queue *self = offsetOf(_self, __Priority_Queue);
+    return THIS(self->c).size();
 }
 
-static void _priority_queue_swap(void *_this, Priority_Queue _que)
+static void _priority_queue_swap(void *_self, Priority_Queue _que)
 {
-    struct Priority_Queue *this = offsetOf(_this, __Priority_Queue);
+    struct Priority_Queue *self = offsetOf(_self, __Priority_Queue);
     struct Priority_Queue *que = offsetOf(_que, __Priority_Queue);
-    THIS(this->c).swap(que->c);
-    Compare tmp = this->cmp;
-    this->cmp = que->cmp;
+    THIS(self->c).swap(que->c);
+    Compare tmp = self->cmp;
+    self->cmp = que->cmp;
     que->cmp = tmp;
 }
 
 static void *_top(void)
 {
-    void *_this = pop_this();
-    const struct Priority_QueueClass *class = offsetOf(classOf(_this), __Priority_QueueClass);
+    void *_self = pop_this();
+    const struct Priority_QueueClass *class = offsetOf(classOf(_self), __Priority_QueueClass);
     assert(class->top);
-    return class->top(_this);
+    return class->top(_self);
 }
 
-static void _push(FormWO_t x)
+static void _push(const void *x)
 {
-    void *_this = pop_this();
-    const struct Priority_QueueClass *class = offsetOf(classOf(_this), __Priority_QueueClass);
+    void *_self = pop_this();
+    const struct Priority_QueueClass *class = offsetOf(classOf(_self), __Priority_QueueClass);
     assert(class->push);
-    class->push(_this, x);
+    class->push(_self, x);
 }
 
 static void _pop(void)
 {
-    void *_this = pop_this();
-    const struct Priority_QueueClass *class = offsetOf(classOf(_this), __Priority_QueueClass);
+    void *_self = pop_this();
+    const struct Priority_QueueClass *class = offsetOf(classOf(_self), __Priority_QueueClass);
     assert(class->push);
-    class->pop(_this);
+    class->pop(_self);
 }
 
 static bool _empty(void)
 {
-    void *_this = pop_this();
-    const struct Priority_QueueClass *class = offsetOf(classOf(_this), __Priority_QueueClass);
+    void *_self = pop_this();
+    const struct Priority_QueueClass *class = offsetOf(classOf(_self), __Priority_QueueClass);
     assert(class->empty);
-    return class->empty(_this);
+    return class->empty(_self);
 }
 
 static size_t _size(void)
 {
-    void *_this = pop_this();
-    const struct Priority_QueueClass *class = offsetOf(classOf(_this), __Priority_QueueClass);
+    void *_self = pop_this();
+    const struct Priority_QueueClass *class = offsetOf(classOf(_self), __Priority_QueueClass);
     assert(class->size);
-    return class->size(_this);
+    return class->size(_self);
 }
 
 static void _swap(Priority_Queue que)
 {
-    void *_this = pop_this();
-    const struct Priority_QueueClass *class = offsetOf(classOf(_this), __Priority_QueueClass);
+    void *_self = pop_this();
+    const struct Priority_QueueClass *class = offsetOf(classOf(_self), __Priority_QueueClass);
     assert(class->swap);
-    class->swap(_this, que);
+    class->swap(_self, que);
 }
