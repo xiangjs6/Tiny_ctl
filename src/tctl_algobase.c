@@ -186,7 +186,7 @@ Iterator copy_backward(Iterator first, Iterator last, Iterator result)
 
 inline static int CompareOpt(const void *a, const void *b, Compare op)
 {
-    if (op != VAEND) {
+    if (op == VAEND) {
         Object obj = (void*)a;
         return THIS(obj).cmp(b);
     } else {

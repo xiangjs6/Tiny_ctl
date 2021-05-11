@@ -50,7 +50,7 @@ int main(void)
     //true false true
     printf("%s\n", equal(THIS(iv1).begin(), THIS(iv1).end(), THIS(iv2).begin(), VAEND) ? "true" : "false");
     printf("%s\n", equal(THIS(iv1).begin(), THIS(iv1).end(), oriPointerIter(ia, 3), VAEND) ? "true" : "false");
-    printf("%s\n", equal(THIS(iv1).begin(), THIS(iv1).end(), oriPointerIter(ia, 3), VA_ANY(TEMP_VAR(void*, &less), NULL)) ? "true" : "false");
+    printf("%s\n", equal(THIS(iv1).begin(), THIS(iv1).end(), oriPointerIter(ia, 3), less) ? "true" : "false");
 
     //fill
     fill(THIS(iv1).begin(), THIS(iv1).end(), VA(9));
@@ -63,6 +63,7 @@ int main(void)
     for (Iterator i = THIS(iv1).begin(); !THIS(i).equal(VA(THIS(iv1).end())); THIS(i).inc()) //7 7 7 9 9
         printf("%lld ", ((Int)THIS(i).derefer())->val);
     putchar('\n');
+    fflush(stdout);
 
     //iter_swap
     Iterator ite1 = THIS(iv1).begin();
