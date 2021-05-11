@@ -355,7 +355,7 @@ static int _iter_cmp(const void *_self, const void *_x)
 {
     assert(classOf(_x) == __VectorIter || classOf(_x) == __RVectorIter);
     struct VectorIter *self;
-    if (classOf(self) == __VectorIter)
+    if (classOf(_self) == __VectorIter)
         self = offsetOf(_self, __VectorIter);
     else
         self = offsetOf(_self, __RVectorIter);
@@ -374,7 +374,7 @@ static int _iter_cmp(const void *_self, const void *_x)
 static void *_iter_brackets(const void *_self, const void *_x)
 {
     const struct VectorIter *self;
-    if (classOf(self) == __VectorIter)
+    if (classOf(_self) == __VectorIter)
         self = offsetOf(_self, __VectorIter);
     else
         self = offsetOf(_self, __RVectorIter);
@@ -393,7 +393,7 @@ static void *_iter_brackets(const void *_self, const void *_x)
 static void _iter_inc(void *_self)
 {
     struct VectorIter *self;
-    if (classOf(self) == __VectorIter)
+    if (classOf(_self) == __VectorIter)
         self = offsetOf(_self, __VectorIter);
     else
         self = offsetOf(_self, __RVectorIter);
@@ -403,7 +403,7 @@ static void _iter_inc(void *_self)
 static void _iter_dec(void *_self)
 {
     struct VectorIter *self;
-    if (classOf(self) == __VectorIter)
+    if (classOf(_self) == __VectorIter)
         self = offsetOf(_self, __VectorIter);
     else
         self = offsetOf(_self, __RVectorIter);
@@ -413,7 +413,7 @@ static void _iter_dec(void *_self)
 static void _iter_self_add(void *_self, const void *_x)
 {
     struct VectorIter *self;
-    if (classOf(self) == __VectorIter)
+    if (classOf(_self) == __VectorIter)
         self = offsetOf(_self, __VectorIter);
     else
         self = offsetOf(_self, __RVectorIter);
@@ -429,7 +429,7 @@ static void _iter_self_add(void *_self, const void *_x)
 static void _iter_self_sub(void *_self, const void *_x)
 {
     struct VectorIter *self;
-    if (classOf(self) == __VectorIter)
+    if (classOf(_self) == __VectorIter)
         self = offsetOf(_self, __VectorIter);
     else
         self = offsetOf(_self, __RVectorIter);
@@ -446,7 +446,7 @@ static void _iter_assign(void *_self, const void *_x)
 {
     assert(classOf(_x) == __VectorIter || classOf(_x) == __RVectorIter);
     struct VectorIter *self;
-    if (classOf(self) == __VectorIter)
+    if (classOf(_self) == __VectorIter)
         self = offsetOf(_self, __VectorIter);
     else
         self = offsetOf(_self, __RVectorIter);
@@ -461,12 +461,12 @@ static void _iter_assign(void *_self, const void *_x)
 static void *_iter_add(const void *_self, const void *_x)
 {
     struct VectorIter *self;
-    if (classOf(self) == __VectorIter)
+    if (classOf(_self) == __VectorIter)
         self = offsetOf(_self, __VectorIter);
     else
         self = offsetOf(_self, __RVectorIter);
     void *mem = ARP_MallocARelDtor(classSz(__VectorIter), destroy);
-    Iterator res = construct(classOf(self), mem, _self, VAEND);
+    Iterator res = construct(classOf(_self), mem, _self, VAEND);
     THIS(res).self_add((void*)_x);
     return res;
 }
@@ -474,12 +474,12 @@ static void *_iter_add(const void *_self, const void *_x)
 static void *_iter_sub(const void *_self, const void *_x)
 {
     struct VectorIter *self;
-    if (classOf(self) == __VectorIter)
+    if (classOf(_self) == __VectorIter)
         self = offsetOf(_self, __VectorIter);
     else
         self = offsetOf(_self, __RVectorIter);
     void *mem = ARP_MallocARelDtor(classSz(__VectorIter), destroy);
-    Iterator res = construct(classOf(self), mem, _self, VAEND);
+    Iterator res = construct(classOf(_self), mem, _self, VAEND);
     THIS(res).self_sub((void*)_x);
     return res;
 }

@@ -63,7 +63,6 @@ int main(void)
     for (Iterator i = THIS(iv1).begin(); !THIS(i).equal(VA(THIS(iv1).end())); THIS(i).inc()) //7 7 7 9 9
         printf("%lld ", ((Int)THIS(i).derefer())->val);
     putchar('\n');
-    fflush(stdout);
 
     //iter_swap
     Iterator ite1 = THIS(iv1).begin();
@@ -90,7 +89,7 @@ int main(void)
     for (Iterator i = THIS(iv2).begin(); !THIS(i).equal(VA(THIS(iv2).end())); THIS(i).inc()) //9 1 2 3 4 5 6 7 8
         printf("%lld ", ((Int)THIS(i).derefer())->val);
     putchar('\n');
-    
+
     //lexicographical_compare
     char *strs[4] = {"Jamie", "JJHou", "Jason", "Jerry"};
     Any anys[4];
@@ -99,7 +98,7 @@ int main(void)
     Any stra1[] = {anys[0], anys[1], anys[2]};
     Any stra2[] = {anys[0], anys[1], anys[3]};
     int res  = lexicographical_compare(oriPointerIter(stra1), oriPointerIter(stra1, 3),
-                                       oriPointerIter(stra2), oriPointerIter(stra2, 3), VA_ANY(TEMP_VAR(void*, strCmp), NULL));
+                                       oriPointerIter(stra2), oriPointerIter(stra2, 3), strCmp);
     printf("%d\n", res); //1
     ARP_FreePool();
     return 0;
