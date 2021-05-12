@@ -39,14 +39,14 @@ static void *_char_ctor(void *_self, va_list *app)
 static bool _char_equal(const void *_self, Char x)
 {
     const struct Char *self = offsetOf(_self, __Char);
-    x = classOf(x) == __Char ? x : THIS(x).cast(__Char);
+    x = THIS(x).cast(__Char);
     return self->val == x->val;
 }
 
 static int _char_cmp(const void *_self, Char x)
 {
     const struct Char *self = offsetOf(_self, __Char);
-    x = classOf(x) == __Char ? x : THIS(x).cast(__Char);
+    x = THIS(x).cast(__Char);
     return self->val - x->val;
 }
 
@@ -65,29 +65,29 @@ static void _char_dec(void *_self)
 static void _char_self_add(void *_self, Char x)
 {
     struct Char *self = offsetOf(_self, __Char);
-    x = classOf(x) == __Char ? x : THIS(x).cast(__Char);
-    self->val += x->val;
+    x = THIS(x).cast(__Char);
+    self->val = (char)(self->val + x->val);
 }
 
 static void _char_self_sub(void *_self, Char x)
 {
     struct Char *self = offsetOf(_self, __Char);
-    x = classOf(x) == __Char ? x : THIS(x).cast(__Char);
-    self->val -= x->val;
+    x = THIS(x).cast(__Char);
+    self->val = (char)(self->val - x->val);
 }
 
 static void _char_assign(void *_self, Char x)
 {
     struct Char *self = offsetOf(_self, __Char);
-    x = classOf(x) == __Char ? x : THIS(x).cast(__Char);
+    x = THIS(x).cast(__Char);
     self->val = x->val;
 }
 
 static void *_char_add(const void *_self, Char x)
 {
     const struct Char *self = offsetOf(_self, __Char);
-    x = classOf(x) == __Char ? VA(x->val) : THIS(x).cast(__Char);
-    x->val += self->val;
+    x = THIS(x).cast(__Char);
+    x->val = (char)(x->val + self->val);
     void *mem = ARP_MallocARelDtor(classSz(__Char), destroy);
     return construct(__Char, mem, x, VAEND);
 }
@@ -95,8 +95,8 @@ static void *_char_add(const void *_self, Char x)
 static void *_char_sub(const void *_self, Char x)
 {
     const struct Char *self = offsetOf(_self, __Char);
-    x = classOf(x) == __Char ? VA(x->val) : THIS(x).cast(__Char);
-    x->val -= self->val;
+    x = THIS(x).cast(__Char);
+    x->val = (char)(x->val - self->val);
     void *mem = ARP_MallocARelDtor(classSz(__Char), destroy);
     return construct(__Char, mem, x, VAEND);
 }
@@ -104,8 +104,8 @@ static void *_char_sub(const void *_self, Char x)
 static void *_char_mul(const void *_self, Char x)
 {
     const struct Char *self = offsetOf(_self, __Char);
-    x = classOf(x) == __Char ? VA(x->val) : THIS(x).cast(__Char);
-    x->val *= self->val;
+    x = THIS(x).cast(__Char);
+    x->val = (char)(x->val * self->val);
     void *mem = ARP_MallocARelDtor(classSz(__Char), destroy);
     return construct(__Char, mem, x, VAEND);
 }
@@ -113,8 +113,8 @@ static void *_char_mul(const void *_self, Char x)
 static void *_char_div(const void *_self, Char x)
 {
     const struct Char *self = offsetOf(_self, __Char);
-    x = classOf(x) == __Char ? VA(x->val) : THIS(x).cast(__Char);
-    x->val = self->val / x->val;
+    x = THIS(x).cast(__Char);
+    x->val = (char)(self->val / x->val);
     void *mem = ARP_MallocARelDtor(classSz(__Char), destroy);
     return construct(__Char, mem, x, VAEND);
 }
@@ -122,8 +122,8 @@ static void *_char_div(const void *_self, Char x)
 static void *_char_mod(const void *_self, Char x)
 {
     const struct Char *self = offsetOf(_self, __Char);
-    x = classOf(x) == __Char ? VA(x->val) : THIS(x).cast(__Char);
-    x->val = self->val % x->val;
+    x = THIS(x).cast(__Char);
+    x->val = (char)(self->val % x->val);
     void *mem = ARP_MallocARelDtor(classSz(__Char), destroy);
     return construct(__Char, mem, x, VAEND);
 }
