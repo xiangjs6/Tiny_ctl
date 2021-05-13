@@ -6,6 +6,7 @@
 #define TINY_CTL_TCTL_ALGO_H
 #include "tctl_def.h"
 #include "../include/tctl_utility.h"
+#include "../include/tctl_heap.h"
 #include "tctl_iterator.h"
 #include "tctl_metaclass.h"
 //Set Operation
@@ -24,11 +25,11 @@ Iterator set_symmetric_difference(Iterator _first1, Iterator _last1,
 //Data Processing 
 Iterator adjacent_find(Iterator _first, Iterator _last, .../*Equal*/);
 
-size_t count(Iterator _first, Iterator _last, FormWO_t val, .../*Equal*/);
+size_t count(Iterator _first, Iterator _last, const void *val, .../*Equal*/);
 
 size_t count_if(Iterator _first, Iterator _last, Predicate pred);
 
-Iterator find(Iterator _first, Iterator _last, FormWO_t val, .../*Equal*/);
+Iterator find(Iterator _first, Iterator _last, const void *val, .../*Equal*/);
 
 Iterator find_if(Iterator _first, Iterator _last, Predicate pred);
 
@@ -57,24 +58,24 @@ Iterator min_element(Iterator _first, Iterator _last, .../*Compare*/);
 
 Iterator partition(Iterator _first, Iterator _last, Predicate pred);
 
-Iterator remove_element(Iterator _first, Iterator _last, FormWO_t val, .../*Equal*/);
+Iterator remove_element(Iterator _first, Iterator _last, const void *val, .../*Equal*/);
 
 Iterator remove_copy(Iterator _first, Iterator _last,
-                     Iterator _result, FormWO_t val, .../*Equal*/);
+                     Iterator _result, const void *val, .../*Equal*/);
 Iterator remove_if(Iterator _first, Iterator _last, Predicate pred);
 
 Iterator remove_copy_if(Iterator _first, Iterator _last,
                         Iterator _result, Predicate pred);
 
-void replace(Iterator _first, Iterator _last, FormWO_t old_val, FormWO_t new_val, .../*Equal*/);
+void replace(Iterator _first, Iterator _last, const void *old_val, const void *new_val, .../*Equal*/);
 
 Iterator replace_copy(Iterator _first, Iterator _last,
-                      Iterator _result, FormWO_t old_val,
-                      FormWO_t new_val, .../*Equal*/);
+                      Iterator _result, const void *old_val,
+                      const void *new_val, .../*Equal*/);
 
-void replace_if(Iterator _first, Iterator _last, Predicate pred, FormWO_t new_val);
+void replace_if(Iterator _first, Iterator _last, Predicate pred, const void *new_val);
 
-Iterator replace_copy_if(Iterator _first, Iterator _last, Iterator _result, Predicate pred, FormWO_t new_val);
+Iterator replace_copy_if(Iterator _first, Iterator _last, Iterator _result, Predicate pred, const void *new_val);
 
 void reverse(Iterator _first, Iterator _last);
 
@@ -87,7 +88,7 @@ Iterator rotate_copy(Iterator _first, Iterator _middle, Iterator _last, Iterator
 Iterator search(Iterator _first1, Iterator _last1,
                 Iterator _first2, Iterator _last2, .../*Equal*/);
 
-Iterator search_n(Iterator _first, Iterator _last, long long count, FormWO_t val, .../*Equal*/);
+Iterator search_n(Iterator _first, Iterator _last, long long count, const void *val, .../*Equal*/);
 
 Iterator swap_ranges(Iterator _first1, Iterator _last1, Iterator _first2);
 
@@ -97,11 +98,11 @@ Iterator unique(Iterator _first, Iterator _last, .../*Equal*/);
 
 Iterator unique_copy(Iterator _first, Iterator _last, Iterator _result, .../*Equal*/);
 
-Iterator lower_bound(Iterator _first, Iterator _last, FormWO_t val, .../*Compare*/);
+Iterator lower_bound(Iterator _first, Iterator _last, const void *val, .../*Compare*/);
 
-Iterator upper_bound(Iterator _first, Iterator _last, FormWO_t val, .../*Compare*/);
+Iterator upper_bound(Iterator _first, Iterator _last, const void *val, .../*Compare*/);
 
-bool binary_search(Iterator _first, Iterator _last, FormWO_t val, .../*Compare*/);
+bool binary_search(Iterator _first, Iterator _last, const void *val, .../*Compare*/);
 
 bool next_permutation(Iterator _first, Iterator _last, .../*Compare*/);
 
@@ -116,7 +117,7 @@ void partial_sort_copy(Iterator _first, Iterator _last,
 
 void sort(Iterator _first, Iterator _last, .../*Compare*/);
 
-Pair equal_range(Iterator _first, Iterator _last, FormWO_t val, .../*Compare*/);
+Pair equal_range(Iterator _first, Iterator _last, const void *val, .../*Compare*/);
 
 void inplace_merge(Iterator _first, Iterator _middle, Iterator _last, .../*Compare*/);
 
