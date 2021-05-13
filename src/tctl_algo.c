@@ -615,6 +615,7 @@ void replace(Iterator _first, Iterator _last, const void *old_val, const void *n
         if (EqualOpt(v, old_val, op))
             AssignOpt(v, new_val);
     }
+    ARP_FreePool();
 }
 
 Iterator replace_copy(Iterator _first, Iterator _last,
@@ -730,7 +731,7 @@ static size_t __gcd(size_t m, size_t n)
 
 static void __rotate_cycle(Iterator _first, Iterator _last, Iterator initial, size_t shift)
 {
-    void *val = construct(classOf(_first), ALLOC(sizeOf(_first)), VAEND);
+    void *val = construct(_first->class, ALLOC(classSz(_first->class)), VAEND);
     AssignOpt(val, THIS(initial).derefer());
     Iterator ptr1 = THIS(initial).ctor(ALLOC(sizeOf(initial)), initial, VAEND);
     Iterator ptr2 = THIS(ptr1).add(VA(shift));
