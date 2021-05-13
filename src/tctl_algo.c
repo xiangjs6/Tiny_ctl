@@ -17,7 +17,7 @@
 
 inline static int CompareOpt(const void *a, const void *b, void *op)
 {
-    if (op != VAEND) {
+    if (op == VAEND) {
         Object obj = (void*)a;
         return THIS(obj).cmp(b);
     } else {
@@ -28,7 +28,7 @@ inline static int CompareOpt(const void *a, const void *b, void *op)
 
 inline static bool EqualOpt(const void *a, const void *b, const void *op)
 {
-    if (op != VAEND) {
+    if (op == VAEND) {
         Object obj = (void*)a;
         return THIS(obj).equal(b);
     } else {
