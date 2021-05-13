@@ -1203,7 +1203,7 @@ static void __unguarded_linear_insert(Iterator _last, const void *val, void *op)
 
 static void __linear_insert(Iterator _first, Iterator _last, void *op)
 {
-    void *val = construct(classOf(_first), ALLOC(sizeOf(_first)), VAEND);
+    void *val = construct(_first->class, ALLOC(classSz(_first->class)), VAEND);
     AssignOpt(val, THIS(_last).derefer());
     if (CompareOpt(THIS(_first).derefer(), val, op) > 0) {
         copy_backward(_first, _last, THIS(_last).add(VA(1)));
@@ -1485,22 +1485,25 @@ void inplace_merge(Iterator _first, Iterator _middle, Iterator _last, ...)
     va_end(ap);
 
     ARP_CreatePool();
-    size_t size = sizeOf(_first);
+    size_t size = classSz(_first->class);
     size_t len1 = distance(_first, _middle);
     size_t len2 = distance(_middle, _last);
     size_t buff_size = (len1 > len2 ? len2 : len1) * size;
     void *buff = get_temporary_buffer(&buff_size);
     buff_size /= size;
-    void **buff_node = malloc(buff_size * sizeof(void*));
-    if (buff_node)
-        for (int i = 0; i < buff_size; i++)
-            buff_node[i] = (char*)buff + i * size;
-    else
-        buff = (free(buff), NULL);
+    void **buff_node;
+    if (buff) {
+        buff_node = malloc(buff_size * sizeof(void *));
+        if (buff_node)
+            for (int i = 0; i < buff_size; i++)
+                buff_node[i] = (char *) buff + i * size;
+        else
+            buff = (free(buff), NULL);
+    }
     if (!buff)
         __merge_without_buff(_first, _middle, _last, len1, len2, op);
     else {
-        __merge_adaptive(_first, _middle, _last, len1, len2, _oriPointerIter_aux(classOf(_first), buff_node, 0), buff_size, op);
+        __merge_adaptive(_first, _middle, _last, len1, len2, _oriPointerIter_aux(_first->class, buff_node, 0), buff_size, op);
         free(buff_node);
         free(buff);
     }
