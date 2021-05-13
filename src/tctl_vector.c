@@ -460,11 +460,6 @@ static void _iter_assign(void *_self, const void *_x)
 
 static void *_iter_add(const void *_self, const void *_x)
 {
-    struct VectorIter *self;
-    if (classOf(_self) == __VectorIter)
-        self = offsetOf(_self, __VectorIter);
-    else
-        self = offsetOf(_self, __RVectorIter);
     void *mem = ARP_MallocARelDtor(classSz(__VectorIter), destroy);
     Iterator res = construct(classOf(_self), mem, _self, VAEND);
     THIS(res).self_add((void*)_x);
@@ -473,11 +468,6 @@ static void *_iter_add(const void *_self, const void *_x)
 
 static void *_iter_sub(const void *_self, const void *_x)
 {
-    struct VectorIter *self;
-    if (classOf(_self) == __VectorIter)
-        self = offsetOf(_self, __VectorIter);
-    else
-        self = offsetOf(_self, __RVectorIter);
     void *mem = ARP_MallocARelDtor(classSz(__VectorIter), destroy);
     Iterator res = construct(classOf(_self), mem, _self, VAEND);
     THIS(res).self_sub((void*)_x);
@@ -487,7 +477,7 @@ static void *_iter_sub(const void *_self, const void *_x)
 static void *_iter_derefer(const void *_self)
 {
     struct VectorIter *self;
-    if (classOf(self) == __VectorIter)
+    if (classOf(_self) == __VectorIter)
         self = offsetOf(_self, __VectorIter);
     else
         self = offsetOf(_self, __RVectorIter);

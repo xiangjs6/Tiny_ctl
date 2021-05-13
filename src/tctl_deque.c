@@ -219,20 +219,6 @@ const void *_DequeClass(void)
     return __DequeClass;
 }
 
-static const void *_DequeIter(void)
-{
-    if (!__DequeIter)
-        initDeque();
-    return __DequeIter;
-}
-
-static const void *_RDequeIter(void)
-{
-    if (!__RDequeIter)
-        initDeque();
-    return __RDequeIter;
-}
-
 //private
 static void extend_map(struct Deque *self)
 {

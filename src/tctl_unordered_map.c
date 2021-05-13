@@ -195,7 +195,7 @@ static void *_unordered_map_ctor(void *_self, va_list *app)
         Any hash = t;
         t = va_arg(*app, void*);
         Any get_val;
-        if (t == VAEND && classOf(t) == T(Any))
+        if (t != VAEND && classOf(t) == T(Any))
             get_val = t;
         else
             get_val = VA_ANY(TEMP_VAR(void*, &_get_val), NULL);

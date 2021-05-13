@@ -13,7 +13,7 @@ int main(void)
     for (int i = 0; i < 10; i++)
         array[i] = new(T(Int), VA(i), VAEND);
     Iterator start = oriPointerIter(array);
-    for (; !THIS(start).equal(oriPointerIter(array, sizeof(array) / sizeof(int))); THIS(start).inc())
+    for (; !THIS(start).equal(oriPointerIter(array, sizeof(array) / sizeof(Int))); THIS(start).inc())
         printf("%lld ", ((Int)THIS(start).derefer())->val);
     putchar('\n');
 

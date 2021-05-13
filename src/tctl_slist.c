@@ -185,13 +185,6 @@ const void *_SlistClass(void)
     return __SlistClass;
 }
 
-static const void *_SlistIter(void)
-{
-    if (!__SlistIter)
-        initSlist();
-    return __SlistIter;
-}
-
 //private
 static void _deal_Slist_Args(void *_self, MetaObject *args, int n)
 {
