@@ -96,7 +96,7 @@ static struct mem_node *pop(struct Rel_page **cur_page, struct mem_node ***next)
     struct mem_node *p = **next;
     if (STACK(**cur_page) == *next) {
         *cur_page = destory_page(*cur_page);
-        *next = *cur_page ? (void*)(*cur_page)->pad + PAGE_SIZE : NULL;
+        *next = *cur_page ? (void*)((char*)(*cur_page)->pad + PAGE_SIZE) : NULL;
     }
     return p;
 }
