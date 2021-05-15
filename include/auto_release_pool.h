@@ -12,12 +12,12 @@ void ARP_CreatePool(void);
 //! release the pool and all its block reference
 void ARP_FreePool(void);
 //! get number of memory blocks referenced by this pool
-int ARP_GetPoolNodesCount(void);
+unsigned int ARP_GetPoolNodesCount(void);
 //! get number of pools
-int ARP_GetPoolsCount(void);
+unsigned int ARP_GetPoolsCount(void);
 
 //! decrement reference count by 1
-int ARP_Release(void *pMemLoc);
+unsigned int ARP_Release(void *pMemLoc);
 //! increment reference count by 1
 void *ARP_Retain(void *pMemLoc);
 //! join and exit memory in release pool

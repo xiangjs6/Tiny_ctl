@@ -11,12 +11,14 @@
 
 #define GUARD NULL
 #define PAGE_SIZE 4096
+
+#define BLOCK(node) ((char*)(&(node)) + sizeof(struct mem_node))
+#define UNBLOCK(block) ((char*)block - sizeof(struct mem_node))
 struct mem_node {
     size_t refCount;
     size_t size;
     dtorfunc_t dtor_func;
     struct mem_node **p_pool_node;
-    char block[0];
 };
 
 struct Rel_pool {
@@ -24,11 +26,11 @@ struct Rel_pool {
     size_t node_size;
 };
 
+#define STACK(page) (struct mem_node **)((char*)(&(page).pre) + sizeof((page).pre))
 struct Rel_page {
     union {
         struct {
             struct Rel_page * const pre;
-            struct mem_node *stack[0];
         };
         char pad[PAGE_SIZE];
     };
@@ -78,7 +80,7 @@ static struct mem_node **push(void *p, struct Rel_page **cur_page, struct mem_no
 {
     if (!*cur_page || !*next || (*cur_page)->pad + PAGE_SIZE == (void*)*next) {
         *cur_page = creat_page(*cur_page);
-        *next = (void*)(*cur_page)->stack;
+        *next = STACK(**cur_page);
     }
     struct mem_node **old_next = *next;
     **next = p;
@@ -92,7 +94,7 @@ static struct mem_node *pop(struct Rel_page **cur_page, struct mem_node ***next)
         return NULL;
     (*(next))--;
     struct mem_node *p = **next;
-    if ((*cur_page)->stack == (void*)*next) {
+    if (STACK(**cur_page) == *next) {
         *cur_page = destory_page(*cur_page);
         *next = *cur_page ? (void*)(*cur_page)->pad + PAGE_SIZE : NULL;
     }
@@ -156,14 +158,14 @@ void ARP_FreePool(void)
     {
         if (node->p_pool_node == old_next - 1)
             node->p_pool_node = NULL;
-        ARP_Release(node->block);
+        ARP_Release(BLOCK(*node));
         old_next = p_pool_thread->next;
     }
     p_pool_thread->cur_pool = destory_pool(p_pool_thread->cur_pool);
     p_pool_thread->pool_size--;
 }
 
-int ARP_GetPoolNodesCount(void)
+unsigned int ARP_GetPoolNodesCount(void)
 {
     pthread_once(&thread_once, make_thread_key);
     struct Rel_thread *p_pool_thread = get_thread_pool();
@@ -172,19 +174,19 @@ int ARP_GetPoolNodesCount(void)
     return p_pool_thread->cur_pool->node_size;
 }
 
-int ARP_GetPoolsCount(void)
+unsigned int ARP_GetPoolsCount(void)
 {
     pthread_once(&thread_once, make_thread_key);
     struct Rel_thread *p_pool_thread = get_thread_pool();
     return p_pool_thread->pool_size;
 }
 
-int ARP_Release(void *pMemLoc)
+unsigned int ARP_Release(void *pMemLoc)
 {
-    struct mem_node *node = container_of(pMemLoc, struct mem_node, block);
+    struct mem_node *node = (void*)UNBLOCK(pMemLoc);
     if(!--node->refCount) {
         if (node->dtor_func)
-            node->dtor_func(node->block);
+            node->dtor_func(BLOCK(*node));
         //deallocate(node, node->size);
         free(node);
         return 0;
@@ -196,7 +198,7 @@ void *ARP_Retain(void *pMemLoc)
 {
     pthread_once(&thread_once, make_thread_key);
     //struct Rel_thread *p_pool_thread = get_thread_pool();
-    struct mem_node *node = container_of(pMemLoc, struct mem_node, block);
+    struct mem_node *node = (void*)UNBLOCK(pMemLoc);
     node->refCount++;
     return pMemLoc;
 }
@@ -207,7 +209,7 @@ int ARP_JoinARel(void *pMemLoc)
     struct Rel_thread *p_pool_thread = get_thread_pool();
     if (!p_pool_thread->pool_size)
         exit_log("There is no memory pool available\n");
-    struct mem_node *node = container_of(pMemLoc, struct mem_node, block);
+    struct mem_node *node = (void*)UNBLOCK(pMemLoc);
     if (node->p_pool_node)
         return -1;
     node->p_pool_node = push(node, &p_pool_thread->cur_page, &p_pool_thread->next);
@@ -217,7 +219,7 @@ int ARP_JoinARel(void *pMemLoc)
 
 int ARP_ExitARel(void *pMemLoc)
 {
-    struct mem_node *node = container_of(pMemLoc, struct mem_node, block);
+    struct mem_node *node = (void*)UNBLOCK(pMemLoc);
     if (!node->p_pool_node)
         return -1;
     node->p_pool_node = NULL;
@@ -248,7 +250,7 @@ void *ARP_MallocDtor(size_t len, dtorfunc_t dtorFunc)
     node->dtor_func = dtorFunc;
     node->p_pool_node = NULL;
     node->refCount = 1;
-    return node->block;
+    return BLOCK(*node);
 }
 
 void *ARP_CallocARel(size_t num, size_t size)
@@ -277,13 +279,13 @@ void *ARP_Realloc(void *pMemLoc, size_t size)
 {
     if (!pMemLoc)
         return ARP_Malloc(size);
-    struct mem_node *node = container_of(pMemLoc, struct mem_node, block);
+    struct mem_node *node = (void*)UNBLOCK(pMemLoc);
     //node = reallocate(node, node->size, size + sizeof(struct mem_node));
     node = realloc(node, size + sizeof(struct mem_node));
     node->size = size + sizeof(struct mem_node);
     if (node->p_pool_node)
         *node->p_pool_node = node;
-    return node->block;
+    return BLOCK(*node);
 }
 
 void *ARP_Return(void *pMemLoc)
