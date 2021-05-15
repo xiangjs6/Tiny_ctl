@@ -12,6 +12,7 @@
 
 typedef long long offset_t;
 
+typedef void (*voidf)(void);	/* generic function pointer */
 typedef int (*Compare)(const void *, const void *);
 typedef bool (*Equal)(const void *, const void *);
 typedef bool (*Predicate)(const void *);

@@ -71,7 +71,7 @@ static void _unordered_multimap_swap(void *_self, Unordered_MultiMap _s);
 static const void *__Unordered_MultiMap = NULL;
 static const void *__Unordered_MultiMapClass = NULL;
 volatile static struct Unordered_MultiMapSelector Unordered_MultiMapS = {
-    {},
+    {0},
     _begin,
     _end,
     _size,
@@ -153,8 +153,8 @@ static void *_unordered_multimapclass_ctor(void *_self, va_list *app)
     voidf selector;
     va_list ap;
     va_copy(ap, *app);
-    voidf *begin = (void*)&Unordered_MultiMapS + sizeof(Unordered_MultiMapS._);
-    voidf *end = (void*)&Unordered_MultiMapS + sizeof(Unordered_MultiMapS);
+    voidf *begin = (void*)((char*)&Unordered_MultiMapS + sizeof(Unordered_MultiMapS._));
+    voidf *end = (void*)((char*)&Unordered_MultiMapS + sizeof(Unordered_MultiMapS));
     voidf *self_begin = (void*)self;
     while ((selector = va_arg(ap, voidf)))
     {
@@ -198,7 +198,7 @@ static void *_unordered_multimap_ctor(void *_self, va_list *app)
         if (t == VAEND && classOf(t) == T(Any))
             get_val = t;
         else
-            get_val = VA_ANY(TEMP_VAR(void*, &_get_val), NULL);
+            get_val = VA_ANY(TEMP_VAR(voidf, &_get_val), NULL);
         construct(T(Hashtable), self->c, T(Pair), equal, hash, get_val, VAEND);
         if (t == VAEND)
             return _self;
@@ -401,7 +401,7 @@ static void _reserve(size_t x)
     void *_self = pop_this();
     const struct Unordered_MultiMapClass *class = offsetOf(classOf(_self), __Unordered_MultiMapClass);
     assert(class->reserve);
-    return class->reserve(_self, x);
+    class->reserve(_self, x);
 }
 
 static void _clear(void)

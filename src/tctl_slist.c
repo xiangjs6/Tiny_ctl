@@ -101,7 +101,7 @@ static const void *__SlistIter = NULL;
 static const void *__Slist = NULL;
 static const void *__SlistClass = NULL;
 volatile static struct SlistSelector SlistS = {
-    {},
+    {0},
     _begin,
     _end,
     _front,
@@ -284,8 +284,8 @@ static void *_slistclass_ctor(void *_self, va_list *app)
     voidf selector;
     va_list ap;
     va_copy(ap, *app);
-    voidf *begin = (void*)&SlistS + sizeof(SlistS._);
-    voidf *end = (void*)&SlistS + sizeof(SlistS);
+    voidf *begin = (void*)((char*)&SlistS + sizeof(SlistS._));
+    voidf *end = (void*)((char*)&SlistS + sizeof(SlistS));
     voidf *self_begin = (void*)self;
     while ((selector = va_arg(ap, voidf)))
     {
@@ -309,7 +309,7 @@ static void *_slist_ctor(void *_self, va_list *app)
     struct Slist *self = offsetOf(_self, __Slist);
     self->class = va_arg(*app, void*);
     self->_head.nxt = NULL;
-    MetaObject args[2];
+    MetaObject args[2] = {VAEND, VAEND};
     void *t;
     int i = 0;
     while ((t = va_arg(*app, void*)) != VAEND)

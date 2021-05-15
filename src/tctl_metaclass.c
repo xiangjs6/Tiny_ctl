@@ -5,6 +5,7 @@
 #include "../include/tctl_allocator.h"
 #include "../include/tctl_portable.h"
 #include "../include/auto_release_pool.h"
+#include "../include/tctl_def.h"
 #include "include/_tctl_metaclass.h"
 #include <stdarg.h>
 #include <stdlib.h>

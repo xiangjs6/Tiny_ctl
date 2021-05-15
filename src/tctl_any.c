@@ -3,8 +3,9 @@
 #include <stdlib.h>
 #include "../include/tctl_arg.h"
 #include "../include/tctl_any.h"
-#include "include/_tctl_metaclass.h"
+#include "../include/tctl_def.h"
 #include "../include/auto_release_pool.h"
+#include "include/_tctl_metaclass.h"
 
 #define Import METAOBJECT, METACLASS, ANY
 

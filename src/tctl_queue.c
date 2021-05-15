@@ -46,7 +46,7 @@ static size_t _queue_size(void *_self);
 static const void *__Queue = NULL;
 static const void *__QueueClass = NULL;
 volatile static struct QueueSelector QueueS = {
-    {},
+    {0},
     _front,
     _back,
     _push,
@@ -105,8 +105,8 @@ static void *_queueclass_ctor(void *_self, va_list *app)
     voidf selector;
     va_list ap;
     va_copy(ap, *app);
-    voidf *begin = (void*)&QueueS + sizeof(QueueS._);
-    voidf *end = (void*)&QueueS + sizeof(QueueS);
+    voidf *begin = (void*)((char*)&QueueS + sizeof(QueueS._));
+    voidf *end = (void*)((char*)&QueueS + sizeof(QueueS));
     voidf *self_begin = (void*)self;
     while ((selector = va_arg(ap, voidf)))
     {

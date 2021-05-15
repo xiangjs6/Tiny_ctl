@@ -63,7 +63,7 @@ static void _multimap_swap(void *_self, MultiMap _s);
 static const void *__MultiMap = NULL;
 static const void *__MultiMapClass = NULL;
 volatile static struct MultiMapSelector MultiMapS = {
-    {},
+    {0},
     _begin,
     _end,
     _size,
@@ -130,8 +130,8 @@ static void *_multimapclass_ctor(void *_self, va_list *app)
     voidf selector;
     va_list ap;
     va_copy(ap, *app);
-    voidf *begin = (void*)&MultiMapS + sizeof(MultiMapS._);
-    voidf *end = (void*)&MultiMapS + sizeof(MultiMapS);
+    voidf *begin = (void*)((char*)&MultiMapS + sizeof(MultiMapS._));
+    voidf *end = (void*)((char*)&MultiMapS + sizeof(MultiMapS));
     voidf *self_begin = (void*)self;
     while ((selector = va_arg(ap, voidf)))
     {

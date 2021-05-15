@@ -70,7 +70,7 @@ static void _unordered_multiset_swap(void *_self, Unordered_MultiSet _s);
 static const void *__Unordered_MultiSet = NULL;
 static const void *__Unordered_MultiSetClass = NULL;
 volatile static struct Unordered_MultiSetSelector Unordered_MultiSetS = {
-    {},
+    {0},
     _begin,
     _end,
     _size,
@@ -150,8 +150,8 @@ static void *_unordered_multisetclass_ctor(void *_self, va_list *app)
     voidf selector;
     va_list ap;
     va_copy(ap, *app);
-    voidf *begin = (void*)&Unordered_MultiSetS + sizeof(Unordered_MultiSetS._);
-    voidf *end = (void*)&Unordered_MultiSetS + sizeof(Unordered_MultiSetS);
+    voidf *begin = (void*)((char*)&Unordered_MultiSetS + sizeof(Unordered_MultiSetS._));
+    voidf *end = (void*)((char*)&Unordered_MultiSetS + sizeof(Unordered_MultiSetS));
     voidf *self_begin = (void*)self;
     while ((selector = va_arg(ap, voidf)))
     {

@@ -5,7 +5,6 @@
 #ifndef TINY_CTL__TCTL_METACLASS_H
 #define TINY_CTL__TCTL_METACLASS_H
 #include "../../include/tctl_metaclass.h"
-typedef void (*voidf)();	/* generic function pointer */
 
 void *super_ctor(const void *class, void *this, va_list *app);
 void *super_dtor(const void *class, void *this);
