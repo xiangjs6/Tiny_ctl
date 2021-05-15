@@ -432,7 +432,7 @@ int test_deque_1()
 
 
     { // deque::operator[]: Returns a reference to the element at position n in the deque container
-        Deque mydeque = new(T(Deque), T(Int), VA(10));
+        Deque mydeque = new(T(Deque), T(Int), VA(10), VAEND);
         size_t sz = THIS(mydeque).size();
      
         // assign some values:
