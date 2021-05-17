@@ -5,11 +5,8 @@
 3. 将this全面改为self
 ## 编译使用
 ```shell
-cd src
 make
-cd ../example
-make
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/../lib
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/lib
 ```
 ## 说明
 1. 自行调用对象的构造函数和construct时需要在末尾添加VAEND，new函数会自行添加
