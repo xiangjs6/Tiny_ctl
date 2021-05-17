@@ -12,7 +12,7 @@
 
 static inline void *AddOpt(void *first, void *second, BinaryOperation op)
 {
-    if (op == VAEND) {
+    if (op == *(BinaryOperation*)&VAEND) {
         Object obj = first;
         return THIS(obj).add(second);
     } else {
@@ -22,7 +22,7 @@ static inline void *AddOpt(void *first, void *second, BinaryOperation op)
 
 static inline void *SubOpt(void *first, void *second, BinaryOperation op)
 {
-    if (op == VAEND) {
+if (op == *(BinaryOperation*)&VAEND) {
         Object obj = first;
         return THIS(obj).sub(second);
     } else {
@@ -32,7 +32,7 @@ static inline void *SubOpt(void *first, void *second, BinaryOperation op)
 
 static inline void *MulOpt(void *first, void *second, BinaryOperation op)
 {
-    if (op == VAEND) {
+    if (op == *(BinaryOperation*)&VAEND) {
         Object obj = first;
         return THIS(obj).mul(second);
     } else {
@@ -58,7 +58,7 @@ void *accumulate(Iterator _first, Iterator _last, const void *init, ...)
     va_end(ap);
     for (; !THIS(first).equal(last); THIS(first).inc()) {
         void *val = THIS(first).derefer();
-        ret = AddOpt(ret, val, t);
+        ret = AddOpt(ret, val, *(BinaryOperation*)&t);
     }
     return ARP_Return(ret);
 }
@@ -82,7 +82,7 @@ Iterator adjacent_difference(Iterator _first, Iterator _last, Iterator _result, 
               THIS(first).derefer());
     void *pre_val = THIS(first).derefer(); //相当于指向first的内容
     for(THIS(first).inc(), THIS(res).inc(); !THIS(first).equal(last); THIS(first).inc(), THIS(res).inc()) {
-        void *tmp = SubOpt(THIS(first).derefer(), pre_val, op);
+        void *tmp = SubOpt(THIS(first).derefer(), pre_val, *(BinaryOperation*)&op);
         AssignOpt(THIS(res).derefer(), tmp);
         pre_val = THIS(first).derefer();
     }
@@ -108,8 +108,8 @@ void *inner_product(Iterator _first1, Iterator _last1, Iterator _first2, const v
 
     for (; !THIS(first1).equal(last1); THIS(first1).inc(), THIS(first2).inc()) {
         void *tmp = MulOpt(THIS(first1).derefer(),
-                           THIS(first2).derefer(), vargs[Mul]);
-        ret = AddOpt(ret, tmp, vargs[Add]);
+                           THIS(first2).derefer(), *(BinaryOperation*)&vargs[Mul]);
+        ret = AddOpt(ret, tmp, *(BinaryOperation*)&vargs[Add]);
     }
 
     return ARP_Return(ret);
@@ -133,7 +133,7 @@ Iterator partial_sum(Iterator _first, Iterator _last, Iterator _result, ...)
     AssignOpt(THIS(res).derefer(), THIS(first).derefer());
     void *pre_val = THIS(first).derefer();
     for(THIS(first).inc(), THIS(res).inc(); !THIS(first).equal(last); THIS(first).inc(), THIS(res).inc()) {
-        void *tmp = AddOpt(THIS(first).derefer(), pre_val, op);
+        void *tmp = AddOpt(THIS(first).derefer(), pre_val, *(BinaryOperation*)&op);
         AssignOpt(THIS(res).derefer(), tmp);
         pre_val = THIS(first).derefer();
     }
@@ -157,7 +157,7 @@ void iota(Iterator _first, Iterator _last, const void *_x, ...)
     while (!THIS(first).equal(last))
     {
         AssignOpt(THIS(first).derefer(), x);
-        x = AddOpt(x, VA(1), op);
+        x = AddOpt(x, VA(1), *(BinaryOperation*)&op);
     }
     ARP_FreePool();
 }

@@ -31,7 +31,7 @@ static long long _dist(Iterator it);
 static Iterator _reverse_iterator(void);
 //init
 volatile static struct IteratorSelector IteratorS = {
-        {},
+        {0},
         _derefer,
         _dist,
         _reverse_iterator
@@ -109,7 +109,7 @@ static void *_class_ctor(void *_self, va_list *app)
     voidf selector;
     while ((selector = va_arg(ap, voidf)))
     {
-        voidf method = va_arg(ap, voidf);
+        void *method = va_arg(ap, void*);
         if (selector == (voidf)IteratorS.derefer)
             *(void**)&self->derefer = method;
         else if (selector == (voidf)IteratorS.dist)

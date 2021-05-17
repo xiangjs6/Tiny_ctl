@@ -150,9 +150,9 @@ static void *_unordered_multisetclass_ctor(void *_self, va_list *app)
     voidf selector;
     va_list ap;
     va_copy(ap, *app);
-    voidf *begin = (void*)((char*)&Unordered_MultiSetS + sizeof(Unordered_MultiSetS._));
-    voidf *end = (void*)((char*)&Unordered_MultiSetS + sizeof(Unordered_MultiSetS));
-    voidf *self_begin = (void*)self;
+    voidf *begin = (voidf*)((char*)&Unordered_MultiSetS + sizeof(Unordered_MultiSetS._));
+    voidf *end = (voidf*)((char*)&Unordered_MultiSetS + sizeof(Unordered_MultiSetS));
+    voidf *self_begin = (voidf*)self;
     while ((selector = va_arg(ap, voidf)))
     {
         voidf method = va_arg(ap, voidf);
@@ -189,7 +189,7 @@ static void *_unordered_multiset_ctor(void *_self, va_list *app)
         if (t != VAEND && classOf(t) == T(Any))
             get_val = t;
         else
-            get_val = VA_ANY(TEMP_VAR(void*, &_get_val), NULL);
+            get_val = VA_ANY(TEMP_VAR(ExtractKey, &_get_val), NULL);
         construct(T(Hashtable), self->c, class, equal, hash, get_val, VAEND);
         if (t == VAEND)
             return _self;
@@ -386,7 +386,7 @@ static void _reserve(size_t x)
     void *_self = pop_this();
     const struct Unordered_MultiSetClass *class = offsetOf(classOf(_self), __Unordered_MultiSetClass);
     assert(class->reserve);
-    return class->reserve(_self, x);
+    class->reserve(_self, x);
 }
 
 static void _clear(void)

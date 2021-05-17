@@ -356,7 +356,7 @@ static void *_iter_brackets(const void *_self, const void *_x)
         long long node_index = x->val / buf_size + 1;
         void **node = self->map_node + node_index;
         x->val %= buf_size;
-        return *node + x->val * memb_size;
+        return (char*)*node + x->val * memb_size;
     } else {
         if (-x->val < front_len)
             return (char*)self->cur + memb_size * x->val;
@@ -415,7 +415,7 @@ static void _iter_self_add(void *_self, const void *_x)
         x = ((Int)_x)->val;
     else
         x = ((Int)THIS((MetaObject)_x).cast(T(Int)))->val;
-    long long offset = x + (self->cur - self->first) / memb_size;
+    long long offset = x + ((char*)self->cur - (char*)self->first) / memb_size;
     if (offset >= 0 && offset < buf_size) {
         self->cur = (char*)self->cur + memb_size * x;
     } else {
@@ -505,9 +505,9 @@ static void *_dequeclass_ctor(void *_self, va_list *app)
     voidf selector;
     va_list ap;
     va_copy(ap, *app);
-    voidf *begin = (void*)&DequeS + sizeof(DequeS._);
-    voidf *end = (void*)&DequeS + sizeof(DequeS);
-    voidf *self_begin = (void*)self;
+    voidf *begin = (voidf*)((char*)&DequeS + sizeof(DequeS._));
+    voidf *end = (voidf*)((char*)&DequeS + sizeof(DequeS));
+    voidf *self_begin = (voidf*)self;
     while ((selector = va_arg(ap, voidf)))
     {
         voidf method = va_arg(ap, voidf);
@@ -542,7 +542,7 @@ static void *_deque_ctor(void *_self, va_list *app)
     self->finish = self->start;
 
     void *t;
-    MetaObject args[2];
+    MetaObject args[2] = {VAEND, VAEND};
     int i = 0;
     while ((t = va_arg(*app, void*)) != VAEND)
     {
@@ -590,8 +590,8 @@ static const void *_deque_back(const void *_self)
     struct Deque *self = offsetOf(_self, __Deque);
     size_t memb_size = classSz(self->class);
     if (self->finish.cur == self->finish.first)
-        return *(self->finish.map_node - 1) + (self->buf_size - 1) * memb_size;
-    return self->finish.cur - memb_size;
+        return (char*)(*(self->finish.map_node - 1)) + (self->buf_size - 1) * memb_size;
+    return (char*)self->finish.cur - memb_size;
 }
 
 static size_t _deque_size(const void *_self)
@@ -603,7 +603,8 @@ static size_t _deque_size(const void *_self)
     if (start->map_node == finish->map_node)
         return ((char*)finish->cur - (char*)start->cur) / memb_size;
     size_t block_diff = finish->map_node - start->map_node - 1;
-    long long res = finish->cur - finish->first + start->last - start->cur;
+    long long res = (char*)finish->cur - (char*)finish->first +
+                    (char*)start->last - (char*)start->cur;
     return res / memb_size + block_diff * self->buf_size;
 }
 
@@ -801,7 +802,7 @@ static void *_deque_brackets(const void *_self, const void *_x)
     long long node_index = x / self->buf_size + 1;
     void **node = start->map_node + node_index;
     x %= self->buf_size;
-    return *node + x * memb_size;
+    return (char*)*node + x * memb_size;
 }
 
 //selector
@@ -858,7 +859,7 @@ static void _push_back(const void *x)
     void *_self = pop_this();
     const struct DequeClass *class = offsetOf(classOf(_self), __DequeClass);
     assert(class->push_back);
-    return class->push_back(_self, x);
+    class->push_back(_self, x);
 }
 
 static void _push_front(const void *x)
@@ -866,7 +867,7 @@ static void _push_front(const void *x)
     void *_self = pop_this();
     const struct DequeClass *class = offsetOf(classOf(_self), __DequeClass);
     assert(class->push_front);
-    return class->push_front(_self, x);
+    class->push_front(_self, x);
 }
 
 static void _pop_back(void)

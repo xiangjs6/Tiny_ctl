@@ -63,7 +63,7 @@ static void _map_swap(void *_self, Map _s);
 static const void *__Map = NULL;
 static const void *__MapClass = NULL;
 volatile static struct MapSelector MapS = {
-    {},
+    {0},
     _begin,
     _end,
     _size,
@@ -130,9 +130,9 @@ static void *_mapclass_ctor(void *_self, va_list *app)
     voidf selector;
     va_list ap;
     va_copy(ap, *app);
-    voidf *begin = (void*)&MapS + sizeof(MapS._);
-    voidf *end = (void*)&MapS + sizeof(MapS);
-    voidf *self_begin = (void*)self;
+    voidf *begin = (voidf*)((char*)&MapS + sizeof(MapS._));
+    voidf *end = (voidf*)((char*)&MapS + sizeof(MapS));
+    voidf *self_begin = (voidf*)self;
     while ((selector = va_arg(ap, voidf)))
     {
         voidf method = va_arg(ap, voidf);

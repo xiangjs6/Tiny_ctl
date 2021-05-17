@@ -70,7 +70,7 @@ static void _unordered_set_swap(void *_self, Unordered_Set _s);
 static const void *__Unordered_Set = NULL;
 static const void *__Unordered_SetClass = NULL;
 volatile static struct Unordered_SetSelector Unordered_SetS = {
-    {},
+    {0},
     _begin,
     _end,
     _size,
@@ -150,9 +150,9 @@ static void *_unordered_setclass_ctor(void *_self, va_list *app)
     voidf selector;
     va_list ap;
     va_copy(ap, *app);
-    voidf *begin = (void*)&Unordered_SetS + sizeof(Unordered_SetS._);
-    voidf *end = (void*)&Unordered_SetS + sizeof(Unordered_SetS);
-    voidf *self_begin = (void*)self;
+    voidf *begin = (voidf*)((char*)&Unordered_SetS + sizeof(Unordered_SetS._));
+    voidf *end = (voidf*)((char*)&Unordered_SetS + sizeof(Unordered_SetS));
+    voidf *self_begin = (voidf*)self;
     while ((selector = va_arg(ap, voidf)))
     {
         voidf method = va_arg(ap, voidf);
@@ -189,7 +189,7 @@ static void *_unordered_set_ctor(void *_self, va_list *app)
         if (t != VAEND && classOf(t) == T(Any))
             get_val = t;
         else
-            get_val = VA_ANY(TEMP_VAR(void*, &_get_val), NULL);
+            get_val = VA_ANY(TEMP_VAR(ExtractKey, &_get_val), NULL);
         construct(T(Hashtable), self->c, class, equal, hash, get_val, VAEND);
         if (t == VAEND)
             return _self;
@@ -386,7 +386,7 @@ static void _reserve(size_t x)
     void *_self = pop_this();
     const struct Unordered_SetClass *class = offsetOf(classOf(_self), __Unordered_SetClass);
     assert(class->reserve);
-    return class->reserve(_self, x);
+    class->reserve(_self, x);
 }
 
 static void _clear(void)

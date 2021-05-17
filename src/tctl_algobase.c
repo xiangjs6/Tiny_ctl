@@ -181,7 +181,7 @@ Iterator copy_backward(Iterator first, Iterator last, Iterator result)
 
 inline static int CompareOpt(const void *a, const void *b, Compare op)
 {
-    if (op == VAEND) {
+    if (op == *(Compare*)&VAEND) {
         Object obj = (void*)a;
         return THIS(obj).cmp(b);
     } else {
@@ -207,7 +207,7 @@ bool equal(Iterator _first1, Iterator _last1, Iterator _first2, .../*Compare*/)
     va_end(ap);
     for (; !THIS(first1).equal(VA(_last1)); THIS(first1).inc(), THIS(first2).inc())
         if (CompareOpt(THIS(first1).derefer(),
-                       THIS(first2).derefer(), op)) {
+                       THIS(first2).derefer(), *(Compare*)&op)) {
             ARP_FreePool();
             return false;
         }
@@ -268,7 +268,7 @@ bool lexicographical_compare(Iterator _first1, Iterator _last1, Iterator _first2
            !THIS(first2).equal(VA(_last2));
            THIS(first1).inc(), THIS(first2).inc()) {
         int res = CompareOpt(THIS(first1).derefer(),
-                             THIS(first2).derefer(), op);
+                             THIS(first2).derefer(), *(Compare*)&op);
         if (res < 0) {
             ARP_FreePool();
             return true;
@@ -290,7 +290,7 @@ void *max(const void *a, const void *b, .../*Compare*/)
     void *op = va_arg(ap, void *);
     va_end(ap);
 
-    int res = CompareOpt(a, b, op);
+    int res = CompareOpt(a, b, *(Compare*)&op);
     if (res > 0)
         return (void*)a;
     else
@@ -305,7 +305,7 @@ void *min(const void *a, const void *b, .../*Compare*/)
     void *op = va_arg(ap, void*);
     va_end(ap);
 
-    int res = CompareOpt(a, b, op);
+    int res = CompareOpt(a, b, *(Compare*)&op);
     if (res < 0)
         return (void*)a;
     else
@@ -326,7 +326,7 @@ Pair mismatch(Iterator _first1, Iterator _last1, Iterator _first2, .../*Compare*
 
     for (; !THIS(first1).equal(VA(_last1)); THIS(first1).inc(), THIS(first2).inc()) {
         int res = CompareOpt(THIS(first1).derefer(),
-                             THIS(first2).derefer(), op);
+                             THIS(first2).derefer(), *(Compare*)&op);
         if (res)
             break;
     }

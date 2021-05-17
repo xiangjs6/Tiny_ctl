@@ -21,7 +21,7 @@ inline static int CompareOpt(const void *a, const void *b, void *op)
         Object obj = (void*)a;
         return THIS(obj).cmp(b);
     } else {
-        Compare cmp = op;
+        Compare cmp = *(Compare*)&op;
         return cmp(a, b);
     }
 }
@@ -32,7 +32,7 @@ inline static bool EqualOpt(const void *a, const void *b, const void *op)
         Object obj = (void*)a;
         return THIS(obj).equal(b);
     } else {
-        Equal eq = op;
+        Equal eq = *(Equal*)&op;
         return eq(a, b);
     }
 }
@@ -1264,7 +1264,7 @@ static void __introsort_loop(Iterator _first, Iterator _last, size_t depth_limit
     while (dis > __sort_threshold)
     {
         if (depth_limit == 0) {
-            partial_sort(_first, _last, _last, op); //这个cmp有点混乱
+            partial_sort(_first, _last, _last, *(Compare*)&op); //这个cmp有点混乱
             return;
         }
         --depth_limit;

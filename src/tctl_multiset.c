@@ -61,7 +61,7 @@ static void _multiset_swap(void *_self, MultiSet _s);
 static const void *__MultiSet = NULL;
 static const void *__MultiSetClass = NULL;
 volatile static struct MultiSetSelector MultiSetS = {
-    {},
+    {0},
     _begin,
     _end,
     _size,
@@ -128,9 +128,9 @@ static void *_multisetclass_ctor(void *_self, va_list *app)
     voidf selector;
     va_list ap;
     va_copy(ap, *app);
-    voidf *begin = (void*)&MultiSetS + sizeof(MultiSetS._);
-    voidf *end = (void*)&MultiSetS + sizeof(MultiSetS);
-    voidf *self_begin = (void*)self;
+    voidf *begin = (voidf*)((char*)&MultiSetS + sizeof(MultiSetS._));
+    voidf *end = (voidf*)((char*)&MultiSetS + sizeof(MultiSetS));
+    voidf *self_begin = (voidf*)self;
     while ((selector = va_arg(ap, voidf)))
     {
         voidf method = va_arg(ap, voidf);

@@ -71,7 +71,7 @@ static void _unordered_map_swap(void *_self, Unordered_Map _s);
 static const void *__Unordered_Map = NULL;
 static const void *__Unordered_MapClass = NULL;
 volatile static struct Unordered_MapSelector Unordered_MapS = {
-    {},
+    {0},
     _begin,
     _end,
     _size,
@@ -153,9 +153,9 @@ static void *_unordered_mapclass_ctor(void *_self, va_list *app)
     voidf selector;
     va_list ap;
     va_copy(ap, *app);
-    voidf *begin = (void*)&Unordered_MapS + sizeof(Unordered_MapS._);
-    voidf *end = (void*)&Unordered_MapS + sizeof(Unordered_MapS);
-    voidf *self_begin = (void*)self;
+    voidf *begin = (voidf*)((char*)&Unordered_MapS + sizeof(Unordered_MapS._));
+    voidf *end = (voidf*)((char*)&Unordered_MapS + sizeof(Unordered_MapS));
+    voidf *self_begin = (voidf*)self;
     while ((selector = va_arg(ap, voidf)))
     {
         voidf method = va_arg(ap, voidf);
@@ -198,7 +198,7 @@ static void *_unordered_map_ctor(void *_self, va_list *app)
         if (t != VAEND && classOf(t) == T(Any))
             get_val = t;
         else
-            get_val = VA_ANY(TEMP_VAR(void*, &_get_val), NULL);
+            get_val = VA_ANY(TEMP_VAR(ExtractKey, &_get_val), NULL);
         construct(T(Hashtable), self->c, T(Pair), equal, hash, get_val, VAEND);
         if (t == VAEND)
             return _self;
@@ -401,7 +401,7 @@ static void _reserve(size_t x)
     void *_self = pop_this();
     const struct Unordered_MapClass *class = offsetOf(classOf(_self), __Unordered_MapClass);
     assert(class->reserve);
-    return class->reserve(_self, x);
+    class->reserve(_self, x);
 }
 
 static void _clear(void)

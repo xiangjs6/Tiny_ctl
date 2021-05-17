@@ -118,7 +118,7 @@ size_t classSz(const void *obj)
 void *offsetOf(const void *obj, const void *_class)
 {
     const struct MetaClass *class = _class;
-    return (void*)obj + classSz(class->super);
+    return (char*)obj + classSz(class->super);
 }
 
 bool class_check(const void *obj, const void *class)
@@ -156,7 +156,7 @@ static void *metaclass_ctor(void *_self, va_list *app)
 
     while ((selector = va_arg(ap, voidf)))
     {
-        voidf method = va_arg(ap, voidf);
+        void *method = va_arg(ap, void*);
         if (selector == (voidf)MetaClassS.ctor)
             *(void**)&self->ctor = method;
         else if (selector == (voidf)MetaClassS.dtor)
@@ -167,7 +167,7 @@ static void *metaclass_ctor(void *_self, va_list *app)
             *(void**)&self->puto = method;
         else if (selector == (voidf)MetaClassS.cast)
             *(void**)&self->cast = method;
-        else if (selector == Selector)
+        else if (selector == *(voidf*)&Selector)
             *(void**)&self->_.s = method;
     }
     va_end(ap);

@@ -103,7 +103,7 @@ static const void *__RVectorIter = NULL;
 static const void *__Vector = NULL;
 static const void *__VectorClass = NULL;
 volatile static struct VectorSelector VectorS = {
-        {},
+        {0},
         _begin,
         _end,
         _front,
@@ -289,7 +289,7 @@ static void fill_allocate(struct Vector *self)
 
     deallocate(self->start_ptr, old_size * memb_size);
     self->start_ptr = new_block;
-    self->finish_ptr = self->start_ptr + memb_size * self->nmemb;
+    self->finish_ptr = (char*)self->start_ptr + memb_size * self->nmemb;
     ARP_FreePool();
 }
 
@@ -386,7 +386,7 @@ static void *_iter_brackets(const void *_self, const void *_x)
     else
         x = THIS(m_obj).cast(T(Int));
     size_t size = classSz(it->class);
-    void *res = self->ptr + size * ((size_t)x->val + self->cur);
+    void *res = (char*)self->ptr + size * ((size_t)x->val + self->cur);
     return res;
 }
 
@@ -483,7 +483,7 @@ static void *_iter_derefer(const void *_self)
         self = offsetOf(_self, __RVectorIter);
     Iterator it = (void*)_self;
     size_t memb_size = classSz(it->class);
-    return self->ptr + self->cur * memb_size;
+    return (char*)self->ptr + self->cur * memb_size;
 }
 
 static long long _iter_dist(const void *_self, Iterator _it)
@@ -522,9 +522,9 @@ static void *_vectorclass_ctor(void *_self, va_list *app)
     voidf selector;
     va_list ap;
     va_copy(ap, *app);
-    voidf *begin = (void*)&VectorS + sizeof(VectorS._);
-    voidf *end = (void*)&VectorS + sizeof(VectorS);
-    voidf *self_begin = (void*)self;
+    voidf *begin = (voidf*)((char*)&VectorS + sizeof(VectorS._));
+    voidf *end = (voidf*)((char*)&VectorS + sizeof(VectorS));
+    voidf *self_begin = (voidf*)self;
     while ((selector = va_arg(ap, voidf)))
     {
         voidf method = va_arg(ap, voidf);
@@ -551,7 +551,7 @@ static void *_vector_ctor(void *_self, va_list *app)
     self->start_ptr = NULL;
     self->finish_ptr = NULL;
     self->total_storage_memb = 0;
-    MetaObject args[2];
+    MetaObject args[2] = {VAEND, VAEND};
     MetaObject arg;
     int i = 0;
     while ((arg = va_arg(*app, MetaObject)) != VAEND)
@@ -587,7 +587,7 @@ static void *_vector_brackets(const void *_self, const void *_x)
     long long x = (long long)i->val;
     assert(x >= 0 && x <= self->nmemb);
     size_t memb_size = classSz(self->class);
-    void *res = self->start_ptr + memb_size * x;
+    void *res = (char*)self->start_ptr + memb_size * x;
     return res;
 }
 
@@ -623,7 +623,7 @@ static const void *_vector_back(const void *_self)
 {
     const struct Vector *self = offsetOf(_self, __Vector);
     size_t memb_size = classSz(self->class);
-    return self->finish_ptr - memb_size;
+    return (char*)self->finish_ptr - memb_size;
 }
 
 static size_t _vector_size(const void *_self)
@@ -652,7 +652,7 @@ static void _vector_push_back(void *_self, const void *_x)
         fill_allocate((void*)self);
     construct(self->class, self->finish_ptr, _x, VAEND);
     self->nmemb++;
-    self->finish_ptr += memb_size;
+    self->finish_ptr = (char*)self->finish_ptr + memb_size;
 }
 
 static void _vector_pop_back(void *_self)
@@ -660,7 +660,7 @@ static void _vector_pop_back(void *_self)
     struct Vector *self = offsetOf(_self, __Vector);
     size_t memb_size = classSz(self->class);
     self->nmemb--;
-    self->finish_ptr -= memb_size;
+    self->finish_ptr = (char*)self->finish_ptr - memb_size;
     destroy(self->finish_ptr);
 }
 
@@ -721,11 +721,11 @@ static Iterator _vector_insert(void *_self, Iterator _iter, const void *_x)
     Iterator target_it = construct(__VectorIter, mem, VA(SequenceIter), self->class, any, VA(iter->cur + 1), VAEND);
     copy(first, last, target_it);
 
-    void *p_target = iter->ptr + iter->cur * memb_size;
+    void *p_target = (char*)iter->ptr + iter->cur * memb_size;
     Object obj = p_target;
     THIS(obj).assign(_x);
     self->nmemb++;
-    self->finish_ptr += memb_size;
+    self->finish_ptr = (char*)self->finish_ptr + memb_size;
     ARP_FreePool();
     return _iter;
 }
@@ -738,7 +738,7 @@ static void _vector_resize(void *_self, size_t new_size)
     self->nmemb = new_size;
     size_t memb_size = classSz(self->class);
     char *old_finish_ptr = self->finish_ptr;
-    self->finish_ptr = self->start_ptr + new_size * memb_size;
+    self->finish_ptr = (char*)self->start_ptr + new_size * memb_size;
     for (; old_finish_ptr < (char*)self->finish_ptr; old_finish_ptr += memb_size)
         construct(self->class, old_finish_ptr, VAEND);
 }
@@ -828,7 +828,7 @@ static void _push_back(const void *x)
     void *_self = pop_this();
     const struct VectorClass *class = offsetOf(classOf(_self), __VectorClass);
     assert(class->push_back);
-    return class->push_back(_self, x);
+    class->push_back(_self, x);
 }
 
 static void _pop_back(void)
@@ -836,7 +836,7 @@ static void _pop_back(void)
     void *_self = pop_this();
     const struct VectorClass *class = offsetOf(classOf(_self), __VectorClass);
     assert(class->pop_back);
-    return class->pop_back(_self);
+    class->pop_back(_self);
 }
 
 static Iterator _erase(Iterator iter)
@@ -860,7 +860,7 @@ static void _resize(size_t new_size)
     void *_self = pop_this();
     const struct VectorClass *class = offsetOf(classOf(_self), __VectorClass);
     assert(class->resize);
-    return class->resize(_self, new_size);
+    class->resize(_self, new_size);
 }
 
 static void _clear(void)
@@ -868,7 +868,7 @@ static void _clear(void)
     void *_self = pop_this();
     const struct VectorClass *class = offsetOf(classOf(_self), __VectorClass);
     assert(class->clear);
-    return class->clear(_self);
+    class->clear(_self);
 }
 
 static void _swap(Vector _v)
@@ -876,5 +876,5 @@ static void _swap(Vector _v)
     void *_self = pop_this();
     const struct VectorClass *class = offsetOf(classOf(_self), __VectorClass);
     assert(class->swap);
-    return class->swap(_self, _v);
+    class->swap(_self, _v);
 }

@@ -61,7 +61,7 @@ static void _set_swap(void *_self, Set _s);
 static const void *__Set = NULL;
 static const void *__SetClass = NULL;
 volatile static struct SetSelector SetS = {
-    {},
+    {0},
     _begin,
     _end,
     _size,
@@ -128,9 +128,9 @@ static void *_setclass_ctor(void *_self, va_list *app)
     voidf selector;
     va_list ap;
     va_copy(ap, *app);
-    voidf *begin = (void*)&SetS + sizeof(SetS._);
-    voidf *end = (void*)&SetS + sizeof(SetS);
-    voidf *self_begin = (void*)self;
+    voidf *begin = (voidf*)((char*)&SetS + sizeof(SetS._));
+    voidf *end = (voidf*)((char*)&SetS + sizeof(SetS));
+    voidf *self_begin = (voidf*)self;
     while ((selector = va_arg(ap, voidf)))
     {
         voidf method = va_arg(ap, voidf);

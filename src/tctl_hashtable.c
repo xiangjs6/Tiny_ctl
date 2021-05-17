@@ -115,7 +115,7 @@ static const void *__HashtableClass = NULL;
 static const void *__HashNode = NULL;
 
 volatile static struct HashtableSelector HashtableS = {
-    {},
+    {0},
     _begin,
     _end,
     _size,
@@ -355,9 +355,9 @@ static void *_hashtableclass_ctor(void *_self, va_list *app)
     voidf selector;
     va_list ap;
     va_copy(ap, *app);
-    voidf *begin = (void*)&HashtableS + sizeof(HashtableS._);
-    voidf *end = (void*)&HashtableS + sizeof(HashtableS);
-    voidf *self_begin = (void*)self;
+    voidf *begin = (voidf*)((char*)&HashtableS + sizeof(HashtableS._));
+    voidf *end = (voidf*)((char*)&HashtableS + sizeof(HashtableS));
+    voidf *self_begin = (voidf*)self;
     while ((selector = va_arg(ap, voidf)))
     {
         voidf method = va_arg(ap, voidf);
@@ -392,17 +392,17 @@ static void *_hashtable_ctor(void *_self, va_list *app)
     //equal函数
     assert(classOf(t) == T(Any));
     Any any = t;
-    self->equal = *(void**)THIS(any).value();
+    self->equal = *(Compare*)THIS(any).value();
     assert(self->equal);
     t = va_arg(*app, void*); //hash函数
     any = t;
     assert(classOf(t) == T(Any));
-    self->hash = *(void**)THIS(any).value();
+    self->hash = *(HashFunc*)THIS(any).value();
     assert(self->hash);
     t = va_arg(*app, void*); //get_key函数
     assert(classOf(t) == T(Any));
     any = t;
-    self->get_key = *(void**)THIS(any).value();
+    self->get_key = *(ExtractKey*)THIS(any).value();
     assert(self->get_key);
     return _self;
 }
@@ -734,7 +734,7 @@ static void _erase(Iterator iter)
     void *_self = pop_this();
     const struct HashtableClass *class = offsetOf(classOf(_self), __HashtableClass);
     assert(class->erase);
-    return class->erase(_self, iter);
+    class->erase(_self, iter);
 }
 
 static Iterator _find(const void *_x)

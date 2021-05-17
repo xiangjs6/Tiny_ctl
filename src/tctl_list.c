@@ -115,7 +115,7 @@ static const void *__RListIter = NULL;
 static const void *__List = NULL;
 static const void *__ListClass = NULL;
 volatile static struct ListSelector ListS = {
-    {},
+    {0},
     _begin,
     _end,
     _front,
@@ -394,9 +394,9 @@ static void *_listclass_ctor(void *_self, va_list *app)
     voidf selector;
     va_list ap;
     va_copy(ap, *app);
-    voidf *begin = (void*)&ListS + sizeof(ListS._);
-    voidf *end = (void*)&ListS + sizeof(ListS);
-    voidf *self_begin = (void*)self;
+    voidf *begin = (voidf*)((char*)&ListS + sizeof(ListS._));
+    voidf *end = (voidf*)((char*)&ListS + sizeof(ListS));
+    voidf *self_begin = (voidf*)self;
     while ((selector = va_arg(ap, voidf)))
     {
         voidf method = va_arg(ap, voidf);
@@ -421,7 +421,7 @@ static void *_list_ctor(void *_self, va_list *app)
     self->class = t;
     self->_end.nxt = &self->_end;
     self->_end.pre = &self->_end;
-    MetaObject args[2];
+    MetaObject args[2] = {VAEND, VAEND};
     int i = 0;
     while ((t = va_arg(*app, void*)) != VAEND)
     {

@@ -25,8 +25,6 @@ struct Class {
     void *(*mod)(const void *_self, void *x);
 };
 
-struct Object {};
-
 static bool _equal(void *x);
 static int _cmp(void *x);
 static void *_brackets(void *x);
@@ -42,7 +40,7 @@ static void *_div(void *x);
 static void *_mod(void *x);
 //init
 volatile static struct ClassSelector ClassS = {
-        {},
+        {0},
         _equal,
         _cmp,
         _brackets,
@@ -91,7 +89,7 @@ static void _inc(void)
     void *_self = pop_this();
     const struct Class *class = offsetOf(classOf(_self), __Class);
     assert(class->inc);
-    return class->inc(_self);
+    class->inc(_self);
 }
 
 static void _dec(void)
@@ -99,7 +97,7 @@ static void _dec(void)
     void *_self = pop_this();
     const struct Class *class = offsetOf(classOf(_self), __Class);
     assert(class->dec);
-    return class->dec(_self);
+    class->dec(_self);
 }
 
 static void _self_add(void *x)
@@ -174,9 +172,9 @@ static void *_class_ctor(void *_self, va_list *app)
     voidf selector;
     va_list ap;
     va_copy(ap, *app);
-    voidf *begin = (void*)&ClassS + sizeof(ClassS._);
-    voidf *end = (void*)&ClassS + sizeof(ClassS);
-    voidf *self_begin = (void*)self;
+    voidf *begin = (voidf*)((char*)&ClassS + sizeof(ClassS._));
+    voidf *end = (voidf*)((char*)&ClassS + sizeof(ClassS));
+    voidf *self_begin = (voidf*)self;
     while ((selector = va_arg(ap, voidf)))
     {
         voidf method = va_arg(ap, voidf);
@@ -205,7 +203,7 @@ static void initClass(void)
     }
     if (!__Object) {
         __Object = new(T(MetaClass), "Object",
-                       T(MetaObject), sizeof(struct Object) + classSz(T(MetaObject)), NULL);
+                       T(MetaObject), classSz(T(MetaObject)), NULL);
     }
 }
 

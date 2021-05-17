@@ -42,7 +42,7 @@ static size_t _stack_size(void *_self);
 static const void *__Stack = NULL;
 static const void *__StackClass = NULL;
 volatile static struct StackSelector StackS = {
-    {},
+    {0},
     _top,
     _push,
     _pop,
@@ -99,9 +99,9 @@ static void *_stackclass_ctor(void *_self, va_list *app)
     voidf selector;
     va_list ap;
     va_copy(ap, *app);
-    voidf *begin = (void*)&StackS + sizeof(StackS._);
-    voidf *end = (void*)&StackS + sizeof(StackS);
-    voidf *self_begin = (void*)self;
+    voidf *begin = (voidf*)((char*)&StackS + sizeof(StackS._));
+    voidf *end = (voidf*)((char*)&StackS + sizeof(StackS));
+    voidf *self_begin = (voidf*)self;
     while ((selector = va_arg(ap, voidf)))
     {
         voidf method = va_arg(ap, voidf);

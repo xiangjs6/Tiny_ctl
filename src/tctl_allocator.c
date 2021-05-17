@@ -76,17 +76,17 @@ static void *start_free, *end_free;
 static union obj *chunk_alloc(size_t n, int *nobjs)
 {
     size_t total_bytes = n * (*nobjs);
-    size_t left_bytes = end_free - start_free;
+    size_t left_bytes = (char*)end_free - (char*)start_free;
     union obj *res;
     if (left_bytes >= total_bytes) {
         res = start_free;
-        start_free += total_bytes;
+        start_free = (char*)start_free + total_bytes;
         return res;
     } else if (left_bytes >= n) {
         *nobjs = left_bytes / n;
         total_bytes = n * (*nobjs);
         res = start_free;
-        start_free += total_bytes;
+        start_free = (char*)start_free + total_bytes;
         return res;
     } else {
         size_t get_bytes = 2 * total_bytes;
@@ -96,7 +96,7 @@ static union obj *chunk_alloc(size_t n, int *nobjs)
             *p_free_list = start_free;
         }
         start_free = __malloc_alloc(get_bytes);
-        end_free = start_free + get_bytes;
+        end_free = (char*)start_free + get_bytes;
         return chunk_alloc(n, nobjs);
     }
 }
@@ -107,7 +107,7 @@ static void refill(size_t n)
     void *chunk = chunk_alloc(n, &nobjs);
     union obj **p_free_list = free_list + FREELIST_INDEX(n);
     for (int i = 0; i < nobjs; i++) {
-        union obj *curent_obj = chunk + n * i;
+        union obj *curent_obj = (void*)((char*)chunk + n * i);
         curent_obj->free_list_link = *p_free_list;
         *p_free_list = curent_obj;
     }

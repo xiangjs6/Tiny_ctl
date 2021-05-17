@@ -47,7 +47,7 @@ static const void *__AnyClass = NULL;
 static const void *__Any = NULL;
 
 volatile static struct AnySelector AnyS = {
-        ._ = {},
+        ._ = {0},
         .value = _value,
         .size = _size,
         .type = _type
@@ -94,9 +94,9 @@ static void *_anyclass_ctor(void *_self, va_list *app)
     voidf selector;
     va_list ap;
     va_copy(ap, *app);
-    voidf *begin = (void*)&AnyS + sizeof(AnyS._);
-    voidf *end = (void*)&AnyS + sizeof(AnyS);
-    voidf *this_begin = (void*)this;
+    voidf *begin = (voidf*)((char*)&AnyS + sizeof(AnyS._));
+    voidf *end = (voidf*)((char*)&AnyS + sizeof(AnyS));
+    voidf *this_begin = (voidf*)this;
     while ((selector = va_arg(ap, voidf)))
     {
         voidf method = va_arg(ap, voidf);
@@ -141,8 +141,8 @@ static void *_any_ctor(void *_self, va_list *app)
     } else {
         self->type_flag = POD;
         self->size = va_arg(*app, size_t);
-        self->cast = va_arg(*app, void*);
-        if (self->cast == VAEND)
+        *(void**)&self->cast = va_arg(*app, void*);
+        if (*(void**)&self->cast == VAEND)
             self->cast = NULL;
         self->mem = malloc(self->size);
         assert(self->mem);

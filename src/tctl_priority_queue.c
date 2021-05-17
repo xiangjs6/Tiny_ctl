@@ -49,7 +49,7 @@ static void _priority_queue_swap(void *_self, Priority_Queue _que);
 static const void *__Priority_Queue = NULL;
 static const void *__Priority_QueueClass = NULL;
 volatile static struct Priority_QueueSelector Priority_QueueS = {
-    {},
+    {0},
     _top,
     _push,
     _pop,
@@ -108,9 +108,9 @@ static void *_priority_queueclass_ctor(void *_self, va_list *app)
     voidf selector;
     va_list ap;
     va_copy(ap, *app);
-    voidf *begin = (void*)&Priority_QueueS + sizeof(Priority_QueueS._);
-    voidf *end = (void*)&Priority_QueueS + sizeof(Priority_QueueS);
-    voidf *self_begin = (void*)self;
+    voidf *begin = (voidf*)((char*)&Priority_QueueS + sizeof(Priority_QueueS._));
+    voidf *end = (voidf*)((char*)&Priority_QueueS + sizeof(Priority_QueueS));
+    voidf *self_begin = (voidf*)self;
     while ((selector = va_arg(ap, voidf)))
     {
         voidf method = va_arg(ap, voidf);
@@ -135,7 +135,7 @@ static void *_priority_queue_ctor(void *_self, va_list *app)
     construct_v(_Vector(), self->c, app);
     void *t = va_arg(*app, void*);
     assert(classOf(t) == T(Any));
-    self->cmp = *(void**)THIS((Any)t).value();
+    self->cmp = *(Compare*)THIS((Any)t).value();
     return _self;
 }
 

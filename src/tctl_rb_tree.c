@@ -90,7 +90,7 @@ static const void *__RRB_treeIter = NULL;
 static const void *__RB_tree = NULL;
 static const void *__RB_treeClass = NULL;
 volatile static struct RB_treeSelector RB_treeS = {
-    {},
+    {0},
     _begin,
     _end,
     _size,
@@ -516,15 +516,14 @@ static struct RB_treeNode *copyTree(struct RB_treeNode *node, const void *class)
 static void _deal_RB_tree_Args(void *_self, void *args[], int n)
 {
     struct RB_tree *self = offsetOf(_self, __RB_tree);
-    self->cmp = args[0];
     if (classOf(args[0]) == T(Any)) {
         Any any = args[0];
-        self->cmp = *(void**)THIS(any).value();
+        self->cmp = *(Compare*)THIS(any).value();
     } else {
         assert(classOf(args[0]) == __RB_tree); //复制一个RB_tree
         struct RB_tree *L = offsetOf(args[0], __RB_tree);
         assert(L->class == self->class);
-        self->cmp = L->cmp;
+        self->cmp = *(Compare*)&L->cmp;
         if (L->header->parent != L->header) { //当被复制的树不为空
             ARP_CreatePool();
             struct RB_treeNode *node = copyTree(L->header->parent, L->class);
@@ -643,9 +642,9 @@ static void *_rb_treeclass_ctor(void *_self, va_list *app)
     voidf selector;
     va_list ap;
     va_copy(ap, *app);
-    voidf *begin = (void*)&RB_treeS + sizeof(RB_treeS._);
-    voidf *end = (void*)&RB_treeS + sizeof(RB_treeS);
-    voidf *self_begin = (void*)self;
+    voidf *begin = (voidf*)((char*)&RB_treeS + sizeof(RB_treeS._));
+    voidf *end = (voidf*)((char*)&RB_treeS + sizeof(RB_treeS));
+    voidf *self_begin = (voidf*)self;
     while ((selector = va_arg(ap, voidf)))
     {
         voidf method = va_arg(ap, voidf);
@@ -895,7 +894,7 @@ static void _erase(Iterator iter)
     void *_self = pop_this();
     const struct RB_treeClass *class = offsetOf(classOf(_self), __RB_treeClass);
     assert(class->erase);
-    return class->erase(_self, iter);
+    class->erase(_self, iter);
 }
 
 static Iterator _find(const void *_x)
