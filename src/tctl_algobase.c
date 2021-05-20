@@ -149,13 +149,13 @@ inline static Iterator copy_backward_2R(Iterator first, Iterator last, Iterator 
             THIS(out).dec(), THIS(src_it).dec();
         }
     }
-    destroy(src_it);
     return out;
 }
 
 Iterator copy_backward(Iterator first, Iterator last, Iterator result)
 {
     assert(classOf(first) == classOf(last));
+    assert(first->rank >= BidirectionalIter && result->rank >= BidirectionalIter);
     ARP_CreatePool();
     if (first->rank == SequenceIter && result->rank == SequenceIter) { //都为顺序迭代器
         return ARP_Return(copy_backward_3S(first, last, result));
@@ -163,7 +163,7 @@ Iterator copy_backward(Iterator first, Iterator last, Iterator result)
         return ARP_Return(copy_backward_2S(first, last, result));
     } else if (first->rank == RandomAccessIter) { //first和last为RandomAccessIter
         return ARP_Return(copy_backward_2R(first, last, result));
-    } else { //first和last都为BidirectionalIter或ForwardIter迭代器
+    } else { //first和last都为BidirectionalIter
         Iterator out = THIS(result).ctor(ALLOC(sizeOf(result)), VA(result), VAEND);
         THIS(out).dec();
 

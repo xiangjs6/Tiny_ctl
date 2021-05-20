@@ -718,8 +718,8 @@ static Iterator _vector_insert(void *_self, Iterator _iter, const void *_x)
     Iterator last = construct(__VectorIter, mem, VA(SequenceIter), self->class, any, VA(self->nmemb), VAEND);
 
     mem = ARP_MallocARelDtor(iter_size, destroy);
-    Iterator target_it = construct(__VectorIter, mem, VA(SequenceIter), self->class, any, VA(iter->cur + 1), VAEND);
-    copy(first, last, target_it);
+    Iterator target_it = construct(__VectorIter, mem, VA(SequenceIter), self->class, any, VA(self->nmemb + 1), VAEND);
+    copy_backward(first, last, target_it);
 
     void *p_target = (char*)iter->ptr + iter->cur * memb_size;
     Object obj = p_target;
