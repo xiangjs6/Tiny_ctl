@@ -21,4 +21,7 @@
 #define SELECT_10TH(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, ...) a10
 
 #define EXPAND(MACRO_FUNC, ...) MACRO_FUNC(__VA_ARGS__)
+
+#define MERGE_HELPER(body1, body2) body1 ## body2
+#define MERGE(body1, body2) MERGE_HELPER(body1, body2)
 #endif //MACRO_TOOL_H

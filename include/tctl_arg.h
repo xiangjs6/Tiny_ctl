@@ -11,7 +11,6 @@ void *_valueAux(int t, ...);
 
 //可变参数的结尾标识
 extern void *VAEND;
-extern void *VAL;
 //为变量生成正确的obj
 #define _VA_VAL(_t, ...) _Generic(_t,                                                     \
                 float              : _valueAux('f', _t),                             \
@@ -28,7 +27,9 @@ extern void *VAL;
                 unsigned long long : _valueAux('L', _t),                             \
                 default : _valueAux("Oo"[!_Generic(_t, Import, default : NULL)], _t))
 //对每个参数返回正确的obj对象
-#define _VA_ANY(val, ...) _valueAux('A', &val, sizeof(val), __VA_ARGS__)
+#define _VA_ONE(...)
+#define _VA_TWOORMORE(...) FIRST(__VA_ARGS__),
+#define _VA_ANY(val, ...) _valueAux('A', &val, sizeof(val), MERGE(_VA_, NUM(__VA_ARGS__))(__VA_ARGS__) NULL)
 #define _VA_FUNC(val, ...) _valueAux('F', &val)
 #define _VA_AUX(val, MACRO_FUNC, ...) _VA_##MACRO_FUNC(val, __VA_ARGS__) 
 #define VA(...) EXPAND(_VA_AUX, FIRST(__VA_ARGS__) REST(__VA_ARGS__), VAL)
