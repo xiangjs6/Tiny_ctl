@@ -271,11 +271,11 @@ static void fill_allocate(struct Vector *self)
     void *new_block = allocate(self->total_storage_memb * memb_size);
 
     size_t iter_size = classSz(__VectorIter);
-    Any any = VA_ANY(new_block, NULL);
+    Any any = VA(new_block, ANYONE);
     mem = ARP_MallocARelDtor(iter_size, destroy);
     Iterator new_it = construct(__VectorIter, mem, VA(SequenceIter), self->class, any, VA(0), VAEND);
 
-    any = VA_ANY(self->start_ptr, NULL);
+    any = VA(self->start_ptr, ANYONE);
     mem = ARP_MallocARelDtor(iter_size, destroy);
     Iterator first = construct(__VectorIter, mem, VA(SequenceIter), self->class, any, VA(0), VAEND);
     mem = ARP_MallocARelDtor(iter_size, destroy);
@@ -595,10 +595,8 @@ static Iterator _vector_begin(const void *_self)
 {
     struct Vector *self = offsetOf(_self, __Vector);
     void *mem = ARP_MallocARelDtor(classSz(__VectorIter), destroy);
-    char any_mem[classSz(T(Any))];
-    Any any = VA_ANY(self->start_ptr, NULL, any_mem);
+    Any any = VA(self->start_ptr, ANYONE);
     Iterator res = construct(_VectorIter(), mem, VA(SequenceIter), self->class, any, VA(0), VAEND);
-    destroy(any);
     return res;
 }
 
@@ -606,10 +604,8 @@ static Iterator _vector_end(const void *_self)
 {
     struct Vector *self = offsetOf(_self, __Vector);
     void *mem = ARP_MallocARelDtor(classSz(__VectorIter), destroy);
-    char any_mem[classSz(T(Any))];
-    Any any = VA_ANY(self->start_ptr, NULL, any_mem);
+    Any any = VA(self->start_ptr, ANYONE);
     Iterator res = construct(_VectorIter(), mem, VA(SequenceIter), self->class, any, VA(self->nmemb), VAEND);
-    destroy(any);
     return res;
 }
 
@@ -679,7 +675,7 @@ static Iterator _vector_erase(void *_self, Iterator _iter)
         return _iter;
     }
     size_t iter_size = classSz(__VectorIter);
-    any = VA_ANY(self->start_ptr, NULL);
+    any = VA(self->start_ptr, ANYONE);
     mem = ARP_MallocARelDtor(iter_size, destroy);
     Iterator first = construct(__VectorIter, mem, VA(SequenceIter), self->class, any, VA(iter->cur + 1), VAEND);
     mem = ARP_MallocARelDtor(iter_size, destroy);
@@ -711,7 +707,7 @@ static Iterator _vector_insert(void *_self, Iterator _iter, const void *_x)
     size_t memb_size = classSz(self->class);
 
     size_t iter_size = classSz(__VectorIter);
-    any = VA_ANY(self->start_ptr, NULL);
+    any = VA(self->start_ptr, ANYONE);
     mem = ARP_MallocARelDtor(iter_size, destroy);
     Iterator first = construct(__VectorIter, mem, VA(SequenceIter), self->class, any, VA(iter->cur), VAEND);
     mem = ARP_MallocARelDtor(iter_size, destroy);

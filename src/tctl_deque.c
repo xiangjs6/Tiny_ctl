@@ -569,14 +569,14 @@ static Iterator _deque_begin(const void *_self)
 {
     struct Deque *self = offsetOf(_self, __Deque);
     void *mem = ARP_MallocARelDtor(classSz(__DequeIter), destroy);
-    return construct(__DequeIter, mem, VA(RandomAccessIter), self->class, VA_ANY(self->start, NULL), VAEND);
+    return construct(__DequeIter, mem, VA(RandomAccessIter), self->class, VA(self->start, ANYONE), VAEND);
 }
 
 static Iterator _deque_end(const void *_self)
 {
     struct Deque *self = offsetOf(_self, __Deque);
     void *mem = ARP_MallocARelDtor(classSz(__DequeIter), destroy);
-    return construct(__DequeIter, mem, VA(RandomAccessIter), self->class, VA_ANY(self->finish, NULL), VAEND);
+    return construct(__DequeIter, mem, VA(RandomAccessIter), self->class, VA(self->finish, ANYONE), VAEND);
 }
 
 static const void *_deque_front(const void *_self)

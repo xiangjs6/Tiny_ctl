@@ -1525,7 +1525,7 @@ void nth_element(Iterator _first, Iterator _nth, Iterator _last, ...)
         Iterator last = THIS(_last).sub(VA(1));
         void *pivot = __median(THIS(_first).derefer(), THIS(m).derefer(), THIS(last).derefer(), op);
         Iterator cut = __unguarded_partition(_first, _last, pivot, op);
-        if (CompareOpt(VA(cut, _nth), VAEND) <= 0)
+        if (CompareOpt(VA(cut), VA(_nth), VAEND) <= 0)
             _first = cut;
         else
             _last = cut;

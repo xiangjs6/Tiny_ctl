@@ -333,10 +333,8 @@ static Iterator _slist_begin(const void *_self)
 {
     struct Slist *self = offsetOf(_self, __Slist);
     void *mem = ARP_MallocARelDtor(classSz(__SlistIter), destroy);
-    char any_mem[classSz(T(Any))];
-    Any any = VA_ANY(self->_head.nxt, NULL, any_mem);
+    Any any = VA(self->_head.nxt, ANYONE);
     Iterator ret = construct(__SlistIter, mem, VA(ForwardIter), self->class, any, VAEND);
-    destroy(any);
     return ret;
 }
 
@@ -344,10 +342,8 @@ static Iterator _slist_end(const void *_self)
 {
     struct Slist *self = offsetOf(_self, __Slist);
     void *mem = ARP_MallocARelDtor(classSz(__SlistIter), destroy);
-    char any_mem[classSz(T(Any))];
-    Any any = VA_ANY(TEMP_VAR(void*, NULL), NULL, any_mem);
+    Any any = VA(TEMP_VAR(void*, NULL), ANYONE);
     Iterator ret = construct(__SlistIter, mem, VA(ForwardIter), self->class, any, VAEND);
-    destroy(any);
     return ret;
 }
 

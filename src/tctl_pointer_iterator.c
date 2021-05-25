@@ -175,7 +175,7 @@ static void *_iter_add(const void *_self, const void *_x)
     MetaObject m_obj = (void*)_x;
     Int x = classOf(_x) == T(Int) ? (void*)_x : THIS(m_obj).cast(T(Int));
     void *mem = ARP_MallocARelDtor(classSz(__OriPointerIter), destroy);
-    void *res = construct(classOf(self), mem, SequenceIter, it->class, VA(self->cur + x->val), VA_ANY(self->ptr, NULL), VAEND);
+    void *res = construct(classOf(self), mem, SequenceIter, it->class, VA(self->cur + x->val), VA(self->ptr, ANYONE), VAEND);
     return res;
 }
 
@@ -186,7 +186,7 @@ static void *_iter_sub(const void *_self, const void *_x)
     MetaObject m_obj = (void*)_x;
     Int x = classOf(_x) == T(Int) ? (void*)_x : THIS(m_obj).cast(T(Int));
     void *mem = ARP_MallocARelDtor(classSz(__OriPointerIter), destroy);
-    void *res = construct(classOf(self), mem, SequenceIter, it->class, VA(self->cur - x->val), VA_ANY(self->ptr, NULL), VAEND);
+    void *res = construct(classOf(self), mem, SequenceIter, it->class, VA(self->cur - x->val), VA(self->ptr, ANYONE), VAEND);
     return res;
 }
 
@@ -230,5 +230,5 @@ Iterator _oriPointerIter_aux(const void *class, void *p, size_t x, ...)
     if (!__OriPointerIter)
         initOriPointIter();
     void *mem = ARP_MallocARelDtor(classSz(__OriPointerIter), destroy);
-    return construct(__OriPointerIter, mem, VA(SequenceIter), class, VA_ANY(p, NULL), VA(x), VAEND);
+    return construct(__OriPointerIter, mem, VA(SequenceIter), class, VA(p, ANYONE), VA(x), VAEND);
 }

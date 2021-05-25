@@ -584,7 +584,7 @@ static void _hashtable_resize(void *_self, size_t new_size)
     if (new_size > old_size) {
         size_t min_bkt = new_size, max_bkt = 0;
         size_t n = _next_prime(new_size);
-        Any any = VA_ANY(TEMP_VAR(void*, NULL), NULL);
+        Any any = VA(TEMP_VAR(void*, NULL), ANYONE);
         Vector tmp = new(T(Vector), __HashNode, VA(n), any, VAEND);
         if (self->nmemb) {
             char *it = THIS(self->buckets).brackets(VA(self->start));
@@ -625,7 +625,7 @@ static void _hashtable_copy_from(void *_self, Hashtable _ht)
     _hashtable_clear(_self);
     delete(self->buckets);
     size_t n = THIS(h->buckets).size();
-    Any any = VA_ANY(TEMP_VAR(void*, NULL), NULL);
+    Any any = VA(TEMP_VAR(void*, NULL), ANYONE);
     self->buckets = new(T(Vector), __HashNode, VA(n), any, VAEND);
     memcpy(self, h, offsetof(struct Hashtable, buckets)); //将成员参数复制过来
     struct Bucket_node *tmpNode = _new_node(0);

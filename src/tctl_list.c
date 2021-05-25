@@ -459,10 +459,8 @@ static Iterator _list_begin(const void *_self)
 {
     struct List *self = offsetOf(_self, __List);
     void *mem = ARP_MallocARelDtor(classSz(__ListIter), destroy);
-    char any_mem[classSz(T(Any))];
-    Any any = VA_ANY(self->_end.nxt, NULL, any_mem);
+    Any any = VA(self->_end.nxt, ANYONE);
     Iterator ret = construct(__ListIter, mem, VA(BidirectionalIter), self->class, any, VAEND);
-    destroy(any);
     return ret;
 }
 
@@ -471,9 +469,8 @@ static Iterator _list_end(const void *_self)
     struct List *self = offsetOf(_self, __List);
     void *mem = ARP_MallocARelDtor(classSz(__ListIter), destroy);
     char any_mem[classSz(T(Any))];
-    Any any = VA_ANY(self->_end.nxt->pre, NULL, any_mem);
+    Any any = VA(self->_end.nxt->pre, ANYONE);
     Iterator ret = construct(__ListIter, mem, VA(BidirectionalIter), self->class, any, VAEND);
-    destroy(any);
     return ret;
 }
 
@@ -593,7 +590,7 @@ static void _list_splice(void *_self, Iterator _position, List l, va_list *app)
     while ((t = va_arg(*app, MetaObject)) != VAEND)
     {
         assert(n < 2);
-        args[n] = t;
+        args[n++] = t;
     }
     assert(classOf(_position) == __ListIter);
     struct ListNode *pos_node = ((struct ListIter*)offsetOf(_position, __ListIter))->node;

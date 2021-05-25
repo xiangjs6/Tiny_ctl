@@ -67,8 +67,7 @@ void *_valueAux(int t, ...)
             p_val = va_arg(ap, void*);
             val_size = va_arg(ap, size_t);
             p_cast = va_arg(ap, void*);
-            ret = va_arg(ap, void*);
-            ret = ret ? ret : ARP_MallocARel(classSz(T(Any)));
+            ret =ARP_MallocARel(classSz(T(Any)));
             construct(T(Any), ret, p_val, val_size, p_cast, VAEND);
             break;
         case 'O':

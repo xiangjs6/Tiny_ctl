@@ -476,8 +476,8 @@ static struct RB_treeNode *copyTree(struct RB_treeNode *node, const void *class)
     Stack stack_left = new(T(Stack), T(Any), VAEND);
     Stack stack_right = new(T(Stack), T(Any), VAEND);
 
-    THIS(stack_left).push(VA_ANY(node, NULL));
-    THIS(stack_right).push(VA_ANY(new_tree, NULL));
+    THIS(stack_left).push(VA(node, ANYONE));
+    THIS(stack_right).push(VA(new_tree, ANYONE));
 
     while (!THIS(stack_left).empty())
     {
@@ -488,24 +488,24 @@ static struct RB_treeNode *copyTree(struct RB_treeNode *node, const void *class)
         THIS(stack_left).pop();  
         THIS(stack_right).pop();
         if (pleft->right != NULL) {
-            THIS(stack_left).push(VA_ANY(pleft->right, NULL));
+            THIS(stack_left).push(VA(pleft->right, ANYONE));
             struct RB_treeNode *n = _creat_rb_node();
             n->color = pleft->right->color;
             n->parent = pright;
             n->base_ptr = allocate(memb_size);
             construct(class, n->base_ptr, pleft->right->base_ptr, VAEND);
             pright->right = n;
-            THIS(stack_right).push(VA_ANY(n, NULL));
+            THIS(stack_right).push(VA(n, ANYONE));
         }
         if (pleft->left != NULL) {
-            THIS(stack_left).push(VA_ANY(pleft->left, NULL));
+            THIS(stack_left).push(VA(pleft->left, ANYONE));
             struct RB_treeNode *n = _creat_rb_node();
             n->color = pleft->left->color;
             n->parent = pright;
             n->base_ptr = allocate(memb_size);
             construct(class, n->base_ptr, pleft->left->base_ptr, VAEND);
             pright->left = n;
-            THIS(stack_right).push(VA_ANY(n, NULL));
+            THIS(stack_right).push(VA(n, ANYONE));
         }
     }
     delete(stack_left);
@@ -698,14 +698,14 @@ static Iterator _rb_tree_begin(const void *_self)
 {
     struct RB_tree *self = offsetOf(_self, __RB_tree);
     void *mem = ARP_MallocARelDtor(classSz(__RB_treeIter), destroy);
-    return construct(__RB_treeIter, mem, VA(BidirectionalIter), self->class, VA_ANY(self->header->left, NULL), VAEND);
+    return construct(__RB_treeIter, mem, VA(BidirectionalIter), self->class, VA(self->header->left, ANYONE), VAEND);
 }
 
 static Iterator _rb_tree_end(const void *_self)
 {
     struct RB_tree *self = offsetOf(_self, __RB_tree);
     void *mem = ARP_MallocARelDtor(classSz(__RB_treeIter), destroy);
-    return construct(__RB_treeIter, mem, VA(BidirectionalIter), self->class, VA_ANY(self->header, NULL), VAEND);
+    return construct(__RB_treeIter, mem, VA(BidirectionalIter), self->class, VA(self->header, ANYONE), VAEND);
 }
 
 static size_t _rb_tree_size(const void *_self)
@@ -741,7 +741,7 @@ static Iterator _rb_tree_insert_unique(void *_self, const void *_x)
     else
         self->header->left = _minimum(self->header->left);
     void *mem = ARP_MallocARelDtor(classSz(__RB_treeIter), destroy);
-    return construct(__RB_treeIter, mem, VA(BidirectionalIter), self->class, VA_ANY(new_node, NULL), VAEND);
+    return construct(__RB_treeIter, mem, VA(BidirectionalIter), self->class, VA(new_node, ANYONE), VAEND);
 }
 
 static Iterator _rb_tree_insert_equal(void *_self, const void *_x)
@@ -764,7 +764,7 @@ static Iterator _rb_tree_insert_equal(void *_self, const void *_x)
     else
         self->header->left = _minimum(self->header->left);
     void *mem = ARP_MallocARelDtor(classSz(__RB_treeIter), destroy);
-    return construct(__RB_treeIter, mem, VA(BidirectionalIter), self->class, VA_ANY(new_node, NULL), VAEND);
+    return construct(__RB_treeIter, mem, VA(BidirectionalIter), self->class, VA(new_node, ANYONE), VAEND);
 }
 
 static void _rb_tree_erase(void *_self, Iterator iter)
@@ -793,7 +793,7 @@ static Iterator _rb_tree_find(void *_self, const void *_x)
             node = parent->parent;
         else
             node = !left_right ? parent->left : parent->right;
-        return construct(__RB_treeIter, mem, VA(BidirectionalIter), self->class, VA_ANY(node, NULL), VAEND);
+        return construct(__RB_treeIter, mem, VA(BidirectionalIter), self->class, VA(node, ANYONE), VAEND);
     }
 }
 

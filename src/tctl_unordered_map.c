@@ -198,7 +198,7 @@ static void *_unordered_map_ctor(void *_self, va_list *app)
         if (t != VAEND && classOf(t) == T(Any))
             get_val = t;
         else
-            get_val = VA_ANY(TEMP_VAR(ExtractKey, &_get_val), NULL);
+            get_val = VA(TEMP_VAR(ExtractKey, &_get_val), FUNC);
         construct(T(Hashtable), self->c, T(Pair), equal, hash, get_val, VAEND);
         if (t == VAEND)
             return _self;
