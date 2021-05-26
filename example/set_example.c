@@ -21,7 +21,7 @@ int main(void)
     ARP_CreatePool();
     int i;
     int ia[5] = {0, 1, 2, 3, 4};
-    Set s = new(T(Set), T(Int), VA_ANY(TEMP_VAR(void*, &cmp), NULL), VAEND);
+    Set s = new(T(Set), T(Int), VA(cmp, FUNC), VAEND);
     for (i = 0; i < 5; i++)
         THIS(s).insert(VA(ia[i]));
     printf("size:%u\n", THIS(s).size());
@@ -66,7 +66,7 @@ int main(void)
         THIS(v).push_back(VA(temp));
     }
     putchar('\n');
-    Set s1 = new(T(Set), T(Int), VA_ANY(TEMP_VAR(void*, &cmp), NULL), THIS(v).begin(), THIS(v).end(), VAEND);
+    Set s1 = new(T(Set), T(Int), VA(cmp, FUNC), THIS(v).begin(), THIS(v).end(), VAEND);
     for (Iterator it = THIS(s1).begin(); !THIS(it).equal(THIS(s1).end()); THIS(it).inc())
         printf("%lld ", ((Int)THIS(it).derefer())->val);
     putchar('\n');

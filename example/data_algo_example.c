@@ -139,7 +139,7 @@ int main(void)
     for_each(THIS(iv).begin(), THIS(iv).end(), &display); //8 10 7 8 3 3 7 8 3 7 8
     putchar('\n');
 
-    replace_copy(THIS(iv).begin(), THIS(iv).end(), THIS(iv3).begin(), VA(3, 5), VAEND);
+    replace_copy(THIS(iv).begin(), THIS(iv).end(), THIS(iv3).begin(), VA(3), VA(5), VAEND);
     for_each(THIS(iv3).begin(), THIS(iv3).end(), &display); //8 10 7 8 5 5 7 8 5 7 8 0
     putchar('\n');
 

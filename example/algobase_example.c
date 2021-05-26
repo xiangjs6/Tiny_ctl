@@ -94,7 +94,7 @@ int main(void)
     char *strs[4] = {"Jamie", "JJHou", "Jason", "Jerry"};
     Any anys[4];
     for (int i = 0; i < 4; i++)
-        anys[i] = VA_ANY(strs[i], NULL);
+        anys[i] = VA(strs[i], ANYONE);
     Any stra1[] = {anys[0], anys[1], anys[2]};
     Any stra2[] = {anys[0], anys[1], anys[3]};
     int res  = lexicographical_compare(oriPointerIter(stra1), oriPointerIter(stra1, 3),

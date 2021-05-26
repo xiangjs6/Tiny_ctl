@@ -42,7 +42,7 @@ int main(void)
     putchar('\n');
     printf("size:%u\n", THIS(sl).size());
     printf("front:%lld\n", ((Int)THIS(sl).front())->val);
-    Slist sl2 = new(T(Slist), T(Int), VA(2, 100), VAEND);
+    Slist sl2 = new(T(Slist), T(Int), VA(2), VA(100), VAEND);
     for (int i = 0; i < 100; i++) {
         int temp = (int)rand() % 20;
         THIS(sl2).push_front(VA(temp));

@@ -18,7 +18,7 @@ int cmp(void *_a, void *_b)
 int main(void)
 {
     ARP_CreatePool();
-    RB_tree tree = new(T(RB_tree), T(Int), VA_ANY(TEMP_VAR(void*, &cmp), NULL), VAEND);
+    RB_tree tree = new(T(RB_tree), T(Int), VA(cmp, FUNC), VAEND);
     long int n = 100;
     THIS(tree).insert_equal(VA(n));
     n = 95;

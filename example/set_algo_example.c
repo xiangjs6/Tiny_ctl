@@ -28,8 +28,8 @@ int main(void)
     for (int i = 0; i < 7; i++)
         Ia2[i] = new(T(Int), VA(ia2[i]), VAEND);
 
-    MultiSet S1 = new(T(MultiSet), T(Int), VA_ANY(TEMP_VAR(void*,cmp), NULL), oriPointerIter(Ia1), oriPointerIter(Ia1, 6), VAEND);
-    MultiSet S2 = new(T(MultiSet), T(Int), VA_ANY(TEMP_VAR(void*,cmp), NULL), oriPointerIter(Ia2), oriPointerIter(Ia2, 7), VAEND);
+    MultiSet S1 = new(T(MultiSet), T(Int), VA(cmp, FUNC), oriPointerIter(Ia1), oriPointerIter(Ia1, 6), VAEND);
+    MultiSet S2 = new(T(MultiSet), T(Int), VA(cmp, FUNC), oriPointerIter(Ia2), oriPointerIter(Ia2, 7), VAEND);
     Vector v = new(T(Vector), T(Int), VA(13), VAEND);
 
     for (Iterator it = THIS(S1).begin(); !THIS(it).equal(THIS(S1).end()); THIS(it).inc()) //1 3 5 7 9 11

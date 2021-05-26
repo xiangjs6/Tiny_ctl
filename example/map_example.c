@@ -27,26 +27,26 @@ int pcmp(void *_a, void *_b)
 int main(void)
 {
     ARP_CreatePool();
-    Map simap = new(T(Map), T(Any), T(Int), VA_ANY(TEMP_VAR(void*, pcmp), NULL), VAEND);
-    Pair p = tmpPair(T(Any), T(Int), VA_ANY("jjhou", NULL), VA(1), VAEND);//new(T(Pair), VA(ARRAY_T(char, 10), T(int), VA_ADDR("jjhou"), 1));
+    Map simap = new(T(Map), T(Any), T(Int), VA(pcmp, FUNC), VAEND);
+    Pair p = tmpPair(T(Any), T(Int), VA("jjhou", ANYONE), VA(1), VAEND);
     THIS(simap).insert(p);
 
-    p = tmpPair(T(Any), T(Int), VA_ANY("jerry", NULL), VA(2), VAEND);
+    p = tmpPair(T(Any), T(Int), VA("jerry", ANYONE), VA(2), VAEND);
     //strcpy(p->first, "jerry");
     //*(int*)p->second = 2;
     THIS(simap).insert(p);
 
-    p = tmpPair(T(Any), T(Int), VA_ANY("jason", NULL), VA(3), VAEND);
+    p = tmpPair(T(Any), T(Int), VA("jason", ANYONE), VA(3), VAEND);
     //strcpy(p->first, "jason");
     //*(int*)p->second = 3;
     THIS(simap).insert(p);
 
-    p = tmpPair(T(Any), T(Int), VA_ANY("jimmy", NULL), VA(4), VAEND);
+    p = tmpPair(T(Any), T(Int), VA("jimmy", ANYONE), VA(4), VAEND);
     //strcpy(p->first, "jimmy");
     //*(int*)p->second = 4;
     THIS(simap).insert(p);
 
-    p = tmpPair(T(Any), T(Int), VA_ANY("david", NULL), VA(5), VAEND);
+    p = tmpPair(T(Any), T(Int), VA("david", ANYONE), VA(5), VAEND);
     //strcpy(p->first, "david");
     //*(int*)p->second = 5;
     THIS(simap).insert(p);
@@ -56,19 +56,19 @@ int main(void)
         Int s = pp->second;
         printf("key:%s val:%lld\n", (char*)THIS(f).value(), s->val);
     }
-    Any key = VA_ANY("jjhou", NULL);
+    Any key = VA("jjhou", ANYONE);
     Iterator f_it = THIS(simap).find(key);
     //delete(p);
     p = THIS(f_it).derefer();
     printf("%lld\n", ((Int)p->second)->val);
     fflush(stdout);
     Iterator ite1;
-    key = VA_ANY("mchen", NULL);
+    key = VA("mchen", ANYONE);
     //strcpy(key, "mchen");
     ite1 = THIS(simap).find(key);
     if (THIS(ite1).equal(THIS(simap).end()))
         printf("mchen not found\n");
-    key = VA_ANY("jerry", NULL);
+    key = VA("jerry", ANYONE);
     //strcpy(key, "jerry");
     ite1 = THIS(simap).find(key);
     if (!THIS(ite1).equal(THIS(simap).end()))

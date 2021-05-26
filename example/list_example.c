@@ -69,7 +69,7 @@ int main(void)
     for (int i = 10; i < 20; i++)
         THIS(l2).push_back(VA(i));
     printf("splice\n");
-    THIS(l).splice(THIS(l).begin(), l2, VA(THIS(l2).begin(), THIS(l2).end()), VAEND);
+    THIS(l).splice(THIS(l).begin(), l2, THIS(l2).begin(), THIS(l2).end(), VAEND);
     for (Iterator it = THIS(l).begin(); !THIS(it).equal(VA(THIS(l).end())); THIS(it).inc()) {
         printf("%lld\n", ((Int)THIS(it).derefer())->val);
     }
@@ -124,7 +124,7 @@ int main(void)
     printf("%d\n", ARP_GetPoolNodesCount());
 
 
-    List l5 = new(T(List), T(Int), VA(3, 4), VAEND);
+    List l5 = new(T(List), T(Int), VA(3), VA(4), VAEND);
     List l6 = new(T(List), T(Int), THIS(l5).begin(), THIS(l5).end(), VAEND);
     for (Iterator it = THIS(l6).begin(); !THIS(it).equal(VA(THIS(l6).end())); THIS(it).inc()) {
         printf("%lld\n", ((Int)THIS(it).derefer())->val);

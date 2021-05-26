@@ -11,7 +11,7 @@
 int main(void)
 {
     ARP_CreatePool();
-    Vector v = new(T(Vector), T(Double), VA(10, 3.20), VAEND);
+    Vector v = new(T(Vector), T(Double), VA(10), VA(3.20), VAEND);
     printf("nmemb:%lu\n", THIS(v).size());
     for (int i = 0; i < 10; i++) {
         THIS(v).push_back(VA(i + 1.0));
@@ -94,7 +94,7 @@ int main(void)
     putchar('\n');
     delete(v1);
     delete(v);
-    Vector v3 = new(T(Vector), T(Int), VA(3, 4), VAEND);
+    Vector v3 = new(T(Vector), T(Int), VA(3), VA(4), VAEND);
     Vector v4 = new(T(Vector), T(Int), v3, VAEND);
     for (Iterator it = THIS(v4).begin(); !THIS(it).equal(VA(THIS(v4).end())); THIS(it).inc()) {
         printf("%lld ", ((Int)THIS(it).derefer())->val);

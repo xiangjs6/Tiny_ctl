@@ -2,8 +2,6 @@
 #include <string.h>
 #include "../include/tctl_unordered_set.h"
 #include "../include/auto_release_pool.h"
-#include "../include/tctl_iterator.h"
-#include "../include/tctl_common.h"
 #include "../include/tctl_any.h"
 #include "../include/tctl_arg.h"
 #define Import UNORDERED_SET, ANY
@@ -30,34 +28,34 @@ void lookup(Unordered_Set s, Any any)
 int main(void)
 {
     ARP_CreatePool();
-    Unordered_Set s = new(T(Unordered_Set), T(Any), VA_ANY(TEMP_VAR(void*, scmp), NULL),
-                          VA_ANY(TEMP_VAR(void*, hash_str), NULL), VAEND);
+    Unordered_Set s = new(T(Unordered_Set), T(Any), VA(scmp, FUNC),
+                          VA(hash_str, FUNC), VAEND);
     char *str = "kiwi";
-    Any any = VA_ANY(str, NULL);
+    Any any = VA(str, ANYONE);
     THIS(s).insert(any);
     str = "plum";
-    any = VA_ANY(str, NULL);
+    any = VA(str, ANYONE);
     THIS(s).insert(any);
     str = "apple";
-    any = VA_ANY(str, NULL);
+    any = VA(str, ANYONE);
     THIS(s).insert(any);
     str = "mango";
-    any = VA_ANY(str, NULL);
+    any = VA(str, ANYONE);
     THIS(s).insert(any);
     str = "apricot";
-    any = VA_ANY(str, NULL);
+    any = VA(str, ANYONE);
     THIS(s).insert(any);
     str = "banana";
-    any = VA_ANY(str, NULL);
+    any = VA(str, ANYONE);
     THIS(s).insert(any);
     str = "mango";
-    any = VA_ANY(str, NULL);
+    any = VA(str, ANYONE);
     lookup(s, any);
     str = "apple";
-    any = VA_ANY(str, NULL);
+    any = VA(str, ANYONE);
     lookup(s, any);
     str = "durian";
-    any = VA_ANY(str, NULL);
+    any = VA(str, ANYONE);
     lookup(s, any);
     for (Iterator it = THIS(s).begin(); !THIS(it).equal(THIS(s).end()); THIS(it).inc())
         printf("%s ", *(char**)THIS((Any)THIS(it).derefer()).value());

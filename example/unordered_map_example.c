@@ -29,52 +29,52 @@ void lookup(Unordered_Map s, Any any)
 int main(void)
 {
 	ARP_CreatePool();
-	Unordered_Map m = new(T(Unordered_Map), T(Any), T(Int), VA_ANY(TEMP_VAR(void*, &scmp), NULL),
-                          VA_ANY(TEMP_VAR(void*, &hash_str), NULL), VAEND);
+	Unordered_Map m = new(T(Unordered_Map), T(Any), T(Int), VA(scmp, FUNC),
+                          VA(hash_str, FUNC), VAEND);
 
-    Pair p = tmpPair(T(Any), T(Int), VA_ANY("january", NULL), VA(31), VAEND);
+    Pair p = tmpPair(T(Any), T(Int), VA("january", ANYONE), VA(31), VAEND);
 	THIS(m).insert(p);
 
-    p = tmpPair(T(Any), T(Int), VA_ANY("february", NULL), VA(28), VAEND);
+    p = tmpPair(T(Any), T(Int), VA("february", ANYONE), VA(28), VAEND);
 	THIS(m).insert(p);
 
-    p = tmpPair(T(Any), T(Int), VA_ANY("march", NULL), VA(31), VAEND);
+    p = tmpPair(T(Any), T(Int), VA("march", ANYONE), VA(31), VAEND);
 	THIS(m).insert(p);
 
-    p = tmpPair(T(Any), T(Int), VA_ANY("april", NULL), VA(30), VAEND);
+    p = tmpPair(T(Any), T(Int), VA("april", ANYONE), VA(30), VAEND);
 	THIS(m).insert(p);
 
-    p = tmpPair(T(Any), T(Int), VA_ANY("may", NULL), VA(31), VAEND);
+    p = tmpPair(T(Any), T(Int), VA("may", ANYONE), VA(31), VAEND);
 	THIS(m).insert(p);
 
-    p = tmpPair(T(Any), T(Int), VA_ANY("june", NULL), VA(30), VAEND);
+    p = tmpPair(T(Any), T(Int), VA("june", ANYONE), VA(30), VAEND);
 	THIS(m).insert(p);
 
-    p = tmpPair(T(Any), T(Int), VA_ANY("july", NULL), VA(31), VAEND);
+    p = tmpPair(T(Any), T(Int), VA("july", ANYONE), VA(31), VAEND);
 	THIS(m).insert(p);
 
-    p = tmpPair(T(Any), T(Int), VA_ANY("august", NULL), VA(31), VAEND);
+    p = tmpPair(T(Any), T(Int), VA("august", ANYONE), VA(31), VAEND);
 	THIS(m).insert(p);
 
-    p = tmpPair(T(Any), T(Int), VA_ANY("september", NULL), VA(30), VAEND);
+    p = tmpPair(T(Any), T(Int), VA("september", ANYONE), VA(30), VAEND);
 	THIS(m).insert(p);
 
-    p = tmpPair(T(Any), T(Int), VA_ANY("october", NULL), VA(31), VAEND);
+    p = tmpPair(T(Any), T(Int), VA("october", ANYONE), VA(31), VAEND);
 	THIS(m).insert(p);
 
-    p = tmpPair(T(Any), T(Int), VA_ANY("november", NULL), VA(30), VAEND);
+    p = tmpPair(T(Any), T(Int), VA("november", ANYONE), VA(30), VAEND);
 	THIS(m).insert(p);
 
-    p = tmpPair(T(Any), T(Int), VA_ANY("december", NULL), VA(31), VAEND);
+    p = tmpPair(T(Any), T(Int), VA("december", ANYONE), VA(31), VAEND);
 	THIS(m).insert(p);
 
-    Any any = VA_ANY("september", NULL);
+    Any any = VA("september", ANYONE);
     lookup(m, any);
-    any = VA_ANY("june", NULL);
+    any = VA("june", ANYONE);
     lookup(m, any);
-    any = VA_ANY("february", NULL);
+    any = VA("february", ANYONE);
     lookup(m, any);
-    any = VA_ANY("december", NULL);
+    any = VA("december", ANYONE);
     lookup(m, any);
 
 	printf("--------------------\n");

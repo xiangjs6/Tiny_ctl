@@ -20,7 +20,7 @@ int cmp(void *a, void *b)
 int main(void)
 {
     ARP_CreatePool();
-    Priority_Queue pri_que = new(T(Priority_Queue), T(Int), VAEND, VA_ANY(TEMP_VAR(void*, &cmp), NULL));
+    Priority_Queue pri_que = new(T(Priority_Queue), T(Int), VAEND, VA(cmp, FUNC), VAEND);
     for (int i = 0; i < 300000; i++) {
         int temp = rand();
         THIS(pri_que).push(VA(temp));

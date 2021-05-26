@@ -128,7 +128,7 @@ int test_deque_1()
 
         // constructors used in the same order as described above:
         //Deque first = new(T(Deque), VA(T(int)));                                // empty deque of ints
-        Deque second = new(T(Deque), T(Int), VA(4, 100), VAEND);                       // four ints with value 100
+        Deque second = new(T(Deque), T(Int), VA(4), VA(100), VAEND);                       // four ints with value 100
         Deque third = new(T(Deque), T(Int), THIS(second).begin(), THIS(second).end(), VAEND);  // iterating through second
         Deque fourth = new(T(Deque), T(Int), third, VAEND);                       // a copy of third
 
@@ -536,8 +536,8 @@ int test_deque_1()
     { // deque::swap: Exchanges the content of the container by the content of x,
         // which is another deque object containing elements of the same type. Sizes may differ.
         //unsigned int i;
-        Deque foo = new(T(Deque), T(Int), VA(3, 100), VAEND);// three ints with a value of 100
-        Deque bar = new(T(Deque), T(Int), VA(5, 200), VAEND);// five ints with a value of 200
+        Deque foo = new(T(Deque), T(Int), VA(3), VA(100), VAEND);// three ints with a value of 100
+        Deque bar = new(T(Deque), T(Int), VA(5), VA(200), VAEND);// five ints with a value of 200
         
      
         THIS(foo).swap(bar);

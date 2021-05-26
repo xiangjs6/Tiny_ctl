@@ -2,7 +2,6 @@
 #include "../include/tctl_int.h"
 #include "../include/tctl_hashtable.h"
 #include "../include/auto_release_pool.h"
-#include "../include/tctl_common.h"
 #include "../include/tctl_arg.h"
 #include "../include/tctl_any.h"
 #define Import HASHTABLE, INT
@@ -21,8 +20,8 @@ void *get_key(void *x)
 int main(void)
 {
     ARP_CreatePool();
-    Hashtable ht = new(T(Hashtable), T(Int), VA_ANY(TEMP_VAR(void*, cmp), NULL), VA_ANY(TEMP_VAR(void*, hash_numeric), NULL),
-                       VA_ANY(TEMP_VAR(void*, get_key), NULL), VAEND);
+    Hashtable ht = new(T(Hashtable), T(Int), VA(cmp, FUNC), VA(hash_numeric, FUNC),
+                       VA(get_key, FUNC), VAEND);
     long long x = 100;
     THIS(ht).insert_unique(VA(x));
     x = 47;
@@ -42,8 +41,8 @@ int main(void)
     THIS(ht).erase(f_it);
     x = 52;
     THIS(ht).insert_equal(VA(x));
-    Hashtable ht2 = new(T(Hashtable), T(Int), VA_ANY(TEMP_VAR(void*, cmp), NULL), VA_ANY(TEMP_VAR(void*, hash_numeric), NULL),
-                       VA_ANY(TEMP_VAR(void*, get_key), NULL), VAEND);
+    Hashtable ht2 = new(T(Hashtable), T(Int), VA(cmp, FUNC), VA(hash_numeric, FUNC),
+                       VA(get_key, FUNC), VAEND);
     for (Iterator it = THIS(ht).begin(); !THIS(it).equal(THIS(ht).end()); THIS(it).inc())
         printf("%lld ", ((Int)THIS(it).derefer())->val);
     putchar('\n');
