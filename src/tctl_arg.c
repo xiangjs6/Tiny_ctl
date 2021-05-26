@@ -72,7 +72,7 @@ void *_valueAux(int t, ...)
             break;
         case 'M':
             ret = ARP_MallocARel(classSz(T(Any)));
-            ret = construct(T(Any), ret, &i, FUNC, VAEND);
+            ret = construct(T(Any), ret, va_arg(ap, void*), FUNC, VAEND);
             break;
         case 'O':
             ret = va_arg(ap, void*);

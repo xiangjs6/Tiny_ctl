@@ -142,6 +142,7 @@ static void *_any_ctor(void *_self, va_list *app)
         self->type_flag = va_arg(*app, enum TypeFlag);
         if (self->type_flag == FUNC) {
             assert(va_arg(*app, void*) == VAEND);
+            self->mem = value;
         } else {
             self->size = va_arg(*app, size_t);
             *(void **) &self->cast = va_arg(*app, void*);

@@ -135,7 +135,8 @@ static void *_priority_queue_ctor(void *_self, va_list *app)
     construct_v(_Vector(), self->c, app);
     void *t = va_arg(*app, void*);
     assert(classOf(t) == T(Any));
-    self->cmp = *(Compare*)THIS((Any)t).value();
+    assert(THIS((Any)t).type() == FUNC);
+    self->cmp = (Compare)THIS((Any)t).value();
     return _self;
 }
 
