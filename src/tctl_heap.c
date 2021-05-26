@@ -97,7 +97,7 @@ void sort_heap(Iterator _first, Iterator _last, Compare cmp)
     Iterator first = THIS(_first).ctor(NULL, _first, VAEND);
     Iterator last = THIS(_last).ctor(NULL, _last, VAEND);
     make_heap(first, last, cmp);
-    while (!THIS(last).equal(VA(first)))
+    while (!THIS(last).equal(first))
     {
         pop_heap(first, last, cmp);
         THIS(last).dec();

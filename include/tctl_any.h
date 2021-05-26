@@ -2,7 +2,7 @@
 #define TCTL_ANY_H
 
 #include "tctl_metaclass.h"
-enum TypeFlag {POD, OBJ};
+enum TypeFlag {POD, OBJ, FUNC};
 
 typedef struct {
     METAOBJECT_HEAD(

@@ -31,7 +31,7 @@ inline static Iterator copy_3S(Iterator first, Iterator last, Iterator result) /
 
 inline static Iterator copy_2S(Iterator first, Iterator last, Iterator result) //first和last为SequenceIter，result为其他迭代器类型
 {
-    Iterator out = THIS(result).ctor(ALLOC(sizeOf(result)), VA(result), VAEND);
+    Iterator out = THIS(result).ctor(ALLOC(sizeOf(result)), result, VAEND);
     char *src_p = THIS(first).derefer();
     size_t src_memb_size = classSz(first->class);
     size_t dist = distance(first, last);
@@ -79,9 +79,9 @@ Iterator copy(Iterator first, Iterator last, Iterator result)
     } else if (first->rank == RandomAccessIter) { //first和last为RandomAccessIter
         return ARP_Return(copy_2R(first, last, result));
     } else { //first和last都为BidirectionalIter或ForwardIter迭代器
-        Iterator out = THIS(result).ctor(ALLOC(sizeOf(result)), VA(result), VAEND);
-        Iterator src_it = THIS(first).ctor(ALLOC(sizeOf(first)), VA(first), VAEND);
-        for (; !THIS(src_it).equal(VA(last)); THIS(src_it).inc(), THIS(out).inc())
+        Iterator out = THIS(result).ctor(ALLOC(sizeOf(result)), result, VAEND);
+        Iterator src_it = THIS(first).ctor(ALLOC(sizeOf(first)), first, VAEND);
+        for (; !THIS(src_it).equal(last); THIS(src_it).inc(), THIS(out).inc())
             construct(result->class, THIS(out).derefer(), THIS(src_it).derefer(), VAEND);
         return ARP_Return(out);
     }
@@ -90,7 +90,7 @@ Iterator copy(Iterator first, Iterator last, Iterator result)
 //copy_backward
 inline static Iterator copy_backward_3S(Iterator first, Iterator last, Iterator result) //迭代器都为SequenceIter
 {
-    Iterator out = THIS(result).ctor(ALLOC(sizeOf(result)), VA(result), VAEND);
+    Iterator out = THIS(result).ctor(ALLOC(sizeOf(result)), result, VAEND);
     char *dst_p = THIS(result).derefer();
     size_t src_memb_size = classSz(first->class);
     size_t dst_memb_size = classSz(result->class);
@@ -108,7 +108,7 @@ inline static Iterator copy_backward_3S(Iterator first, Iterator last, Iterator 
 
 inline static Iterator copy_backward_2S(Iterator first, Iterator last, Iterator result) //first和last为SequenceIter，result为其他迭代器类型
 {
-    Iterator out = THIS(result).ctor(ALLOC(sizeOf(result)), VA(result), VAEND);
+    Iterator out = THIS(result).ctor(ALLOC(sizeOf(result)), result, VAEND);
     THIS(out).dec();
 
     size_t src_memb_size = classSz(first->class);
@@ -126,8 +126,8 @@ inline static Iterator copy_backward_2S(Iterator first, Iterator last, Iterator 
 
 inline static Iterator copy_backward_2R(Iterator first, Iterator last, Iterator result) //first和last为RandomAccessIter
 {
-    Iterator out = THIS(result).ctor(ALLOC(sizeOf(result)), VA(result), VAEND);
-    Iterator src_it = THIS(first).ctor(ALLOC(sizeOf(first)), VA(last), VAEND);
+    Iterator out = THIS(result).ctor(ALLOC(sizeOf(result)), result, VAEND);
+    Iterator src_it = THIS(first).ctor(ALLOC(sizeOf(first)), last, VAEND);
     THIS(src_it).dec();
 
     size_t dist = distance(first, last);
@@ -164,17 +164,17 @@ Iterator copy_backward(Iterator first, Iterator last, Iterator result)
     } else if (first->rank == RandomAccessIter) { //first和last为RandomAccessIter
         return ARP_Return(copy_backward_2R(first, last, result));
     } else { //first和last都为BidirectionalIter
-        Iterator out = THIS(result).ctor(ALLOC(sizeOf(result)), VA(result), VAEND);
+        Iterator out = THIS(result).ctor(ALLOC(sizeOf(result)), result, VAEND);
         THIS(out).dec();
 
-        Iterator src_it = THIS(first).ctor(ALLOC(sizeOf(first)), VA(last), VAEND);
+        Iterator src_it = THIS(first).ctor(ALLOC(sizeOf(first)), last, VAEND);
         THIS(src_it).dec();
         do
         {
             construct(result->class, THIS(out).derefer(), THIS(src_it).derefer(), VAEND);
             THIS(out).dec();
             THIS(src_it).dec();
-        } while (!THIS(src_it).equal(VA(first)));
+        } while (!THIS(src_it).equal(first));
         return ARP_Return(out);
     }
 }
@@ -199,13 +199,13 @@ static inline void AssignOpt(void *left, const void *right)
 bool equal(Iterator _first1, Iterator _last1, Iterator _first2, .../*Compare*/)
 {
     ARP_CreatePool();
-    Iterator first1 = THIS(_first1).ctor(ALLOC(sizeOf(_first1)), VA(_first1), VAEND);
-    Iterator first2 = THIS(_first2).ctor(ALLOC(sizeOf(_first2)), VA(_first2), VAEND);
+    Iterator first1 = THIS(_first1).ctor(ALLOC(sizeOf(_first1)), _first1, VAEND);
+    Iterator first2 = THIS(_first2).ctor(ALLOC(sizeOf(_first2)), _first2, VAEND);
     va_list ap;
     va_start(ap, _first2);
     void *op = va_arg(ap, void*);
     va_end(ap);
-    for (; !THIS(first1).equal(VA(_last1)); THIS(first1).inc(), THIS(first2).inc())
+    for (; !THIS(first1).equal(_last1); THIS(first1).inc(), THIS(first2).inc())
         if (CompareOpt(THIS(first1).derefer(),
                        THIS(first2).derefer(), *(Compare*)&op)) {
             ARP_FreePool();
@@ -219,8 +219,8 @@ bool equal(Iterator _first1, Iterator _last1, Iterator _first2, .../*Compare*/)
 void fill(Iterator _first, Iterator _last, const void *x)
 {
     ARP_CreatePool();
-    Iterator first = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
-    for (; !THIS(first).equal(VA(_last)); THIS(first).inc())
+    Iterator first = THIS(_first).ctor(ALLOC(sizeOf(_first)), _first, VAEND);
+    for (; !THIS(first).equal(_last); THIS(first).inc())
         AssignOpt(THIS(first).derefer(), x);
     ARP_FreePool();
 }
@@ -231,7 +231,7 @@ void fill_n(Iterator _first, const void *_n, const void *x)
     ARP_CreatePool();
     Int n = (void*)_n;
     n = THIS(n).cast(T(Int));
-    Iterator first = THIS(_first).ctor(ALLOC(sizeOf(_first)), VA(_first), VAEND);
+    Iterator first = THIS(_first).ctor(ALLOC(sizeOf(_first)), _first, VAEND);
     for (; n->val--; THIS(first).inc())
         AssignOpt(THIS(first).derefer(), x);
     ARP_FreePool();
@@ -256,16 +256,16 @@ void iter_swap(Iterator a, Iterator b)
 bool lexicographical_compare(Iterator _first1, Iterator _last1, Iterator _first2, Iterator _last2, .../*Compare*/)
 {
     ARP_CreatePool();
-    Iterator first1 = THIS(_first1).ctor(ALLOC(sizeOf(_first1)), VA(_first1), VAEND);
-    Iterator first2 = THIS(_first2).ctor(ALLOC(sizeOf(_first2)), VA(_first2), VAEND);
+    Iterator first1 = THIS(_first1).ctor(ALLOC(sizeOf(_first1)), _first1, VAEND);
+    Iterator first2 = THIS(_first2).ctor(ALLOC(sizeOf(_first2)), _first2, VAEND);
 
     va_list ap;
     va_start(ap, _last2);
     void *op = va_arg(ap, void *);
     va_end(ap);
 
-    for (; !THIS(first1).equal(VA(_last1)) &&
-           !THIS(first2).equal(VA(_last2));
+    for (; !THIS(first1).equal(_last1) &&
+           !THIS(first2).equal(_last2);
            THIS(first1).inc(), THIS(first2).inc()) {
         int res = CompareOpt(THIS(first1).derefer(),
                              THIS(first2).derefer(), *(Compare*)&op);
@@ -277,7 +277,7 @@ bool lexicographical_compare(Iterator _first1, Iterator _last1, Iterator _first2
             return false;
         }
     }
-    bool res = THIS(first1).equal(VA(_last1)) && !THIS(first2).equal(VA(_last2));
+    bool res = THIS(first1).equal(_last1) && !THIS(first2).equal(_last2);
     ARP_FreePool();
     return res;
 }
@@ -316,15 +316,15 @@ void *min(const void *a, const void *b, .../*Compare*/)
 Pair mismatch(Iterator _first1, Iterator _last1, Iterator _first2, .../*Compare*/)
 {
     ARP_CreatePool();
-    Iterator first1 = THIS(_first1).ctor(ALLOC(sizeOf(_first1)), VA(_first1), VAEND);
-    Iterator first2 = THIS(_first2).ctor(ALLOC(sizeOf(_first2)), VA(_first2), VAEND);
+    Iterator first1 = THIS(_first1).ctor(ALLOC(sizeOf(_first1)), _first1, VAEND);
+    Iterator first2 = THIS(_first2).ctor(ALLOC(sizeOf(_first2)), _first2, VAEND);
 
     va_list ap;
     va_start(ap, _first2);
     void *op = va_arg(ap, void*);
     va_end(ap);
 
-    for (; !THIS(first1).equal(VA(_last1)); THIS(first1).inc(), THIS(first2).inc()) {
+    for (; !THIS(first1).equal(_last1); THIS(first1).inc(), THIS(first2).inc()) {
         int res = CompareOpt(THIS(first1).derefer(),
                              THIS(first2).derefer(), *(Compare*)&op);
         if (res)

@@ -518,6 +518,7 @@ static void _deal_RB_tree_Args(void *_self, void *args[], int n)
     struct RB_tree *self = offsetOf(_self, __RB_tree);
     if (classOf(args[0]) == T(Any)) {
         Any any = args[0];
+        assert(THIS(any).type() == FUNC);
         self->cmp = *(Compare*)THIS(any).value();
     } else {
         assert(classOf(args[0]) == __RB_tree); //复制一个RB_tree

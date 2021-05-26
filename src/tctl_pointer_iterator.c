@@ -217,10 +217,10 @@ static Iterator _iter_reverse_iterator(const void *_self)
     Iterator it = (void*)_self;
     if (classOf(_self) == __OriPointerIter) {
         void *mem = ARP_MallocARelDtor(classSz(__OriPointerIter), destroy);
-        return construct(__ROriPointerIter, mem, VA(it), VAEND);
+        return construct(__ROriPointerIter, mem, it, VAEND);
     } else {
         void *mem = ARP_MallocARelDtor(classSz(__ROriPointerIter), destroy);
-        return construct(__OriPointerIter, mem, VA(it), VAEND);
+        return construct(__OriPointerIter, mem, it, VAEND);
     }
 }
 

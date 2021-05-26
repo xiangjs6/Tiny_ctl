@@ -373,10 +373,10 @@ static Iterator _iter_reverse_iterator(void *_self)
     Iterator it = (void*)_self;
     if (classOf(_self) == __ListIter) {
         void *mem = ARP_MallocARelDtor(classSz(__ListIter), destroy);
-        return construct(_RListIter(), mem, VA(it), VAEND);
+        return construct(_RListIter(), mem, it, VAEND);
     } else {
         void *mem = ARP_MallocARelDtor(classSz(__RListIter), destroy);
-        return construct(_ListIter(), mem, VA(it), VAEND);
+        return construct(_ListIter(), mem, it, VAEND);
     }
 }
 
@@ -468,7 +468,6 @@ static Iterator _list_end(const void *_self)
 {
     struct List *self = offsetOf(_self, __List);
     void *mem = ARP_MallocARelDtor(classSz(__ListIter), destroy);
-    char any_mem[classSz(T(Any))];
     Any any = VA(self->_end.nxt->pre, ANYONE);
     Iterator ret = construct(__ListIter, mem, VA(BidirectionalIter), self->class, any, VAEND);
     return ret;

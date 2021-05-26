@@ -590,7 +590,7 @@ Iterator remove_copy_if(Iterator _first, Iterator _last,
 
     Iterator result = THIS(_result).ctor(ALLOC(sizeOf(_result)), _result, VAEND);
     Iterator first = THIS(_first).ctor(ALLOC(sizeOf(_first)), _first, VAEND);
-    for (; !THIS(first).equal(VA(_last)); THIS(first).inc()) {
+    for (; !THIS(first).equal(_last); THIS(first).inc()) {
         void *v = THIS(first).derefer();
         if (!pred(v)) {
             AssignOpt(THIS(result).derefer(), v);
@@ -846,12 +846,12 @@ Iterator search_n(Iterator _first, Iterator _last, long long count, const void *
         return ARP_Return(first);
     else {
         first = find(first, _last, val, op);
-        while (!THIS(first).equal(VA(_last)))
+        while (!THIS(first).equal(_last))
         {
             long long n = count - 1;
-            THIS(i).assign(VA(first));
+            THIS(i).assign(first);
             THIS(i).inc();
-            while (!THIS(i).equal(VA(_last)) && n != 0 && EqualOpt(THIS(i).derefer(), val, op))
+            while (!THIS(i).equal(_last) && n != 0 && EqualOpt(THIS(i).derefer(), val, op))
             {
                 THIS(i).inc();
                 --n;

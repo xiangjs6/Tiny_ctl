@@ -162,7 +162,7 @@ long long distance(Iterator _a, Iterator _b)
     long long dis = 0;
     char tmp[sizeOf(_a)];
     Iterator it = THIS(_a).ctor(tmp, _a, VAEND);
-    for (; !THIS(it).equal(VA(_b)); THIS(it).inc())
+    for (; !THIS(it).equal(_b); THIS(it).inc())
         dis++;
     destroy(it);
     return dis;

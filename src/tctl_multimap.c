@@ -176,8 +176,8 @@ static void *_multimap_ctor(void *_self, va_list *app)
         t = va_arg(*app, void*);
         assert(class_check(t, T(Iterator)));
         Iterator last = t;
-        last = THIS(first).ctor(NULL, VA(last), VAEND);
-        while (!THIS(first).equal(VA(last)))
+        last = THIS(first).ctor(NULL, last, VAEND);
+        while (!THIS(first).equal(last))
         {
             THIS(self->c).insert_unique(THIS(first).derefer());
             THIS(first).inc();

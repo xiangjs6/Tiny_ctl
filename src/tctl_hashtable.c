@@ -390,20 +390,26 @@ static void *_hashtable_ctor(void *_self, va_list *app)
         return _self;
     }
     //equal函数
-    assert(classOf(t) == T(Any));
     Any any = t;
+    assert(classOf(t) == T(Any));
+    assert(THIS(any).type() == FUNC);
     self->equal = *(Compare*)THIS(any).value();
     assert(self->equal);
+
     t = va_arg(*app, void*); //hash函数
     any = t;
     assert(classOf(t) == T(Any));
+    assert(THIS(any).type() == FUNC);
     self->hash = *(HashFunc*)THIS(any).value();
     assert(self->hash);
+
     t = va_arg(*app, void*); //get_key函数
-    assert(classOf(t) == T(Any));
     any = t;
+    assert(classOf(t) == T(Any));
+    assert(THIS(any).type() == FUNC);
     self->get_key = *(ExtractKey*)THIS(any).value();
     assert(self->get_key);
+
     return _self;
 }
 

@@ -139,14 +139,18 @@ static void *_any_ctor(void *_self, va_list *app)
             self->mem = new(classOf(value), value, VAEND);
         }
     } else {
-        self->type_flag = POD;
-        self->size = va_arg(*app, size_t);
-        *(void**)&self->cast = va_arg(*app, void*);
-        if (*(void**)&self->cast == VAEND)
-            self->cast = NULL;
-        self->mem = malloc(self->size);
-        assert(self->mem);
-        memcpy(self->mem, value, self->size);
+        self->type_flag = va_arg(*app, enum TypeFlag);
+        if (self->type_flag == FUNC) {
+            assert(va_arg(*app, void*) == VAEND);
+        } else {
+            self->size = va_arg(*app, size_t);
+            *(void **) &self->cast = va_arg(*app, void*);
+            if (*(void **) &self->cast == VAEND)
+                self->cast = NULL;
+            self->mem = malloc(self->size);
+            assert(self->mem);
+            memcpy(self->mem, value, self->size);
+        }
     }
     va_end(ap);
     return _self;

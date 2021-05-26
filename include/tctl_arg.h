@@ -29,7 +29,7 @@ extern void *VAEND;
 #define _VA_ONE(...)
 #define _VA_TWOORMORE(...) FIRST(__VA_ARGS__),
 #define _VA_ANYONE(val, ...) _valueAux('A', &val, sizeof(val), MERGE(_VA_, NUM(__VA_ARGS__))(__VA_ARGS__) NULL)
-#define _VA_FUNC(val, ...) _valueAux('F', &val)
+#define _VA_FUNC(val, ...) _valueAux('M', &val)
 #define _VA_AUX(val, MACRO_FUNC, ...) _VA_##MACRO_FUNC(val, __VA_ARGS__)
 #define VA(...) EXPAND(_VA_AUX, FIRST(__VA_ARGS__) REST(__VA_ARGS__), VAL)
 #endif //TINY_CTL_TCTL_ARG_H

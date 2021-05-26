@@ -166,12 +166,12 @@ static void *_set_ctor(void *_self, va_list *app)
 
         assert(class_check(t, T(Iterator)));
         Iterator first = t;
-        first = THIS(first).ctor(NULL, VA(first), VAEND);
+        first = THIS(first).ctor(NULL, first, VAEND);
         t = va_arg(*app, void*);
         assert(class_check(t, T(Iterator)));
         Iterator last = t;
-        last = THIS(first).ctor(NULL, VA(last), VAEND);
-        while (!THIS(first).equal(VA(last)))
+        last = THIS(first).ctor(NULL, last, VAEND);
+        while (!THIS(first).equal(last))
         {
             THIS(self->c).insert_unique(THIS(first).derefer());
             THIS(first).inc();
