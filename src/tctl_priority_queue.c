@@ -136,7 +136,7 @@ static void *_priority_queue_ctor(void *_self, va_list *app)
     void *t = va_arg(*app, void*);
     assert(classOf(t) == T(Any));
     assert(THIS((Any)t).type() == FUNC);
-    self->cmp = (Compare)THIS((Any)t).value();
+    self->cmp = *(Compare*)&TEMP_VAR(void*, THIS((Any)t).value());
     return _self;
 }
 

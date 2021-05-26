@@ -24,4 +24,6 @@
 
 #define MERGE_HELPER(body1, body2) body1 ## body2
 #define MERGE(body1, body2) MERGE_HELPER(body1, body2)
+
+#define EAT_ARG(arg, ...) __VA_ARGS__
 #endif //MACRO_TOOL_H
