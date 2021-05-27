@@ -282,7 +282,7 @@ static void fill_allocate(struct Vector *self)
     Iterator last = construct(__VectorIter, mem, VA(SequenceIter), self->class, any, VA(self->nmemb), VAEND);
 
     copy(first, last, new_it);
-    for (; !THIS(first).equal(VA(last)); THIS(first).inc()) {
+    for (; !THIS(first).equal(last); THIS(first).inc()) {
             Object obj = THIS(first).derefer();
             THIS(obj).dtor();
         }
