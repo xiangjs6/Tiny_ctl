@@ -27,7 +27,9 @@ extern void *VAEND;
                 unsigned long long : _valueAux('L', _t),                             \
                 default : (assert(!_Generic(_t, Import, default : NULL) && sizeof(_t) == sizeof(void*)), _valueAux('P', _t)))
 //对每个参数返回正确的obj对象
-#define _VA_ANYONE(val, ...) _valueAux('A', &val, sizeof(val), (void*)(FIRST(__VA_ARGS__)) REST(__VA_ARGS__))
+#define _VA_ANYONE(val, ...) _valueAux('A', &val, sizeof(val),\
+                                       _Generic(FIRST(__VA_ARGS__), void *(*)(void*, const void *) : FIRST(__VA_ARGS__),\
+                                                default : (assert(!FIRST(__VA_ARGS__)), NULL)))
 #define _VA_FUNC(val, ...) _valueAux('M', &val)
 #define _VA_AUX(val, MACRO_FUNC, ...) _VA_##MACRO_FUNC(val, __VA_ARGS__)
 #define VA(...) EXPAND(_VA_AUX, FIRST(__VA_ARGS__) REST(__VA_ARGS__), POD, NULL)
