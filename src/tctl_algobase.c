@@ -182,6 +182,7 @@ Iterator copy_backward(Iterator first, Iterator last, Iterator result)
 inline static int CompareOpt(const void *a, const void *b, Compare op)
 {
     if (op == *(Compare*)&VAEND) {
+        assert(class_check(a, T(Object)));
         Object obj = (void*)a;
         return THIS(obj).cmp(b);
     } else {
@@ -191,6 +192,7 @@ inline static int CompareOpt(const void *a, const void *b, Compare op)
 
 static inline void AssignOpt(void *left, const void *right)
 {
+    assert(class_check(left, T(Object)));
     Object obj = left;
     THIS(obj).assign(right);
 }

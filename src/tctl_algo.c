@@ -12,12 +12,13 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
-#define Import ITERATOR, ANY
+#define Import ITERATOR, ANY, OBJECT
 #define ALLOC(size) ARP_MallocARelDtor(size, destroy)
 
 inline static int CompareOpt(const void *a, const void *b, void *op)
 {
     if (op == VAEND) {
+        assert(class_check(a, T(Object)));
         Object obj = (void*)a;
         return THIS(obj).cmp(b);
     } else {
@@ -29,6 +30,7 @@ inline static int CompareOpt(const void *a, const void *b, void *op)
 inline static bool EqualOpt(const void *a, const void *b, const void *op)
 {
     if (op == VAEND) {
+        assert(class_check(a, T(Object)));
         Object obj = (void*)a;
         return THIS(obj).equal(b);
     } else {
@@ -39,6 +41,7 @@ inline static bool EqualOpt(const void *a, const void *b, const void *op)
 
 static inline void AssignOpt(void *left, const void *right)
 {
+    assert(class_check(left, T(Object)));
     Object obj = left;
     THIS(obj).assign(right);
 }

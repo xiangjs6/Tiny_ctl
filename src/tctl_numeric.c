@@ -6,13 +6,14 @@
 #include "../include/auto_release_pool.h"
 #include "../include/tctl_arg.h"
 #include <stdarg.h>
-#define Import ITERATOR
+#define Import ITERATOR, OBJECT
 
 #define ALLOC(size) ARP_MallocARelDtor(size, destroy)
 
 static inline void *AddOpt(void *first, void *second, BinaryOperation op)
 {
     if (op == *(BinaryOperation*)&VAEND) {
+        assert(class_check(first, T(Object)));
         Object obj = first;
         return THIS(obj).add(second);
     } else {
@@ -23,6 +24,7 @@ static inline void *AddOpt(void *first, void *second, BinaryOperation op)
 static inline void *SubOpt(void *first, void *second, BinaryOperation op)
 {
 if (op == *(BinaryOperation*)&VAEND) {
+        assert(class_check(first, T(Object)));
         Object obj = first;
         return THIS(obj).sub(second);
     } else {
@@ -33,6 +35,7 @@ if (op == *(BinaryOperation*)&VAEND) {
 static inline void *MulOpt(void *first, void *second, BinaryOperation op)
 {
     if (op == *(BinaryOperation*)&VAEND) {
+        assert(class_check(first, T(Object)));
         Object obj = first;
         return THIS(obj).mul(second);
     } else {
@@ -42,6 +45,7 @@ static inline void *MulOpt(void *first, void *second, BinaryOperation op)
 
 static inline void AssignOpt(void *left, const void *right)
 {
+    assert(class_check(left, T(Object)));
     Object obj = left;
     THIS(obj).assign(right);
 }
