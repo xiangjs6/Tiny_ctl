@@ -84,12 +84,12 @@ int main(void)
     printf("%lld\n", ((Int)THIS(out_it).derefer())->val); // 6
 
     //count
-    printf("%u\n", count(THIS(iv).begin(), THIS(iv).end(), VA(val), VAEND)); // 3
+    printf("%u\n", count(THIS(iv).begin(), THIS(iv).end(), val, VAEND)); // 3
     printf("%u\n", count_if(THIS(iv).begin(), THIS(iv).end(), &less7)); // 9
 
     //find
     val->val = 4;
-    out_it = find(THIS(iv).begin(), THIS(iv).end(), VA(val), VAEND);
+    out_it = find(THIS(iv).begin(), THIS(iv).end(), val, VAEND);
     printf("%lld\n", ((Int)THIS(out_it).derefer())->val); // 4
     out_it = find_if(THIS(iv).begin(), THIS(iv).end(), &greater2);
     printf("%lld\n", ((Int)THIS(out_it).derefer())->val);// 3

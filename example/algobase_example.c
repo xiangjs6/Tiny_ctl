@@ -54,13 +54,13 @@ int main(void)
 
     //fill
     fill(THIS(iv1).begin(), THIS(iv1).end(), VA(9));
-    for (Iterator i = THIS(iv1).begin(); !THIS(i).equal(VA(THIS(iv1).end())); THIS(i).inc()) //9 9 9 9 9
+    for (Iterator i = THIS(iv1).begin(); !THIS(i).equal(THIS(iv1).end()); THIS(i).inc()) //9 9 9 9 9
         printf("%lld ", ((Int)THIS(i).derefer())->val);
     putchar('\n');
 
     //fill_n
     fill_n(THIS(iv1).begin(), VA(3), VA(7));
-    for (Iterator i = THIS(iv1).begin(); !THIS(i).equal(VA(THIS(iv1).end())); THIS(i).inc()) //7 7 7 9 9
+    for (Iterator i = THIS(iv1).begin(); !THIS(i).equal(THIS(iv1).end()); THIS(i).inc()) //7 7 7 9 9
         printf("%lld ", ((Int)THIS(i).derefer())->val);
     putchar('\n');
 
@@ -69,7 +69,7 @@ int main(void)
     Iterator ite2 = THIS(ite1).add(VA(3));
     iter_swap(ite1, ite2);
     printf("ite1:%lld ite2:%lld\n", ((Int)THIS(ite1).derefer())->val, ((Int)THIS(ite2).derefer())->val); //ite1:9 ite2:7
-    for (Iterator i = THIS(iv1).begin(); !THIS(i).equal(VA(THIS(iv1).end())); THIS(i).inc()) //9 7 7 7 9
+    for (Iterator i = THIS(iv1).begin(); !THIS(i).equal(THIS(iv1).end()); THIS(i).inc()) //9 7 7 7 9
         printf("%lld ", ((Int)THIS(i).derefer())->val);
     putchar('\n');
 
@@ -83,10 +83,10 @@ int main(void)
     ite2 = THIS(iv2).begin();
     swap(THIS(ite1).derefer(), THIS(ite2).derefer());
     printf("ite1:%lld ite2:%lld\n", ((Int)THIS(ite1).derefer())->val, ((Int)THIS(ite2).derefer())->val); //ite1:0 ite2:9
-    for (Iterator i = THIS(iv1).begin(); !THIS(i).equal(VA(THIS(iv1).end())); THIS(i).inc()) //0 7 7 7 9
+    for (Iterator i = THIS(iv1).begin(); !THIS(i).equal(THIS(iv1).end()); THIS(i).inc()) //0 7 7 7 9
         printf("%lld ", ((Int)THIS(i).derefer())->val);
     putchar('\n');
-    for (Iterator i = THIS(iv2).begin(); !THIS(i).equal(VA(THIS(iv2).end())); THIS(i).inc()) //9 1 2 3 4 5 6 7 8
+    for (Iterator i = THIS(iv2).begin(); !THIS(i).equal(THIS(iv2).end()); THIS(i).inc()) //9 1 2 3 4 5 6 7 8
         printf("%lld ", ((Int)THIS(i).derefer())->val);
     putchar('\n');
 

@@ -50,7 +50,7 @@ int main(void)
         printf("%lld ", ((Int)THIS(ite1).derefer())->val);
     putchar('\n');
     Any o = VA(ia[3]);
-    THIS(ite1).assign(VA(THIS(s).find(o)));
+    THIS(ite1).assign(THIS(s).find(o));
     if (!THIS(ite1).equal(ite2))
         printf("3 found\n");
     o = (void*)VA(ia[1]);

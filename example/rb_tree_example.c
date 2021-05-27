@@ -44,11 +44,11 @@ int main(void)
     //n = 1;
     //THIS(&tree).insert_equal(&n);
     Iterator it = THIS(tree).begin();
-    for (; !THIS(it).equal(VA(THIS(tree).end())); THIS(it).inc()) {
+    for (; !THIS(it).equal(THIS(tree).end()); THIS(it).inc()) {
         printf("%lld ", ((Int)THIS(it).derefer())->val);
     }
     putchar('\n');
-    for (THIS(it).dec(); !THIS(it).equal(VA(THIS(tree).end())); THIS(it).dec()) {
+    for (THIS(it).dec(); !THIS(it).equal(THIS(tree).end()); THIS(it).dec()) {
         printf("%lld ", ((Int)THIS(it).derefer())->val);
     }
     putchar('\n');
@@ -73,13 +73,13 @@ int main(void)
     THIS(tree).erase(f_it);
     n = 101;
     t = VA(n);
-    THIS(f_it).assign(VA(THIS(tree).find(t)));
+    THIS(f_it).assign(THIS(tree).find(t));
     THIS(tree).erase(f_it);
     n = 99;
     t = VA(n);
-    THIS(f_it).assign(VA(THIS(tree).find(t)));
+    THIS(f_it).assign(THIS(tree).find(t));
     printf("find:%lld\n", ((Int)THIS(f_it).derefer())->val);
-    for (THIS(it).assign(VA(THIS(tree).begin())); !THIS(it).equal(VA(THIS(tree).end())); THIS(it).inc()) {
+    for (THIS(it).assign(THIS(tree).begin()); !THIS(it).equal(THIS(tree).end()); THIS(it).inc()) {
         printf("%lld ", ((Int)THIS(it).derefer())->val);
     }
     putchar('\n');
@@ -91,7 +91,7 @@ int main(void)
     it = THIS(tree).begin();
     Iterator pre = THIS(tree).begin();
     printf("%lld ", ((Int)THIS(it).derefer())->val);
-    for (THIS(it).inc(); !THIS(it).equal(VA(THIS(tree).end())); THIS(it).inc(), THIS(pre).inc()) {
+    for (THIS(it).inc(); !THIS(it).equal(THIS(tree).end()); THIS(it).inc(), THIS(pre).inc()) {
         printf("%lld ", ((Int)THIS(it).derefer())->val);
         if (((Int)THIS(it).derefer())->val < ((Int)THIS(pre).derefer())->val) {
             puts("fuck bad!!!");
@@ -110,7 +110,7 @@ int main(void)
     it = THIS(t2).begin();
     pre = THIS(t2).begin();
     printf("%lld ", ((Int)THIS(it).derefer())->val);
-    for (THIS(it).inc(); !THIS(it).equal(VA(THIS(t2).end())); THIS(it).inc(), THIS(pre).inc()) {
+    for (THIS(it).inc(); !THIS(it).equal(THIS(t2).end()); THIS(it).inc(), THIS(pre).inc()) {
         printf("%lld ", ((Int)THIS(it).derefer())->val);
         if (((Int)THIS(it).derefer())->val < ((Int)THIS(pre).derefer())->val) {
             puts("fuck bad!!!");

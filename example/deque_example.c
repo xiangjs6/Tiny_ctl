@@ -95,7 +95,7 @@ int test_deque_2()
         THIS(v1).push_back(VA(30));
      
         printf("v1 =");
-        for (Iter = THIS(v1).begin(); !THIS(Iter).equal(VA(THIS(v1).end())); THIS(Iter).inc())
+        for (Iter = THIS(v1).begin(); !THIS(Iter).equal(THIS(v1).end()); THIS(Iter).inc())
             printf(" %lld", ((Int)THIS(Iter).derefer())->val);
         putchar('\n');
      
@@ -137,7 +137,7 @@ int test_deque_1()
         //std::deque<int> fifth(myints, myints + sizeof(myints) / sizeof(int));
 
         printf("The contents of fifth are:");
-        for (Iterator it = THIS(fourth).begin(); !THIS(it).equal(VA(THIS(fourth).end())); THIS(it).inc())
+        for (Iterator it = THIS(fourth).begin(); !THIS(it).equal(THIS(fourth).end()); THIS(it).inc())
             printf(" %lld", ((Int)THIS(it).derefer())->val); // 16 2 77 29
         putchar('\n');
     }
@@ -192,7 +192,7 @@ int test_deque_1()
             THIS(mydeque).push_back(VA(((Int)THIS(mydeque).back())->val - 1));
      
         printf("mydeque contains:");
-        for (Iterator it = THIS(mydeque).begin(); !THIS(it).equal(VA(THIS(mydeque).end())); THIS(it).inc())
+        for (Iterator it = THIS(mydeque).begin(); !THIS(it).equal(THIS(mydeque).end()); THIS(it).inc())
             printf(" %lld", ((Int)THIS(it).derefer())->val);
         putchar('\n');
         delete(mydeque);
@@ -205,7 +205,7 @@ int test_deque_1()
      
         printf("mydeque contains:");
      
-        for (Iterator it = THIS(mydeque).begin(); !THIS(it).equal(VA(THIS(mydeque).end())); THIS(it).inc())
+        for (Iterator it = THIS(mydeque).begin(); !THIS(it).equal(THIS(mydeque).end()); THIS(it).inc())
             printf(" %lld", ((Int)THIS(it).derefer())->val);
         putchar('\n');
         delete(mydeque);
@@ -232,7 +232,7 @@ int test_deque_1()
         THIS(mydeque).push_back(VA(300));
      
         printf("mydeque contains:");
-        for (Iterator it = THIS(mydeque).begin(); !THIS(it).equal(VA(THIS(mydeque).end())); THIS(it).inc())
+        for (Iterator it = THIS(mydeque).begin(); !THIS(it).equal(THIS(mydeque).end()); THIS(it).inc())
             printf(" %lld", ((Int)THIS(it).derefer())->val);
         putchar('\n');
      
@@ -241,7 +241,7 @@ int test_deque_1()
         THIS(mydeque).push_back(VA(2202));
      
         printf("mydeque contains:");
-        for (Iterator it = THIS(mydeque).begin(); !THIS(it).equal(VA(THIS(mydeque).end())); THIS(it).inc())
+        for (Iterator it = THIS(mydeque).begin(); !THIS(it).equal(THIS(mydeque).end()); THIS(it).inc())
             printf(" %lld", ((Int)THIS(it).derefer())->val);
         putchar('\n');
         delete(mydeque);
@@ -333,7 +333,7 @@ int test_deque_1()
         //mydeque.erase(mydeque.begin(), mydeque.begin() + 3);
      
         printf("mydeque contains:");
-        for (Iterator it = THIS(mydeque).begin(); !THIS(it).equal(VA(THIS(mydeque).end())); THIS(it).inc())
+        for (Iterator it = THIS(mydeque).begin(); !THIS(it).equal(THIS(mydeque).end()); THIS(it).inc())
             printf(" %lld", ((Int)THIS(it).derefer())->val);
         putchar('\n');
         delete(mydeque);
@@ -514,7 +514,7 @@ int test_deque_1()
         //THIS(mydeque).resize(8, 100);
         THIS(mydeque).resize(12);
      
-        for (Iterator it = THIS(mydeque).begin(); !THIS(it).equal(VA(THIS(mydeque).end())); THIS(it).inc())
+        for (Iterator it = THIS(mydeque).begin(); !THIS(it).equal(THIS(mydeque).end()); THIS(it).inc())
             printf(" %lld", ((Int)THIS(it).derefer())->val);
         putchar('\n');
         delete(mydeque);
@@ -543,12 +543,12 @@ int test_deque_1()
         THIS(foo).swap(bar);
      
         printf("foo contains:");
-        for (Iterator it = THIS(foo).begin(); !THIS(it).equal(VA(THIS(foo).end())); THIS(it).inc())
+        for (Iterator it = THIS(foo).begin(); !THIS(it).equal(THIS(foo).end()); THIS(it).inc())
             printf(" %lld", ((Int)THIS(it).derefer())->val);
         putchar('\n');
      
         printf("bar contains:");
-        for (Iterator it = THIS(bar).begin(); !THIS(it).equal(VA(THIS(bar).end())); THIS(it).inc())
+        for (Iterator it = THIS(bar).begin(); !THIS(it).equal(THIS(bar).end()); THIS(it).inc())
             printf(" %lld", ((Int)THIS(it).derefer())->val);
         putchar('\n');
     }

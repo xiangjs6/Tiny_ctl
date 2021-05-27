@@ -37,7 +37,7 @@ int main(void)
     THIS(l).insert(iter, VA(temp));
     THIS(iter).inc();
     THIS(iter).inc();
-    for (Iterator it = THIS(l).begin(); !THIS(it).equal(VA(THIS(l).end())); THIS(it).inc()) {
+    for (Iterator it = THIS(l).begin(); !THIS(it).equal(THIS(l).end()); THIS(it).inc()) {
         printf("%lld\n", ((Int)THIS(it).derefer())->val);
         //THIS(&l).insert(*it, &temp);
     }
@@ -45,7 +45,7 @@ int main(void)
     printf("it:%lld\n", ((Int)THIS(iter).derefer())->val);
     THIS(l).erase(iter);
     printf("first\n");
-    for (Iterator it = THIS(l).begin(); !THIS(it).equal(VA(THIS(l).end())); THIS(it).inc()) {
+    for (Iterator it = THIS(l).begin(); !THIS(it).equal(THIS(l).end()); THIS(it).inc()) {
         printf("%lld\n", ((Int)THIS(it).derefer())->val);
         //THIS(&l).insert(*it, &temp);
     }
@@ -53,7 +53,7 @@ int main(void)
     temp1 = 4;
     THIS(l).push_back(VA(temp1));
     printf("second\n");
-    for (Iterator it = THIS(l).begin(); !THIS(it).equal(VA(THIS(l).end())); THIS(it).inc()) {
+    for (Iterator it = THIS(l).begin(); !THIS(it).equal(THIS(l).end()); THIS(it).inc()) {
         printf("%lld\n", ((Int)THIS(it).derefer())->val);
     }
     THIS(l).unique();
@@ -61,7 +61,7 @@ int main(void)
     Iterator r_it = THIS(l).end();
     THIS(r_it).dec();
     printf("%lld\n", ((Int)THIS(r_it).derefer())->val);
-    for (; !THIS(r_it).equal(VA(THIS(l).end())); THIS(r_it).dec()) {
+    for (; !THIS(r_it).equal(THIS(l).end()); THIS(r_it).dec()) {
         printf("%lld\n", ((Int)THIS(r_it).derefer())->val);
     }
     List l2 = new(T(List), T(Int), VAEND);
@@ -70,12 +70,12 @@ int main(void)
         THIS(l2).push_back(VA(i));
     printf("splice\n");
     THIS(l).splice(THIS(l).begin(), l2, THIS(l2).begin(), THIS(l2).end(), VAEND);
-    for (Iterator it = THIS(l).begin(); !THIS(it).equal(VA(THIS(l).end())); THIS(it).inc()) {
+    for (Iterator it = THIS(l).begin(); !THIS(it).equal(THIS(l).end()); THIS(it).inc()) {
         printf("%lld\n", ((Int)THIS(it).derefer())->val);
     }
     printf("reverse\n");
     THIS(l).reverse();
-    for (Iterator it = THIS(l).begin(); !THIS(it).equal(VA(THIS(l).end())); THIS(it).inc()) {
+    for (Iterator it = THIS(l).begin(); !THIS(it).equal(THIS(l).end()); THIS(it).inc()) {
         printf("%lld\n", ((Int)THIS(it).derefer())->val);
     }
     printf("front%lld\n", ((Int)THIS(l).front())->val);
@@ -88,11 +88,11 @@ int main(void)
         THIS(l1).push_back(VA(i));
         THIS(l3).push_back(VA(i));
     }
-    for (Iterator it = THIS(l1).begin(); !THIS(it).equal(VA(THIS(l1).end())); THIS(it).inc())
+    for (Iterator it = THIS(l1).begin(); !THIS(it).equal(THIS(l1).end()); THIS(it).inc())
         printf("%lld\n", ((Int)THIS(it).derefer())->val);
     THIS(l1).merge(l3, cmp);
     printf("merge\n");
-    for (Iterator it = THIS(l1).begin(); !THIS(it).equal(VA(THIS(l1).end())); THIS(it).inc())
+    for (Iterator it = THIS(l1).begin(); !THIS(it).equal(THIS(l1).end()); THIS(it).inc())
         printf("%lld\n", ((Int)THIS(it).derefer())->val);
     printf("sort\n");
     THIS(l).clear();
@@ -101,7 +101,7 @@ int main(void)
         THIS(l).push_back(VA(temp));
     }
     THIS(l).sort(cmp);
-    for (Iterator it = THIS(l).begin(); !THIS(it).equal(VA(THIS(l).end())); THIS(it).inc()) {
+    for (Iterator it = THIS(l).begin(); !THIS(it).equal(THIS(l).end()); THIS(it).inc()) {
         printf("%lld\n", ((Int)THIS(it).derefer())->val);
     }
     for (int i = 1; i < 10000; i++) {
@@ -126,7 +126,7 @@ int main(void)
 
     List l5 = new(T(List), T(Int), VA(3), VA(4), VAEND);
     List l6 = new(T(List), T(Int), THIS(l5).begin(), THIS(l5).end(), VAEND);
-    for (Iterator it = THIS(l6).begin(); !THIS(it).equal(VA(THIS(l6).end())); THIS(it).inc()) {
+    for (Iterator it = THIS(l6).begin(); !THIS(it).equal(THIS(l6).end()); THIS(it).inc()) {
         printf("%lld\n", ((Int)THIS(it).derefer())->val);
     }
     delete(l5);
