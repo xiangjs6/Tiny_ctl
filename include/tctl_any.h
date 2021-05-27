@@ -2,6 +2,7 @@
 #define TCTL_ANY_H
 
 #include "tctl_metaclass.h"
+//POD必须是0，服务于VA宏的ANYONE参数
 enum TypeFlag {POD, OBJ, FUNC};
 
 typedef struct {
