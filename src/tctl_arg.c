@@ -74,11 +74,6 @@ void *_valueAux(int t, ...)
             ret = ARP_MallocARel(classSz(T(Any)));
             ret = construct(T(Any), ret, va_arg(ap, void*), FUNC, VAEND);
             break;
-        case 'P':
-            p_val = va_arg(ap, void*);
-            ret =ARP_MallocARel(classSz(T(Any)));
-            ret = construct(T(Any), ret, &p_val, POD, sizeof(void*), VAEND);
-            break;
         default:
             assert(0);
     }
