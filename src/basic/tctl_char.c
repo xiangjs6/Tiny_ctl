@@ -184,7 +184,7 @@ const void *_Char(void)
 
 void *to_Char(const char *p, const void *class)
 {
-    void *mem = ARP_MallocARel(classSz(T(Char)));
+    void *mem = ARP_MallocARelDtor(classSz(T(Char)), delete);
     Char c = construct(T(Char), mem, VAEND);
     c->val = *p;
     if (class != T(Char))

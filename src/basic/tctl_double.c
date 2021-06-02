@@ -174,7 +174,7 @@ const void *_Double(void)
 
 void *to_Double(const double *p, const void *class)
 {
-    void *mem = ARP_MallocARel(classSz(T(Double)));
+    void *mem = ARP_MallocARelDtor(classSz(T(Double)), delete);
     Double d = construct(T(Double), mem, VAEND);
     d->val = *p;
     if (class != T(Double))

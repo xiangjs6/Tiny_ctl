@@ -185,7 +185,7 @@ const void *_Int(void)
 
 void *to_Int(const long long *p, const void *class)
 {
-    void *mem = ARP_MallocARel(classSz(T(Int)));
+    void *mem = ARP_MallocARelDtor(classSz(T(Int)), delete);
     Int i = construct(T(Int), mem, VAEND);
     i->val = *p;
     if (class != T(Int))
