@@ -20,9 +20,8 @@ unsigned int ARP_GetPoolsCount(void);
 unsigned int ARP_Release(void *pMemLoc);
 //! increment reference count by 1
 void *ARP_Retain(void *pMemLoc);
-//! join and exit memory in release pool
+//! join memory in release pool
 int ARP_JoinARel(void *pMemLoc);
-int ARP_ExitARel(void *pMemLoc);
 //! allocate memory just like 'calloc' WITHOUT adding to current pool
 void *ARP_Calloc(size_t num, size_t size);
 void *ARP_Malloc(size_t len);
