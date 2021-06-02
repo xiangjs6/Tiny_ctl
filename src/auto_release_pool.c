@@ -4,6 +4,7 @@
 
 #include "../include/auto_release_pool.h"
 #include "../include/tctl_common.h"
+#include "../include/tctl_def.h"
 #include <pthread.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -17,7 +18,7 @@ struct mem_node {
     size_t size;
     dtorfunc_t dtor_func;
     char data[1];
-};
+} BYTE_ALIGNED;
 
 struct Rel_pool {
     struct Rel_pool * const pre_pool;
@@ -226,7 +227,7 @@ void *ARP_MallocDtor(size_t len, dtorfunc_t dtorFunc)
 {
     //struct mem_node *node = allocate(len + sizeof(struct mem_node));
     struct mem_node *node = malloc(len + sizeof(struct mem_node) - sizeof(char));
-    node->size = len + sizeof(struct mem_node);
+    node->size = len + sizeof(struct mem_node) - sizeof(char);
     node->dtor_func = dtorFunc;
     node->refCount = 1;
     return (*node).data;
